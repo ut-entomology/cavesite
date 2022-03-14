@@ -17,9 +17,9 @@ export interface UserRow {
 
 export interface LocationRow {
 	location_id: number;
+	continent_name: string;
+	country_name: string;
 	state_name: string;
-	continent: string;
-	country: string;
 	county_name: string | null;
 	location_name: string | null;
 	imprecise_latitude: number;
