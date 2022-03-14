@@ -1,7 +1,7 @@
-import type { UserRow } from './schema';
+import type { SiteUsersRow } from './schema';
 
-export class SiteUser implements UserRow {
-	userID: number;
+export class SiteUser implements SiteUsersRow {
+	userID = 0;
 	username: string;
 	passwordHash: string;
 	privileges: string;
@@ -10,8 +10,7 @@ export class SiteUser implements UserRow {
 	createdBy: number | null;
 	lastLogin: Date | null;
 
-	constructor(row: UserRow) {
-		this.userID = row.userID;
+	constructor(row: Omit<SiteUsersRow, 'userID'>) {
 		this.username = row.username;
 		this.passwordHash = row.passwordHash;
 		this.privileges = row.privileges;

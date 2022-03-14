@@ -4,7 +4,7 @@
  * Shared with the data importer tool.
  */
 
-export interface UserRow {
+export interface SiteUsersRow {
 	userID: number;
 	username: string;
 	passwordHash: string;
@@ -15,7 +15,7 @@ export interface UserRow {
 	lastLogin: Date | null;
 }
 
-export interface LocationRow {
+export interface PublicLocationsRow {
 	locationID: number;
 	continentName: string;
 	countryName: string;
@@ -34,11 +34,11 @@ export interface TaxaRow {
 	parentID: number | null;
 }
 
-export interface SpecimenRecordRow {
+export interface SpecimenRecordsRow {
 	catalogNumber: string;
 	occurrenceGUID: string;
 	taxonID: number | null;
-	collection_StartDate: Date | null;
+	collectionStartDate: Date | null;
 	collectionEndDate: Date | null;
 	verbatimDate: string | null;
 	locationID: number | null;
@@ -52,7 +52,7 @@ export interface SpecimenRecordRow {
 	stationFieldNumber: string | null;
 }
 
-export interface CoordinatesRow {
+export interface PrivateCoordinatesRow {
 	locationID: number;
 	suppliedBy: number;
 	preciseLatitude: number;
