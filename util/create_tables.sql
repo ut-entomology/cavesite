@@ -26,7 +26,6 @@ create table if not exists public_locations (
 );
 
 create table if not exists taxa (
-    -- TBD: I could use ID uniques values from GBIF
     taxon_id serial primary key, -- locally generated
      -- GBIF kingdom, phylum, class, order, family, genus, specificEpithet, infraspecificEpithet
     taxon_name varchar (128) not null, 
