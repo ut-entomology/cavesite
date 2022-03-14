@@ -1,6 +1,6 @@
 -- PostgreSQL
 
-create table if not exists site_users (
+create table site_users (
     -- None of these fields are in GBIF.
     userID serial primary key, -- locally generated
     username varchar (50) unique not null,
@@ -13,7 +13,7 @@ create table if not exists site_users (
     foreign key(createdBy) references site_users(userID)
 );
 
-create table if not exists taxa (
+create table taxa (
     taxonID serial primary key, -- locally generated
      -- GBIF kingdom, phylum, class, order, family, genus, specificEpithet, infraspecificEpithet
     taxonName varchar (128) not null, 
@@ -23,7 +23,7 @@ create table if not exists taxa (
     foreign key(parentID) references taxa(taxonID)
 );
 
-create table if not exists public_locations (
+create table public_locations (
     locationID serial primary key, -- locally generated
     continentName varchar (64) not null, -- GBIF continent
     countryName varchar (128) not null, -- GBIF country
@@ -34,7 +34,7 @@ create table if not exists public_locations (
     impreciseLongitude decimal not null -- GBIF decimalLatitude
 );
 
-create table if not exists specimen_records (
+create table specimen_records (
     catalogNumber varchar (32) unique not null, -- GBIF catalogNumber
     occurrenceGUID varchar (128) unique, -- GBIF occurrenceID (specify co.GUID)
     taxonID integer, -- locally generated
@@ -54,7 +54,7 @@ create table if not exists specimen_records (
     foreign key(locationID) references public_locations(locationID)
 );
 
-create table if not exists private_coordinates (
+create table private_coordinates (
     -- Users will be supplying this data, not GBIF.
     locationID integer primary key,
     suppliedBy integer,
