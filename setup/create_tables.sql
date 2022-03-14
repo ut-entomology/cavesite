@@ -16,9 +16,9 @@ create table if not exists site_users (
 
 create table if not exists public_locations (
     location_id serial primary key, -- locally generated
+    continent_name varchar (64) not null, -- GBIF continent
+    country_name varchar (128) not null, -- GBIF country
     state_name varchar (128) not null, -- GBIF stateProvince
-    continent varchar (64) not null, -- GBIF continent
-    country varchar (128) not null, -- GBIF country
     county_name varchar (128), -- GBIF county
     location_name varchar (512), -- GBIF locality (specify LocalityName)
     imprecise_latitude decimal not null, -- GBIF decimalLongitude
