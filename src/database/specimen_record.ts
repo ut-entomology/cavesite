@@ -39,14 +39,14 @@ export class SpecimenRecord implements SpecimenRecordsRow {
 
 	async save(db: Client): Promise<void> {
 		await db.query(
-			`insert into speciment_records(
+			`insert into specimen_records(
 				catalogNumber, occurrenceGUID, taxonID,
 				collectionStartDate, collectionEndDate, verbatimDate,
 				locationID, collectors, determinationDate, determiners,
 				collectionRemarks, occurrenceRemarks, determinationRemarks,
 				typeStatus, stationFieldNumber
         ) values (
-					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14 $15
+					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
         ) returning locationID`,
 			[
 				this.catalogNumber,
