@@ -15,9 +15,10 @@ create table site_users (
 
 create table taxa (
     taxonID serial primary key, -- locally generated
+    authorlessUniqueName varchar (256) unique not null, -- locally constructed
      -- GBIF kingdom, phylum, class, order, family, genus, specificEpithet, infraspecificEpithet
-    taxonName varchar (128) not null, 
     scientificName varchar (256), -- GBIF scientificName
+    taxonName varchar (128) not null, 
     taxonRank varchar (50) not null, -- GBIF taxonRank
     parentID integer, -- locally generated
     foreign key(parentID) references taxa(taxonID)
@@ -46,7 +47,7 @@ create table specimen_records (
     determinationDate date, -- GBIF dateIdentified
     determiners text, -- GBIF identifiedBy
     collectionRemarks text, -- GBIF eventRemarks (collecting event/info remarks/habitat notes)
-    occurrenceRemarks text, -- collection object remarks
+    occurrenceRemarks text, -- GBIF occurrenceRemarks (collection object remarks)
     determinationRemarks text, -- GBIF identificationRemarks
     typeStatus varchar (50), -- GBIF typeStatus
     stationFieldNumber varchar (50), -- GBIF fieldNumber
