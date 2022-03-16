@@ -7,7 +7,7 @@ import { Taxon, TaxonRank } from './taxon';
 
 let db: Client;
 
-test.describe('creating sequentially dependent taxa', () => {
+test.describe('sequentially dependent taxa tests', () => {
   // Each of these tests depends on the prior tests, so run all as a unit.
 
   test.beforeAll(async () => {

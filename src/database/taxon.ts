@@ -8,17 +8,7 @@ import type { Client } from 'pg';
 import type { DataOf } from '../util/type_util';
 import { toCamelRow } from '../util/db_util';
 
-export interface TaxonomicPath {
-  kingdom: string;
-  phylum?: string;
-  class?: string;
-  order?: string;
-  family?: string;
-  genus?: string;
-  specificEpithet?: string;
-  infraspecificEpithet?: string;
-  scientificName: string;
-}
+export type TaxonData = DataOf<Taxon>;
 
 export enum TaxonRank {
   Kingdom = 'kingdom',
@@ -31,7 +21,17 @@ export enum TaxonRank {
   Subspecies = 'subspecies'
 }
 
-export type TaxonData = DataOf<Taxon>;
+export interface TaxonomicPath {
+  kingdom: string;
+  phylum?: string;
+  class?: string;
+  order?: string;
+  family?: string;
+  genus?: string;
+  specificEpithet?: string;
+  infraspecificEpithet?: string;
+  scientificName: string;
+}
 
 interface AncestorInfo {
   rank: TaxonRank;
@@ -59,11 +59,14 @@ export class Taxon {
     this.parentID = row.parentID;
   }
 
+  //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
+
   async save(db: Client): Promise<number> {
     if (this.taxonID === 0) {
       const result = await db.query(
         `insert into taxa(
-            taxon_name, authorless_unique_name, scientific_name, taxon_rank, parent_id
+            taxon_name, authorless_unique_name,
+            scientific_name, taxon_rank, parent_id
           ) values ($1, $2, $3, $4, $5) returning taxon_id`,
         [
           this.taxonName,
@@ -76,8 +79,10 @@ export class Taxon {
       this.taxonID = result.rows[0].taxon_id;
     } else {
       const result = await db.query(
-        `update taxa set taxon_name=$1, authorless_unique_name=$2, scientific_name=$3,
-          taxon_rank=$4, parent_id=$5 where taxon_id=$6`,
+        `update taxa
+            set taxon_name=$1, authorless_unique_name=$2,
+            scientific_name=$3, taxon_rank=$4, parent_id=$5
+          where taxon_id=$6`,
         [
           this.taxonName,
           this.authorlessUniqueName,
@@ -228,7 +233,7 @@ export class Taxon {
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
-  static async _createMissingTaxa(
+  private static async _createMissingTaxa(
     db: Client,
     ancestors: AncestorInfo[],
     nearestAncestor: Taxon,
