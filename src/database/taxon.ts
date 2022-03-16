@@ -1,3 +1,8 @@
+/**
+ * Class Taxon represents a taxon of the database taxa table and'
+ * provides access to the table.
+ */
+
 import type { Client } from 'pg';
 
 import type { DataOf } from '../util/type_util';
