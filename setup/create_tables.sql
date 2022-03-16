@@ -17,9 +17,9 @@ create table taxa (
     taxon_id serial primary key, -- locally generated
     authorless_unique_name varchar (256) unique not null, -- locally constructed
      -- GBIF kingdom, phylum, class, order, family, genus, specificEpithet, infraspecificEpithet
-    scientific_name varchar (256), -- GBIF scientificName
-    taxon_name varchar (128) not null, 
     taxon_rank varchar (50) not null, -- GBIF taxonRank
+    taxon_name varchar (128) not null, 
+    scientific_name varchar (256), -- GBIF scientificName
     parent_id integer, -- locally generated
     foreign key(parent_id) references taxa(taxon_id)
 );

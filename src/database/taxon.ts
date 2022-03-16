@@ -5,15 +5,14 @@ import { toCamelRow } from '../util/db_util';
 
 export interface TaxonomicPath {
   kingdom: string;
-  phylum: string | null;
-  class: string | null;
-  order: string | null;
-  family: string | null;
-  genus: string | null;
-  specificEpithet: string | null;
-  infraspecificEpithet: string | null;
-  scientificName: string | null;
-  typeStatus: string | null;
+  phylum?: string;
+  class?: string;
+  order?: string;
+  family?: string;
+  genus?: string;
+  specificEpithet?: string;
+  infraspecificEpithet?: string;
+  scientificName: string;
 }
 
 export enum TaxonRank {
@@ -33,7 +32,7 @@ interface AncestorInfo {
   rank: TaxonRank;
   name: string;
   uniqueName: string;
-  scientificName: string | null;
+  scientificName: string | null; // null => not retrieved from GBIF
 }
 
 export class Taxon {
@@ -41,7 +40,7 @@ export class Taxon {
   taxonRank: TaxonRank;
   taxonName: string;
   authorlessUniqueName: string;
-  scientificName: string | null;
+  scientificName: string | null; // null => not retrieved from GBIF
   parentID: number | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
@@ -53,6 +52,41 @@ export class Taxon {
     this.authorlessUniqueName = row.authorlessUniqueName;
     this.scientificName = row.scientificName;
     this.parentID = row.parentID;
+  }
+
+  async save(db: Client): Promise<number> {
+    if (this.taxonID === 0) {
+      const result = await db.query(
+        `insert into taxa(
+            taxon_name, authorless_unique_name, scientific_name, taxon_rank, parent_id
+          ) values ($1, $2, $3, $4, $5) returning taxon_id`,
+        [
+          this.taxonName,
+          this.authorlessUniqueName,
+          this.scientificName,
+          this.taxonRank,
+          this.parentID
+        ]
+      );
+      this.taxonID = result.rows[0].taxon_id;
+    } else {
+      const result = await db.query(
+        `update taxa set taxon_name=$1, authorless_unique_name=$2, scientific_name=$3,
+          taxon_rank=$4, parent_id=$5 where taxon_id=$6`,
+        [
+          this.taxonName,
+          this.authorlessUniqueName,
+          this.scientificName,
+          this.taxonRank,
+          this.parentID,
+          this.taxonID
+        ]
+      );
+      if (result.rowCount != 1) {
+        throw Error(`Failed to update taxon ID ${this.taxonID}`);
+      }
+    }
+    return this.taxonID;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -71,26 +105,8 @@ export class Taxon {
         data
       )
     );
-    await taxon._save(db);
+    await taxon.save(db);
     return taxon;
-  }
-
-  static async createMissingTaxa(
-    db: Client,
-    ancestors: AncestorInfo[],
-    nearestAncestor: Taxon,
-    nearestAncestorIndex: number
-  ): Promise<Taxon> {
-    while (++nearestAncestorIndex < ancestors.length) {
-      const ancestorInfo = ancestors[nearestAncestorIndex];
-      nearestAncestor = await Taxon.create(db, ancestorInfo.uniqueName, {
-        taxonRank: ancestorInfo.rank,
-        taxonName: ancestorInfo.name,
-        scientificName: ancestorInfo.scientificName,
-        parentID: nearestAncestor.taxonID
-      });
-    }
-    return nearestAncestor;
   }
 
   static async getByID(db: Client, taxonID: number): Promise<Taxon | null> {
@@ -197,7 +213,7 @@ export class Taxon {
       });
       nearestAncestorIndex = 0;
     }
-    return await Taxon.createMissingTaxa(
+    return await Taxon._createMissingTaxa(
       db,
       ancestors,
       nearestAncestor,
@@ -206,6 +222,24 @@ export class Taxon {
   }
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
+
+  static async _createMissingTaxa(
+    db: Client,
+    ancestors: AncestorInfo[],
+    nearestAncestor: Taxon,
+    nearestAncestorIndex: number
+  ): Promise<Taxon> {
+    while (++nearestAncestorIndex < ancestors.length) {
+      const ancestorInfo = ancestors[nearestAncestorIndex];
+      nearestAncestor = await Taxon.create(db, ancestorInfo.uniqueName, {
+        taxonRank: ancestorInfo.rank,
+        taxonName: ancestorInfo.name,
+        scientificName: ancestorInfo.scientificName,
+        parentID: nearestAncestor.taxonID
+      });
+    }
+    return nearestAncestor;
+  }
 
   private static async _getNearestAncestor(
     db: Client,
@@ -223,23 +257,6 @@ export class Taxon {
       return [null, -1];
     }
     return Taxon._getNearestAncestor(db, ancestors, ancestorIndex - 1);
-  }
-
-  private async _save(db: Client): Promise<number> {
-    const result = await db.query(
-      `insert into taxa(
-          taxon_name, authorless_unique_name, scientific_name, taxon_rank, parent_id
-        ) values ($1, $2, $3, $4, $5) returning taxon_id`,
-      [
-        this.taxonName,
-        this.authorlessUniqueName,
-        this.scientificName,
-        this.taxonRank,
-        this.parentID
-      ]
-    );
-    this.taxonID = result.rows[0].taxon_id;
-    return this.taxonID;
   }
 
   private static _toAuthorlessUnique(path: TaxonomicPath): string {
