@@ -1,6 +1,7 @@
 /**
- * Class Taxon represents a taxon of the database taxa table and'
- * provides access to the table.
+ * Class Taxon represents a taxon of the database taxa table and
+ * provides access to the table. The purpose of this table is to
+ * provide easy-access to the taxonomic hierarchy.
  */
 
 import type { Client } from 'pg';
