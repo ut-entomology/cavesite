@@ -1,10 +1,12 @@
 import type { Client } from 'pg';
 
 import type { DataOf } from '../util/type_util';
+import { toCamelRow } from '../util/db_util';
 
 export interface TaxonomicPath {
   kingdom: string;
   phylum: string | null;
+  class: string | null;
   order: string | null;
   family: string | null;
   genus: string | null;
@@ -17,6 +19,7 @@ export interface TaxonomicPath {
 export enum TaxonRank {
   Kingdom = 'kingdom',
   Phylum = 'phylum',
+  Class = 'class',
   Order = 'order',
   Family = 'family',
   Genus = 'genus',
@@ -62,13 +65,13 @@ export class Taxon {
     const taxon = new Taxon(
       Object.assign(
         {
-          taxonID: 0,
+          taxonID: 0 /* DB will assign a value */,
           authorlessUniqueName: uniqueName
         },
         data
       )
     );
-    taxon.taxonID = await taxon._save(db);
+    await taxon._save(db);
     return taxon;
   }
 
@@ -91,15 +94,16 @@ export class Taxon {
   }
 
   static async getByID(db: Client, taxonID: number): Promise<Taxon | null> {
-    const result = await db.query(`select * from taxa where taxonID=$1`, [taxonID]);
-    return result.rows.length > 0 ? new Taxon(result.rows[0]) : null;
+    const result = await db.query(`select * from taxa where taxon_id=$1`, [taxonID]);
+    return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
   static async getByUniqueName(db: Client, uniqueName: string): Promise<Taxon | null> {
-    const result = await db.query(`select * from taxa where authorlessUnique=$1`, [
-      uniqueName
-    ]);
-    return result.rows.length > 0 ? new Taxon(result.rows[0]) : null;
+    const result = await db.query(
+      `select * from taxa where authorless_unique_name=$1`,
+      [uniqueName]
+    );
+    return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
   static async getOrCreate(db: Client, path: TaxonomicPath): Promise<Taxon> {
@@ -124,6 +128,14 @@ export class Taxon {
         rank: TaxonRank.Phylum,
         name: path.phylum,
         uniqueName: path.phylum,
+        scientificName: path.class ? null : path.scientificName
+      });
+    }
+    if (path.class) {
+      ancestors.push({
+        rank: TaxonRank.Class,
+        name: path.class,
+        uniqueName: path.class,
         scientificName: path.order ? null : path.scientificName
       });
     }
@@ -215,11 +227,18 @@ export class Taxon {
 
   private async _save(db: Client): Promise<number> {
     const result = await db.query(
-      `insert into taxa(taxonName, scientificName, taxonRank, parentID)
-        values ($1, $2, $3, $4) returning taxonID`,
-      [this.taxonName, this.scientificName, this.taxonRank, this.parentID]
+      `insert into taxa(
+          taxon_name, authorless_unique_name, scientific_name, taxon_rank, parent_id
+        ) values ($1, $2, $3, $4, $5) returning taxon_id`,
+      [
+        this.taxonName,
+        this.authorlessUniqueName,
+        this.scientificName,
+        this.taxonRank,
+        this.parentID
+      ]
     );
-    this.taxonID = result.rows[0].taxonID;
+    this.taxonID = result.rows[0].taxon_id;
     return this.taxonID;
   }
 
@@ -233,6 +252,7 @@ export class Taxon {
     if (path.genus) return path.genus;
     if (path.family) return path.family;
     if (path.order) return path.order;
+    if (path.class) return path.class;
     if (path.phylum) return path.phylum;
     return path.kingdom;
   }
