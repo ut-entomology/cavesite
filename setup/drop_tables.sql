@@ -2,6 +2,6 @@
 
 drop table private_coordinates;
 drop table specimens;
-drop table public_locations;
+drop table locations;
 drop table taxa;
 drop table users;
