@@ -22,7 +22,7 @@ export enum TaxonRank {
   Subspecies = 'subspecies'
 }
 
-export interface TaxonomicPath {
+export interface TaxonPath {
   kingdom: string;
   phylum?: string;
   class?: string;
@@ -133,7 +133,7 @@ export class Taxon {
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
-  static async getOrCreate(db: Client, path: TaxonomicPath): Promise<Taxon> {
+  static async getOrCreate(db: Client, path: TaxonPath): Promise<Taxon> {
     // Return the taxon if it already exists.
 
     const uniqueName = Taxon._toAuthorlessUnique(path);
@@ -270,7 +270,7 @@ export class Taxon {
     return Taxon._getNearestAncestor(db, ancestors, ancestorIndex - 1);
   }
 
-  private static _toAuthorlessUnique(path: TaxonomicPath): string {
+  private static _toAuthorlessUnique(path: TaxonPath): string {
     if (path.infraspecificEpithet) {
       return `${path.genus} ${path.specificEpithet} ${path.infraspecificEpithet}`;
     }
