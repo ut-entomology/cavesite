@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import type { Client } from 'pg';
 
 import { initTestDatabase } from '../util/test_util';
-import type { TaxonData } from './taxon';
 import { Taxon, TaxonRank } from './taxon';
 
 let db: Client;
@@ -16,32 +15,36 @@ test.describe('sequentially dependent taxa tests', () => {
 
   test('adding kingdom taxon', async () => {
     const taxonName = 'Animalia';
-    const expectedTaxon = {
+    const sourceTaxon = {
       taxonRank: TaxonRank.Kingdom,
       taxonName,
-      authorlessUniqueName: taxonName,
       scientificName: taxonName,
-      parentID: null
+      parentID: null,
+      parentIDSeries: null,
+      parentNameSeries: null
     };
-    const createdTaxon = await Taxon.create(db, taxonName, expectedTaxon);
-    verifyTaxon(createdTaxon, expectedTaxon, 1);
+    const expectedTaxon = Object.assign({ taxonID: 1 }, sourceTaxon);
+    const createdTaxon = await Taxon.create(db, null, null, sourceTaxon);
+    expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
-    verifyTaxon(readTaxon, expectedTaxon, 1);
+    expect(readTaxon).toEqual(expectedTaxon);
   });
 
   test('adding phylum of existing kingdom', async () => {
     const taxonName = 'Arthropoda';
-    const expectedTaxon = {
+    const sourceTaxon = {
       taxonRank: TaxonRank.Phylum,
       taxonName,
-      authorlessUniqueName: taxonName,
       scientificName: taxonName,
-      parentID: 1
+      parentID: 1,
+      parentIDSeries: '1',
+      parentNameSeries: 'Animalia'
     };
-    const createdTaxon = await Taxon.create(db, taxonName, expectedTaxon);
-    verifyTaxon(createdTaxon, expectedTaxon, 2);
+    const expectedTaxon = Object.assign({ taxonID: 2 }, sourceTaxon);
+    const createdTaxon = await Taxon.create(db, 'Animalia', '1', sourceTaxon);
+    expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
-    verifyTaxon(readTaxon, expectedTaxon, 2);
+    expect(readTaxon).toEqual(expectedTaxon);
   });
 
   test('getOrCreate() gets an existing taxon', async () => {
@@ -68,9 +71,10 @@ test.describe('sequentially dependent taxa tests', () => {
       taxonID: 3,
       taxonRank: TaxonRank.Class,
       taxonName,
-      authorlessUniqueName: taxonName,
       scientificName: taxonName,
-      parentID: 2
+      parentID: 2,
+      parentIDSeries: '1,2',
+      parentNameSeries: 'Animalia|Arthropoda'
     });
   });
 
@@ -90,34 +94,38 @@ test.describe('sequentially dependent taxa tests', () => {
       taxonID: 4,
       taxonRank: TaxonRank.Order,
       taxonName: 'Araneae',
-      authorlessUniqueName: 'Araneae',
       scientificName: null,
-      parentID: 3
+      parentID: 3,
+      parentIDSeries: '1,2,3',
+      parentNameSeries: 'Animalia|Arthropoda|Arachnida'
     });
     expect(await Taxon.getByID(db, 5)).toEqual({
       taxonID: 5,
       taxonRank: TaxonRank.Family,
       taxonName: 'Thomisidae',
-      authorlessUniqueName: 'Thomisidae',
       scientificName: null,
-      parentID: 4
+      parentID: 4,
+      parentIDSeries: '1,2,3,4',
+      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae'
     });
     expect(await Taxon.getByID(db, 6)).toEqual({
       taxonID: 6,
       taxonRank: TaxonRank.Genus,
       taxonName: 'Mecaphesa',
-      authorlessUniqueName: 'Mecaphesa',
       scientificName: null,
-      parentID: 5
+      parentID: 5,
+      parentIDSeries: '1,2,3,4,5',
+      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae'
     });
     const readTaxon = await Taxon.getByID(db, 7);
     expect(readTaxon).toEqual({
       taxonID: 7,
       taxonRank: TaxonRank.Species,
       taxonName,
-      authorlessUniqueName: 'Mecaphesa dubia',
       scientificName: 'Mecaphesa dubia (Author)',
-      parentID: 6
+      parentID: 6,
+      parentIDSeries: '1,2,3,4,5,6',
+      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa'
     });
     expect(createdTaxon).toEqual(readTaxon);
   });
@@ -138,47 +146,42 @@ test.describe('sequentially dependent taxa tests', () => {
       taxonID: 8,
       taxonRank: TaxonRank.Family,
       taxonName: 'Philodromidae',
-      authorlessUniqueName: 'Philodromidae',
       scientificName: null,
-      parentID: 4
+      parentID: 4,
+      parentIDSeries: '1,2,3,4',
+      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae'
     });
     expect(await Taxon.getByID(db, 9)).toEqual({
       taxonID: 9,
       taxonRank: TaxonRank.Genus,
       taxonName: 'Philodromus',
-      authorlessUniqueName: 'Philodromus',
       scientificName: null,
-      parentID: 8
+      parentID: 8,
+      parentIDSeries: '1,2,3,4,8',
+      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae'
     });
     expect(await Taxon.getByID(db, 10)).toEqual({
       taxonID: 10,
       taxonRank: TaxonRank.Species,
       taxonName: 'rufus',
-      authorlessUniqueName: 'Philodromus rufus',
       scientificName: null,
-      parentID: 9
+      parentID: 9,
+      parentIDSeries: '1,2,3,4,8,9',
+      parentNameSeries:
+        'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus'
     });
     const readTaxon = await Taxon.getByID(db, 11);
     expect(readTaxon).toEqual({
       taxonID: 11,
       taxonRank: TaxonRank.Subspecies,
       taxonName: 'jenningsi',
-      authorlessUniqueName: 'Philodromus rufus jenningsi',
       scientificName: 'Philodromus rufus jenningsi Author',
-      parentID: 10
+      parentID: 10,
+      parentIDSeries: '1,2,3,4,8,9,10',
+      parentNameSeries:
+        'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus|rufus'
     });
     expect(createdTaxon).toEqual(readTaxon);
-  });
-
-  test('retrieving taxa by authorless unique name', async () => {
-    let taxon = await Taxon.getByUniqueName(db, 'Arthropoda');
-    expect(taxon?.taxonID).toEqual(2);
-    taxon = await Taxon.getByUniqueName(db, 'Arachnida');
-    expect(taxon?.taxonID).toEqual(3);
-    taxon = await Taxon.getByUniqueName(db, 'Mecaphesa');
-    expect(taxon?.taxonID).toEqual(6);
-    taxon = await Taxon.getByUniqueName(db, 'Mecaphesa dubia');
-    expect(taxon?.taxonID).toEqual(7);
   });
 
   test('providing the scientific name of an existing taxon', async () => {
@@ -194,20 +197,3 @@ test.describe('sequentially dependent taxa tests', () => {
     await db.end();
   });
 });
-
-function verifyTaxon(
-  actualTaxon: Taxon | null,
-  expectedTaxon: Omit<TaxonData, 'taxonID'>,
-  expectedID: number
-): void {
-  if (actualTaxon == null) {
-    test.fail(true, `Taxon ${JSON.stringify(actualTaxon)} is not null`);
-    return;
-  }
-  expect(actualTaxon.taxonID).toEqual(expectedID);
-  expect(actualTaxon.taxonRank).toEqual(expectedTaxon.taxonRank);
-  expect(actualTaxon.taxonName).toEqual(expectedTaxon.taxonName);
-  expect(actualTaxon.authorlessUniqueName).toEqual(expectedTaxon.authorlessUniqueName);
-  expect(actualTaxon.scientificName).toEqual(expectedTaxon.scientificName);
-  expect(actualTaxon.parentID).toEqual(expectedTaxon.parentID);
-}

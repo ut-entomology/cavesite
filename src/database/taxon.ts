@@ -7,7 +7,7 @@
 import type { Client } from 'pg';
 
 import type { DataOf } from '../util/type_util';
-import { toCamelRow } from '../util/db_util';
+import { pgQuery, toCamelRow } from '../util/pg_util';
 
 export type TaxonData = DataOf<Taxon>;
 
@@ -22,7 +22,18 @@ export enum TaxonRank {
   Subspecies = 'subspecies'
 }
 
-export interface TaxonPath {
+const orderedRanks = [
+  TaxonRank.Kingdom,
+  TaxonRank.Phylum,
+  TaxonRank.Class,
+  TaxonRank.Order,
+  TaxonRank.Family,
+  TaxonRank.Genus,
+  TaxonRank.Species,
+  TaxonRank.Subspecies
+];
+
+export interface TaxonSource {
   kingdom: string;
   phylum?: string;
   class?: string;
@@ -34,20 +45,21 @@ export interface TaxonPath {
   scientificName: string;
 }
 
-interface AncestorInfo {
-  rank: TaxonRank;
-  name: string;
-  uniqueName: string;
+interface TaxonSpec {
+  taxonRank: TaxonRank;
+  taxonName: string;
   scientificName: string | null; // null => not retrieved from GBIF
+  parentNameSeries: string | null;
 }
 
 export class Taxon {
   taxonID = 0;
   taxonRank: TaxonRank;
   taxonName: string;
-  authorlessUniqueName: string;
   scientificName: string | null; // null => not retrieved from GBIF
   parentID: number | null;
+  parentIDSeries: string | null;
+  parentNameSeries: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -55,41 +67,46 @@ export class Taxon {
     this.taxonID = row.taxonID;
     this.taxonRank = row.taxonRank;
     this.taxonName = row.taxonName;
-    this.authorlessUniqueName = row.authorlessUniqueName;
     this.scientificName = row.scientificName;
     this.parentID = row.parentID;
+    this.parentIDSeries = row.parentIDSeries;
+    this.parentNameSeries = row.parentNameSeries;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
 
   async save(db: Client): Promise<number> {
     if (this.taxonID === 0) {
-      const result = await db.query(
+      const result = await pgQuery(
+        db,
         `insert into taxa(
-            taxon_name, authorless_unique_name,
-            scientific_name, taxon_rank, parent_id
-          ) values ($1, $2, $3, $4, $5) returning taxon_id`,
+            taxon_rank, taxon_name, scientific_name,
+            parent_id, parent_id_series, parent_name_series
+          ) values ($1, $2, $3, $4, $5, $6) returning taxon_id`,
         [
-          this.taxonName,
-          this.authorlessUniqueName,
-          this.scientificName,
           this.taxonRank,
-          this.parentID
+          this.taxonName,
+          this.scientificName,
+          this.parentID,
+          this.parentIDSeries,
+          this.parentNameSeries
         ]
       );
       this.taxonID = result.rows[0].taxon_id;
     } else {
-      const result = await db.query(
-        `update taxa
-            set taxon_name=$1, authorless_unique_name=$2,
-            scientific_name=$3, taxon_rank=$4, parent_id=$5
-          where taxon_id=$6`,
+      const result = await pgQuery(
+        db,
+        `update taxa set
+            taxon_rank=$1, taxon_name=$2, scientific_name=$3,
+            parent_id=$4, parent_id_series=$5, parent_name_series=$6
+          where taxon_id=$7`,
         [
-          this.taxonName,
-          this.authorlessUniqueName,
-          this.scientificName,
           this.taxonRank,
+          this.taxonName,
+          this.scientificName,
           this.parentID,
+          this.parentIDSeries,
+          this.parentNameSeries,
           this.taxonID
         ]
       );
@@ -104,14 +121,16 @@ export class Taxon {
 
   static async create(
     db: Client,
-    uniqueName: string,
-    data: Omit<TaxonData, 'taxonID' | 'authorlessUniqueName'>
+    parentNameSeries: string | null,
+    parentIDSeries: string | null,
+    data: Omit<TaxonData, 'taxonID' | 'parentIDSeries' | 'parentNameSeries'>
   ): Promise<Taxon> {
     const taxon = new Taxon(
       Object.assign(
         {
           taxonID: 0 /* DB will assign a value */,
-          authorlessUniqueName: uniqueName
+          parentNameSeries,
+          parentIDSeries
         },
         data
       )
@@ -121,171 +140,122 @@ export class Taxon {
   }
 
   static async getByID(db: Client, taxonID: number): Promise<Taxon | null> {
-    const result = await db.query(`select * from taxa where taxon_id=$1`, [taxonID]);
+    const result = await pgQuery(db, `select * from taxa where taxon_id=$1`, [taxonID]);
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
-  static async getByUniqueName(db: Client, uniqueName: string): Promise<Taxon | null> {
-    const result = await db.query(
-      `select * from taxa where authorless_unique_name=$1`,
-      [uniqueName]
-    );
-    return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
-  }
-
-  static async getOrCreate(db: Client, path: TaxonPath): Promise<Taxon> {
+  static async getOrCreate(db: Client, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 
-    const uniqueName = Taxon._toAuthorlessUnique(path);
-    let taxon = await Taxon.getByUniqueName(db, uniqueName);
+    const [parentTaxa, taxonName] = Taxon._parseTaxonSpec(source);
+    let taxon = await Taxon._getByNameSeries(db, parentTaxa.join('|'), taxonName);
     if (taxon) return taxon;
 
-    // If the taxon doesn't exist yet, create its ancestors, highest ancestor
-    // first, one by one, until reaching the present taxon and creating it too.
+    // If the taxon doesn't exist yet, create specs for it and all its
+    // ancestor taxa, highest ancestor taxon first.
 
-    const ancestors: AncestorInfo[] = [];
-    ancestors.push({
-      rank: TaxonRank.Kingdom,
-      name: path.kingdom,
-      uniqueName: path.kingdom,
-      scientificName: path.phylum ? null : path.scientificName
-    });
-    if (path.phylum) {
-      ancestors.push({
-        rank: TaxonRank.Phylum,
-        name: path.phylum,
-        uniqueName: path.phylum,
-        scientificName: path.class ? null : path.scientificName
+    const specs: TaxonSpec[] = [];
+    let parentNameSeries: string | null = null;
+    for (let i = 0; i < parentTaxa.length; ++i) {
+      const ancestorName = parentTaxa[i];
+      specs.push({
+        taxonRank: orderedRanks[i],
+        taxonName: ancestorName,
+        scientificName: null,
+        parentNameSeries
       });
-    }
-    if (path.class) {
-      ancestors.push({
-        rank: TaxonRank.Class,
-        name: path.class,
-        uniqueName: path.class,
-        scientificName: path.order ? null : path.scientificName
-      });
-    }
-    if (path.order) {
-      ancestors.push({
-        rank: TaxonRank.Order,
-        name: path.order,
-        uniqueName: path.order,
-        scientificName: path.family ? null : path.scientificName
-      });
-    }
-    if (path.family) {
-      ancestors.push({
-        rank: TaxonRank.Family,
-        name: path.family,
-        uniqueName: path.family,
-        scientificName: path.genus ? null : path.scientificName
-      });
-    }
-    if (path.genus) {
-      ancestors.push({
-        rank: TaxonRank.Genus,
-        name: path.genus,
-        uniqueName: path.genus,
-        scientificName: path.specificEpithet ? null : path.scientificName
-      });
-    }
-    if (path.specificEpithet) {
-      let speciesUnique = uniqueName;
-      if (path.infraspecificEpithet) {
-        speciesUnique = Taxon._toSpeciesUnique(path.genus!, path.specificEpithet);
+      if (parentNameSeries == null) {
+        parentNameSeries = ancestorName; // necessarily kingdom
+      } else {
+        parentNameSeries += '|' + ancestorName;
       }
-      ancestors.push({
-        rank: TaxonRank.Species,
-        name: path.specificEpithet,
-        uniqueName: speciesUnique,
-        scientificName: path.infraspecificEpithet ? null : path.scientificName
-      });
     }
-    if (path.infraspecificEpithet) {
-      ancestors.push({
-        rank: TaxonRank.Subspecies,
-        name: path.infraspecificEpithet,
-        uniqueName,
-        scientificName: path.scientificName
-      });
-    }
-    let [nearestAncestor, nearestAncestorIndex] = await Taxon._getNearestAncestor(
-      db,
-      ancestors,
-      ancestors.length - 1
-    );
-    if (!nearestAncestor) {
-      nearestAncestor = await Taxon.create(db, path.kingdom, {
-        taxonName: path.kingdom,
-        scientificName: path.kingdom,
-        taxonRank: TaxonRank.Kingdom,
-        parentID: null
-      });
-      nearestAncestorIndex = 0;
-    }
-    return await Taxon._createMissingTaxa(
-      db,
-      ancestors,
-      nearestAncestor,
-      nearestAncestorIndex
-    );
+    specs.push({
+      taxonRank: orderedRanks[parentTaxa.length],
+      taxonName,
+      scientificName: source.scientificName,
+      parentNameSeries
+    });
+
+    // Create all implied taxa.
+
+    return await Taxon._createMissingTaxa(db, specs);
   }
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
   private static async _createMissingTaxa(
     db: Client,
-    ancestors: AncestorInfo[],
-    nearestAncestor: Taxon,
-    nearestAncestorIndex: number
+    specs: TaxonSpec[]
   ): Promise<Taxon> {
-    while (++nearestAncestorIndex < ancestors.length) {
-      const ancestorInfo = ancestors[nearestAncestorIndex];
-      nearestAncestor = await Taxon.create(db, ancestorInfo.uniqueName, {
-        taxonRank: ancestorInfo.rank,
-        taxonName: ancestorInfo.name,
-        scientificName: ancestorInfo.scientificName,
-        parentID: nearestAncestor.taxonID
+    let [nearestTaxon, taxonIndex] = await Taxon._getNearestTaxon(
+      db,
+      specs,
+      specs.length - 1 // nearest to the last specified taxon
+    );
+    let parentIDSeries = nearestTaxon?.parentIDSeries || null;
+    while (++taxonIndex < specs.length) {
+      if (nearestTaxon) {
+        if (parentIDSeries == null) {
+          parentIDSeries = nearestTaxon.taxonID.toString();
+        } else {
+          parentIDSeries += ',' + nearestTaxon.taxonID.toString();
+        }
+      }
+      const spec = specs[taxonIndex];
+      nearestTaxon = await Taxon.create(db, spec.parentNameSeries, parentIDSeries, {
+        taxonRank: spec.taxonRank,
+        taxonName: spec.taxonName,
+        scientificName: spec.scientificName,
+        parentID: nearestTaxon?.taxonID || null
       });
     }
-    return nearestAncestor;
+    return nearestTaxon!;
   }
 
-  private static async _getNearestAncestor(
+  private static async _getByNameSeries(
     db: Client,
-    ancestors: AncestorInfo[],
-    ancestorIndex: number
-  ): Promise<[Taxon | null, number]> {
-    const ancestor = await Taxon.getByUniqueName(
+    parentNameSeries: string | null,
+    taxonName: string
+  ): Promise<Taxon | null> {
+    const result = await pgQuery(
       db,
-      ancestors[ancestorIndex].uniqueName
+      `select * from taxa where parent_name_series=$1 and taxon_name=$2`,
+      [parentNameSeries, taxonName]
     );
-    if (ancestor) {
-      return [ancestor, ancestorIndex];
+    return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
+  }
+
+  private static async _getNearestTaxon(
+    db: Client,
+    specs: TaxonSpec[],
+    specIndex: number
+  ): Promise<[Taxon | null, number]> {
+    const spec = specs[specIndex];
+    const taxon = await Taxon._getByNameSeries(
+      db,
+      spec.parentNameSeries,
+      spec.taxonName
+    );
+    if (taxon) {
+      return [taxon, specIndex];
     }
-    if (ancestorIndex == 0) {
+    if (specIndex == 0) {
       return [null, -1];
     }
-    return Taxon._getNearestAncestor(db, ancestors, ancestorIndex - 1);
+    return Taxon._getNearestTaxon(db, specs, specIndex - 1);
   }
 
-  private static _toAuthorlessUnique(path: TaxonPath): string {
-    if (path.infraspecificEpithet) {
-      return `${path.genus} ${path.specificEpithet} ${path.infraspecificEpithet}`;
-    }
-    if (path.specificEpithet) {
-      return Taxon._toSpeciesUnique(path.genus!, path.specificEpithet);
-    }
-    if (path.genus) return path.genus;
-    if (path.family) return path.family;
-    if (path.order) return path.order;
-    if (path.class) return path.class;
-    if (path.phylum) return path.phylum;
-    return path.kingdom;
-  }
-
-  private static _toSpeciesUnique(genus: string, specificEpithet: string): string {
-    return `${genus} ${specificEpithet}`;
+  private static _parseTaxonSpec(source: TaxonSource): [string[], string] {
+    const parentTaxa: string[] = [source.kingdom];
+    if (source.phylum) parentTaxa.push(source.phylum);
+    if (source.class) parentTaxa.push(source.class);
+    if (source.order) parentTaxa.push(source.order);
+    if (source.family) parentTaxa.push(source.family);
+    if (source.genus) parentTaxa.push(source.genus);
+    if (source.specificEpithet) parentTaxa.push(source.specificEpithet);
+    if (source.infraspecificEpithet) parentTaxa.push(source.infraspecificEpithet);
+    const taxonName = parentTaxa.pop();
+    return [parentTaxa, taxonName!];
   }
 }

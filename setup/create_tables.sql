@@ -14,30 +14,35 @@ create table users (
 
 create table taxa (
     taxon_id serial primary key, -- locally generated
-    authorless_unique_name varchar (256) unique not null, -- locally constructed
      -- GBIF kingdom, phylum, class, order, family, genus, specificEpithet, infraspecificEpithet
     taxon_rank varchar (50) not null, -- GBIF taxonRank, locally translated
     taxon_name varchar (128) not null, 
     scientific_name varchar (256), -- GBIF scientificName
-    parent_id integer references taxa -- locally generated
+    parent_id integer references taxa, -- locally generated
+    -- the following allow for fast non-recursive taxon autocompletion
+    parent_id_series varchar (64), -- comma-delimited series of taxa, kingdom-to-parent
+    parent_name_series varchar (1024) -- |-delimited series of taxa names defining parent
 );
+create index on taxa(parent_name_series);
 
 create table locations (
     location_id serial primary key, -- locally generated
     location_type varchar (50) not null, -- locally assigned
     -- GBIF continent, country, stateProvince, county, or locality (Specify LocalityName)
-    parent_series varchar (1024), -- |-delimited series of ancestors of present location
     location_name varchar (512) not null,
     public_latitude decimal, -- GBIF decimalLongitude
     public_longitude decimal, -- GBIF decimalLatitude
-    parent_id integer references locations -- locally generated
+    parent_id integer references locations, -- locally generated
+    -- the following allow for fast non-recursive location autocompletion
+    parent_id_series varchar (64), -- comma-delimited series of locations, continent-to-parent
+    parent_name_series varchar (1024) -- |-delimited series of location names defining parent
 );
+create index on locations(parent_name_series);
 
 create table specimens (
     catalog_number varchar (32) unique not null, -- GBIF catalogNumber
     occurrence_guid varchar (128) unique, -- GBIF occurrenceID (specify co.GUID)
 
-    taxon_series varchar (1024) not null, -- |-delimited taxa, kingdom first
     kingdom_id integer not null references taxa, -- all taxon IDs are locally generated
     phylum_id integer references taxa,
     class_id integer references taxa,
@@ -48,7 +53,6 @@ create table specimens (
     subspecies_id integer references taxa,
     precise_taxon_id integer not null references taxa, -- most specific taxon ID available
 
-    location_series varchar (2048) not null, -- |-delimited locations, continent first
     continent_id integer not null references locations, -- all location IDs are locally generated
     country_id integer references locations,
     state_province_id integer references locations,
