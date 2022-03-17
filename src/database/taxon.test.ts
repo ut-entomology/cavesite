@@ -6,14 +6,16 @@ import { Taxon, TaxonRank } from './taxon';
 
 let db: Client;
 
-test.describe('sequentially dependent taxa tests', () => {
+test.beforeAll(async () => {
+  db = await initTestDatabase();
+});
+
+test('series of sequentially dependent taxa tests', async () => {
   // Each of these tests depends on the prior tests, so run all as a unit.
 
-  test.beforeAll(async () => {
-    db = await initTestDatabase();
-  });
+  // test adding kingdom taxon
 
-  test('adding kingdom taxon', async () => {
+  {
     const taxonName = 'Animalia';
     const sourceTaxon = {
       taxonRank: TaxonRank.Kingdom,
@@ -28,9 +30,11 @@ test.describe('sequentially dependent taxa tests', () => {
     expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
     expect(readTaxon).toEqual(expectedTaxon);
-  });
+  }
 
-  test('adding phylum of existing kingdom', async () => {
+  // test adding phylum of existing kingdom
+
+  {
     const taxonName = 'Arthropoda';
     const sourceTaxon = {
       taxonRank: TaxonRank.Phylum,
@@ -45,9 +49,11 @@ test.describe('sequentially dependent taxa tests', () => {
     expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
     expect(readTaxon).toEqual(expectedTaxon);
-  });
+  }
 
-  test('getOrCreate() gets an existing taxon', async () => {
+  // test getOrCreate() gets an existing taxon
+
+  {
     const taxonName = 'Arthropoda';
     const expectedTaxon = await Taxon.getByID(db, 2);
     expect(expectedTaxon?.taxonName).toEqual(taxonName);
@@ -57,9 +63,11 @@ test.describe('sequentially dependent taxa tests', () => {
       scientificName: taxonName
     });
     expect(readTaxon).toEqual(expectedTaxon);
-  });
+  }
 
-  test('auto-creating new taxon having no intermediates', async () => {
+  // test auto-creating new taxon having no intermediates
+
+  {
     const taxonName = 'Arachnida';
     const createdTaxon = await Taxon.getOrCreate(db, {
       kingdom: 'Animalia',
@@ -76,9 +84,11 @@ test.describe('sequentially dependent taxa tests', () => {
       parentIDSeries: '1,2',
       parentNameSeries: 'Animalia|Arthropoda'
     });
-  });
+  }
 
-  test('auto-creating new species and new intermediate taxa', async () => {
+  // test auto-creating new species and new intermediate taxa
+
+  {
     const taxonName = 'dubia';
     const createdTaxon = await Taxon.getOrCreate(db, {
       kingdom: 'Animalia',
@@ -128,9 +138,11 @@ test.describe('sequentially dependent taxa tests', () => {
       parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa'
     });
     expect(createdTaxon).toEqual(readTaxon);
-  });
+  }
 
-  test('creating new subspecies with new intermediate species', async () => {
+  // test creating new subspecies with new intermediate species
+
+  {
     const createdTaxon = await Taxon.getOrCreate(db, {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -182,18 +194,20 @@ test.describe('sequentially dependent taxa tests', () => {
         'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus|rufus'
     });
     expect(createdTaxon).toEqual(readTaxon);
-  });
+  }
 
-  test('providing the scientific name of an existing taxon', async () => {
+  // test providing the scientific name of an existing taxon
+
+  {
     const expectedTaxon = await Taxon.getByID(db, 4);
     expect(expectedTaxon?.taxonName).toEqual('Araneae');
     expectedTaxon!.scientificName = 'Araneae';
     await expectedTaxon!.save(db);
     const readTaxon = await Taxon.getByID(db, 4);
     expect(readTaxon).toEqual(expectedTaxon);
-  });
+  }
+});
 
-  test.afterAll(async () => {
-    await db.end();
-  });
+test.afterAll(async () => {
+  await db.end();
 });

@@ -151,8 +151,7 @@ export class Taxon {
     let taxon = await Taxon._getByNameSeries(db, parentTaxa.join('|'), taxonName);
     if (taxon) return taxon;
 
-    // If the taxon doesn't exist yet, create specs for it and all its
-    // ancestor taxa, highest ancestor taxon first.
+    // If the taxon doesn't exist yet, create specs for all its ancestors.
 
     const specs: TaxonSpec[] = [];
     let parentNameSeries: string | null = null;
@@ -170,6 +169,9 @@ export class Taxon {
         parentNameSeries += '|' + ancestorName;
       }
     }
+
+    // Create a spec for the particular requested taxon.
+
     specs.push({
       taxonRank: orderedRanks[parentTaxa.length],
       taxonName,
