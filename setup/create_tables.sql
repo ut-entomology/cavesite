@@ -20,8 +20,8 @@ create table taxa (
     scientific_name varchar (256), -- GBIF scientificName
     parent_id integer references taxa, -- locally generated
     -- the following allow for fast non-recursive taxon autocompletion
-    parent_id_series varchar (64), -- comma-delimited series of taxa, kingdom-to-parent
-    parent_name_series varchar (1024) -- |-delimited series of taxa names defining parent
+    parent_id_series varchar (64), -- comma-delimited series of taxon IDs, kingdom-to-parent
+    parent_name_series varchar (1024) -- |-delimited series of taxon names defining parent
 );
 create index on taxa(parent_name_series);
 
@@ -34,7 +34,7 @@ create table locations (
     public_longitude decimal, -- GBIF decimalLatitude
     parent_id integer references locations, -- locally generated
     -- the following allow for fast non-recursive location autocompletion
-    parent_id_series varchar (64), -- comma-delimited series of locations, continent-to-parent
+    parent_id_series varchar (64), -- comma-delimited series of location IDs, continent-to-parent
     parent_name_series varchar (1024) -- |-delimited series of location names defining parent
 );
 create index on locations(parent_name_series);
