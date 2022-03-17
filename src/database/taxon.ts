@@ -188,29 +188,29 @@ export class Taxon {
     db: Client,
     specs: TaxonSpec[]
   ): Promise<Taxon> {
-    let [nearestTaxon, taxonIndex] = await Taxon._getNearestTaxon(
+    let [taxon, taxonIndex] = await Taxon._getClosestTaxon(
       db,
       specs,
       specs.length - 1 // nearest to the last specified taxon
     );
-    let parentIDSeries = nearestTaxon?.parentIDSeries || null;
+    let parentIDSeries = taxon?.parentIDSeries || null;
     while (++taxonIndex < specs.length) {
-      if (nearestTaxon) {
+      if (taxon) {
         if (parentIDSeries == null) {
-          parentIDSeries = nearestTaxon.taxonID.toString();
+          parentIDSeries = taxon.taxonID.toString();
         } else {
-          parentIDSeries += ',' + nearestTaxon.taxonID.toString();
+          parentIDSeries += ',' + taxon.taxonID.toString();
         }
       }
       const spec = specs[taxonIndex];
-      nearestTaxon = await Taxon.create(db, spec.parentNameSeries, parentIDSeries, {
+      taxon = await Taxon.create(db, spec.parentNameSeries, parentIDSeries, {
         taxonRank: spec.taxonRank,
         taxonName: spec.taxonName,
         scientificName: spec.scientificName,
-        parentID: nearestTaxon?.taxonID || null
+        parentID: taxon?.taxonID || null
       });
     }
-    return nearestTaxon!;
+    return taxon!;
   }
 
   private static async _getByNameSeries(
@@ -226,7 +226,7 @@ export class Taxon {
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
-  private static async _getNearestTaxon(
+  private static async _getClosestTaxon(
     db: Client,
     specs: TaxonSpec[],
     specIndex: number
@@ -243,7 +243,7 @@ export class Taxon {
     if (specIndex == 0) {
       return [null, -1];
     }
-    return Taxon._getNearestTaxon(db, specs, specIndex - 1);
+    return Taxon._getClosestTaxon(db, specs, specIndex - 1);
   }
 
   private static _parseTaxonSpec(source: TaxonSource): [string[], string] {
