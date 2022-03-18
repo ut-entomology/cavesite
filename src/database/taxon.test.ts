@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import type { DB } from '../util/pg_util';
 
+import type { DB } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Taxon, TaxonRank } from './taxon';
 
@@ -21,11 +21,16 @@ test('series of sequentially dependent taxa tests', async () => {
       taxonRank: TaxonRank.Kingdom,
       taxonName,
       scientificName: taxonName,
-      parentID: null,
-      parentIDSeries: null,
-      parentNameSeries: null
+      parentID: null
     };
-    const expectedTaxon = Object.assign({ taxonID: 1 }, sourceTaxon);
+    const expectedTaxon = Object.assign(
+      {
+        taxonID: 1,
+        parentIDSeries: null,
+        parentNameSeries: null
+      },
+      sourceTaxon
+    );
     const createdTaxon = await Taxon.create(db, null, null, sourceTaxon);
     expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
@@ -40,11 +45,12 @@ test('series of sequentially dependent taxa tests', async () => {
       taxonRank: TaxonRank.Phylum,
       taxonName,
       scientificName: taxonName,
-      parentID: 1,
-      parentIDSeries: '1',
-      parentNameSeries: 'Animalia'
+      parentID: 1
     };
-    const expectedTaxon = Object.assign({ taxonID: 2 }, sourceTaxon);
+    const expectedTaxon = Object.assign(
+      { taxonID: 2, parentIDSeries: '1', parentNameSeries: 'Animalia' },
+      sourceTaxon
+    );
     const createdTaxon = await Taxon.create(db, 'Animalia', '1', sourceTaxon);
     expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
