@@ -37,9 +37,8 @@ export interface LocationSource {
   stateProvince?: string;
   county?: string;
   locality?: string;
-  publicLatitude?: number;
-  publicLongitude?: number;
-  parentNameSeries?: string;
+  decimalLatitude?: number;
+  decimalLongitude?: number;
 }
 
 interface LocationSpec {
@@ -183,8 +182,8 @@ export class Location {
     specs.push({
       locationType: orderedTypes[parentLocations.length],
       locationName,
-      publicLatitude: source.publicLatitude || null,
-      publicLongitude: source.publicLongitude || null,
+      publicLatitude: source.decimalLatitude || null,
+      publicLongitude: source.decimalLongitude || null,
       parentNameSeries
     });
 

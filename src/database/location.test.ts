@@ -104,8 +104,8 @@ test('series of sequentially dependent location tests', async () => {
       stateProvince: 'Texas',
       county: 'Travis County',
       locality: locationName,
-      publicLatitude: 28.12,
-      publicLongitude: -97.34
+      decimalLatitude: 28.12,
+      decimalLongitude: -97.34
     });
     expect(await Location.getByID(db, 4)).toEqual({
       locationID: 4,
@@ -140,8 +140,8 @@ test('series of sequentially dependent location tests', async () => {
       stateProvince: 'Chihuahua',
       county: 'Mun. Xyz',
       locality: 'Invisible Spring',
-      publicLatitude: 21.12,
-      publicLongitude: -96.34
+      decimalLatitude: 21.12,
+      decimalLongitude: -96.34
     });
     expect(await Location.getByID(db, 6)).toEqual({
       locationID: 6,
