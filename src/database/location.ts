@@ -46,7 +46,7 @@ interface LocationSpec {
   locationName: string;
   publicLatitude: number | null;
   publicLongitude: number | null;
-  parentNameSeries: string | null;
+  parentNameSeries: string;
 }
 
 export class Location {
@@ -56,8 +56,8 @@ export class Location {
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentID: number | null;
-  parentIDSeries: string | null;
-  parentNameSeries: string | null;
+  parentIDSeries: string;
+  parentNameSeries: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -121,8 +121,8 @@ export class Location {
 
   static async create(
     db: DB,
-    parentNameSeries: string | null,
-    parentIDSeries: string | null,
+    parentNameSeries: string,
+    parentIDSeries: string,
     data: Omit<LocationData, 'locationID' | 'parentIDSeries' | 'parentNameSeries'>
   ): Promise<Location> {
     const location = new Location(
@@ -160,7 +160,7 @@ export class Location {
     // If the location doesn't exist yet, create specs for all its ancestors.
 
     const specs: LocationSpec[] = [];
-    let parentNameSeries: string | null = null;
+    let parentNameSeries = '';
     for (let i = 0; i < parentLocations.length; ++i) {
       const ancestorName = parentLocations[i];
       specs.push({
@@ -170,7 +170,7 @@ export class Location {
         publicLongitude: null,
         parentNameSeries
       });
-      if (parentNameSeries == null) {
+      if (parentNameSeries == '') {
         parentNameSeries = ancestorName; // necessarily continent
       } else {
         parentNameSeries += '|' + ancestorName;
@@ -203,10 +203,10 @@ export class Location {
       specs,
       specs.length - 1 // nearest to the last specified location
     );
-    let parentIDSeries = location?.parentIDSeries || null;
+    let parentIDSeries = location?.parentIDSeries || '';
     while (++locationIndex < specs.length) {
       if (location) {
-        if (parentIDSeries == null) {
+        if (parentIDSeries == '') {
           parentIDSeries = location.locationID.toString();
         } else {
           parentIDSeries += ',' + location.locationID.toString();
@@ -226,7 +226,7 @@ export class Location {
 
   private static async _getByNameSeries(
     db: DB,
-    parentNameSeries: string | null,
+    parentNameSeries: string,
     locationName: string
   ): Promise<Location | null> {
     const result = await db.query(

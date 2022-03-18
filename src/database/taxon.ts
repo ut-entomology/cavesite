@@ -52,7 +52,7 @@ interface TaxonSpec {
   taxonRank: TaxonRank;
   taxonName: string;
   scientificName: string | null; // null => not retrieved from GBIF
-  parentNameSeries: string | null;
+  parentNameSeries: string;
 }
 
 export class Taxon {
@@ -61,8 +61,8 @@ export class Taxon {
   taxonName: string;
   scientificName: string | null; // null => not retrieved from GBIF
   parentID: number | null;
-  parentIDSeries: string | null;
-  parentNameSeries: string | null;
+  parentIDSeries: string;
+  parentNameSeries: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -122,8 +122,8 @@ export class Taxon {
 
   static async create(
     db: DB,
-    parentNameSeries: string | null,
-    parentIDSeries: string | null,
+    parentNameSeries: string,
+    parentIDSeries: string,
     data: Omit<TaxonData, 'taxonID' | 'parentIDSeries' | 'parentNameSeries'>
   ): Promise<Taxon> {
     const taxon = new Taxon(
@@ -155,7 +155,7 @@ export class Taxon {
     // If the taxon doesn't exist yet, create specs for all its ancestors.
 
     const specs: TaxonSpec[] = [];
-    let parentNameSeries: string | null = null;
+    let parentNameSeries = '';
     for (let i = 0; i < parentTaxa.length; ++i) {
       const ancestorName = parentTaxa[i];
       specs.push({
@@ -164,7 +164,7 @@ export class Taxon {
         scientificName: null,
         parentNameSeries
       });
-      if (parentNameSeries == null) {
+      if (parentNameSeries == '') {
         parentNameSeries = ancestorName; // necessarily kingdom
       } else {
         parentNameSeries += '|' + ancestorName;
@@ -193,10 +193,10 @@ export class Taxon {
       specs,
       specs.length - 1 // nearest to the last specified taxon
     );
-    let parentIDSeries = taxon?.parentIDSeries || null;
+    let parentIDSeries = taxon?.parentIDSeries || '';
     while (++taxonIndex < specs.length) {
       if (taxon) {
-        if (parentIDSeries == null) {
+        if (parentIDSeries == '') {
           parentIDSeries = taxon.taxonID.toString();
         } else {
           parentIDSeries += ',' + taxon.taxonID.toString();
@@ -215,7 +215,7 @@ export class Taxon {
 
   private static async _getByNameSeries(
     db: DB,
-    parentNameSeries: string | null,
+    parentNameSeries: string,
     taxonName: string
   ): Promise<Taxon | null> {
     const result = await db.query(

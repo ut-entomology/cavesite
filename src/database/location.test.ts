@@ -25,10 +25,10 @@ test('series of sequentially dependent location tests', async () => {
       parentID: null
     };
     const expectedLocation = Object.assign(
-      { locationID: 1, parentIDSeries: null, parentNameSeries: null },
+      { locationID: 1, parentIDSeries: '', parentNameSeries: '' },
       sourceLocation
     );
-    const createdLocation = await Location.create(db, null, null, sourceLocation);
+    const createdLocation = await Location.create(db, '', '', sourceLocation);
     expect(createdLocation).toEqual(expectedLocation);
     const readLocation = await Location.getByID(db, createdLocation.locationID);
     expect(readLocation).toEqual(expectedLocation);

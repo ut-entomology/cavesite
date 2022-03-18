@@ -18,36 +18,52 @@ create table users (
 
 create table taxa (
     taxon_id serial primary key, -- locally generated
-     -- GBIF kingdom, phylum, class, order, family, genus, specificEpithet, infraspecificEpithet
-    taxon_rank varchar (50) not null, -- GBIF taxonRank, locally translated
-    taxon_name varchar (128) not null, 
-    scientific_name varchar (256), -- GBIF scientificName
+    -- GBIF taxonRank, locally translated
+    taxon_rank varchar (50) not null,
+    -- GBIF kingdom/phylum/class/order/family/genus/specificEpithet/infraspecificEpithet
+    taxon_name varchar (128) not null,
+    -- GBIF scientificName
+    scientific_name varchar (256),
     parent_id integer references taxa, -- locally generated
-    -- the following allow for fast non-recursive taxon autocompletion
-    parent_id_series varchar (64), -- comma-delimited series of taxon IDs, kingdom-to-parent
-    parent_name_series varchar (1024) -- |-delimited series of taxon names defining parent
+
+    -- these allow for fast non-recursive taxon queries/autocompletion:
+
+    -- comma-delimited series of taxon IDs, kingdom-to-parent
+    parent_id_series varchar (64) not null,
+    -- |-delimited series of taxon names defining parent
+    parent_name_series varchar (1024) not null
 );
 create index on taxa(parent_name_series);
 
 create table locations (
     location_id serial primary key, -- locally generated
     location_type varchar (50) not null, -- locally assigned
-    -- GBIF continent, country, stateProvince, county, or locality (Specify LocalityName)
+    -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
     location_name varchar (512) not null,
-    public_latitude float8, -- GBIF decimalLongitude
-    public_longitude float8, -- GBIF decimalLatitude
+    -- GBIF decimalLongitude
+    public_latitude float8,
+    -- GBIF decimalLatitude
+    public_longitude float8,
     parent_id integer references locations, -- locally generated
-    -- the following allow for fast non-recursive location autocompletion
-    parent_id_series varchar (64), -- comma-delimited series of location IDs, continent-to-parent
-    parent_name_series varchar (1024) -- |-delimited series of location names defining parent
+
+    -- these allow for fast non-recursive location queries/autocompletion:
+
+    -- comma-delimited series of location IDs, continent-to-parent
+    parent_id_series varchar (64) not null,
+    -- |-delimited series of location names defining parent
+    parent_name_series varchar (1024) not null 
 );
 create index on locations(parent_name_series);
 
 create table specimens (
-    catalog_number varchar (32) unique not null, -- GBIF catalogNumber
-    occurrence_guid varchar (128) unique, -- GBIF occurrenceID (specify co.GUID)
+    -- GBIF catalogNumber
+    catalog_number varchar (32) unique not null,
+    -- GBIF occurrenceID (specify co.GUID)
+    occurrence_guid varchar (128) unique,
 
-    kingdom_id integer not null references taxa, -- all taxon IDs are locally generated
+    -- all taxon and location IDs are locally generated...
+
+    kingdom_id integer not null references taxa,
     phylum_id integer references taxa,
     class_id integer references taxa,
     order_id integer references taxa,
@@ -55,26 +71,36 @@ create table specimens (
     genus_id integer references taxa,
     species_id integer references taxa,
     subspecies_id integer references taxa,
-    precise_taxon_id integer not null references taxa, -- most specific taxon ID available
+    -- most specific taxon ID available
+    precise_taxon_id integer not null references taxa, 
 
-    continent_id integer not null references locations, -- all location IDs are locally generated
+    continent_id integer not null references locations,
     country_id integer references locations,
     state_province_id integer references locations,
     county_id integer references locations,
     locality_id integer references locations,
-    precise_location_id integer not null references locations, -- most specific location ID available
+    -- most specific location ID available
+    precise_location_id integer not null references locations,
 
-    collection_start_date date, -- GBIF eventDate, year, month, day (specify ce.StartDate)
+    -- GBIF eventDate/year/month/day (specify ce.StartDate)
+    collection_start_date date,
     collection_end_date date, -- not in GBIF
-    verbatim_date varchar(128), -- not in GBIF
-    collectors text, -- GBIF recordedBy
-    determination_date date, -- GBIF dateIdentified
-    determiners text, -- GBIF identifiedBy
-    collection_remarks text, -- GBIF eventRemarks (collecting event/info remarks/habitat notes)
-    occurrence_remarks text, -- GBIF occurrenceRemarks (collection object remarks)
-    determination_remarks text, -- GBIF identificationRemarks
-    type_status varchar (50), -- GBIF typeStatus
-    station_field_number varchar (50) -- GBIF fieldNumber
+    -- GBIF recordedBy
+    collectors text,
+    -- GBIF dateIdentified
+    determination_date date,
+    -- GBIF identifiedBy
+    determiners text,
+    -- GBIF eventRemarks (collecting event/info remarks/habitat notes)
+    collection_remarks text,
+    -- GBIF occurrenceRemarks (collection object remarks)
+    occurrence_remarks text,
+    -- GBIF identificationRemarks
+    determination_remarks text,
+    -- GBIF typeStatus
+    type_status varchar (50),
+    -- GBIF fieldNumber
+    station_field_number varchar (50)
 );
 create index on specimens(kingdom_id);
 create index on specimens(phylum_id);

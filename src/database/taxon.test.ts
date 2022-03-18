@@ -26,12 +26,12 @@ test('series of sequentially dependent taxa tests', async () => {
     const expectedTaxon = Object.assign(
       {
         taxonID: 1,
-        parentIDSeries: null,
-        parentNameSeries: null
+        parentIDSeries: '',
+        parentNameSeries: ''
       },
       sourceTaxon
     );
-    const createdTaxon = await Taxon.create(db, null, null, sourceTaxon);
+    const createdTaxon = await Taxon.create(db, '', '', sourceTaxon);
     expect(createdTaxon).toEqual(expectedTaxon);
     const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
     expect(readTaxon).toEqual(expectedTaxon);
