@@ -1,4 +1,8 @@
--- PostgreSQL
+-- PostgreSQL Schema
+
+-- The taxa, locations, and specimens tables are all imported read-only data, so
+-- the schema optimizes them for search at the expense of not being modifiable.
+-- The users and private_coordinates tables are maintained through the website.
 
 create table users (
     -- None of these fields are in GBIF.
