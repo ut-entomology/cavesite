@@ -34,8 +34,8 @@ create table locations (
     location_type varchar (50) not null, -- locally assigned
     -- GBIF continent, country, stateProvince, county, or locality (Specify LocalityName)
     location_name varchar (512) not null,
-    public_latitude decimal, -- GBIF decimalLongitude
-    public_longitude decimal, -- GBIF decimalLatitude
+    public_latitude float8, -- GBIF decimalLongitude
+    public_longitude float8, -- GBIF decimalLatitude
     parent_id integer references locations, -- locally generated
     -- the following allow for fast non-recursive location autocompletion
     parent_id_series varchar (64), -- comma-delimited series of location IDs, continent-to-parent
@@ -96,7 +96,7 @@ create table private_coordinates (
     -- Users will be supplying this data, not GBIF.
     location_id integer primary key references locations,
     supplied_by integer references users,
-    precise_latitude decimal not null,
-    precise_longitude decimal not null,
-    uncertainty_meters decimal
+    precise_latitude float8 not null,
+    precise_longitude float8 not null,
+    uncertainty_meters float8
 );
