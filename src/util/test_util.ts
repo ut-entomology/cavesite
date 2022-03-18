@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Client } from 'pg';
+import { DB } from './pg_util';
 
 const TEST_DB_CONFIG = {
   user: 'test_user',
@@ -12,9 +12,9 @@ const TEST_DB_CONFIG = {
 
 const SETUP_SQL_DIR = path.join(__dirname, '../../setup');
 
-export async function initTestDatabase(): Promise<Client> {
-  const db = new Client(TEST_DB_CONFIG);
-  await db.connect();
+export async function initTestDatabase(): Promise<DB> {
+  const db = new DB(TEST_DB_CONFIG);
+  await db.open();
   const dropTablesSQL = fs
     .readFileSync(path.join(SETUP_SQL_DIR, 'drop_tables.sql'))
     .toString();

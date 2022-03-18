@@ -1,4 +1,43 @@
-import type { Client } from 'pg';
+import type { ClientConfig } from 'pg';
+import { Client } from 'pg';
+
+/**
+ * Class representing the database client, hiding whether the client uses
+ * postgres Client or Pool and providing conveniences.
+ */
+
+export class DB {
+  private _client: Client;
+
+  constructor(config: ClientConfig) {
+    this._client = new Client(config);
+  }
+
+  /**
+   * Opens a connection to the database.
+   */
+  async open() {
+    await this._client.connect();
+  }
+
+  /**
+   * Executes a postgres query remapping errors to PostgresError.
+   */
+  async query(sql: string, params?: (string | number | null)[]) {
+    try {
+      return await this._client.query(sql, params);
+    } catch (err: any) {
+      throw new PostgresError(err, sql);
+    }
+  }
+
+  /**
+   * Closes the connection to the database.
+   */
+  async close() {
+    await this._client.end();
+  }
+}
 
 /**
  * Class representing a postgres error in the error message.
@@ -11,22 +50,6 @@ export class PostgresError extends Error {
         err.position === undefined ? '' : ' (@' + err.position + ')'
       }: ${err.message} [${sql}]`
     );
-  }
-}
-
-/**
- * Executes a postgres query remapping errors to PostgresError.
- */
-
-export async function pgQuery(
-  db: Client,
-  sql: string,
-  params?: (string | number | null)[]
-) {
-  try {
-    return await db.query(sql, params);
-  } catch (err: any) {
-    throw new PostgresError(err, sql);
   }
 }
 

@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import type { Client } from 'pg';
+import type { DB } from '../util/pg_util';
 
 import { initTestDatabase } from '../util/test_util';
 import { Taxon, TaxonRank } from './taxon';
 
-let db: Client;
+let db: DB;
 
 test.beforeAll(async () => {
   db = await initTestDatabase();
@@ -209,5 +209,5 @@ test('series of sequentially dependent taxa tests', async () => {
 });
 
 test.afterAll(async () => {
-  await db.end();
+  await db.close();
 });

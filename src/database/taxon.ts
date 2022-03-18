@@ -9,10 +9,8 @@
 // wanted to be sure the code was accessible to TypeScript newbies. Hence,
 // any logic you change here many need to change in location.ts.
 
-import type { Client } from 'pg';
-
 import type { DataOf } from '../util/type_util';
-import { pgQuery, toCamelRow } from '../util/pg_util';
+import { DB, toCamelRow } from '../util/pg_util';
 
 export type TaxonData = DataOf<Taxon>;
 
@@ -80,10 +78,9 @@ export class Taxon {
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
 
-  async save(db: Client): Promise<number> {
+  async save(db: DB): Promise<number> {
     if (this.taxonID === 0) {
-      const result = await pgQuery(
-        db,
+      const result = await db.query(
         `insert into taxa(
             taxon_rank, taxon_name, scientific_name,
             parent_id, parent_id_series, parent_name_series
@@ -99,8 +96,7 @@ export class Taxon {
       );
       this.taxonID = result.rows[0].taxon_id;
     } else {
-      const result = await pgQuery(
-        db,
+      const result = await db.query(
         `update taxa set
             taxon_rank=$1, taxon_name=$2, scientific_name=$3,
             parent_id=$4, parent_id_series=$5, parent_name_series=$6
@@ -125,7 +121,7 @@ export class Taxon {
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
   static async create(
-    db: Client,
+    db: DB,
     parentNameSeries: string | null,
     parentIDSeries: string | null,
     data: Omit<TaxonData, 'taxonID' | 'parentIDSeries' | 'parentNameSeries'>
@@ -144,12 +140,12 @@ export class Taxon {
     return taxon;
   }
 
-  static async getByID(db: Client, taxonID: number): Promise<Taxon | null> {
-    const result = await pgQuery(db, `select * from taxa where taxon_id=$1`, [taxonID]);
+  static async getByID(db: DB, taxonID: number): Promise<Taxon | null> {
+    const result = await db.query(`select * from taxa where taxon_id=$1`, [taxonID]);
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
-  static async getOrCreate(db: Client, source: TaxonSource): Promise<Taxon> {
+  static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 
     const [parentTaxa, taxonName] = Taxon._parseTaxonSpec(source);
@@ -191,10 +187,7 @@ export class Taxon {
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
-  private static async _createMissingTaxa(
-    db: Client,
-    specs: TaxonSpec[]
-  ): Promise<Taxon> {
+  private static async _createMissingTaxa(db: DB, specs: TaxonSpec[]): Promise<Taxon> {
     let [taxon, taxonIndex] = await Taxon._getClosestTaxon(
       db,
       specs,
@@ -221,12 +214,11 @@ export class Taxon {
   }
 
   private static async _getByNameSeries(
-    db: Client,
+    db: DB,
     parentNameSeries: string | null,
     taxonName: string
   ): Promise<Taxon | null> {
-    const result = await pgQuery(
-      db,
+    const result = await db.query(
       `select * from taxa where parent_name_series=$1 and taxon_name=$2`,
       [parentNameSeries, taxonName]
     );
@@ -234,7 +226,7 @@ export class Taxon {
   }
 
   private static async _getClosestTaxon(
-    db: Client,
+    db: DB,
     specs: TaxonSpec[],
     specIndex: number
   ): Promise<[Taxon | null, number]> {
