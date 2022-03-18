@@ -31,6 +31,7 @@ const orderedTypes = [
 ];
 
 export interface LocationSource {
+  // GBIF field names
   continent: string;
   country?: string;
   stateProvince?: string;

@@ -37,6 +37,7 @@ const orderedRanks = [
 ];
 
 export interface TaxonSource {
+  // GBIF field names
   kingdom: string;
   phylum?: string;
   class?: string;
