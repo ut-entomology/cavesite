@@ -84,13 +84,11 @@ create index on specimens(family_id);
 create index on specimens(genus_id);
 create index on specimens(species_id);
 create index on specimens(subspecies_id);
-create index on specimens(precise_taxon_id);
 create index on specimens(continent_id);
 create index on specimens(country_id);
 create index on specimens(state_province_id);
 create index on specimens(county_id);
 create index on specimens(locality_id);
-create index on specimens(precise_location_id);
 
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF.
