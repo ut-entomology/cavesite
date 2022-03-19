@@ -4,10 +4,9 @@
  * provide easy-access to the location hierarchy.
  */
 
-// NOTE: This module is analogous to taxon.ts, but I did not create a
-// generic type for them because it would be a complicated type, and I
-// wanted to be sure the code was accessible to TypeScript newbies. Hence,
-// any logic you change here many need to change in taxon.ts.
+// NOTE: There are similarities between this module and taxon.ts,
+// so any correction made here should be investigated in taxon.ts.
+// Not enough similarity to base both on a generic class, though.
 
 import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
@@ -36,14 +35,17 @@ export interface LocationSource {
   country?: string;
   stateProvince?: string;
   county?: string;
-  locality?: string;
+  locality: string; // required; caller must filter for presence
   decimalLatitude?: number;
   decimalLongitude?: number;
+  // Derived fields
+  locationGuid?: number;
 }
 
 interface LocationSpec {
   locationType: LocationType;
   locationName: string;
+  locationGuid: number | null;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentNameSeries: string;
@@ -53,6 +55,7 @@ export class Location {
   locationID = 0;
   locationType: LocationType;
   locationName: string;
+  locationGuid: number | null;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentID: number | null;
@@ -65,6 +68,7 @@ export class Location {
     this.locationID = row.locationID;
     this.locationType = row.locationType;
     this.locationName = row.locationName;
+    this.locationGuid = row.locationGuid;
     this.publicLatitude = row.publicLatitude;
     this.publicLongitude = row.publicLongitude;
     this.parentID = row.parentID;
@@ -78,13 +82,15 @@ export class Location {
     if (this.locationID === 0) {
       const result = await db.query(
         `insert into locations(
-						location_type, location_name, public_latitude, public_longitude,
+						location_type, location_name, location_guid,
+            public_latitude, public_longitude,
 						parent_id, parent_id_series, parent_name_series
-					) values ($1, $2, $3, $4, $5, $6, $7)
+					) values ($1, $2, $3, $4, $5, $6, $7, $8)
 					returning location_id`,
         [
           this.locationType,
           this.locationName,
+          this.locationGuid,
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
@@ -96,12 +102,14 @@ export class Location {
     } else {
       const result = await db.query(
         `update locations set 
-						location_type=$1, location_name=$2, public_latitude=$3, public_longitude=$4,
-						parent_id=$5, parent_id_series=$6, parent_name_series=$7
-					where location_id=$8`,
+						location_type=$1, location_name=$2, location_guid=$3,
+            public_latitude=$4, public_longitude=$5,
+						parent_id=$6, parent_id_series=$7, parent_name_series=$8
+					where location_id=$9`,
         [
           this.locationType,
           this.locationName,
+          this.locationGuid,
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
@@ -139,6 +147,13 @@ export class Location {
     return location;
   }
 
+  static async getByGUID(db: DB, locationGUID: number): Promise<Location | null> {
+    const result = await db.query(`select * from locations where location_guid=$1`, [
+      locationGUID
+    ]);
+    return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
+  }
+
   static async getByID(db: DB, locationID: number): Promise<Location | null> {
     const result = await db.query(`select * from locations where location_id=$1`, [
       locationID
@@ -149,13 +164,19 @@ export class Location {
   static async getOrCreate(db: DB, source: LocationSource): Promise<Location> {
     // Return the location if it already exists.
 
+    if (source.locationGuid) {
+      const location = await Location.getByGUID(db, source.locationGuid);
+      if (location) return location;
+    }
     const [parentLocations, locationName] = Location._parseLocationSpec(source);
-    let location = await Location._getByNameSeries(
-      db,
-      parentLocations.join('|'),
-      locationName
-    );
-    if (location) return location;
+    if (!source.locationGuid) {
+      let location = await Location._getByNameSeries(
+        db,
+        parentLocations.join('|'),
+        locationName
+      );
+      if (location) return location;
+    }
 
     // If the location doesn't exist yet, create specs for all its ancestors.
 
@@ -163,17 +184,21 @@ export class Location {
     let parentNameSeries = '';
     for (let i = 0; i < parentLocations.length; ++i) {
       const ancestorName = parentLocations[i];
-      specs.push({
-        locationType: orderedTypes[i],
-        locationName: ancestorName,
-        publicLatitude: null,
-        publicLongitude: null,
-        parentNameSeries
-      });
+      if (ancestorName) {
+        specs.push({
+          locationType: orderedTypes[i],
+          locationName: ancestorName,
+          locationGuid: null, // not needed above locality
+          publicLatitude: null,
+          publicLongitude: null,
+          parentNameSeries
+        });
+      }
       if (parentNameSeries == '') {
-        parentNameSeries = ancestorName; // necessarily continent
+        parentNameSeries = ancestorName!; // necessarily continent
       } else {
-        parentNameSeries += '|' + ancestorName;
+        // Name for a missing ancestor is represented as '-'
+        parentNameSeries += '|' + (ancestorName ? ancestorName : '-');
       }
     }
 
@@ -182,6 +207,7 @@ export class Location {
     specs.push({
       locationType: orderedTypes[parentLocations.length],
       locationName,
+      locationGuid: source.locationGuid || null,
       publicLatitude: source.decimalLatitude || null,
       publicLongitude: source.decimalLongitude || null,
       parentNameSeries
@@ -205,17 +231,21 @@ export class Location {
     );
     let parentIDSeries = location?.parentIDSeries || '';
     while (++locationIndex < specs.length) {
+      const spec = specs[locationIndex];
       if (location) {
         if (parentIDSeries == '') {
-          parentIDSeries = location.locationID.toString();
+          parentIDSeries = location.locationID.toString(); // necessarily continent
         } else {
           parentIDSeries += ',' + location.locationID.toString();
+          for (let i = locationIndex; orderedTypes[i] != spec.locationType; ++i) {
+            parentIDSeries += ',-'; // '-' for ID of missing intermediate location
+          }
         }
       }
-      const spec = specs[locationIndex];
       location = await Location.create(db, spec.parentNameSeries, parentIDSeries, {
         locationType: spec.locationType,
         locationName: spec.locationName,
+        locationGuid: spec.locationGuid,
         publicLatitude: spec.publicLatitude,
         publicLongitude: spec.publicLongitude,
         parentID: location?.locationID || null
@@ -242,11 +272,16 @@ export class Location {
     specIndex: number
   ): Promise<[Location | null, number]> {
     const spec = specs[specIndex];
-    const location = await Location._getByNameSeries(
-      db,
-      spec.parentNameSeries,
-      spec.locationName
-    );
+    let location: Location | null;
+    if (spec.locationGuid) {
+      location = await Location.getByGUID(db, spec.locationGuid);
+    } else {
+      location = await Location._getByNameSeries(
+        db,
+        spec.parentNameSeries,
+        spec.locationName
+      );
+    }
     if (location) {
       return [location, specIndex];
     }
@@ -256,13 +291,13 @@ export class Location {
     return Location._getClosestLocation(db, specs, specIndex - 1);
   }
 
-  private static _parseLocationSpec(source: LocationSource): [string[], string] {
-    const parentLocations: string[] = [source.continent];
-    if (source.country) parentLocations.push(source.country);
-    if (source.stateProvince) parentLocations.push(source.stateProvince);
-    if (source.county) parentLocations.push(source.county);
-    if (source.locality) parentLocations.push(source.locality);
-    const locationName = parentLocations.pop();
-    return [parentLocations, locationName!];
+  private static _parseLocationSpec(
+    source: LocationSource
+  ): [(string | null)[], string] {
+    const parentLocations: (string | null)[] = [source.continent];
+    parentLocations.push(source.country || null);
+    parentLocations.push(source.stateProvince || null);
+    parentLocations.push(source.county || null);
+    return [parentLocations, source.locality];
   }
 }

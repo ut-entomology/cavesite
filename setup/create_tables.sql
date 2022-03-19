@@ -4,20 +4,21 @@
 -- the schema optimizes them for search at the expense of not being modifiable.
 -- The users and private_coordinates tables are maintained through the website.
 
--- The database requires a GUID for each location because multiple localities in
--- the same county can have the same name, and the partitioning of specimens into
--- their different same-name localities occurs within Specify.
-
 -- The database requires each location specification to include a named locality
 -- with which it can associate coordinates; otherwise it would need to associate
 -- multiple different coordinates with the same county, state, etc. However, a
 -- location need not have a county or state, only a country and continent.
 
+-- The database allows for but does not require assigning GUIDs to locations.
+-- A location must have a GUID to be assigned private coordinates. In order for
+-- two different localities to have the same name in the same containing location,
+-- both localities must have GUIDs; otherwise they are treated as the same.
+
 -- TODO: We need to provide the following Specify-to-GBIF field mappings:
 -- * accession.AccessionNumber "002022c" => GBIF collectionCode "Biospeleology"
--- * (double-check) preparation.CountAmt => GBIF organismQuantity (if non-zero)
--- * "specimens" => GBIF organismQuantityType (if preparation.CountAmt != 0)
--- * (maybe) ce.Remarks+" (GUID "+locality.GUID+")" => eventRemarks
+-- * preparation.CountAmt => GBIF organismQuantity (if non-zero/non-null)
+-- * "specimens" => GBIF organismQuantityType (if prep.CountAmt non-zero/non-null)
+-- * "GUID " + locality.GUID => georeferenceSources
 
 create table users (
     -- None of these fields are in GBIF.
@@ -52,6 +53,8 @@ create index on taxa(parent_name_series);
 
 create table locations (
     location_id serial primary key, -- locally generated
+    -- GBIF substring of georeferenceSources (Specify location.guid)
+    location_guid varchar (128),
     location_type varchar (50) not null, -- locally assigned
     -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
     location_name varchar (512) not null,
@@ -68,6 +71,7 @@ create table locations (
     -- |-delimited series of location names defining parent
     parent_name_series varchar (1024) not null 
 );
+create index on locations(location_guid);
 create index on locations(parent_name_series);
 
 create table specimens (
@@ -135,6 +139,7 @@ create table private_coordinates (
     -- Users will be supplying this data, not GBIF.
     -- TODO: This needs to be tied to location in a way that survives imports
     location_id integer primary key references locations,
+    location_guid varchar (128) unique not null,
     supplied_by integer references users,
     precise_latitude float8 not null,
     precise_longitude float8 not null,

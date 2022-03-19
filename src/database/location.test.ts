@@ -4,6 +4,8 @@ import type { DB } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Location, LocationType } from './location';
 
+// TODO: test use of GUIDs
+
 let db: DB;
 
 test.beforeAll(async () => {
@@ -20,6 +22,7 @@ test('series of sequentially dependent location tests', async () => {
     const sourceLocation = {
       locationType: LocationType.Continent,
       locationName,
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
       parentID: null
@@ -41,6 +44,7 @@ test('series of sequentially dependent location tests', async () => {
     const sourceLocation = {
       locationType: LocationType.Country,
       locationName,
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
       parentID: 1
@@ -60,78 +64,116 @@ test('series of sequentially dependent location tests', async () => {
     expect(readLocation).toEqual(expectedLocation);
   }
 
-  // test getOrCreate() gets an existing location
+  // test skipping unspecified intermediate locations
 
   {
-    const locationName = 'United States';
-    const expectedLocation = await Location.getByID(db, 2);
-    expect(expectedLocation?.locationName).toEqual(locationName);
+    const createdLocation = await Location.getOrCreate(db, {
+      continent: 'North America',
+      country: 'United States',
+      locality: 'Someplace in U.S.'
+    });
+    const readLocation = await Location.getByID(db, 3);
+    expect(readLocation).toEqual({
+      locationID: 3,
+      locationType: LocationType.Locality,
+      locationName: 'Someplace in U.S.',
+      locationGuid: null,
+      publicLatitude: null,
+      publicLongitude: null,
+      parentID: 2,
+      parentIDSeries: '1,2,-,-',
+      parentNameSeries: 'North America|United States|-|-'
+    });
+    expect(createdLocation).toEqual(readLocation);
+  }
+
+  // test getOrCreate() getting an existing location
+
+  {
+    const expectedLocation = await Location.getByID(db, 3);
+    expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
     const readLocation = await Location.getOrCreate(db, {
       continent: 'North America',
-      country: 'United States'
+      country: 'United States',
+      locality: 'Someplace in U.S.'
     });
     expect(readLocation).toEqual(expectedLocation);
   }
 
-  // test auto-creating new location having no intermediates
+  // test auto-creating new location having some but not all intermediates
 
   {
-    const locationName = 'Texas';
     const createdLocation = await Location.getOrCreate(db, {
       continent: 'North America',
       country: 'United States',
-      stateProvince: 'Texas'
+      stateProvince: 'Texas',
+      locality: 'Someplace in Texas'
     });
-    expect(createdLocation).toEqual({
-      locationID: 3,
+    expect(await Location.getByID(db, 4)).toEqual({
+      locationID: 4,
       locationType: LocationType.StateProvince,
-      locationName,
+      locationName: 'Texas',
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
       parentID: 2,
       parentIDSeries: '1,2',
       parentNameSeries: 'North America|United States'
     });
+    const readLocation = await Location.getByID(db, 5);
+    expect(readLocation).toEqual({
+      locationID: 5,
+      locationType: LocationType.Locality,
+      locationName: 'Someplace in Texas',
+      locationGuid: null,
+      publicLatitude: null,
+      publicLongitude: null,
+      parentID: 4,
+      parentIDSeries: '1,2,4,-',
+      parentNameSeries: 'North America|United States|Texas|-'
+    });
+    expect(createdLocation).toEqual(readLocation);
   }
 
-  // test auto-creating new locality and new intermediate taxon
+  // test auto-creating new locality and final intermediate taxon
 
   {
-    const locationName = 'Missing Cave';
     const createdLocation = await Location.getOrCreate(db, {
       continent: 'North America',
       country: 'United States',
       stateProvince: 'Texas',
       county: 'Travis County',
-      locality: locationName,
+      locality: 'Missing Cave',
       decimalLatitude: 28.12,
       decimalLongitude: -97.34
     });
-    expect(await Location.getByID(db, 4)).toEqual({
-      locationID: 4,
+    expect(await Location.getByID(db, 6)).toEqual({
+      locationID: 6,
       locationType: LocationType.County,
       locationName: 'Travis County',
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
-      parentID: 3,
-      parentIDSeries: '1,2,3',
+      parentID: 4,
+      parentIDSeries: '1,2,4',
       parentNameSeries: 'North America|United States|Texas'
     });
-    const readLocation = await Location.getByID(db, 5);
+    const readLocation = await Location.getByID(db, 7);
     expect(readLocation).toEqual({
-      locationID: 5,
+      locationID: 7,
       locationType: LocationType.Locality,
-      locationName,
+      locationName: 'Missing Cave',
+      locationGuid: null,
       publicLatitude: 28.12,
       publicLongitude: -97.34,
-      parentID: 4,
-      parentIDSeries: '1,2,3,4',
+      parentID: 6,
+      parentIDSeries: '1,2,4,6',
       parentNameSeries: 'North America|United States|Texas|Travis County'
     });
     expect(createdLocation).toEqual(readLocation);
   }
 
-  // test creating multiple intermediate localities
+  // test creating multiple intermediate localities under continent
 
   {
     const createdLocation = await Location.getOrCreate(db, {
@@ -143,45 +185,49 @@ test('series of sequentially dependent location tests', async () => {
       decimalLatitude: 21.12,
       decimalLongitude: -96.34
     });
-    expect(await Location.getByID(db, 6)).toEqual({
-      locationID: 6,
+    expect(await Location.getByID(db, 8)).toEqual({
+      locationID: 8,
       locationType: LocationType.Country,
       locationName: 'Mexico',
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
       parentID: 1,
       parentIDSeries: '1',
       parentNameSeries: 'North America'
     });
-    expect(await Location.getByID(db, 7)).toEqual({
-      locationID: 7,
+    expect(await Location.getByID(db, 9)).toEqual({
+      locationID: 9,
       locationType: LocationType.StateProvince,
       locationName: 'Chihuahua',
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
-      parentID: 6,
-      parentIDSeries: '1,6',
+      parentID: 8,
+      parentIDSeries: '1,8',
       parentNameSeries: 'North America|Mexico'
     });
-    expect(await Location.getByID(db, 8)).toEqual({
-      locationID: 8,
+    expect(await Location.getByID(db, 10)).toEqual({
+      locationID: 10,
       locationType: LocationType.County,
       locationName: 'Mun. Xyz',
+      locationGuid: null,
       publicLatitude: null,
       publicLongitude: null,
-      parentID: 7,
-      parentIDSeries: '1,6,7',
+      parentID: 9,
+      parentIDSeries: '1,8,9',
       parentNameSeries: 'North America|Mexico|Chihuahua'
     });
-    const readLocation = await Location.getByID(db, 9);
+    const readLocation = await Location.getByID(db, 11);
     expect(readLocation).toEqual({
-      locationID: 9,
+      locationID: 11,
       locationType: LocationType.Locality,
+      locationGuid: null,
       locationName: 'Invisible Spring',
       publicLatitude: 21.12,
       publicLongitude: -96.34,
-      parentID: 8,
-      parentIDSeries: '1,6,7,8',
+      parentID: 10,
+      parentIDSeries: '1,8,9,10',
       parentNameSeries: 'North America|Mexico|Chihuahua|Mun. Xyz'
     });
     expect(createdLocation).toEqual(readLocation);
@@ -191,7 +237,7 @@ test('series of sequentially dependent location tests', async () => {
 
   {
     const expectedLocation = await Location.getByID(db, 4);
-    expect(expectedLocation?.locationName).toEqual('Travis County');
+    expect(expectedLocation?.locationName).toEqual('Texas');
     expectedLocation!.publicLatitude = 23.5;
     expectedLocation!.publicLongitude = -97.5;
     await expectedLocation!.save(db);
