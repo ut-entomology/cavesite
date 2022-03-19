@@ -4,10 +4,9 @@
  * provide easy-access to the taxonomic hierarchy.
  */
 
-// NOTE: This module is analogous to location.ts, but I did not create a
-// generic type for them because it would be a complicated type, and I
-// wanted to be sure the code was accessible to TypeScript newbies. Hence,
-// any logic you change here many need to change in location.ts.
+// NOTE: There are similarities between this module and location.ts,
+// so any correction made here should be investigated in location.ts.
+// Not enough similarity to base both on a generic class, though.
 
 import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
