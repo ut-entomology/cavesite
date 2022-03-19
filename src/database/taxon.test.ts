@@ -202,6 +202,77 @@ test('series of sequentially dependent taxa tests', async () => {
     expect(createdTaxon).toEqual(readTaxon);
   }
 
+  // test creating multiple intermediate taxa under kingdom
+
+  {
+    const createdTaxon = await Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Chordata',
+      class: 'Amphibia',
+      order: 'Urodela',
+      family: 'Plethodontidae',
+      genus: 'Eurycea',
+      specificEpithet: 'rathbuni',
+      scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
+    });
+    expect(await Taxon.getByID(db, 12)).toEqual({
+      taxonID: 12,
+      taxonRank: TaxonRank.Phylum,
+      taxonName: 'Chordata',
+      scientificName: null,
+      parentID: 1,
+      parentIDSeries: '1',
+      parentNameSeries: 'Animalia'
+    });
+    expect(await Taxon.getByID(db, 13)).toEqual({
+      taxonID: 13,
+      taxonRank: TaxonRank.Class,
+      taxonName: 'Amphibia',
+      scientificName: null,
+      parentID: 12,
+      parentIDSeries: '1,12',
+      parentNameSeries: 'Animalia|Chordata'
+    });
+    expect(await Taxon.getByID(db, 14)).toEqual({
+      taxonID: 14,
+      taxonRank: TaxonRank.Order,
+      taxonName: 'Urodela',
+      scientificName: null,
+      parentID: 13,
+      parentIDSeries: '1,12,13',
+      parentNameSeries: 'Animalia|Chordata|Amphibia'
+    });
+    expect(await Taxon.getByID(db, 15)).toEqual({
+      taxonID: 15,
+      taxonRank: TaxonRank.Family,
+      taxonName: 'Plethodontidae',
+      scientificName: null,
+      parentID: 14,
+      parentIDSeries: '1,12,13,14',
+      parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela'
+    });
+    expect(await Taxon.getByID(db, 16)).toEqual({
+      taxonID: 16,
+      taxonRank: TaxonRank.Genus,
+      taxonName: 'Eurycea',
+      scientificName: null,
+      parentID: 15,
+      parentIDSeries: '1,12,13,14,15',
+      parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae'
+    });
+    const readTaxon = await Taxon.getByID(db, 17);
+    expect(readTaxon).toEqual({
+      taxonID: 17,
+      taxonRank: TaxonRank.Species,
+      taxonName: 'rathbuni',
+      scientificName: 'Eurycea rathbuni (Stejneger, 1896)',
+      parentID: 16,
+      parentIDSeries: '1,12,13,14,15,16',
+      parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea'
+    });
+    expect(createdTaxon).toEqual(readTaxon);
+  }
+
   // test providing the scientific name of an existing taxon
 
   {
