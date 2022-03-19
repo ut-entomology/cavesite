@@ -4,6 +4,21 @@
 -- the schema optimizes them for search at the expense of not being modifiable.
 -- The users and private_coordinates tables are maintained through the website.
 
+-- The database requires a GUID for each location because multiple localities in
+-- the same county can have the same name, and the partitioning of specimens into
+-- their different same-name localities occurs within Specify.
+
+-- The database requires each location specification to include a named locality
+-- with which it can associate coordinates; otherwise it would need to associate
+-- multiple different coordinates with the same county, state, etc. However, a
+-- location need not have a county or state, only a country and continent.
+
+-- TODO: We need to provide the following Specify-to-GBIF field mappings:
+-- * accession.AccessionNumber "002022c" => GBIF collectionCode "Biospeleology"
+-- * (double-check) preparation.CountAmt => GBIF organismQuantity (if non-zero)
+-- * "specimens" => GBIF organismQuantityType (if preparation.CountAmt != 0)
+-- * (maybe) ce.Remarks+" (GUID "+locality.GUID+")" => eventRemarks
+
 create table users (
     -- None of these fields are in GBIF.
     user_id serial primary key, -- locally generated
@@ -99,8 +114,8 @@ create table specimens (
     determination_remarks text,
     -- GBIF typeStatus
     type_status varchar (50),
-    -- GBIF fieldNumber
-    station_field_number varchar (50)
+    -- GBIF organismQuantity
+    specimen_count integer
 );
 create index on specimens(kingdom_id);
 create index on specimens(phylum_id);
