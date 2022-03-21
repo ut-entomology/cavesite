@@ -10,6 +10,7 @@
 
 import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
+import { DataError } from './data_error';
 
 export type LocationData = DataOf<Location>;
 
@@ -35,7 +36,7 @@ export interface LocationSource {
   country?: string;
   stateProvince?: string;
   county?: string;
-  locality: string; // required; caller must filter for presence
+  locality?: string; // required on getOrCreate()
   decimalLatitude?: number;
   decimalLongitude?: number;
   // Derived fields
@@ -294,6 +295,9 @@ export class Location {
   private static _parseLocationSpec(
     source: LocationSource
   ): [(string | null)[], string] {
+    if (!source.locality) {
+      throw new DataError('Missing locality name');
+    }
     const parentLocations: (string | null)[] = [source.continent];
     parentLocations.push(source.country || null);
     parentLocations.push(source.stateProvince || null);

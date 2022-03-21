@@ -3,8 +3,7 @@ import { test, expect } from '@playwright/test';
 import type { DB } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Location, LocationType } from './location';
-
-// TODO: revise for erroring on missing locality; test
+import { DataError } from './data_error';
 
 let db: DB;
 
@@ -243,6 +242,18 @@ test.describe('without location GUIDs', () => {
       const readLocation = await Location.getByID(db, 4);
       expect(readLocation).toEqual(expectedLocation);
     }
+
+    // test attempt to add record lacking a locality
+
+    {
+      await expect(() =>
+        Location.getOrCreate(db, {
+          continent: 'North America',
+          country: 'United States'
+          // no locality specified
+        })
+      ).rejects.toThrow(new DataError('Missing locality name'));
+    }
   });
 
   test.afterAll(async () => {
@@ -465,6 +476,19 @@ test.describe('with location GUIDs', () => {
       expect(createdLocation2).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G8');
       expect(readLocation).toEqual(createdLocation2);
+    }
+
+    // test attempt to add record lacking a locality
+
+    {
+      await expect(() =>
+        Location.getOrCreate(db, {
+          continent: 'North America',
+          country: 'United States',
+          locationGuid: 'G100'
+          // no locality specified
+        })
+      ).rejects.toThrow(new DataError('Missing locality name'));
     }
   });
 
