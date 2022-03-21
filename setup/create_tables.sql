@@ -1,5 +1,7 @@
 -- PostgreSQL Schema
 
+-- TODO: add a 'committed' flag to imported tables
+
 -- The taxa, locations, and specimens tables are all imported read-only data, so
 -- the schema optimizes them for search at the expense of not being modifiable.
 -- The users and private_coordinates tables are maintained through the website.
@@ -18,7 +20,7 @@
 -- * accession.AccessionNumber "002022c" => GBIF collectionCode "Biospeleology"
 -- * preparation.CountAmt => GBIF organismQuantity (if non-zero/non-null)
 -- * "specimens" => GBIF organismQuantityType (if prep.CountAmt non-zero/non-null)
--- * "GUID " + locality.GUID => georeferenceSources
+-- * locality.GUID => locationID
 
 create table users (
     -- None of these fields are in GBIF.

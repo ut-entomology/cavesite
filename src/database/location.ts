@@ -39,13 +39,13 @@ export interface LocationSource {
   decimalLatitude?: number;
   decimalLongitude?: number;
   // Derived fields
-  locationGuid?: number;
+  locationGuid?: string;
 }
 
 interface LocationSpec {
   locationType: LocationType;
   locationName: string;
-  locationGuid: number | null;
+  locationGuid: string | null;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentNameSeries: string;
@@ -55,7 +55,7 @@ export class Location {
   locationID = 0;
   locationType: LocationType;
   locationName: string;
-  locationGuid: number | null;
+  locationGuid: string | null;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentID: number | null;
@@ -147,7 +147,7 @@ export class Location {
     return location;
   }
 
-  static async getByGUID(db: DB, locationGUID: number): Promise<Location | null> {
+  static async getByGUID(db: DB, locationGUID: string): Promise<Location | null> {
     const result = await db.query(`select * from locations where location_guid=$1`, [
       locationGUID
     ]);
