@@ -6,8 +6,12 @@ import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
 import { Taxon } from './taxon';
 import { Location } from './location';
+import { DataError } from './data_error';
 
 export type SpecimenData = DataOf<Specimen>;
+
+const END_DATE_CONTEXT_REGEX = / *[*]end date:? *([^ ;|./]*) *[;|./]?/i;
+const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 
 export interface SpecimenSource {
   // GBIF field names
@@ -57,7 +61,7 @@ export class Specimen {
   subspeciesID: number | null;
   preciseTaxonID: number; // ID of most specific taxon
 
-  continentID: string;
+  continentID: number;
   countryID: number | null;
   stateProvinceID: number | null;
   countyID: number | null;
@@ -110,197 +114,143 @@ export class Specimen {
     this.specimenCount = row.specimenCount;
   }
 
-  //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
-
-  async save(db: DB): Promise<number> {
-    if (this.locationID === 0) {
-      const result = await db.query(
-        `insert into locations(
-						location_type, location_name, public_latitude, public_longitude,
-						parent_id, parent_id_series, parent_name_series
-					) values ($1, $2, $3, $4, $5, $6, $7)
-					returning location_id`,
-        [
-          this.locationType,
-          this.locationName,
-          this.publicLatitude,
-          this.publicLongitude,
-          this.parentID,
-          this.parentIDSeries,
-          this.parentNameSeries
-        ]
-      );
-      this.locationID = result.rows[0].location_id;
-    } else {
-      const result = await db.query(
-        `update locations set 
-						location_type=$1, location_name=$2, public_latitude=$3, public_longitude=$4,
-						parent_id=$5, parent_id_series=$6, parent_name_series=$7
-					where location_id=$8`,
-        [
-          this.locationType,
-          this.locationName,
-          this.publicLatitude,
-          this.publicLongitude,
-          this.parentID,
-          this.parentIDSeries,
-          this.parentNameSeries,
-          this.locationID
-        ]
-      );
-      if (result.rowCount != 1) {
-        throw Error(`Failed to update locality ID ${this.locationID}`);
-      }
-    }
-    return this.locationID;
-  }
-
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
-  static async create(
-    db: DB,
-    parentNameSeries: string,
-    parentIDSeries: string,
-    data: Omit<LocationData, 'locationID' | 'parentIDSeries' | 'parentNameSeries'>
-  ): Promise<Location> {
-    const location = new Location(
-      Object.assign(
-        {
-          locationID: 0 /* DB will assign a value */,
-          parentIDSeries,
-          parentNameSeries
-        },
-        data
-      )
-    );
-    await location.save(db);
-    return location;
-  }
+  // TODO: combine into create()
+  static async create(db: DB, source: SpecimenSource): Promise<Specimen> {
+    // Return the specimen if it already exists.
 
-  static async getByID(db: DB, locationID: number): Promise<Location | null> {
-    const result = await db.query(`select * from locations where location_id=$1`, [
-      locationID
-    ]);
-    return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
-  }
+    let specimen = await Specimen.getByCatNum(db, source.catalogNumber);
+    if (specimen) return specimen;
 
-  static async getOrCreate(db: DB, source: LocationSource): Promise<Location> {
-    // Return the location if it already exists.
+    // Create the associated taxa and locations, if they don't already exist.
 
-    const [parentLocations, locationName] = Location._parseLocationSpec(source);
-    let location = await Location._getByNameSeries(
-      db,
-      parentLocations.join('|'),
-      locationName
-    );
-    if (location) return location;
+    const taxon = await Taxon.getOrCreate(db, source);
+    const taxonIDs = taxon.parentIDSeries.split(',');
 
-    // If the location doesn't exist yet, create specs for all its ancestors.
+    const location = await Location.getOrCreate(db, source);
+    const locationIDs = location.parentIDSeries.split(',');
 
-    const specs: LocationSpec[] = [];
-    let parentNameSeries = '';
-    for (let i = 0; i < parentLocations.length; ++i) {
-      const ancestorName = parentLocations[i];
-      specs.push({
-        locationType: orderedTypes[i],
-        locationName: ancestorName,
-        publicLatitude: null,
-        publicLongitude: null,
-        parentNameSeries
-      });
-      if (parentNameSeries == '') {
-        parentNameSeries = ancestorName; // necessarily continent
-      } else {
-        parentNameSeries += '|' + ancestorName;
+    // Extract the end date from collectionRemarks, when present.
+
+    let endDate: Date | null = null;
+    let collectionRemarks = source.collectionRemarks || null;
+    if (collectionRemarks) {
+      const match = END_DATE_CONTEXT_REGEX.exec(collectionRemarks);
+      if (match) {
+        collectionRemarks =
+          collectionRemarks.substring(0, match.index) +
+          collectionRemarks.substring(match.index + match[0].length);
+        if (!END_DATE_REGEX.test(match[1])) {
+          throw new DataError('Invalid end date syntax in event remarks');
+        }
+        // Assume dates are in Texas (Central) time.
+        endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');
       }
     }
 
-    // Create a spec for the particular requested location.
+    // Assemble the specimen instance from the data.
 
-    specs.push({
-      locationType: orderedTypes[parentLocations.length],
-      locationName,
-      publicLatitude: source.publicLatitude || null,
-      publicLongitude: source.publicLongitude || null,
-      parentNameSeries
+    specimen = new Specimen({
+      catalogNumber: source.catalogNumber,
+      occurrenceGuid: source.occurrenceID,
+
+      kingdomID: getAncestorID(taxonIDs, 0)!,
+      phylumID: getAncestorID(taxonIDs, 1),
+      classID: getAncestorID(taxonIDs, 2),
+      orderID: getAncestorID(taxonIDs, 3),
+      familyID: getAncestorID(taxonIDs, 4),
+      genusID: getAncestorID(taxonIDs, 5),
+      speciesID: getAncestorID(taxonIDs, 6),
+      subspeciesID: getAncestorID(taxonIDs, 7),
+      preciseTaxonID: taxon.taxonID,
+
+      continentID: getAncestorID(locationIDs, 0)!,
+      countryID: getAncestorID(locationIDs, 1),
+      stateProvinceID: getAncestorID(locationIDs, 2),
+      countyID: getAncestorID(locationIDs, 3),
+      localityID: getAncestorID(locationIDs, 4),
+      preciseLocationID: location.locationID,
+
+      collectionStartDate: source.startDate || null,
+      collectionEndDate: endDate,
+      collectors: source.collectors?.replace(/ [|] /g, '|') || null,
+      determinationDate: source.determinationDate || null,
+      determiners: source.determiners?.replace(/ [|] /g, '|') || null,
+      collectionRemarks: collectionRemarks,
+      occurrenceRemarks: source.occurrenceRemarks || null,
+      determinationRemarks: source.determinationRemarks || null,
+      typeStatus: source.typeStatus || null,
+      specimenCount: source.organismQuantity || null
     });
 
-    // Create all implied locations.
+    // Add the specimen to the database. Specimens are read-only.
 
-    return await Location._createMissingLocations(db, specs);
-  }
-
-  //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
-
-  private static async _createMissingLocations(
-    db: DB,
-    specs: LocationSpec[]
-  ): Promise<Location> {
-    let [location, locationIndex] = await Location._getClosestLocation(
-      db,
-      specs,
-      specs.length - 1 // nearest to the last specified location
+    await db.query(
+      `insert into specimens(
+          catalog_number, occurrence_guid,
+          kingdom_id, phylum_id, class_id, order_id, family_id,
+          genus_id, species_id, subspecies_id, precise_taxon_id,
+          continent_id, country_id, state_province_id,
+          county_id, locality_id, precise_location_id,
+          date(collection_start_date), date(collection_end_date),
+          collectors, date(determination_date), determiners,
+          collection_remarks, occurrence_remarks,  determination_remarks,
+          type_status, specimen_count,
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+				returning location_id`,
+      [
+        specimen.catalogNumber,
+        specimen.occurrenceGuid,
+        specimen.kingdomID,
+        specimen.phylumID,
+        specimen.classID,
+        specimen.orderID,
+        specimen.familyID,
+        specimen.genusID,
+        specimen.speciesID,
+        specimen.subspeciesID,
+        specimen.preciseTaxonID,
+        specimen.continentID,
+        specimen.countryID,
+        specimen.stateProvinceID,
+        specimen.countyID,
+        specimen.localityID,
+        specimen.preciseLocationID,
+        // @ts-ignore
+        specimen.collectionStartDate,
+        // @ts-ignore
+        specimen.collectionEndDate,
+        specimen.collectors,
+        // @ts-ignore
+        specimen.determinationDate,
+        specimen.determiners,
+        specimen.collectionRemarks,
+        specimen.occurrenceRemarks,
+        specimen.determinationRemarks,
+        specimen.typeStatus,
+        specimen.specimenCount
+      ]
     );
-    let parentIDSeries = location?.parentIDSeries || '';
-    while (++locationIndex < specs.length) {
-      if (location) {
-        if (parentIDSeries == '') {
-          parentIDSeries = location.locationID.toString();
-        } else {
-          parentIDSeries += ',' + location.locationID.toString();
-        }
-      }
-      const spec = specs[locationIndex];
-      location = await Location.create(db, spec.parentNameSeries, parentIDSeries, {
-        locationType: spec.locationType,
-        locationName: spec.locationName,
-        publicLatitude: spec.publicLatitude,
-        publicLongitude: spec.publicLongitude,
-        parentID: location?.locationID || null
-      });
-    }
-    return location!;
+    return specimen;
   }
 
-  private static async _getByNameSeries(
-    db: DB,
-    parentNameSeries: string,
-    locationName: string
-  ): Promise<Location | null> {
-    const result = await db.query(
-      `select * from locations where parent_name_series=$1 and location_name=$2`,
-      [parentNameSeries, locationName]
-    );
-    return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
+  static async getByCatNum(db: DB, catalogNumber: string): Promise<Specimen | null> {
+    const result = await db.query(`select * from specimens where catalog_number=$1`, [
+      catalogNumber
+    ]);
+    return result.rows.length > 0 ? new Specimen(toCamelRow(result.rows[0])) : null;
   }
+}
 
-  private static async _getClosestLocation(
-    db: DB,
-    specs: LocationSpec[],
-    specIndex: number
-  ): Promise<[Location | null, number]> {
-    const spec = specs[specIndex];
-    const location = await Location._getByNameSeries(
-      db,
-      spec.parentNameSeries,
-      spec.locationName
-    );
-    if (location) {
-      return [location, specIndex];
-    }
-    if (specIndex == 0) {
-      return [null, -1];
-    }
-    return Location._getClosestLocation(db, specs, specIndex - 1);
+function getAncestorID(ancestorIDs: string[], ancestorIndex: number): number | null {
+  if (ancestorIndex > ancestorIDs.length) {
+    return null;
   }
-
-  private static _parseLocationSpec(source: LocationSource): [string[], string] {
-    const parentLocations: string[] = [source.continent];
-    if (source.country) parentLocations.push(source.country);
-    if (source.stateProvince) parentLocations.push(source.stateProvince);
-    if (source.county) parentLocations.push(source.county);
-    if (source.locality) parentLocations.push(source.locality);
-    const locationName = parentLocations.pop();
-    return [parentLocations, locationName!];
+  const ancestorID = ancestorIDs[ancestorIndex];
+  if (ancestorID == '-') {
+    return null;
   }
+  return parseInt(ancestorID);
 }

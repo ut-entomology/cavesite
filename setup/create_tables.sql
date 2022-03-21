@@ -112,7 +112,7 @@ create table specimens (
     determination_date date,
     -- GBIF identifiedBy (|-delimited names, last name last)
     determiners text,
-    -- GBIF eventRemarks (collecting event/info remarks/habitat notes)
+    -- GBIF eventRemarks (collecting event/info/habitat/end date)
     collection_remarks text,
     -- GBIF occurrenceRemarks (collection object remarks)
     occurrence_remarks text,
