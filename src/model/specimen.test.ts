@@ -10,7 +10,7 @@ const TZ_SUFFIX = 'T06:00:00.000Z';
 
 let db: DB;
 
-test.describe('TBD', () => {
+test.describe('creating specimens', () => {
   test.beforeAll(async () => {
     db = await initTestDatabase();
   });

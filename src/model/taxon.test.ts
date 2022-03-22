@@ -10,7 +10,7 @@ test.beforeAll(async () => {
   db = await initTestDatabase();
 });
 
-test('series of sequentially dependent taxa tests', async () => {
+test('sequentially dependent taxa tests', async () => {
   // Each of these tests depends on the prior tests, so run all as a unit.
 
   // test adding kingdom taxon

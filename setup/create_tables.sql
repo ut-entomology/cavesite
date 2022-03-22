@@ -138,8 +138,7 @@ create index on specimens(county_id);
 create index on specimens(locality_id);
 
 create table private_coordinates (
-    -- Users will be supplying this data, not GBIF.
-    -- TODO: This needs to be tied to location in a way that survives imports
+    -- Users will be supplying this data, not GBIF
     location_id integer primary key references locations,
     location_guid varchar (128) unique not null,
     supplied_by integer references users,
