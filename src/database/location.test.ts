@@ -142,8 +142,8 @@ test.describe('without location GUIDs', () => {
         stateProvince: 'Texas',
         county: 'Travis County',
         locality: 'Missing Cave',
-        decimalLatitude: 28.12,
-        decimalLongitude: -97.34
+        decimalLatitude: '28.12',
+        decimalLongitude: '-97.34'
       });
       expect(await Location.getByID(db, 6)).toEqual({
         locationID: 6,
@@ -180,8 +180,8 @@ test.describe('without location GUIDs', () => {
         stateProvince: 'Chihuahua',
         county: 'Mun. Xyz',
         locality: 'Invisible Spring',
-        decimalLatitude: 21.12,
-        decimalLongitude: -96.34
+        decimalLatitude: '21.12',
+        decimalLongitude: '-96.34'
       });
       expect(await Location.getByID(db, 8)).toEqual({
         locationID: 8,
@@ -327,7 +327,7 @@ test.describe('with location GUIDs', () => {
         continent: 'North America',
         country: 'United States',
         locality: 'Someplace in U.S.',
-        locationGuid: 'G3'
+        locationID: 'G3'
       });
       const readLocation = await Location.getByID(db, 3);
       expect(readLocation).toEqual({
@@ -353,7 +353,7 @@ test.describe('with location GUIDs', () => {
         continent: 'North America',
         country: 'United States',
         locality: 'Someplace in U.S.',
-        locationGuid: 'G3'
+        locationID: 'G3'
       });
       expect(readLocation).toEqual(expectedLocation);
     }
@@ -366,7 +366,7 @@ test.describe('with location GUIDs', () => {
         country: 'United States',
         stateProvince: 'Texas',
         locality: 'Someplace in Texas',
-        locationGuid: 'G5'
+        locationID: 'G5'
       });
       expect(await Location.getByID(db, 4)).toEqual({
         locationID: 4,
@@ -404,7 +404,7 @@ test.describe('with location GUIDs', () => {
         country: 'United States',
         stateProvince: 'Texas',
         locality: 'Another Place in Texas',
-        locationGuid: 'G6'
+        locationID: 'G6'
       });
       let readLocation = await Location.getByID(db, 6);
       expect(readLocation).toEqual({
@@ -431,18 +431,18 @@ test.describe('with location GUIDs', () => {
         country: 'United States',
         stateProvince: 'Texas',
         locality: 'Duplicate Cave',
-        locationGuid: 'G7',
-        decimalLatitude: 23.89,
-        decimalLongitude: -97.78
+        locationID: 'G7',
+        decimalLatitude: '23.89',
+        decimalLongitude: '-97.78'
       });
       const createdLocation2 = await Location.getOrCreate(db, {
         continent: 'North America',
         country: 'United States',
         stateProvince: 'Texas',
         locality: 'Duplicate Cave',
-        locationGuid: 'G8',
-        decimalLatitude: 23.0,
-        decimalLongitude: -97.0
+        locationID: 'G8',
+        decimalLatitude: '23.0',
+        decimalLongitude: '-97.0'
       });
 
       let readLocation = await Location.getByID(db, 7);
@@ -485,7 +485,7 @@ test.describe('with location GUIDs', () => {
         Location.getOrCreate(db, {
           continent: 'North America',
           country: 'United States',
-          locationGuid: 'G100'
+          locationID: 'G100'
           // no locality specified
         })
       ).rejects.toThrow(new DataError('Missing locality name'));

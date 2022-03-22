@@ -22,7 +22,7 @@ export enum LocationType {
   Locality = 'locality'
 }
 
-const orderedTypes = [
+export const locationTypes = [
   LocationType.Continent,
   LocationType.Country,
   LocationType.StateProvince,
@@ -32,15 +32,14 @@ const orderedTypes = [
 
 export interface LocationSource {
   // GBIF field names
+  locationID?: string; // actually a GUID
   continent: string;
   country?: string;
   stateProvince?: string;
   county?: string;
   locality?: string; // required on getOrCreate()
-  decimalLatitude?: number;
-  decimalLongitude?: number;
-  // Derived fields
-  locationGuid?: string;
+  decimalLatitude?: string;
+  decimalLongitude?: string;
 }
 
 interface LocationSpec {
@@ -165,12 +164,12 @@ export class Location {
   static async getOrCreate(db: DB, source: LocationSource): Promise<Location> {
     // Return the location if it already exists.
 
-    if (source.locationGuid) {
-      const location = await Location.getByGUID(db, source.locationGuid);
+    if (source.locationID) {
+      const location = await Location.getByGUID(db, source.locationID);
       if (location) return location;
     }
     const [parentLocations, locationName] = Location._parseLocationSpec(source);
-    if (!source.locationGuid) {
+    if (!source.locationID) {
       let location = await Location._getByNameSeries(
         db,
         parentLocations.join('|'),
@@ -187,7 +186,7 @@ export class Location {
       const ancestorName = parentLocations[i];
       if (ancestorName) {
         specs.push({
-          locationType: orderedTypes[i],
+          locationType: locationTypes[i],
           locationName: ancestorName,
           locationGuid: null, // not needed above locality
           publicLatitude: null,
@@ -205,12 +204,16 @@ export class Location {
 
     // Create a spec for the particular requested location.
 
+    const latitude = source.decimalLatitude ? parseFloat(source.decimalLatitude) : null;
+    const longitude = source.decimalLongitude
+      ? parseFloat(source.decimalLongitude)
+      : null;
     specs.push({
-      locationType: orderedTypes[parentLocations.length],
+      locationType: locationTypes[parentLocations.length],
       locationName,
-      locationGuid: source.locationGuid || null,
-      publicLatitude: source.decimalLatitude || null,
-      publicLongitude: source.decimalLongitude || null,
+      locationGuid: source.locationID || null,
+      publicLatitude: latitude ? latitude : null,
+      publicLongitude: longitude ? longitude : null,
       parentNameSeries
     });
 
@@ -238,7 +241,7 @@ export class Location {
           parentIDSeries = location.locationID.toString(); // necessarily continent
         } else {
           parentIDSeries += ',' + location.locationID.toString();
-          for (let i = locationIndex; orderedTypes[i] != spec.locationType; ++i) {
+          for (let i = locationIndex; locationTypes[i] != spec.locationType; ++i) {
             parentIDSeries += ',-'; // '-' for ID of missing intermediate location
           }
         }
