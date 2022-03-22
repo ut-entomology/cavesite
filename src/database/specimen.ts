@@ -10,7 +10,7 @@ import { DataError } from './data_error';
 
 export type SpecimenData = DataOf<Specimen>;
 
-const END_DATE_CONTEXT_REGEX = / *[*]end date:? *([^ ;|./]*) *[;|./]?/i;
+const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 
 export interface SpecimenSource {
@@ -34,18 +34,18 @@ export interface SpecimenSource {
   stateProvince?: string;
   county?: string;
   locality?: string;
-  decimalLatitude?: number;
-  decimalLongitude?: number;
+  decimalLatitude?: string;
+  decimalLongitude?: string;
 
-  startDate?: Date;
+  startDate?: string;
   collectors?: string; // |-delimited names, last name last
-  determinationDate?: Date;
+  determinationDate?: string;
   determiners?: string; // |-delimited names, last name last
   collectionRemarks?: string;
   occurrenceRemarks?: string;
   determinationRemarks?: string;
   typeStatus?: string;
-  organismQuantity?: number;
+  organismQuantity?: string;
 }
 
 export class Specimen {
@@ -116,7 +116,6 @@ export class Specimen {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
-  // TODO: combine into create()
   static async create(db: DB, source: SpecimenSource): Promise<Specimen> {
     // Return the specimen if it already exists.
 
@@ -144,44 +143,50 @@ export class Specimen {
         if (!END_DATE_REGEX.test(match[1])) {
           throw new DataError('Invalid end date syntax in event remarks');
         }
-        // Assume dates are in Texas (Central) time.
+        // Assume dates are in Texas time (Central).
         endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');
       }
     }
 
     // Assemble the specimen instance from the data.
 
+    const specimenCount = source.organismQuantity
+      ? parseInt(source.organismQuantity)
+      : null;
+
     specimen = new Specimen({
       catalogNumber: source.catalogNumber,
       occurrenceGuid: source.occurrenceID,
 
-      kingdomID: getAncestorID(taxonIDs, 0)!,
-      phylumID: getAncestorID(taxonIDs, 1),
-      classID: getAncestorID(taxonIDs, 2),
-      orderID: getAncestorID(taxonIDs, 3),
-      familyID: getAncestorID(taxonIDs, 4),
-      genusID: getAncestorID(taxonIDs, 5),
-      speciesID: getAncestorID(taxonIDs, 6),
-      subspeciesID: getAncestorID(taxonIDs, 7),
+      kingdomID: getTreeNodeID(taxonIDs, 0, taxon.taxonID)!,
+      phylumID: getTreeNodeID(taxonIDs, 1, taxon.taxonID),
+      classID: getTreeNodeID(taxonIDs, 2, taxon.taxonID),
+      orderID: getTreeNodeID(taxonIDs, 3, taxon.taxonID),
+      familyID: getTreeNodeID(taxonIDs, 4, taxon.taxonID),
+      genusID: getTreeNodeID(taxonIDs, 5, taxon.taxonID),
+      speciesID: getTreeNodeID(taxonIDs, 6, taxon.taxonID),
+      subspeciesID: getTreeNodeID(taxonIDs, 7, taxon.taxonID),
       preciseTaxonID: taxon.taxonID,
 
-      continentID: getAncestorID(locationIDs, 0)!,
-      countryID: getAncestorID(locationIDs, 1),
-      stateProvinceID: getAncestorID(locationIDs, 2),
-      countyID: getAncestorID(locationIDs, 3),
-      localityID: getAncestorID(locationIDs, 4),
+      continentID: getTreeNodeID(locationIDs, 0, location.locationID)!,
+      countryID: getTreeNodeID(locationIDs, 1, location.locationID),
+      stateProvinceID: getTreeNodeID(locationIDs, 2, location.locationID),
+      countyID: getTreeNodeID(locationIDs, 3, location.locationID),
+      localityID: getTreeNodeID(locationIDs, 4, location.locationID),
       preciseLocationID: location.locationID,
 
-      collectionStartDate: source.startDate || null,
+      collectionStartDate: source.startDate ? new Date(source.startDate) : null,
       collectionEndDate: endDate,
       collectors: source.collectors?.replace(/ [|] /g, '|') || null,
-      determinationDate: source.determinationDate || null,
+      determinationDate: source.determinationDate
+        ? new Date(source.determinationDate)
+        : null,
       determiners: source.determiners?.replace(/ [|] /g, '|') || null,
       collectionRemarks: collectionRemarks,
       occurrenceRemarks: source.occurrenceRemarks || null,
       determinationRemarks: source.determinationRemarks || null,
       typeStatus: source.typeStatus || null,
-      specimenCount: source.organismQuantity || null
+      specimenCount: specimenCount || null // 0 and NaN => null
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -193,13 +198,12 @@ export class Specimen {
           genus_id, species_id, subspecies_id, precise_taxon_id,
           continent_id, country_id, state_province_id,
           county_id, locality_id, precise_location_id,
-          date(collection_start_date), date(collection_end_date),
-          collectors, date(determination_date), determiners,
+          collection_start_date, collection_end_date,
+          collectors, determination_date, determiners,
           collection_remarks, occurrence_remarks,  determination_remarks,
-          type_status, specimen_count,
+          type_status, specimen_count
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
-				returning location_id`,
+            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -218,13 +222,10 @@ export class Specimen {
         specimen.countyID,
         specimen.localityID,
         specimen.preciseLocationID,
-        // @ts-ignore
-        specimen.collectionStartDate,
-        // @ts-ignore
-        specimen.collectionEndDate,
+        specimen.collectionStartDate?.toISOString() || null,
+        specimen.collectionEndDate?.toISOString() || null,
         specimen.collectors,
-        // @ts-ignore
-        specimen.determinationDate,
+        specimen.determinationDate?.toISOString() || null,
         specimen.determiners,
         specimen.collectionRemarks,
         specimen.occurrenceRemarks,
@@ -244,11 +245,18 @@ export class Specimen {
   }
 }
 
-function getAncestorID(ancestorIDs: string[], ancestorIndex: number): number | null {
-  if (ancestorIndex > ancestorIDs.length) {
+function getTreeNodeID(
+  ancestorIDs: string[],
+  index: number,
+  leafID: number
+): number | null {
+  if (index == ancestorIDs.length) {
+    return leafID;
+  }
+  if (index > ancestorIDs.length) {
     return null;
   }
-  const ancestorID = ancestorIDs[ancestorIndex];
+  const ancestorID = ancestorIDs[index];
   if (ancestorID == '-') {
     return null;
   }

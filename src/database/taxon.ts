@@ -24,7 +24,7 @@ export enum TaxonRank {
   Subspecies = 'subspecies'
 }
 
-const orderedRanks = [
+export const taxonRanks = [
   TaxonRank.Kingdom,
   TaxonRank.Phylum,
   TaxonRank.Class,
@@ -159,7 +159,7 @@ export class Taxon {
     for (let i = 0; i < parentTaxa.length; ++i) {
       const ancestorName = parentTaxa[i];
       specs.push({
-        taxonRank: orderedRanks[i],
+        taxonRank: taxonRanks[i],
         taxonName: ancestorName,
         scientificName: null,
         parentNameSeries
@@ -174,7 +174,7 @@ export class Taxon {
     // Create a spec for the particular requested taxon.
 
     specs.push({
-      taxonRank: orderedRanks[parentTaxa.length],
+      taxonRank: taxonRanks[parentTaxa.length],
       taxonName,
       scientificName: source.scientificName,
       parentNameSeries
