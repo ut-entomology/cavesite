@@ -3,19 +3,21 @@ import { test, expect } from '@playwright/test';
 import type { DB } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Specimen } from './specimen';
-// import { Location, LocationType } from './location';
-// import { Taxon, TaxonRank } from './taxon';
+import { Location, LocationType } from './location';
+import { Taxon, TaxonRank } from './taxon';
 
 const TZ_SUFFIX = 'T06:00:00.000Z';
 
 let db: DB;
 
-test.describe('creating specimens', () => {
-  test.beforeAll(async () => {
-    db = await initTestDatabase();
-  });
+test.beforeAll(async () => {
+  db = await initTestDatabase();
+});
 
-  test('creating a fully-specified specimen', async () => {
+test('creating a fully-specified specimen', async () => {
+  // test creating a fully-specified specimen
+
+  {
     const startDate = new Date('2020-01-01' + TZ_SUFFIX);
     const endDate = new Date('2020-01-04' + TZ_SUFFIX);
     const endDateISO = endDate.toISOString();
@@ -49,7 +51,7 @@ test.describe('creating specimens', () => {
       collectionRemarks:
         'meadow; *end date ' + endDateISO.substring(0, endDateISO.indexOf('T')),
       occurrenceRemarks: 'occurrence remark',
-      determinationRemarks: 'big sucker',
+      determinationRemarks: 'big one',
       typeStatus: 'normal',
       organismQuantity: '1'
     };
@@ -85,9 +87,16 @@ test.describe('creating specimens', () => {
       typeStatus: source.typeStatus,
       specimenCount: 1
     });
-  });
+    expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
+    expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
+    expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
+    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aurantia');
+    expect((await Location.getByID(db, 1))?.locationName).toEqual('North America');
+    expect((await Location.getByID(db, 3))?.locationName).toEqual('Texas');
+    expect((await Location.getByID(db, 5))?.locationName).toEqual('My backyard');
+  }
+});
 
-  test.afterAll(async () => {
-    await db.close();
-  });
+test.afterAll(async () => {
+  await db.close();
 });
