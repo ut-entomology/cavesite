@@ -5,6 +5,9 @@ import { initTestDatabase } from '../util/test_util';
 import { Taxon, TaxonRank } from './taxon';
 import { ImportFailure } from './import_failure';
 
+// TODO: look into providing scientific names of implied taxa upon
+// receiving the scientific name
+
 let db: DB;
 
 test.beforeAll(async () => {
@@ -284,6 +287,35 @@ test('sequentially dependent taxa tests', async () => {
     const readTaxon = await Taxon.getByID(db, 4);
     expect(readTaxon).toEqual(expectedTaxon);
   }
+});
+
+test('committing taxa and matching names', async () => {
+  // test committing followed by an exact match
+
+  let matches = await Taxon.matchName(db, 'Arachnida');
+  expect(matches.length).toEqual(0);
+
+  await Taxon.commit(db);
+
+  matches = await Taxon.matchName(db, 'Arachnida');
+  expect(matches.length).toEqual(1);
+  expect(matches[0].taxonName).toEqual('Arachnida');
+
+  // test an internal subset match
+
+  matches = await Taxon.matchName(db, 'isid');
+  expect(matches.length).toEqual(1);
+  expect(matches[0].taxonName).toEqual('Thomisidae');
+
+  // test multiple matches
+
+  matches = await Taxon.matchName(db, 'ida');
+  expect(matches.map((taxon) => taxon.taxonName)).toEqual([
+    'Arachnida',
+    'Philodromidae',
+    'Plethodontidae',
+    'Thomisidae'
+  ]);
 });
 
 test('poorly sourced taxa', async () => {

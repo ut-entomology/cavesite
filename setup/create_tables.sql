@@ -1,7 +1,5 @@
 -- PostgreSQL Schema
 
--- TODO: add a 'committed' flag to imported tables
-
 -- The taxa, locations, and specimens tables are all imported read-only data, so
 -- the schema optimizes them for search at the expense of not being modifiable.
 -- The users and private_coordinates tables are maintained through the website.
@@ -35,6 +33,9 @@ create table users (
 );
 
 create table taxa (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     taxon_id serial primary key, -- locally generated
     -- GBIF taxonRank, locally translated
     taxon_rank varchar (50) not null,
@@ -54,6 +55,9 @@ create table taxa (
 create index on taxa(parent_name_series);
 
 create table locations (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id serial primary key, -- locally generated
     -- GBIF substring of georeferenceSources (Specify location.guid)
     location_guid varchar (128),
@@ -77,6 +81,9 @@ create index on locations(location_guid);
 create index on locations(parent_name_series);
 
 create table specimens (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     -- GBIF catalogNumber
     catalog_number varchar (32) unique not null,
     -- GBIF occurrenceID (specify co.GUID)

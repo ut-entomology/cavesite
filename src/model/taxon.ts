@@ -121,6 +121,11 @@ export class Taxon {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
+  static async commit(db: DB): Promise<void> {
+    await db.query('delete from taxa where committed=true');
+    await db.query('update taxa set committed=true');
+  }
+
   static async create(
     db: DB,
     parentNameSeries: string,
@@ -186,6 +191,15 @@ export class Taxon {
     return await Taxon._createMissingTaxa(db, specs);
   }
 
+  static async matchName(db: DB, partialName: string): Promise<Taxon[]> {
+    const result = await db.query(
+      `select * from taxa where taxon_name like $1 and committed=true
+        order by taxon_name`,
+      [`%${partialName}%`]
+    );
+    return result.rows.map((row) => toCamelRow(row));
+  }
+
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
   private static async _createMissingTaxa(db: DB, specs: TaxonSpec[]): Promise<Taxon> {
@@ -220,7 +234,8 @@ export class Taxon {
     taxonName: string
   ): Promise<Taxon | null> {
     const result = await db.query(
-      `select * from taxa where parent_name_series=$1 and taxon_name=$2`,
+      `select * from taxa where parent_name_series=$1 and taxon_name=$2
+        and committed=false`,
       [parentNameSeries, taxonName]
     );
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
