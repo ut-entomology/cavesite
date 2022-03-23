@@ -146,3 +146,11 @@ create table private_coordinates (
     precise_longitude float8 not null,
     uncertainty_meters float8
 );
+
+create table logs (
+    timestamp timestamptz not null default now(),
+    type varchar (16) not null,
+    tag varchar (64) not null,
+    line varchar (2048) not null
+);
+create index on logs(timestamp);
