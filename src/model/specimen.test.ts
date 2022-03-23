@@ -5,8 +5,52 @@ import { initTestDatabase } from '../util/test_util';
 import { Specimen } from './specimen';
 import { Location } from './location';
 import { Taxon } from './taxon';
+import { ImportFailure } from './import_failure';
 
 const TZ_SUFFIX = 'T06:00:00.000Z';
+const startDate = new Date('2020-01-01' + TZ_SUFFIX);
+const endDate = new Date('2020-01-04' + TZ_SUFFIX);
+const endDateISO = endDate.toISOString();
+const detDate = new Date('2020-06-10' + TZ_SUFFIX);
+
+// const startDate = new Date('2020-01-01');
+// const endDate = new Date('2020-01-04');
+// const endDateISO = endDate.toISOString();
+// const detDate = new Date('2020-06-10');
+
+const baseSource = {
+  catalogNumber: 'C1',
+  occurrenceID: 'X1',
+
+  kingdom: 'Animalia',
+  phylum: 'Arthropoda',
+  class: 'Arachnida',
+  order: 'Araneae',
+  family: 'Araneidae',
+  genus: 'Argiope',
+  specificEpithet: 'aurantia',
+  // no infraspecificEpithet
+  scientificName: 'Argiope aurantia Lucas, 1833',
+
+  continent: 'North America',
+  country: 'United States',
+  stateProvince: 'Texas',
+  county: 'Travis County',
+  locality: 'My backyard',
+  decimalLatitude: '23.45',
+  decimalLongitude: '-93.21',
+
+  startDate: startDate.toISOString(),
+  collectors: 'Person A | Person B',
+  determinationDate: detDate.toISOString(),
+  determiners: 'Person C | Person D',
+  collectionRemarks:
+    'meadow; *end date ' + endDateISO.substring(0, endDateISO.indexOf('T')),
+  occurrenceRemarks: 'occurrence remark',
+  determinationRemarks: 'big one',
+  typeStatus: 'normal',
+  organismQuantity: '1'
+};
 
 let db: DB;
 
@@ -14,52 +58,32 @@ test.beforeAll(async () => {
   db = await initTestDatabase();
 });
 
-test('creating a fully-specified specimen', async () => {
-  const startDate = new Date('2020-01-01' + TZ_SUFFIX);
-  const endDate = new Date('2020-01-04' + TZ_SUFFIX);
-  const endDateISO = endDate.toISOString();
-  const detDate = new Date('2020-06-10' + TZ_SUFFIX);
+test('missing catalog number', async () => {
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = '';
+    await expect(() => Specimen.create(db, source)).rejects.toThrow(
+      new ImportFailure('Missing catalog number')
+    );
+  }
+  {
+    const source = Object.assign({}, baseSource);
+    // @ts-ignore
+    source.catalogNumber = undefined;
+    await expect(() => Specimen.create(db, source)).rejects.toThrow(
+      new ImportFailure('Missing catalog number')
+    );
+  }
+});
 
+test('creating a fully-specified specimen', async () => {
   // test creating a fully-specified specimen
 
   {
-    const source = {
-      catalogNumber: 'C1',
-      occurrenceID: 'X1',
-
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Araneidae',
-      genus: 'Argiope',
-      specificEpithet: 'aurantia',
-      // no infraspecificEpithet
-      scientificName: 'Argiope aurantia Lucas, 1833',
-
-      continent: 'North America',
-      country: 'United States',
-      stateProvince: 'Texas',
-      county: 'Travis County',
-      locality: 'My backyard',
-      decimalLatitude: '23.45',
-      decimalLongitude: '-93.21',
-
-      startDate: startDate.toString(),
-      collectors: 'Person A | Person B',
-      determinationDate: detDate.toString(),
-      determiners: 'Person C | Person D',
-      collectionRemarks:
-        'meadow; *end date ' + endDateISO.substring(0, endDateISO.indexOf('T')),
-      occurrenceRemarks: 'occurrence remark',
-      determinationRemarks: 'big one',
-      typeStatus: 'normal',
-      organismQuantity: '1'
-    };
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, baseSource);
     expect(specimen).toEqual({
-      catalogNumber: source.catalogNumber,
-      occurrenceGuid: source.occurrenceID,
+      catalogNumber: baseSource.catalogNumber,
+      occurrenceGuid: baseSource.occurrenceID,
       kingdomID: 1,
       phylumID: 2,
       classID: 3,
@@ -83,9 +107,9 @@ test('creating a fully-specified specimen', async () => {
       determinationDate: detDate,
       determiners: 'Person C|Person D',
       collectionRemarks: 'meadow',
-      occurrenceRemarks: source.occurrenceRemarks,
-      determinationRemarks: source.determinationRemarks,
-      typeStatus: source.typeStatus,
+      occurrenceRemarks: baseSource.occurrenceRemarks,
+      determinationRemarks: baseSource.determinationRemarks,
+      typeStatus: baseSource.typeStatus,
       specimenCount: 1,
       problems: null
     });
@@ -96,6 +120,9 @@ test('creating a fully-specified specimen', async () => {
     expect((await Location.getByID(db, 1))?.locationName).toEqual('North America');
     expect((await Location.getByID(db, 3))?.locationName).toEqual('Texas');
     expect((await Location.getByID(db, 5))?.locationName).toEqual('My backyard');
+
+    const readSpecimen = await Specimen.getByCatNum(db, baseSource.catalogNumber);
+    expect(readSpecimen).toEqual(specimen);
   }
 
   // test creating a partially-specified specimen in existing hierarchy
@@ -117,7 +144,7 @@ test('creating a fully-specified specimen', async () => {
       stateProvince: 'Texas',
       locality: 'Their backyard',
 
-      startDate: startDate.toString(),
+      startDate: startDate.toISOString(),
       collectors: 'Person A',
       determiners: 'Person C'
     };
@@ -157,6 +184,105 @@ test('creating a fully-specified specimen', async () => {
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
     expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');
   }
+});
+
+test('bad end date', async () => {
+  const source = Object.assign({}, baseSource);
+  // @ts-ignore
+  source.catalogNumber = 'C3';
+  source.occurrenceID = 'X3';
+  source.collectionRemarks = '*end date foo';
+
+  const specimen = await Specimen.create(db, source);
+  expect(specimen.problems).toContain('end date syntax');
+
+  // make sure problem was written to the database
+  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber);
+  expect(readSpecimen).toEqual(specimen);
+});
+
+test('end date but no start date', async () => {
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C4';
+    source.occurrenceID = 'X4';
+    source.startDate = '';
+
+    const specimen = await Specimen.create(db, source);
+    expect(specimen.problems).toContain('no start date');
+  }
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C5';
+    source.occurrenceID = 'X5';
+    // @ts-ignore
+    source.startDate = undefined;
+
+    const specimen = await Specimen.create(db, source);
+    expect(specimen.problems).toContain('no start date');
+  }
+});
+
+test('start date follows end date', async () => {
+  const startDateISO = startDate.toISOString();
+  const source = Object.assign({}, baseSource);
+  // @ts-ignore
+  source.catalogNumber = 'C6';
+  source.occurrenceID = 'X6';
+  source.startDate = endDate.toISOString();
+  source.collectionRemarks =
+    '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
+
+  const specimen = await Specimen.create(db, source);
+  expect(specimen.problems).toContain('Start date follows end date');
+});
+
+test('bad specimen count', async () => {
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C7';
+    source.occurrenceID = 'X7';
+    source.organismQuantity = 'foo';
+
+    const specimen = await Specimen.create(db, source);
+    expect(specimen.problems).toContain('Invalid specimen count');
+  }
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C8';
+    source.occurrenceID = 'X8';
+    source.organismQuantity = '';
+
+    const specimen = await Specimen.create(db, source);
+    expect(specimen.problems).toContain('Invalid specimen count');
+  }
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C9';
+    source.occurrenceID = 'X9';
+    // @ts-ignore
+    source.organismQuantity = undefined;
+
+    const specimen = await Specimen.create(db, source);
+    expect(specimen.problems).toContain('Invalid specimen count');
+  }
+});
+
+test('multiple problems with specimen', async () => {
+  const source = Object.assign({}, baseSource);
+  // @ts-ignore
+  source.catalogNumber = 'C10';
+  source.occurrenceID = 'X10';
+  source.collectionRemarks = '*end date foo';
+  source.organismQuantity = 'foo';
+
+  const specimen = await Specimen.create(db, source);
+  expect(specimen.problems).toContain('end date syntax');
+  expect(specimen.problems).toContain('Invalid specimen count');
+
+  // make sure problem was written to the database
+  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber);
+  expect(readSpecimen).toEqual(specimen);
 });
 
 test.afterAll(async () => {
