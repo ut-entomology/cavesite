@@ -1,22 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 import type { DB } from '../util/pg_util';
+import { toLocalDate } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Specimen } from './specimen';
 import { Location } from './location';
 import { Taxon } from './taxon';
 import { ImportFailure } from './import_failure';
 
-const TZ_SUFFIX = 'T06:00:00.000Z';
-const startDate = new Date('2020-01-01' + TZ_SUFFIX);
-const endDate = new Date('2020-01-04' + TZ_SUFFIX);
+const startDate = toLocalDate(new Date('2020-01-01'));
+const endDate = toLocalDate(new Date('2020-01-04'));
 const endDateISO = endDate.toISOString();
-const detDate = new Date('2020-06-10' + TZ_SUFFIX);
-
-// const startDate = new Date('2020-01-01');
-// const endDate = new Date('2020-01-04');
-// const endDateISO = endDate.toISOString();
-// const detDate = new Date('2020-06-10');
+const detDate = toLocalDate(new Date('2020-06-10'));
 
 const baseSource = {
   catalogNumber: 'C1',
@@ -238,34 +233,13 @@ test('start date follows end date', async () => {
 });
 
 test('bad specimen count', async () => {
-  {
-    const source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C7';
-    source.occurrenceID = 'X7';
-    source.organismQuantity = 'foo';
+  const source = Object.assign({}, baseSource);
+  source.catalogNumber = 'C7';
+  source.occurrenceID = 'X7';
+  source.organismQuantity = 'foo';
 
-    const specimen = await Specimen.create(db, source);
-    expect(specimen.problems).toContain('Invalid specimen count');
-  }
-  {
-    const source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C8';
-    source.occurrenceID = 'X8';
-    source.organismQuantity = '';
-
-    const specimen = await Specimen.create(db, source);
-    expect(specimen.problems).toContain('Invalid specimen count');
-  }
-  {
-    const source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C9';
-    source.occurrenceID = 'X9';
-    // @ts-ignore
-    source.organismQuantity = undefined;
-
-    const specimen = await Specimen.create(db, source);
-    expect(specimen.problems).toContain('Invalid specimen count');
-  }
+  const specimen = await Specimen.create(db, source);
+  expect(specimen.problems).toContain('Invalid specimen count');
 });
 
 test('multiple problems with specimen', async () => {

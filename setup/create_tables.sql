@@ -104,12 +104,12 @@ create table specimens (
     precise_location_id integer not null references locations,
 
     -- GBIF eventDate/year/month/day (specify ce.StartDate)
-    collection_start_date date,
-    collection_end_date date, -- not in GBIF
+    collection_start_date timestamptz,
+    collection_end_date timestamptz, -- not in GBIF
     -- GBIF recordedBy (|-delimited names, last name last)
     collectors text,
     -- GBIF dateIdentified
-    determination_date date,
+    determination_date timestamptz,
     -- GBIF identifiedBy (|-delimited names, last name last)
     determiners text,
     -- GBIF eventRemarks (collecting event/info/habitat/end date)
