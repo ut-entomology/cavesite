@@ -202,18 +202,27 @@ export class Location {
       }
     }
 
+    // Parse the coordinates.
+
+    let latitude: number | null = null;
+    if (source.decimalLatitude) {
+      latitude = parseFloat(source.decimalLatitude);
+      if (isNaN(latitude)) throw new ImportFailure('Invalid latitude');
+    }
+    let longitude: number | null = null;
+    if (source.decimalLongitude) {
+      longitude = parseFloat(source.decimalLongitude);
+      if (isNaN(longitude)) throw new ImportFailure('Invalid longitude');
+    }
+
     // Create a spec for the particular requested location.
 
-    const latitude = source.decimalLatitude ? parseFloat(source.decimalLatitude) : null;
-    const longitude = source.decimalLongitude
-      ? parseFloat(source.decimalLongitude)
-      : null;
     specs.push({
       locationType: locationTypes[parentLocations.length],
       locationName,
       locationGuid: source.locationID || null,
-      publicLatitude: latitude ? latitude : null,
-      publicLongitude: longitude ? longitude : null,
+      publicLatitude: latitude,
+      publicLongitude: longitude,
       parentNameSeries
     });
 
@@ -298,13 +307,22 @@ export class Location {
   private static _parseLocationSpec(
     source: LocationSource
   ): [(string | null)[], string] {
-    if (!source.locality) {
-      throw new ImportFailure('Missing locality name');
-    }
+    if (!source.continent) throw new ImportFailure('Continent not given');
     const parentLocations: (string | null)[] = [source.continent];
     parentLocations.push(source.country || null);
+    if (source.stateProvince && !source.country)
+      throw new ImportFailure('State/province given without country');
     parentLocations.push(source.stateProvince || null);
+    if (source.county && !source.stateProvince)
+      throw new ImportFailure('County given without state/province');
     parentLocations.push(source.county || null);
+    if (!source.locality) throw new ImportFailure('Locality name not given');
+
+    if (source.decimalLatitude && !source.decimalLongitude)
+      throw new ImportFailure('Latitude given without longitude');
+    if (source.decimalLongitude && !source.decimalLatitude)
+      throw new ImportFailure('Longitude given without latitude');
+
     return [parentLocations, source.locality];
   }
 }

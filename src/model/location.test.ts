@@ -242,18 +242,6 @@ test.describe('without location GUIDs', () => {
       const readLocation = await Location.getByID(db, 4);
       expect(readLocation).toEqual(expectedLocation);
     }
-
-    // test attempt to add record lacking a locality
-
-    {
-      await expect(() =>
-        Location.getOrCreate(db, {
-          continent: 'North America',
-          country: 'United States'
-          // no locality specified
-        })
-      ).rejects.toThrow(new ImportFailure('Missing locality name'));
-    }
   });
 
   test.afterAll(async () => {
@@ -477,19 +465,91 @@ test.describe('with location GUIDs', () => {
       readLocation = await Location.getByGUID(db, 'G8');
       expect(readLocation).toEqual(createdLocation2);
     }
+  });
 
-    // test attempt to add record lacking a locality
+  test.afterAll(async () => {
+    await db.close();
+  });
+});
 
-    {
-      await expect(() =>
-        Location.getOrCreate(db, {
-          continent: 'North America',
-          country: 'United States',
-          locationID: 'G100'
-          // no locality specified
-        })
-      ).rejects.toThrow(new ImportFailure('Missing locality name'));
-    }
+test.describe('import failures', () => {
+  test.beforeAll(async () => {
+    db = await initTestDatabase();
+  });
+
+  test('poorly sourced locations', async () => {
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        // no country specified
+        stateProvince: 'Texas',
+        locality: 'Good Place'
+      })
+    ).rejects.toThrow(new ImportFailure('State/province given without country'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        county: 'Travis County',
+        locality: 'Good Place'
+      })
+    ).rejects.toThrow(new ImportFailure('County given without state/province'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States'
+        // no locality specified
+      })
+    ).rejects.toThrow(new ImportFailure('Locality name not given'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        locationID: 'G100'
+        // no locality specified
+      })
+    ).rejects.toThrow(new ImportFailure('Locality name not given'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        locality: 'Good Place',
+        decimalLatitude: '24.12'
+      })
+    ).rejects.toThrow(new ImportFailure('Latitude given without longitude'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        locality: 'Good Place',
+        decimalLongitude: '-97.15'
+      })
+    ).rejects.toThrow(new ImportFailure('Longitude given without latitude'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        locality: 'Good Place',
+        decimalLatitude: 'abc',
+        decimalLongitude: '-97.15'
+      })
+    ).rejects.toThrow(new ImportFailure('Invalid latitude'));
+
+    await expect(() =>
+      Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        locality: 'Good Place',
+        decimalLatitude: '24.15',
+        decimalLongitude: '#!3'
+      })
+    ).rejects.toThrow(new ImportFailure('Invalid longitude'));
   });
 
   test.afterAll(async () => {
