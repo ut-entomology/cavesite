@@ -6,7 +6,7 @@ import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
 import { Taxon } from './taxon';
 import { Location } from './location';
-import { DataError } from './data_error';
+import { ImportFailure } from './import_failure';
 
 export type SpecimenData = DataOf<Specimen>;
 
@@ -141,7 +141,7 @@ export class Specimen {
           collectionRemarks.substring(0, match.index) +
           collectionRemarks.substring(match.index + match[0].length);
         if (!END_DATE_REGEX.test(match[1])) {
-          throw new DataError('Invalid end date syntax in event remarks');
+          throw new ImportFailure('Invalid end date syntax in event remarks');
         }
         // Assume dates are in Texas time (Central).
         endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');

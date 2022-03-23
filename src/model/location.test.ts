@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import type { DB } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Location, LocationType } from './location';
-import { DataError } from './data_error';
+import { ImportFailure } from './import_failure';
 
 let db: DB;
 
@@ -252,7 +252,7 @@ test.describe('without location GUIDs', () => {
           country: 'United States'
           // no locality specified
         })
-      ).rejects.toThrow(new DataError('Missing locality name'));
+      ).rejects.toThrow(new ImportFailure('Missing locality name'));
     }
   });
 
@@ -488,7 +488,7 @@ test.describe('with location GUIDs', () => {
           locationID: 'G100'
           // no locality specified
         })
-      ).rejects.toThrow(new DataError('Missing locality name'));
+      ).rejects.toThrow(new ImportFailure('Missing locality name'));
     }
   });
 

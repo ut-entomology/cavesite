@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
-import { DataError } from './data_error';
+import { ImportFailure } from './import_failure';
 
 export type LocationData = DataOf<Location>;
 
@@ -299,7 +299,7 @@ export class Location {
     source: LocationSource
   ): [(string | null)[], string] {
     if (!source.locality) {
-      throw new DataError('Missing locality name');
+      throw new ImportFailure('Missing locality name');
     }
     const parentLocations: (string | null)[] = [source.continent];
     parentLocations.push(source.country || null);
