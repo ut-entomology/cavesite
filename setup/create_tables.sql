@@ -29,9 +29,9 @@ create table users (
     password_hash varchar (50) not null,
     privileges varchar (50) not null,
     email varchar (255) unique not null,
-    created_on timestamp not null,
+    created_on timestamptz not null,
     created_by integer references users,
-    last_login timestamp
+    last_login timestamptz
 );
 
 create table taxa (
