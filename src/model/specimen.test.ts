@@ -86,7 +86,8 @@ test('creating a fully-specified specimen', async () => {
       occurrenceRemarks: source.occurrenceRemarks,
       determinationRemarks: source.determinationRemarks,
       typeStatus: source.typeStatus,
-      specimenCount: 1
+      specimenCount: 1,
+      problems: null
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -150,7 +151,8 @@ test('creating a fully-specified specimen', async () => {
       occurrenceRemarks: null,
       determinationRemarks: null,
       typeStatus: null,
-      specimenCount: null
+      specimenCount: null,
+      problems: null
     });
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
     expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');

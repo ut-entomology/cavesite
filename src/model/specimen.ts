@@ -78,6 +78,7 @@ export class Specimen {
   determinationRemarks: string | null;
   typeStatus: string | null;
   specimenCount: number | null;
+  problems: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -112,11 +113,17 @@ export class Specimen {
     this.determinationRemarks = row.determinationRemarks;
     this.typeStatus = row.typeStatus;
     this.specimenCount = row.specimenCount;
+    this.problems = row.problems;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
   static async create(db: DB, source: SpecimenSource): Promise<Specimen> {
+    if (!source.catalogNumber || source.catalogNumber == '') {
+      throw new ImportFailure('Missing catalog number');
+    }
+    const problemList: string[] = [];
+
     // Return the specimen if it already exists.
 
     let specimen = await Specimen.getByCatNum(db, source.catalogNumber);
@@ -130,8 +137,10 @@ export class Specimen {
     const location = await Location.getOrCreate(db, source);
     const locationIDs = location.parentIDSeries.split(',');
 
-    // Extract the end date from collectionRemarks, when present.
+    // Extract the start and end dates, getting the end date from
+    // collectionRemarks, when present.
 
+    let startDate = source.startDate ? new Date(source.startDate) : null;
     let endDate: Date | null = null;
     let collectionRemarks = source.collectionRemarks || null;
     if (collectionRemarks) {
@@ -141,18 +150,36 @@ export class Specimen {
           collectionRemarks.substring(0, match.index) +
           collectionRemarks.substring(match.index + match[0].length);
         if (!END_DATE_REGEX.test(match[1])) {
-          throw new ImportFailure('Invalid end date syntax in event remarks');
+          problemList.push(
+            'Invalid end date syntax in event remarks; assuming no end date'
+          );
+        } else {
+          // Assume end dates are in Texas time (Central)
+          endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');
+          if (!startDate) {
+            problemList.push(
+              'End date given but no start date; assuming start date is end date'
+            );
+            startDate = endDate;
+          } else if (startDate.getTime() > endDate.getTime()) {
+            problemList.push('Start date follows end date; both dates ignored');
+            startDate = endDate = null;
+          }
         }
-        // Assume dates are in Texas time (Central).
-        endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');
+      }
+    }
+
+    // Parse the speciment count.
+
+    let specimenCount: number | null = null;
+    if (source.organismQuantity) {
+      specimenCount = parseInt(source.organismQuantity);
+      if (isNaN(specimenCount)) {
+        problemList.push('Invalid specimen count; assuming no specimen count');
       }
     }
 
     // Assemble the specimen instance from the data.
-
-    const specimenCount = source.organismQuantity
-      ? parseInt(source.organismQuantity)
-      : null;
 
     specimen = new Specimen({
       catalogNumber: source.catalogNumber,
@@ -175,7 +202,7 @@ export class Specimen {
       localityID: getTreeNodeID(locationIDs, 4, location.locationID),
       preciseLocationID: location.locationID,
 
-      collectionStartDate: source.startDate ? new Date(source.startDate) : null,
+      collectionStartDate: startDate,
       collectionEndDate: endDate,
       collectors: source.collectors?.replace(/ [|] /g, '|') || null,
       determinationDate: source.determinationDate
@@ -186,7 +213,8 @@ export class Specimen {
       occurrenceRemarks: source.occurrenceRemarks || null,
       determinationRemarks: source.determinationRemarks || null,
       typeStatus: source.typeStatus || null,
-      specimenCount: specimenCount || null // 0 and NaN => null
+      specimenCount: specimenCount || null /* 0 and NaN => null */,
+      problems: problemList.length > 0 ? problemList.join('|') : null
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -201,9 +229,9 @@ export class Specimen {
           collection_start_date, collection_end_date,
           collectors, determination_date, determiners,
           collection_remarks, occurrence_remarks,  determination_remarks,
-          type_status, specimen_count
+          type_status, specimen_count, problems
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
+            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -231,7 +259,8 @@ export class Specimen {
         specimen.occurrenceRemarks,
         specimen.determinationRemarks,
         specimen.typeStatus,
-        specimen.specimenCount
+        specimen.specimenCount,
+        specimen.problems
       ]
     );
     return specimen;

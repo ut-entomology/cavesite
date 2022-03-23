@@ -121,7 +121,10 @@ create table specimens (
     -- GBIF typeStatus
     type_status varchar (50),
     -- GBIF organismQuantity
-    specimen_count integer
+    specimen_count integer,
+
+    -- generated at import
+    problems text
 );
 create index on specimens(kingdom_id);
 create index on specimens(phylum_id);
