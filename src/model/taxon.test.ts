@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import type { DB } from '../util/pg_util';
 import { initTestDatabase } from '../util/test_util';
 import { Taxon, TaxonRank } from './taxon';
+import { ImportFailure } from './import_failure';
 
 let db: DB;
 
@@ -283,6 +284,60 @@ test('sequentially dependent taxa tests', async () => {
     const readTaxon = await Taxon.getByID(db, 4);
     expect(readTaxon).toEqual(expectedTaxon);
   }
+});
+
+test('poorly sourced taxa', async () => {
+  await expect(() =>
+    Taxon.getOrCreate(db, {
+      // @ts-ignore
+      kingdom: undefined,
+      phylum: 'Chordata',
+      class: 'Amphibia',
+      order: 'Urodela',
+      family: 'Plethodontidae',
+      genus: 'Eurycea',
+      specificEpithet: 'rathbuni',
+      scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
+    })
+  ).rejects.toThrow(new ImportFailure('Kingdom not given'));
+
+  await expect(() =>
+    Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Chordata',
+      order: 'Urodela',
+      family: 'Plethodontidae',
+      genus: 'Eurycea',
+      specificEpithet: 'rathbuni',
+      scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
+    })
+  ).rejects.toThrow(new ImportFailure('Order given without class'));
+
+  await expect(() =>
+    Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Chordata',
+      class: 'Amphibia',
+      order: 'Urodela',
+      family: 'Plethodontidae',
+      specificEpithet: 'rathbuni',
+      scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
+    })
+  ).rejects.toThrow(new ImportFailure('Specific epithet given without genus'));
+
+  await expect(() =>
+    Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Chordata',
+      class: 'Amphibia',
+      order: 'Urodela',
+      family: 'Plethodontidae',
+      genus: 'Eurycea',
+      specificEpithet: 'rathbuni',
+      // @ts-ignore
+      scientificName: undefined
+    })
+  ).rejects.toThrow(new ImportFailure('Scientific name not given'));
 });
 
 test.afterAll(async () => {

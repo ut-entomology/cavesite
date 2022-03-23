@@ -10,6 +10,7 @@
 
 import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
+import { ImportFailure } from './import_failure';
 
 export type TaxonData = DataOf<Taxon>;
 
@@ -246,14 +247,38 @@ export class Taxon {
   }
 
   private static _parseTaxonSpec(source: TaxonSource): [string[], string] {
+    if (!source.kingdom) throw new ImportFailure('Kingdom not given');
     const parentTaxa: string[] = [source.kingdom];
-    if (source.phylum) parentTaxa.push(source.phylum);
-    if (source.class) parentTaxa.push(source.class);
-    if (source.order) parentTaxa.push(source.order);
-    if (source.family) parentTaxa.push(source.family);
-    if (source.genus) parentTaxa.push(source.genus);
-    if (source.specificEpithet) parentTaxa.push(source.specificEpithet);
-    if (source.infraspecificEpithet) parentTaxa.push(source.infraspecificEpithet);
+    if (source.phylum) {
+      parentTaxa.push(source.phylum);
+    }
+    if (source.class) {
+      if (!source.phylum) throw new ImportFailure('Class given without phylum');
+      parentTaxa.push(source.class);
+    }
+    if (source.order) {
+      if (!source.class) throw new ImportFailure('Order given without class');
+      parentTaxa.push(source.order);
+    }
+    if (source.family) {
+      if (!source.order) throw new ImportFailure('Family given without order');
+      parentTaxa.push(source.family);
+    }
+    if (source.genus) {
+      if (!source.family) throw new ImportFailure('Genus given without family');
+      parentTaxa.push(source.genus);
+    }
+    if (source.specificEpithet) {
+      if (!source.genus)
+        throw new ImportFailure('Specific epithet given without genus');
+      parentTaxa.push(source.specificEpithet);
+    }
+    if (source.infraspecificEpithet) {
+      if (!source.specificEpithet)
+        throw new ImportFailure('Infraspecific epithet given without specific epithet');
+      parentTaxa.push(source.infraspecificEpithet);
+    }
+    if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     const taxonName = parentTaxa.pop();
     return [parentTaxa, taxonName!];
   }
