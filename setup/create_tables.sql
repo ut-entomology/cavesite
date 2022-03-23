@@ -20,7 +20,7 @@
 -- * accession.AccessionNumber "002022c" => GBIF collectionCode "Biospeleology"
 -- * preparation.CountAmt => GBIF organismQuantity (if non-zero/non-null)
 -- * "specimens" => GBIF organismQuantityType (if prep.CountAmt non-zero/non-null)
--- * locality.GUID => locationID
+-- * locality.GUID => GBIF locationID
 
 create table users (
     -- None of these fields are in GBIF.
