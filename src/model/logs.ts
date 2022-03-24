@@ -11,6 +11,7 @@ export enum LogType {
 
 export interface Log {
   // identical to column names; no snakecase or camelcase
+  id: number;
   timestamp: Date;
   type: LogType;
   tag: string;
@@ -18,15 +19,28 @@ export interface Log {
 }
 
 export class Logs {
-  static async post(db: DB, type: LogType, tag: string, line: string): Promise<void> {
-    await db.query(`insert into logs(type, tag, line) values ($1, $2, $3)`, [
-      type,
-      tag,
-      line
-    ]);
+  static async post(db: DB, type: LogType, tag: string, line: string): Promise<number> {
+    const result = await db.query(
+      `insert into logs(type, tag, line) values ($1, $2, $3) returning id`,
+      [type, tag, line]
+    );
+    return result.rows[0].id;
   }
 
-  static async get(db: DB, beforeTime: Date, maxLogs: number): Promise<Log[]> {
+  static async getBeforeID(db: DB, beforeID: number, maxLogs: number): Promise<Log[]> {
+    const result = await db.query(
+      `select * from logs where id < $1
+        order by id desc limit $2`,
+      [beforeID, maxLogs]
+    );
+    return result.rows.reverse();
+  }
+
+  static async getBeforeTime(
+    db: DB,
+    beforeTime: Date,
+    maxLogs: number
+  ): Promise<Log[]> {
     const result = await db.query(
       `select * from logs where timestamp < $1
         order by timestamp desc limit $2`,
@@ -36,6 +50,8 @@ export class Logs {
   }
 
   static async clear(db: DB, beforeTime: Date): Promise<void> {
-    await db.query(`delete from logs where timestamp < $1`, [beforeTime.toISOString()]);
+    await db.query(`delete from logs where timestamp <= $1`, [
+      beforeTime.toISOString()
+    ]);
   }
 }

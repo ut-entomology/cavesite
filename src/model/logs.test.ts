@@ -1,14 +1,15 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
-import { initTestDatabase } from '../util/test_util';
+import { TestSession } from '../util/test_util';
 import type { Log } from './logs';
 import { LogType, Logs } from './logs';
 
+const session = new TestSession();
 let db: DB;
 
-test.beforeAll(async () => {
-  db = await initTestDatabase();
+beforeAll(async () => {
+  db = await session.begin();
 });
 
 test('creating, reading, and clearing logs', async () => {
@@ -18,7 +19,13 @@ test('creating, reading, and clearing logs', async () => {
   for (let i = 1; i <= 20; ++i) {
     const type = i % 2 ? LogType.User : LogType.Import;
     const tag = i % 2 ? 'Fred' : 'TMM12345';
-    expectedLogs.push({ timestamp: new Date(), type, tag, line: `log line ${i}` });
+    expectedLogs.push({
+      id: 1,
+      timestamp: new Date(),
+      type,
+      tag,
+      line: `log line ${i}`
+    });
   }
   for (const log of expectedLogs) {
     await Logs.post(db, log.type, log.tag, log.line);
@@ -27,31 +34,31 @@ test('creating, reading, and clearing logs', async () => {
 
   // Verify that we can get the most recent 10 logs.
 
-  let logs = await Logs.get(db, new Date(), 10);
+  let logs = await Logs.getBeforeTime(db, getNowDate(), 10);
   verifyLogs(logs, expectedLogs, 10);
 
-  // Veify that we can get the prior 10 logs.
+  // Verify that we can get the prior 10 logs.
 
-  const log11Date = logs[0].timestamp;
-  logs = await Logs.get(db, log11Date, 10);
+  const log11 = logs[0];
+  logs = await Logs.getBeforeID(db, log11.id, 10);
   verifyLogs(logs, expectedLogs, 0);
 
   // Verify that we can clear the prior 10 logs.
 
-  await Logs.clear(db, log11Date);
-  logs = await Logs.get(db, new Date(), 100);
+  await Logs.clear(db, log11.timestamp);
+  logs = await Logs.getBeforeTime(db, getNowDate(), 100);
   expect(logs.length).toEqual(10);
   verifyLogs(logs, expectedLogs, 10);
 
   // Verify that we can clear all logs.
 
-  await Logs.clear(db, new Date());
-  logs = await Logs.get(db, new Date(), 100);
+  await Logs.clear(db, getNowDate());
+  logs = await Logs.getBeforeTime(db, getNowDate(), 100);
   expect(logs.length).toEqual(0);
 });
 
-test.afterAll(async () => {
-  await db.close();
+afterAll(async () => {
+  await session.end();
 });
 
 function verifyLogs(
@@ -69,4 +76,8 @@ function verifyLogs(
     expect(actualLog.timestamp.getTime()).toBeGreaterThan(priorTime);
     priorTime = actualLog.timestamp.getTime();
   }
+}
+
+function getNowDate() {
+  return new Date(new Date().getTime() + 100);
 }

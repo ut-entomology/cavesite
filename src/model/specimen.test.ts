@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
 import { toLocalDate } from '../util/pg_util';
-import { initTestDatabase } from '../util/test_util';
+import { TestSession } from '../util/test_util';
 import { Specimen } from './specimen';
 import { Location } from './location';
 import { Taxon } from './taxon';
@@ -47,10 +47,11 @@ const baseSource = {
   organismQuantity: '1'
 };
 
+const session = new TestSession();
 let db: DB;
 
-test.beforeAll(async () => {
-  db = await initTestDatabase();
+beforeAll(async () => {
+  db = await session.begin();
 });
 
 test('missing catalog number', async () => {
@@ -241,7 +242,7 @@ test('creating a fully-specified specimen', async () => {
     // @ts-ignore
     source.order = undefined;
 
-    await Logs.clear(db, new Date());
+    await clearLogs(db);
     const specimen = await Specimen.create(db, source);
     expect(specimen).toBeNull();
 
@@ -263,7 +264,7 @@ test('creating a fully-specified specimen', async () => {
     // @ts-ignore
     source.locality = undefined;
 
-    await Logs.clear(db, new Date());
+    await clearLogs(db);
     const specimen = await Specimen.create(db, source);
     expect(specimen).toBeNull();
 
@@ -284,7 +285,7 @@ test('bad end date', async () => {
   source.occurrenceID = 'X3';
   source.collectionRemarks = '*end date foo';
 
-  await Logs.clear(db, new Date());
+  await clearLogs(db);
   const specimen = await Specimen.create(db, source);
   expect(specimen?.problems).toContain('end date syntax');
   let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
@@ -302,7 +303,7 @@ test('end date but no start date', async () => {
     source.occurrenceID = 'X4';
     source.startDate = '';
 
-    await Logs.clear(db, new Date());
+    await clearLogs(db);
     const specimen = await Specimen.create(db, source);
     expect(specimen?.problems).toContain('no start date');
     let found = await containsLog(db, source.catalogNumber, 'no start date', false);
@@ -315,7 +316,7 @@ test('end date but no start date', async () => {
     // @ts-ignore
     source.startDate = undefined;
 
-    await Logs.clear(db, new Date());
+    await clearLogs(db);
     const specimen = await Specimen.create(db, source);
     expect(specimen?.problems).toContain('no start date');
     let found = await containsLog(db, source.catalogNumber, 'no start date', false);
@@ -333,7 +334,7 @@ test('start date follows end date', async () => {
   source.collectionRemarks =
     '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
-  await Logs.clear(db, new Date());
+  await clearLogs(db);
   const specimen = await Specimen.create(db, source);
   expect(specimen?.problems).toContain('Start date follows end date');
   let found = await containsLog(
@@ -351,7 +352,7 @@ test('bad specimen count', async () => {
   source.occurrenceID = 'X7';
   source.organismQuantity = 'foo';
 
-  await Logs.clear(db, new Date());
+  await clearLogs(db);
   const specimen = await Specimen.create(db, source);
   expect(specimen?.problems).toContain('Invalid specimen count');
   let found = await containsLog(
@@ -371,7 +372,7 @@ test('multiple problems with specimen', async () => {
   source.collectionRemarks = '*end date foo';
   source.organismQuantity = 'foo';
 
-  await Logs.clear(db, new Date());
+  await clearLogs(db);
   const specimen = await Specimen.create(db, source);
   expect(specimen?.problems).toContain('end date syntax');
   expect(specimen?.problems).toContain('Invalid specimen count');
@@ -385,9 +386,14 @@ test('multiple problems with specimen', async () => {
   expect(readSpecimen).toEqual(specimen);
 });
 
-test.afterAll(async () => {
-  await db.close();
+afterAll(async () => {
+  await session.end();
 });
+
+async function clearLogs(db: DB) {
+  const nowDate = new Date(new Date().getTime() + 100);
+  await Logs.clear(db, nowDate);
+}
 
 async function containsLog(
   db: DB,
@@ -395,7 +401,7 @@ async function containsLog(
   portion: string,
   failed: boolean
 ): Promise<boolean> {
-  const logs = await Logs.get(db, new Date(), 100);
+  const logs = await Logs.getBeforeID(db, 100, 100);
   for (const log of logs) {
     if (
       log.type == LogType.Import &&

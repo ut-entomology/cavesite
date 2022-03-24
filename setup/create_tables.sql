@@ -158,6 +158,8 @@ create table private_coordinates (
 );
 
 create table logs (
+    -- column names must be identical in snakecase and camelcase
+    id serial primary key,
     timestamp timestamptz not null default now(),
     type varchar (16) not null,
     tag varchar (64) not null,

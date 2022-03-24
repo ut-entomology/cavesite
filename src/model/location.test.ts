@@ -1,15 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
-import { initTestDatabase } from '../util/test_util';
+import { TestSession } from '../util/test_util';
 import { Location, LocationType } from './location';
 import { ImportFailure } from './import_failure';
 
-let db: DB;
+describe('without location GUIDs', () => {
+  const session = new TestSession();
+  let db: DB;
 
-test.describe('without location GUIDs', () => {
-  test.beforeAll(async () => {
-    db = await initTestDatabase();
+  beforeAll(async () => {
+    db = await session.begin();
   });
 
   test('sequentially dependent location tests (without GUIDs)', async () => {
@@ -303,14 +304,17 @@ test.describe('without location GUIDs', () => {
     }
   });
 
-  test.afterAll(async () => {
-    await db.close();
+  afterAll(async () => {
+    await session.end();
   });
 });
 
-test.describe('with location GUIDs', () => {
-  test.beforeAll(async () => {
-    db = await initTestDatabase();
+describe('with location GUIDs', () => {
+  const session = new TestSession();
+  let db: DB;
+
+  beforeAll(async () => {
+    db = await session.begin();
   });
 
   test('sequentially dependent location tests (with GUIDs)', async () => {
@@ -526,14 +530,17 @@ test.describe('with location GUIDs', () => {
     }
   });
 
-  test.afterAll(async () => {
-    await db.close();
+  afterAll(async () => {
+    await session.end();
   });
 });
 
-test.describe('import failures', () => {
-  test.beforeAll(async () => {
-    db = await initTestDatabase();
+describe('import failures', () => {
+  const session = new TestSession();
+  let db: DB;
+
+  beforeAll(async () => {
+    db = await session.begin();
   });
 
   test('poorly sourced locations', async () => {
@@ -611,7 +618,7 @@ test.describe('import failures', () => {
     ).rejects.toThrow(new ImportFailure('Invalid longitude'));
   });
 
-  test.afterAll(async () => {
-    await db.close();
+  afterAll(async () => {
+    await session.end();
   });
 });

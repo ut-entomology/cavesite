@@ -1,17 +1,15 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
-import { initTestDatabase } from '../util/test_util';
+import { TestSession } from '../util/test_util';
 import { Taxon, TaxonRank } from './taxon';
 import { ImportFailure } from './import_failure';
 
-// TODO: look into providing scientific names of implied taxa upon
-// receiving the scientific name
-
+const session = new TestSession();
 let db: DB;
 
-test.beforeAll(async () => {
-  db = await initTestDatabase();
+beforeAll(async () => {
+  db = await session.begin();
 });
 
 test('sequentially dependent taxa tests', async () => {
@@ -421,6 +419,6 @@ test('poorly sourced taxa', async () => {
   ).rejects.toThrow(new ImportFailure('Scientific name not given'));
 });
 
-test.afterAll(async () => {
-  await db.close();
+afterAll(async () => {
+  await session.end();
 });

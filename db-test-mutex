@@ -1,0 +1,2 @@
+This file is used to ensure that only one database test runs at a time,
+allowing each test to clear the database before running.
