@@ -99,7 +99,6 @@ test('sequentially dependent taxa tests', async () => {
   // test auto-creating new species and new intermediate taxa
 
   {
-    const taxonName = 'dubia';
     const createdTaxon = await Taxon.getOrCreate(db, {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -107,8 +106,8 @@ test('sequentially dependent taxa tests', async () => {
       order: 'Araneae',
       family: 'Thomisidae',
       genus: 'Mecaphesa',
-      specificEpithet: taxonName,
-      scientificName: 'Mecaphesa dubia (Author)'
+      specificEpithet: 'dubia',
+      scientificName: 'Mecaphesa dubia (Keyserling, 1880)'
     });
     expect(await Taxon.getByID(db, 4)).toEqual({
       taxonID: 4,
@@ -141,13 +140,31 @@ test('sequentially dependent taxa tests', async () => {
     expect(readTaxon).toEqual({
       taxonID: 7,
       taxonRank: TaxonRank.Species,
-      taxonName,
-      scientificName: 'Mecaphesa dubia (Author)',
+      taxonName: 'dubia',
+      scientificName: 'Mecaphesa dubia (Keyserling, 1880)',
       parentID: 6,
       parentIDSeries: '1,2,3,4,5,6',
       parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa'
     });
     expect(createdTaxon).toEqual(readTaxon);
+  }
+
+  // test providing a scientific name for an implied taxon created without one
+
+  {
+    const createdTaxon = await Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Arachnida',
+      order: 'Araneae',
+      family: 'Thomisidae',
+      genus: 'Mecaphesa',
+      scientificName: 'Mecaphesa Simon, 1900'
+    });
+    expect(createdTaxon.scientificName).toEqual('Mecaphesa Simon, 1900');
+
+    const readTaxon = await Taxon.getByID(db, createdTaxon.taxonID);
+    expect(readTaxon?.scientificName).toEqual('Mecaphesa Simon, 1900');
   }
 
   // test creating new subspecies with new intermediate species

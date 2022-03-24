@@ -156,7 +156,15 @@ export class Taxon {
 
     const [parentTaxa, taxonName] = Taxon._parseTaxonSpec(source);
     let taxon = await Taxon._getByNameSeries(db, parentTaxa.join('|'), taxonName);
-    if (taxon) return taxon;
+    if (taxon) {
+      // If the taxon was previously created by virtue of being implied,
+      // it won't have a scientific name, so assign it now.
+      if (!taxon.scientificName) {
+        taxon.scientificName = source.scientificName;
+        await taxon.save(db);
+      }
+      return taxon;
+    }
 
     // If the taxon doesn't exist yet, create specs for all its ancestors.
 
