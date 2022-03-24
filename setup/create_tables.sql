@@ -25,7 +25,7 @@ create table users (
     user_id serial primary key, -- locally generated
     username varchar (50) unique not null,
     password_hash varchar (50) not null,
-    privileges varchar (50) not null,
+    privileges varchar (50) not null, -- also used to disable account
     email varchar (255) unique not null,
     created_on timestamptz not null,
     created_by integer references users,
@@ -60,7 +60,7 @@ create table locations (
 
     location_id serial primary key, -- locally generated
     -- GBIF substring of georeferenceSources (Specify location.guid)
-    location_guid varchar (128),
+    location_guid varchar (128), -- can't enforce uniqueness due to import
     location_type varchar (50) not null, -- locally assigned
     -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
     location_name varchar (512) not null,
@@ -85,9 +85,9 @@ create table specimens (
     committed boolean not null default false,
 
     -- GBIF catalogNumber
-    catalog_number varchar (32) unique not null,
+    catalog_number varchar (32) not null, -- can't enforce uniqueness due to import
     -- GBIF occurrenceID (specify co.GUID)
-    occurrence_guid varchar (128) unique,
+    occurrence_guid varchar (128), -- can't enforce uniqueness due to import
 
     -- all taxon and location IDs are locally generated...
 
@@ -133,6 +133,7 @@ create table specimens (
     -- generated at import
     problems text
 );
+create index on specimens(catalog_number);
 create index on specimens(kingdom_id);
 create index on specimens(phylum_id);
 create index on specimens(class_id);
@@ -149,7 +150,6 @@ create index on specimens(locality_id);
 
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF
-    location_id integer primary key references locations,
     location_guid varchar (128) unique not null,
     supplied_by integer references users,
     precise_latitude float8 not null,

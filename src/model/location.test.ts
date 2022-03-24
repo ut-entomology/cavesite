@@ -272,6 +272,19 @@ test.describe('without location GUIDs', () => {
         continent: 'North America',
         country: 'United States',
         stateProvince: 'Texas',
+        county: 'Travis County',
+        locality: 'Missing Cave',
+        decimalLatitude: '30',
+        decimalLongitude: '-100'
+      });
+      matches = await Location.matchName(db, 'Missing Cave');
+      expect(matches.length).toEqual(1);
+      expect(matches[0].publicLatitude).not.toEqual(30);
+
+      await Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        stateProvince: 'Texas',
         county: 'Bastrop County',
         locality: 'Piney Cave'
       });
@@ -280,6 +293,9 @@ test.describe('without location GUIDs', () => {
 
       await Location.commit(db);
 
+      matches = await Location.matchName(db, 'Missing Cave');
+      expect(matches.length).toEqual(1);
+      expect(matches[0].publicLatitude).toEqual(30);
       matches = await Location.matchName(db, 'Piney Cave');
       expect(matches.length).toEqual(1);
       matches = await Location.matchName(db, 'Mexico');

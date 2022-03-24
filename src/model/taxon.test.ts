@@ -335,6 +335,21 @@ test('committing taxa and matching names', async () => {
     phylum: 'Arthropoda',
     class: 'Arachnida',
     order: 'Araneae',
+    family: 'Philodromidae',
+    genus: 'Philodromus',
+    specificEpithet: 'rufus',
+    infraspecificEpithet: 'jenningsi',
+    scientificName: 'Philodromus rufus jenningsi New Author'
+  });
+  matches = await Taxon.matchName(db, 'jenningsi');
+  expect(matches.length).toEqual(1);
+  expect(matches[0].scientificName).not.toContain('New Author');
+
+  await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
     family: 'Salticidae',
     scientificName: 'Salticidae'
   });
@@ -343,6 +358,9 @@ test('committing taxa and matching names', async () => {
 
   await Taxon.commit(db);
 
+  matches = await Taxon.matchName(db, 'jenningsi');
+  expect(matches.length).toEqual(1);
+  expect(matches[0].scientificName).toContain('New Author');
   matches = await Taxon.matchName(db, 'Salticidae');
   expect(matches.length).toEqual(1);
   matches = await Taxon.matchName(db, 'Thomisidae');
