@@ -127,6 +127,11 @@ export class Location {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
+  static async commit(db: DB): Promise<void> {
+    await db.query('delete from locations where committed=true');
+    await db.query('update locations set committed=true');
+  }
+
   static async create(
     db: DB,
     parentNameSeries: string,
@@ -147,10 +152,19 @@ export class Location {
     return location;
   }
 
-  static async getByGUID(db: DB, locationGUID: string): Promise<Location | null> {
-    const result = await db.query(`select * from locations where location_guid=$1`, [
-      locationGUID
-    ]);
+  static async getByGUID(
+    db: DB,
+    locationGUID: string,
+    committed: boolean
+  ): Promise<Location | null> {
+    const result = await db.query(
+      `select * from locations where location_guid=$1 and committed=$2`,
+      [
+        locationGUID,
+        // @ts-ignore
+        committed
+      ]
+    );
     return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
   }
 
@@ -165,7 +179,7 @@ export class Location {
     // Return the location if it already exists.
 
     if (source.locationID) {
-      const location = await Location.getByGUID(db, source.locationID);
+      const location = await Location.getByGUID(db, source.locationID, false);
       if (location) return location;
     }
     const [parentLocations, locationName] = Location._parseLocationSpec(source);
@@ -231,6 +245,15 @@ export class Location {
     return await Location._createMissingLocations(db, specs);
   }
 
+  static async matchName(db: DB, partialName: string): Promise<Location[]> {
+    const result = await db.query(
+      `select * from locations where location_name like $1 and committed=true
+        order by location_name`,
+      [`%${partialName}%`]
+    );
+    return result.rows.map((row) => toCamelRow(row));
+  }
+
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
   private static async _createMissingLocations(
@@ -273,7 +296,8 @@ export class Location {
     locationName: string
   ): Promise<Location | null> {
     const result = await db.query(
-      `select * from locations where parent_name_series=$1 and location_name=$2`,
+      `select * from locations where parent_name_series=$1 and location_name=$2
+        and committed=false`,
       [parentNameSeries, locationName]
     );
     return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
@@ -287,7 +311,7 @@ export class Location {
     const spec = specs[specIndex];
     let location: Location | null;
     if (spec.locationGuid) {
-      location = await Location.getByGUID(db, spec.locationGuid);
+      location = await Location.getByGUID(db, spec.locationGuid, false);
     } else {
       location = await Location._getByNameSeries(
         db,

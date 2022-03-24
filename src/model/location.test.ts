@@ -242,6 +242,26 @@ test.describe('without location GUIDs', () => {
       const readLocation = await Location.getByID(db, 4);
       expect(readLocation).toEqual(expectedLocation);
     }
+
+    // test committing followed by an exact match
+
+    let matches = await Location.matchName(db, 'Mexico');
+    expect(matches.length).toEqual(0);
+
+    await Location.commit(db);
+
+    matches = await Location.matchName(db, 'Mexico');
+    expect(matches.length).toEqual(1);
+    expect(matches[0].locationName).toEqual('Mexico');
+
+    // test multiple internal subset matches
+
+    matches = await Location.matchName(db, 'is');
+    expect(matches.map((taxon) => taxon.locationName)).toEqual([
+      'Invisible Spring',
+      'Missing Cave',
+      'Travis County'
+    ]);
   });
 
   test.afterAll(async () => {
@@ -276,7 +296,7 @@ test.describe('with location GUIDs', () => {
       expect(createdLocation).toEqual(expectedLocation);
       let readLocation = await Location.getByID(db, createdLocation.locationID);
       expect(readLocation).toEqual(expectedLocation);
-      readLocation = await Location.getByGUID(db, sourceLocation.locationGuid!);
+      readLocation = await Location.getByGUID(db, sourceLocation.locationGuid!, false);
       expect(readLocation).toEqual(expectedLocation);
     }
 
@@ -304,7 +324,7 @@ test.describe('with location GUIDs', () => {
       expect(createdLocation).toEqual(expectedLocation);
       let readLocation = await Location.getByID(db, createdLocation.locationID);
       expect(readLocation).toEqual(expectedLocation);
-      readLocation = await Location.getByGUID(db, sourceLocation.locationGuid!);
+      readLocation = await Location.getByGUID(db, sourceLocation.locationGuid!, false);
       expect(readLocation).toEqual(expectedLocation);
     }
 
@@ -335,7 +355,7 @@ test.describe('with location GUIDs', () => {
     // test getOrCreate() getting an existing location
 
     {
-      const expectedLocation = await Location.getByGUID(db, 'G3');
+      const expectedLocation = await Location.getByGUID(db, 'G3', false);
       expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
       const readLocation = await Location.getOrCreate(db, {
         continent: 'North America',
@@ -380,7 +400,7 @@ test.describe('with location GUIDs', () => {
         parentNameSeries: 'North America|United States|Texas|-'
       });
       expect(createdLocation).toEqual(readLocation);
-      readLocation = await Location.getByGUID(db, 'G5');
+      readLocation = await Location.getByGUID(db, 'G5', false);
       expect(readLocation).toEqual(createdLocation);
     }
 
@@ -407,7 +427,7 @@ test.describe('with location GUIDs', () => {
         parentNameSeries: 'North America|United States|Texas|-'
       });
       expect(createdLocation).toEqual(readLocation);
-      readLocation = await Location.getByGUID(db, 'G6');
+      readLocation = await Location.getByGUID(db, 'G6', false);
       expect(readLocation).toEqual(createdLocation);
     }
 
@@ -446,7 +466,7 @@ test.describe('with location GUIDs', () => {
         parentNameSeries: 'North America|United States|Texas|-'
       });
       expect(createdLocation1).toEqual(readLocation);
-      readLocation = await Location.getByGUID(db, 'G7');
+      readLocation = await Location.getByGUID(db, 'G7', false);
       expect(readLocation).toEqual(createdLocation1);
 
       readLocation = await Location.getByID(db, 8);
@@ -462,7 +482,7 @@ test.describe('with location GUIDs', () => {
         parentNameSeries: 'North America|United States|Texas|-'
       });
       expect(createdLocation2).toEqual(readLocation);
-      readLocation = await Location.getByGUID(db, 'G8');
+      readLocation = await Location.getByGUID(db, 'G8', false);
       expect(readLocation).toEqual(createdLocation2);
     }
   });
