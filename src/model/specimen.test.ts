@@ -6,7 +6,7 @@ import { initTestDatabase } from '../util/test_util';
 import { Specimen } from './specimen';
 import { Location } from './location';
 import { Taxon } from './taxon';
-import { ImportFailure } from './import_failure';
+import { Logs, LogType } from './logs';
 
 const startDate = toLocalDate(new Date('2020-01-01'));
 const endDate = toLocalDate(new Date('2020-01-04'));
@@ -57,17 +57,27 @@ test('missing catalog number', async () => {
   {
     const source = Object.assign({}, baseSource);
     source.catalogNumber = '';
-    await expect(() => Specimen.create(db, source)).rejects.toThrow(
-      new ImportFailure('Missing catalog number')
+    expect(await Specimen.create(db, source)).toBeNull();
+    let found = await containsLog(
+      db,
+      'NO CATALOG NUMBER',
+      'Missing catalog number',
+      true
     );
+    expect(found).toBeTruthy();
   }
   {
     const source = Object.assign({}, baseSource);
     // @ts-ignore
     source.catalogNumber = undefined;
-    await expect(() => Specimen.create(db, source)).rejects.toThrow(
-      new ImportFailure('Missing catalog number')
+    expect(await Specimen.create(db, source)).toBeNull();
+    let found = await containsLog(
+      db,
+      'NO CATALOG NUMBER',
+      'Missing catalog number',
+      true
     );
+    expect(found).toBeTruthy();
   }
 });
 
@@ -221,6 +231,50 @@ test('creating a fully-specified specimen', async () => {
     specimen = await Specimen.getByCatNum(db, 'C2', true);
     expect(specimen).toBeNull();
   }
+
+  // Test specimen with invalid taxon
+
+  {
+    let source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C101';
+    source.occurrenceID = 'X101';
+    // @ts-ignore
+    source.order = undefined;
+
+    await Logs.clear(db, new Date());
+    const specimen = await Specimen.create(db, source);
+    expect(specimen).toBeNull();
+
+    let found = await containsLog(
+      db,
+      source.catalogNumber,
+      'Family given without order',
+      true
+    );
+    expect(found).toBeTruthy();
+  }
+
+  // Test specimen with invalid location
+
+  {
+    let source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C101';
+    source.occurrenceID = 'X101';
+    // @ts-ignore
+    source.locality = undefined;
+
+    await Logs.clear(db, new Date());
+    const specimen = await Specimen.create(db, source);
+    expect(specimen).toBeNull();
+
+    let found = await containsLog(
+      db,
+      source.catalogNumber,
+      'Locality name not given',
+      true
+    );
+    expect(found).toBeTruthy();
+  }
 });
 
 test('bad end date', async () => {
@@ -230,8 +284,11 @@ test('bad end date', async () => {
   source.occurrenceID = 'X3';
   source.collectionRemarks = '*end date foo';
 
+  await Logs.clear(db, new Date());
   const specimen = await Specimen.create(db, source);
-  expect(specimen.problems).toContain('end date syntax');
+  expect(specimen?.problems).toContain('end date syntax');
+  let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
+  expect(found).toBeTruthy();
 
   // make sure problem was written to the database
   const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
@@ -245,8 +302,11 @@ test('end date but no start date', async () => {
     source.occurrenceID = 'X4';
     source.startDate = '';
 
+    await Logs.clear(db, new Date());
     const specimen = await Specimen.create(db, source);
-    expect(specimen.problems).toContain('no start date');
+    expect(specimen?.problems).toContain('no start date');
+    let found = await containsLog(db, source.catalogNumber, 'no start date', false);
+    expect(found).toBeTruthy();
   }
   {
     const source = Object.assign({}, baseSource);
@@ -255,8 +315,11 @@ test('end date but no start date', async () => {
     // @ts-ignore
     source.startDate = undefined;
 
+    await Logs.clear(db, new Date());
     const specimen = await Specimen.create(db, source);
-    expect(specimen.problems).toContain('no start date');
+    expect(specimen?.problems).toContain('no start date');
+    let found = await containsLog(db, source.catalogNumber, 'no start date', false);
+    expect(found).toBeTruthy();
   }
 });
 
@@ -270,8 +333,16 @@ test('start date follows end date', async () => {
   source.collectionRemarks =
     '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
+  await Logs.clear(db, new Date());
   const specimen = await Specimen.create(db, source);
-  expect(specimen.problems).toContain('Start date follows end date');
+  expect(specimen?.problems).toContain('Start date follows end date');
+  let found = await containsLog(
+    db,
+    source.catalogNumber,
+    'Start date follows end date',
+    false
+  );
+  expect(found).toBeTruthy();
 });
 
 test('bad specimen count', async () => {
@@ -280,8 +351,16 @@ test('bad specimen count', async () => {
   source.occurrenceID = 'X7';
   source.organismQuantity = 'foo';
 
+  await Logs.clear(db, new Date());
   const specimen = await Specimen.create(db, source);
-  expect(specimen.problems).toContain('Invalid specimen count');
+  expect(specimen?.problems).toContain('Invalid specimen count');
+  let found = await containsLog(
+    db,
+    source.catalogNumber,
+    'Invalid specimen count',
+    false
+  );
+  expect(found).toBeTruthy();
 });
 
 test('multiple problems with specimen', async () => {
@@ -292,9 +371,14 @@ test('multiple problems with specimen', async () => {
   source.collectionRemarks = '*end date foo';
   source.organismQuantity = 'foo';
 
+  await Logs.clear(db, new Date());
   const specimen = await Specimen.create(db, source);
-  expect(specimen.problems).toContain('end date syntax');
-  expect(specimen.problems).toContain('Invalid specimen count');
+  expect(specimen?.problems).toContain('end date syntax');
+  expect(specimen?.problems).toContain('Invalid specimen count');
+  let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
+  expect(found).toBeTruthy();
+  found = await containsLog(db, source.catalogNumber, 'Invalid specimen count', false);
+  expect(found).toBeTruthy();
 
   // make sure problem was written to the database
   const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
@@ -304,3 +388,22 @@ test('multiple problems with specimen', async () => {
 test.afterAll(async () => {
   await db.close();
 });
+
+async function containsLog(
+  db: DB,
+  catalogNumber: string,
+  portion: string,
+  failed: boolean
+): Promise<boolean> {
+  const logs = await Logs.get(db, new Date(), 100);
+  for (const log of logs) {
+    if (
+      log.type == LogType.Import &&
+      log.tag == catalogNumber &&
+      log.line.includes(portion)
+    ) {
+      return !failed || log.line.includes('IMPORT FAILED');
+    }
+  }
+  return false;
+}

@@ -7,6 +7,7 @@ import { DB, toCamelRow } from '../util/pg_util';
 import { Taxon } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
+import { Logs, LogType } from './logs';
 
 export type SpecimenData = DataOf<Specimen>;
 
@@ -123,24 +124,45 @@ export class Specimen {
     await db.query('update specimens set committed=true');
   }
 
-  static async create(db: DB, source: SpecimenSource): Promise<Specimen> {
-    if (!source.catalogNumber || source.catalogNumber == '') {
-      throw new ImportFailure('Missing catalog number');
-    }
+  static async create(db: DB, source: SpecimenSource): Promise<Specimen | null> {
     const problemList: string[] = [];
+    let taxon: Taxon;
+    let taxonIDs: string[];
+    let location: Location;
+    let locationIDs: string[];
+    let specimen: Specimen;
 
-    // Return the specimen if it already exists.
+    // Perform crucial initial actions that might prevent the import on error.
 
-    let specimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
-    if (specimen) return specimen;
+    try {
+      // Require that the specimen have a catalog number.
 
-    // Create the associated taxa and locations, if they don't already exist.
+      if (!source.catalogNumber || source.catalogNumber == '') {
+        const guid = source.occurrenceID
+          ? 'GBIF occurrenceID ' + source.occurrenceID
+          : 'no GBIF occurrence ID given';
+        throw new ImportFailure(`Missing catalog number (${guid})`);
+      }
 
-    const taxon = await Taxon.getOrCreate(db, source);
-    const taxonIDs = taxon.parentIDSeries.split(',');
+      // Return the specimen if it already exists.
 
-    const location = await Location.getOrCreate(db, source);
-    const locationIDs = location.parentIDSeries.split(',');
+      const lookup = await Specimen.getByCatNum(db, source.catalogNumber, false);
+      if (lookup) return lookup;
+
+      // Create the associated taxa and locations, if they don't already exist.
+
+      taxon = await Taxon.getOrCreate(db, source);
+      taxonIDs = taxon.parentIDSeries.split(',');
+
+      location = await Location.getOrCreate(db, source);
+      locationIDs = location.parentIDSeries.split(',');
+    } catch (err: any) {
+      // Fail the import on error.
+
+      if (!(err instanceof ImportFailure)) throw err;
+      await logImportProblem(db, source, err.message, true);
+      return null;
+    }
 
     // Extract the start and end dates, getting the end date from
     // collectionRemarks, when present.
@@ -268,6 +290,12 @@ export class Specimen {
         specimen.problems
       ]
     );
+
+    // Record import problems in the log and return the specimen.
+
+    for (const problem of problemList) {
+      await logImportProblem(db, source, problem, false);
+    }
     return specimen;
   }
 
@@ -304,4 +332,22 @@ function getTreeNodeID(
     return null;
   }
   return parseInt(ancestorID);
+}
+
+async function logImportProblem(
+  db: DB,
+  source: SpecimenSource,
+  line: string,
+  failed: boolean
+) {
+  if (line.charAt(line.length - 1) != '.') {
+    line += '.';
+  }
+  if (failed) {
+    line += ' IMPORT FAILED';
+  }
+  const catalogNumber = source.catalogNumber
+    ? source.catalogNumber
+    : 'NO CATALOG NUMBER';
+  await Logs.post(db, LogType.Import, catalogNumber, line);
 }
