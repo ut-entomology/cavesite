@@ -118,6 +118,11 @@ export class Specimen {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
+  static async commit(db: DB): Promise<void> {
+    await db.query('delete from specimens where committed=true');
+    await db.query('update specimens set committed=true');
+  }
+
   static async create(db: DB, source: SpecimenSource): Promise<Specimen> {
     if (!source.catalogNumber || source.catalogNumber == '') {
       throw new ImportFailure('Missing catalog number');
@@ -126,7 +131,7 @@ export class Specimen {
 
     // Return the specimen if it already exists.
 
-    let specimen = await Specimen.getByCatNum(db, source.catalogNumber);
+    let specimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
     if (specimen) return specimen;
 
     // Create the associated taxa and locations, if they don't already exist.
@@ -266,10 +271,19 @@ export class Specimen {
     return specimen;
   }
 
-  static async getByCatNum(db: DB, catalogNumber: string): Promise<Specimen | null> {
-    const result = await db.query(`select * from specimens where catalog_number=$1`, [
-      catalogNumber
-    ]);
+  static async getByCatNum(
+    db: DB,
+    catalogNumber: string,
+    committed: boolean
+  ): Promise<Specimen | null> {
+    const result = await db.query(
+      `select * from specimens where catalog_number=$1 and committed=$2`,
+      [
+        catalogNumber,
+        // @ts-ignore
+        committed
+      ]
+    );
     return result.rows.length > 0 ? new Specimen(toCamelRow(result.rows[0])) : null;
   }
 }

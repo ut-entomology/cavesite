@@ -116,7 +116,11 @@ test('creating a fully-specified specimen', async () => {
     expect((await Location.getByID(db, 3))?.locationName).toEqual('Texas');
     expect((await Location.getByID(db, 5))?.locationName).toEqual('My backyard');
 
-    const readSpecimen = await Specimen.getByCatNum(db, baseSource.catalogNumber);
+    const readSpecimen = await Specimen.getByCatNum(
+      db,
+      baseSource.catalogNumber,
+      false
+    );
     expect(readSpecimen).toEqual(specimen);
   }
 
@@ -179,6 +183,18 @@ test('creating a fully-specified specimen', async () => {
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
     expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');
   }
+
+  // test committing specimens
+
+  {
+    let specimen = await Specimen.getByCatNum(db, 'C1', true);
+    expect(specimen).toBeNull();
+
+    await Specimen.commit(db);
+
+    specimen = await Specimen.getByCatNum(db, 'C1', true);
+    expect(specimen?.catalogNumber).toEqual('C1');
+  }
 });
 
 test('bad end date', async () => {
@@ -192,7 +208,7 @@ test('bad end date', async () => {
   expect(specimen.problems).toContain('end date syntax');
 
   // make sure problem was written to the database
-  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber);
+  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
   expect(readSpecimen).toEqual(specimen);
 });
 
@@ -255,7 +271,7 @@ test('multiple problems with specimen', async () => {
   expect(specimen.problems).toContain('Invalid specimen count');
 
   // make sure problem was written to the database
-  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber);
+  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
   expect(readSpecimen).toEqual(specimen);
 });
 
