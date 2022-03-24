@@ -243,25 +243,48 @@ test.describe('without location GUIDs', () => {
       expect(readLocation).toEqual(expectedLocation);
     }
 
-    // test committing followed by an exact match
+    // test committing taxa and matching names
 
-    let matches = await Location.matchName(db, 'Mexico');
-    expect(matches.length).toEqual(0);
+    {
+      // test committing followed by an exact match
 
-    await Location.commit(db);
+      let matches = await Location.matchName(db, 'Mexico');
+      expect(matches.length).toEqual(0);
 
-    matches = await Location.matchName(db, 'Mexico');
-    expect(matches.length).toEqual(1);
-    expect(matches[0].locationName).toEqual('Mexico');
+      await Location.commit(db);
 
-    // test multiple internal subset matches
+      matches = await Location.matchName(db, 'Mexico');
+      expect(matches.length).toEqual(1);
+      expect(matches[0].locationName).toEqual('Mexico');
 
-    matches = await Location.matchName(db, 'is');
-    expect(matches.map((taxon) => taxon.locationName)).toEqual([
-      'Invisible Spring',
-      'Missing Cave',
-      'Travis County'
-    ]);
+      // test multiple internal subset matches
+
+      matches = await Location.matchName(db, 'is');
+      expect(matches.map((taxon) => taxon.locationName)).toEqual([
+        'Invisible Spring',
+        'Missing Cave',
+        'Travis County'
+      ]);
+
+      // test replacing existing records
+
+      await Location.getOrCreate(db, {
+        continent: 'North America',
+        country: 'United States',
+        stateProvince: 'Texas',
+        county: 'Bastrop County',
+        locality: 'Piney Cave'
+      });
+      matches = await Location.matchName(db, 'Piney Cave');
+      expect(matches.length).toEqual(0);
+
+      await Location.commit(db);
+
+      matches = await Location.matchName(db, 'Piney Cave');
+      expect(matches.length).toEqual(1);
+      matches = await Location.matchName(db, 'Mexico');
+      expect(matches.length).toEqual(0);
+    }
   });
 
   test.afterAll(async () => {

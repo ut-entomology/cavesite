@@ -195,6 +195,24 @@ test('creating a fully-specified specimen', async () => {
     specimen = await Specimen.getByCatNum(db, 'C1', true);
     expect(specimen?.catalogNumber).toEqual('C1');
   }
+
+  // test replacing existing records
+
+  {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C100';
+    source.occurrenceID = 'X100';
+    await Specimen.create(db, source);
+    let specimen = await Specimen.getByCatNum(db, 'C100', true);
+    expect(specimen).toBeNull();
+
+    await Specimen.commit(db);
+
+    specimen = await Specimen.getByCatNum(db, 'C100', true);
+    expect(specimen?.occurrenceGuid).toEqual('X100');
+    specimen = await Specimen.getByCatNum(db, 'C1', true);
+    expect(specimen).toBeNull();
+  }
 });
 
 test('bad end date', async () => {

@@ -318,13 +318,7 @@ test('committing taxa and matching names', async () => {
   expect(matches.length).toEqual(1);
   expect(matches[0].taxonName).toEqual('Arachnida');
 
-  // test an internal subset match
-
-  matches = await Taxon.matchName(db, 'isid');
-  expect(matches.length).toEqual(1);
-  expect(matches[0].taxonName).toEqual('Thomisidae');
-
-  // test multiple matches
+  // test multiple internal subset matches
 
   matches = await Taxon.matchName(db, 'ida');
   expect(matches.map((taxon) => taxon.taxonName)).toEqual([
@@ -333,6 +327,26 @@ test('committing taxa and matching names', async () => {
     'Plethodontidae',
     'Thomisidae'
   ]);
+
+  // test replacing existing records
+
+  await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Salticidae',
+    scientificName: 'Salticidae'
+  });
+  matches = await Taxon.matchName(db, 'Salticidae');
+  expect(matches.length).toEqual(0);
+
+  await Taxon.commit(db);
+
+  matches = await Taxon.matchName(db, 'Salticidae');
+  expect(matches.length).toEqual(1);
+  matches = await Taxon.matchName(db, 'Thomisidae');
+  expect(matches.length).toEqual(0);
 });
 
 test('poorly sourced taxa', async () => {
