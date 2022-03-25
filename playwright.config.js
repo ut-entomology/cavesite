@@ -4,7 +4,7 @@ const config = {
 		command: 'npm run build && npm run preview',
 		port: 3000
 	},
-	workers: 1
+	testDir: 'tests'
 };
 
 export default config;
