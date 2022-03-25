@@ -1,15 +1,15 @@
 import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
-import { TestSession } from '../util/test_util';
+import { DatabaseMutex } from '../util/test_util';
 import { Taxon, TaxonRank } from './taxon';
 import { ImportFailure } from './import_failure';
 
-const session = new TestSession();
+const mutex = new DatabaseMutex();
 let db: DB;
 
 beforeAll(async () => {
-  db = await session.begin();
+  db = await mutex.lock();
 });
 
 test('sequentially dependent taxa tests', async () => {
@@ -420,5 +420,5 @@ test('poorly sourced taxa', async () => {
 });
 
 afterAll(async () => {
-  await session.end();
+  await mutex.unlock();
 });

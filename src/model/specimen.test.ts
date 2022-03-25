@@ -2,7 +2,7 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
 import { toLocalDate } from '../util/pg_util';
-import { TestSession } from '../util/test_util';
+import { DatabaseMutex } from '../util/test_util';
 import { Specimen } from './specimen';
 import { Location } from './location';
 import { Taxon } from './taxon';
@@ -47,11 +47,11 @@ const baseSource = {
   organismQuantity: '1'
 };
 
-const session = new TestSession();
+const mutex = new DatabaseMutex();
 let db: DB;
 
 beforeAll(async () => {
-  db = await session.begin();
+  db = await mutex.lock();
 });
 
 test('missing catalog number', async () => {
@@ -387,7 +387,7 @@ test('multiple problems with specimen', async () => {
 });
 
 afterAll(async () => {
-  await session.end();
+  await mutex.unlock();
 });
 
 async function clearLogs(db: DB) {

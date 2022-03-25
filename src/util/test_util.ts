@@ -16,7 +16,7 @@ const TEST_DB_CONFIG = {
   port: 5432
 };
 
-export class TestSession {
+export class DatabaseMutex {
   private _db: DB;
   private _lockRelease: Awaited<ReturnType<typeof lockfile.lock>> | null = null;
 
@@ -24,7 +24,7 @@ export class TestSession {
     this._db = new DB(TEST_DB_CONFIG);
   }
 
-  async begin(): Promise<DB> {
+  async lock(): Promise<DB> {
     await this._db.open();
 
     // Restrict access to all table for the duration of the test.
@@ -54,7 +54,7 @@ export class TestSession {
     return this._db;
   }
 
-  async end(): Promise<void> {
+  async unlock(): Promise<void> {
     if (this._lockRelease) {
       // cleanup happens even if lock can't be obtained
       this._lockRelease();

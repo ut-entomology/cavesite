@@ -1,16 +1,16 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
-import { TestSession } from '../util/test_util';
+import { DatabaseMutex } from '../util/test_util';
 import { Location, LocationType } from './location';
 import { ImportFailure } from './import_failure';
 
 describe('without location GUIDs', () => {
-  const session = new TestSession();
+  const mutex = new DatabaseMutex();
   let db: DB;
 
   beforeAll(async () => {
-    db = await session.begin();
+    db = await mutex.lock();
   });
 
   test('sequentially dependent location tests (without GUIDs)', async () => {
@@ -305,16 +305,16 @@ describe('without location GUIDs', () => {
   });
 
   afterAll(async () => {
-    await session.end();
+    await mutex.unlock();
   });
 });
 
 describe('with location GUIDs', () => {
-  const session = new TestSession();
+  const mutex = new DatabaseMutex();
   let db: DB;
 
   beforeAll(async () => {
-    db = await session.begin();
+    db = await mutex.lock();
   });
 
   test('sequentially dependent location tests (with GUIDs)', async () => {
@@ -531,16 +531,16 @@ describe('with location GUIDs', () => {
   });
 
   afterAll(async () => {
-    await session.end();
+    await mutex.unlock();
   });
 });
 
 describe('import failures', () => {
-  const session = new TestSession();
+  const mutex = new DatabaseMutex();
   let db: DB;
 
   beforeAll(async () => {
-    db = await session.begin();
+    db = await mutex.lock();
   });
 
   test('poorly sourced locations', async () => {
@@ -619,6 +619,6 @@ describe('import failures', () => {
   });
 
   afterAll(async () => {
-    await session.end();
+    await mutex.unlock();
   });
 });
