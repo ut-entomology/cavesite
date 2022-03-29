@@ -23,12 +23,12 @@
 create table users (
     -- None of these fields are in GBIF.
     user_id serial primary key, -- locally generated
-    username varchar (50) unique not null,
-    password_hash varchar (50) not null,
-    privileges varchar (50) not null, -- also used to disable account
-    email varchar (255) unique not null,
-    created_on timestamptz not null,
-    created_by integer references users,
+    name text unique not null,
+    email text unique not null,
+    password_hash text not null,
+    password_salt text not null,
+    privileges text, -- null disables account
+    created_on timestamptz not null default now(),
     last_login timestamptz
 );
 

@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.20.0",
-    "@sveltejs/adapter-auto": "next",
+    "@sveltejs/adapter-node": "^1.0.0-next.73",
     "@sveltejs/kit": "^1.0.0-next.298",
     "@types/pg": "^8.6.5",
     "@types/proper-lockfile": "^4.1.2",
@@ -37,6 +37,9 @@
   },
   "type": "module",
   "dependencies": {
+    "@zxcvbn-ts/core": "^2.0.1",
+    "@zxcvbn-ts/language-common": "^2.0.1",
+    "@zxcvbn-ts/language-en": "^2.0.1",
     "pg": "^8.7.3"
   }
 }

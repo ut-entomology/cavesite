@@ -44,12 +44,15 @@ export class DB {
  */
 
 export class PostgresError extends Error {
+  code: string;
+
   constructor(err: any, sql: string) {
     super(
       `Code ${err.code}${
         err.position === undefined ? '' : ' (@' + err.position + ')'
       }: ${err.message} [${sql}]`
     );
+    this.code = err.code;
   }
 }
 
