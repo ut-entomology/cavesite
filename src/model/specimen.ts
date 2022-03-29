@@ -9,7 +9,7 @@ import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
 
-export type SpecimenData = DataOf<Specimen>;
+type SpecimenData = DataOf<Specimen>;
 
 const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
@@ -83,38 +83,38 @@ export class Specimen {
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  constructor(row: SpecimenData) {
-    this.catalogNumber = row.catalogNumber;
-    this.occurrenceGuid = row.occurrenceGuid; // GBIF occurrenceID (Specify co.GUID)
+  private constructor(data: SpecimenData) {
+    this.catalogNumber = data.catalogNumber;
+    this.occurrenceGuid = data.occurrenceGuid; // GBIF occurrenceID (Specify co.GUID)
 
-    this.kingdomID = row.kingdomID;
-    this.phylumID = row.phylumID;
-    this.classID = row.classID;
-    this.orderID = row.orderID;
-    this.familyID = row.familyID;
-    this.genusID = row.genusID;
-    this.speciesID = row.speciesID;
-    this.subspeciesID = row.subspeciesID;
-    this.preciseTaxonID = row.preciseTaxonID; // ID of most specific taxon
+    this.kingdomID = data.kingdomID;
+    this.phylumID = data.phylumID;
+    this.classID = data.classID;
+    this.orderID = data.orderID;
+    this.familyID = data.familyID;
+    this.genusID = data.genusID;
+    this.speciesID = data.speciesID;
+    this.subspeciesID = data.subspeciesID;
+    this.preciseTaxonID = data.preciseTaxonID; // ID of most specific taxon
 
-    this.continentID = row.continentID;
-    this.countryID = row.countryID;
-    this.stateProvinceID = row.stateProvinceID;
-    this.countyID = row.countyID;
-    this.localityID = row.localityID;
-    this.preciseLocationID = row.preciseLocationID; // ID of most specific location
+    this.continentID = data.continentID;
+    this.countryID = data.countryID;
+    this.stateProvinceID = data.stateProvinceID;
+    this.countyID = data.countyID;
+    this.localityID = data.localityID;
+    this.preciseLocationID = data.preciseLocationID; // ID of most specific location
 
-    this.collectionStartDate = row.collectionStartDate;
-    this.collectionEndDate = row.collectionEndDate;
-    this.collectors = row.collectors; // |-delimited names, last name last
-    this.determinationDate = row.determinationDate;
-    this.determiners = row.determiners; // |-delimited names, last name last
-    this.collectionRemarks = row.collectionRemarks;
-    this.occurrenceRemarks = row.occurrenceRemarks;
-    this.determinationRemarks = row.determinationRemarks;
-    this.typeStatus = row.typeStatus;
-    this.specimenCount = row.specimenCount;
-    this.problems = row.problems;
+    this.collectionStartDate = data.collectionStartDate;
+    this.collectionEndDate = data.collectionEndDate;
+    this.collectors = data.collectors; // |-delimited names, last name last
+    this.determinationDate = data.determinationDate;
+    this.determiners = data.determiners; // |-delimited names, last name last
+    this.collectionRemarks = data.collectionRemarks;
+    this.occurrenceRemarks = data.occurrenceRemarks;
+    this.determinationRemarks = data.determinationRemarks;
+    this.typeStatus = data.typeStatus;
+    this.specimenCount = data.specimenCount;
+    this.problems = data.problems;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////

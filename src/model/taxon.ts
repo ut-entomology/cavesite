@@ -12,8 +12,6 @@ import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
 import { ImportFailure } from './import_failure';
 
-export type TaxonData = DataOf<Taxon>;
-
 export enum TaxonRank {
   Kingdom = 'kingdom',
   Phylum = 'phylum',
@@ -56,6 +54,8 @@ interface TaxonSpec {
   parentNameSeries: string;
 }
 
+type TaxonData = DataOf<Taxon>;
+
 export class Taxon {
   taxonID = 0;
   taxonRank: TaxonRank;
@@ -67,14 +67,14 @@ export class Taxon {
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  constructor(row: TaxonData) {
-    this.taxonID = row.taxonID;
-    this.taxonRank = row.taxonRank;
-    this.taxonName = row.taxonName;
-    this.scientificName = row.scientificName;
-    this.parentID = row.parentID;
-    this.parentIDSeries = row.parentIDSeries;
-    this.parentNameSeries = row.parentNameSeries;
+  private constructor(data: TaxonData) {
+    this.taxonID = data.taxonID;
+    this.taxonRank = data.taxonRank;
+    this.taxonName = data.taxonName;
+    this.scientificName = data.scientificName;
+    this.parentID = data.parentID;
+    this.parentIDSeries = data.parentIDSeries;
+    this.parentNameSeries = data.parentNameSeries;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////

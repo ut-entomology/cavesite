@@ -12,8 +12,6 @@ import type { DataOf } from '../util/type_util';
 import { DB, toCamelRow } from '../util/pg_util';
 import { ImportFailure } from './import_failure';
 
-export type LocationData = DataOf<Location>;
-
 export enum LocationType {
   Continent = 'continent',
   Country = 'country',
@@ -51,6 +49,8 @@ interface LocationSpec {
   parentNameSeries: string;
 }
 
+type LocationData = DataOf<Location>;
+
 export class Location {
   locationID = 0;
   locationType: LocationType;
@@ -64,16 +64,16 @@ export class Location {
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  constructor(row: LocationData) {
-    this.locationID = row.locationID;
-    this.locationType = row.locationType;
-    this.locationName = row.locationName;
-    this.locationGuid = row.locationGuid;
-    this.publicLatitude = row.publicLatitude;
-    this.publicLongitude = row.publicLongitude;
-    this.parentID = row.parentID;
-    this.parentIDSeries = row.parentIDSeries;
-    this.parentNameSeries = row.parentNameSeries;
+  private constructor(data: LocationData) {
+    this.locationID = data.locationID;
+    this.locationType = data.locationType;
+    this.locationName = data.locationName;
+    this.locationGuid = data.locationGuid;
+    this.publicLatitude = data.publicLatitude;
+    this.publicLongitude = data.publicLongitude;
+    this.parentID = data.parentID;
+    this.parentIDSeries = data.parentIDSeries;
+    this.parentNameSeries = data.parentNameSeries;
   }
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
