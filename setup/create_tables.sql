@@ -27,7 +27,7 @@ create table users (
     email text unique not null,
     password_hash text not null,
     password_salt text not null,
-    privileges text, -- null disables account
+    privileges integer,
     created_on timestamptz not null default now(),
     last_login timestamptz
 );

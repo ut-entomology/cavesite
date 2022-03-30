@@ -32,9 +32,9 @@ export class UserError extends Error {
 }
 
 type UserData = Omit<DataOf<User>, 'createdOn'> & {
+  createdOn?: Date; // make optional, leaving database to assign value
   passwordHash: string;
   passwordSalt: string;
-  createdOn?: Date;
 };
 
 export class User {
@@ -92,7 +92,7 @@ export class User {
       this.createdOn = row.created_on;
     } else {
       const result = await db.query(
-        `update taxa set
+        `update users set
             name=$1, email=$2, password_hash=$3, password_salt=$4,
             privileges=$5, last_login=$6
           where user_id=$7`,
