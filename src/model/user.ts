@@ -31,9 +31,10 @@ export class UserError extends Error {
   }
 }
 
-type UserData = DataOf<User> & {
+type UserData = Omit<DataOf<User>, 'createdOn'> & {
   passwordHash: string;
   passwordSalt: string;
+  createdOn?: Date;
 };
 
 export class User {
@@ -54,7 +55,7 @@ export class User {
     this.name = data.name;
     this.email = data.email;
     this.privileges = data.privileges;
-    this.createdOn = data.createdOn;
+    this.createdOn = data.createdOn!;
     this.lastLogin = data.lastLogin;
     this._passwordHash = data.passwordHash;
     this._passwordSalt = data.passwordSalt;
@@ -74,16 +75,14 @@ export class User {
       const result = await db.query(
         `insert into users(
             name, email, password_hash, password_salt,
-            privileges, created_on, last_login
-          ) values ($1, $2, $3, $4, $5, $6, $7) returning user_id, created_on`,
+            privileges, last_login
+          ) values ($1, $2, $3, $4, $5, $6) returning user_id, created_on`,
         [
           this.name,
           this.email,
           this._passwordHash,
           this._passwordSalt,
           this.privileges,
-          // @ts-ignore
-          this.createdOn,
           // @ts-ignore
           this.lastLogin
         ]
@@ -95,16 +94,14 @@ export class User {
       const result = await db.query(
         `update taxa set
             name=$1, email=$2, password_hash=$3, password_salt=$4,
-            privileges=$5, created_on=$7, last_login=$7
-          where user_id=$8`,
+            privileges=$5, last_login=$6
+          where user_id=$7`,
         [
           this.name,
           this.email,
           this._passwordHash,
           this._passwordSalt,
           this.privileges,
-          // @ts-ignore
-          this.createdOn,
           // @ts-ignore
           this.lastLogin,
           this.userID
@@ -195,7 +192,6 @@ export class User {
       name,
       email,
       privileges,
-      createdOn: new Date(),
       lastLogin: null,
       passwordHash: '', // temporary
       passwordSalt: '' // temporary

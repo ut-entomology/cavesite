@@ -28,7 +28,7 @@ create table users (
     password_hash text not null,
     password_salt text not null,
     privileges text, -- null disables account
-    created_on timestamptz not null,
+    created_on timestamptz not null default now(),
     last_login timestamptz
 );
 
