@@ -4,8 +4,8 @@ import zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import type { DataOf } from '../util/type_util';
-import { DB, toCamelRow } from '../util/pg_util';
-import { MIN_PASSWORD_STRENGTH } from '../shared/constants';
+import { DB, PostgresError, toCamelRow } from '../util/pg_util';
+import { EMAIL_REGEX, MIN_PASSWORD_STRENGTH } from '../shared/constants';
 
 const PASSWORD_HASH_LENGTH = 64;
 
@@ -20,8 +20,9 @@ zxcvbnOptions.setOptions({
 
 export enum Privilege {
   // values are bit flags and therefore powers of 2
-  Admin = 1, // add/remove users and reset passwords
-  Edit = 2 // modify data, such as the precise coordinates
+  Admin = 1, // add/remove users and reset passwords; implies Edit/Coords
+  Edit = 2, // modify data, such as the precise coordinates; implies Coords
+  Coords = 4 // can see precise coordinates
 }
 
 export class UserError extends Error {
@@ -30,46 +31,33 @@ export class UserError extends Error {
   }
 }
 
-type UserSpec = {
-  name: string;
-  email: string;
-  password: string;
-  privileges: number;
+type UserData = DataOf<User> & {
+  passwordHash: string;
+  passwordSalt: string;
 };
-
-type UserData = DataOf<User>;
 
 export class User {
   userID = 0;
   name: string;
   email: string;
-  passwordHash!: string;
-  passwordSalt!: string;
   privileges: number;
-  createdOn!: Date;
+  createdOn: Date;
   lastLogin: Date | null = null;
+
+  private _passwordHash: string;
+  private _passwordSalt: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  // TODO: Look at making all model constructors private
-  private constructor(data: UserSpec | UserData) {
-    if ((data as UserData).userID) {
-      const row = data as UserData;
-      this.userID = row.userID;
-      this.name = row.name;
-      this.email = row.email;
-      this.passwordHash = row.passwordHash;
-      this.passwordSalt = row.passwordSalt;
-      this.privileges = row.privileges;
-      this.createdOn = row.createdOn;
-      this.lastLogin = row.lastLogin;
-    } else {
-      const spec = data as UserSpec;
-      this.name = spec.name.trim();
-      this.email = User._normalizeEmail(spec.email);
-      this.setPassword(spec.password);
-      this.privileges = spec.privileges;
-    }
+  private constructor(data: UserData) {
+    this.userID = data.userID;
+    this.name = data.name;
+    this.email = data.email;
+    this.privileges = data.privileges;
+    this.createdOn = data.createdOn;
+    this.lastLogin = data.lastLogin;
+    this._passwordHash = data.passwordHash;
+    this._passwordSalt = data.passwordSalt;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
@@ -91,8 +79,8 @@ export class User {
         [
           this.name,
           this.email,
-          this.passwordHash,
-          this.passwordSalt,
+          this._passwordHash,
+          this._passwordSalt,
           this.privileges,
           // @ts-ignore
           this.createdOn,
@@ -101,7 +89,7 @@ export class User {
         ]
       );
       const row = result.rows[0];
-      this.userID = row.taxon_id;
+      this.userID = row.user_id;
       this.createdOn = row.created_on;
     } else {
       const result = await db.query(
@@ -112,8 +100,8 @@ export class User {
         [
           this.name,
           this.email,
-          this.passwordHash,
-          this.passwordSalt,
+          this._passwordHash,
+          this._passwordSalt,
           this.privileges,
           // @ts-ignore
           this.createdOn,
@@ -130,16 +118,18 @@ export class User {
   }
 
   async setPassword(password: string): Promise<void> {
-    password = password.trim();
-    if (User.checkPassword(password) < MIN_PASSWORD_STRENGTH) {
+    if (password != password.trim()) {
+      throw new UserError("Password can't begin or end with spaces");
+    }
+    if (User.getPasswordStrength(password) < MIN_PASSWORD_STRENGTH) {
       throw new UserError('Password not strong enough');
     }
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(16).toString('hex');
       crypto.scrypt(password, salt, PASSWORD_HASH_LENGTH, (err, derivedKey) => {
         if (err) reject(err);
-        this.passwordSalt = salt;
-        this.passwordHash = derivedKey.toString('hex');
+        this._passwordSalt = salt;
+        this._passwordHash = derivedKey.toString('hex');
         resolve();
       });
     });
@@ -149,11 +139,11 @@ export class User {
     return new Promise((resolve, reject) => {
       crypto.scrypt(
         password,
-        this.passwordSalt,
+        this._passwordSalt,
         PASSWORD_HASH_LENGTH,
         (err, derivedKey) => {
           if (err) reject(err);
-          resolve(this.passwordHash == derivedKey.toString('hex'));
+          resolve(this._passwordHash == derivedKey.toString('hex'));
         }
       );
     });
@@ -175,10 +165,6 @@ export class User {
     return user;
   }
 
-  static checkPassword(password: string): number {
-    return zxcvbn(password).guessesLog10;
-  }
-
   static async create(
     db: DB,
     name: string,
@@ -186,12 +172,42 @@ export class User {
     password: string,
     privileges: number
   ): Promise<User> {
-    const user = new User({ name, email, password, privileges });
+    // Validate and normalize user data.
+
+    name = name.trim();
+    if (name == '') {
+      throw new UserError('No user name given');
+    }
+    email = User._normalizeEmail(email);
+    if (!EMAIL_REGEX.test(email)) {
+      throw new UserError('Invalid email address');
+    }
+    if (privileges & Privilege.Admin) {
+      privileges |= Privilege.Edit | Privilege.Coords;
+    } else if (privileges & Privilege.Edit) {
+      privileges |= Privilege.Coords;
+    }
+
+    // Create the user, setting the password.
+
+    const user = new User({
+      userID: 0,
+      name,
+      email,
+      privileges,
+      createdOn: new Date(),
+      lastLogin: null,
+      passwordHash: '', // temporary
+      passwordSalt: '' // temporary
+    });
+    await user.setPassword(password);
+
+    // Save the user to the database.
+
     try {
       await user.save(db);
-      return user;
     } catch (err: any) {
-      if (err.message.includes('duplicate')) {
+      if (err instanceof PostgresError && err.message.includes('duplicate')) {
         if (err.message.includes('name')) {
           throw new UserError('A user already exists with that name');
         }
@@ -201,12 +217,17 @@ export class User {
       }
       throw err;
     }
+    return user;
   }
 
   static async getByEmail(db: DB, email: string): Promise<User | null> {
     email = this._normalizeEmail(email);
     const result = await db.query(`select * from users where email=$1`, [email]);
     return result.rows.length > 0 ? new User(toCamelRow(result.rows[0])) : null;
+  }
+
+  static getPasswordStrength(password: string): number {
+    return zxcvbn(password).guessesLog10;
   }
 
   static async getUsers(db: DB): Promise<User[]> {
