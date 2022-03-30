@@ -63,13 +63,6 @@ export class User {
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
 
-  async drop(db: DB): Promise<void> {
-    const result = await db.query(`delete from users where email=$1`, [this.email]);
-    if (result.rowCount != 1) {
-      throw Error(`Failed to drop user ID ${this.userID}`);
-    }
-  }
-
   async save(db: DB): Promise<number> {
     if (this.userID === 0) {
       const result = await db.query(
@@ -204,16 +197,23 @@ export class User {
       await user.save(db);
     } catch (err: any) {
       if (err instanceof PostgresError && err.message.includes('duplicate')) {
-        if (err.message.includes('name')) {
+        if (err.message.includes('name_key')) {
           throw new UserError('A user already exists with that name');
         }
-        if (err.message.includes('email')) {
+        if (err.message.includes('email_key')) {
           throw new UserError('A user already exists for that email');
         }
       }
       throw err;
     }
     return user;
+  }
+
+  static async dropByEmail(db: DB, email: string): Promise<void> {
+    const result = await db.query(`delete from users where email=$1`, [email]);
+    if (result.rowCount != 1) {
+      throw new UserError(`User not found`);
+    }
   }
 
   static async getByEmail(db: DB, email: string): Promise<User | null> {

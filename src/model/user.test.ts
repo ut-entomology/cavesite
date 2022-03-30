@@ -2,7 +2,7 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
 import { DatabaseMutex } from '../util/test_util';
-import { User, Privilege } from './user';
+import { User, Privilege, UserError } from './user';
 import { MIN_PASSWORD_STRENGTH } from '../shared/constants';
 
 const STRONG_PASSWORD1 = '8afj a aw3rajfla fdj8323214';
@@ -24,6 +24,21 @@ test('password strength', () => {
   expect(User.getPasswordStrength(WEAK_PASSWORD)).toBeLessThan(MIN_PASSWORD_STRENGTH);
   expect(User.getPasswordStrength(WRONG_PASSWORD)).toBeGreaterThan(
     MIN_PASSWORD_STRENGTH
+  );
+});
+
+test('non-existant users', async () => {
+  const users = await User.getUsers(db);
+  expect(users).toEqual([]);
+
+  let user = await User.authenticate(db, 'no@one.there', STRONG_PASSWORD1);
+  expect(user).toBeNull();
+
+  user = await User.getByEmail(db, 'no@one.there');
+  expect(user).toBeNull();
+
+  await expect(() => User.dropByEmail(db, 'no@one.there')).rejects.toThrow(
+    new UserError('User not found')
   );
 });
 
@@ -148,9 +163,62 @@ test('creating, using, and dropping a user', async () => {
 
   readUser = await User.getByEmail(db, 'no.body@no.where');
   expect(readUser).not.toBeNull();
-  await fourthUser.drop(db);
+  await User.dropByEmail(db, fourthUser.email);
   readUser = await User.getByEmail(db, 'no.body@no.where');
   expect(readUser).toBeNull();
+});
+
+test('invalid user profile', async () => {
+  const badEmails = ['foo @bar.com', 'foo bar@baz.com', 'foo@bar..baz', 'foo@baz'];
+  await expect(() =>
+    User.create(db, '', 'dog.person@persons.org', STRONG_PASSWORD1, 0)
+  ).rejects.toThrow(new UserError('No user name given'));
+
+  for (const badEmail of badEmails) {
+    await expect(() =>
+      User.create(db, 'Good Name', badEmail, STRONG_PASSWORD1, 0)
+    ).rejects.toThrow(new UserError('Invalid email address'));
+  }
+
+  await User.create(
+    db,
+    'Existing Name',
+    'existing.email@people.edu',
+    STRONG_PASSWORD1,
+    Privilege.Edit
+  );
+  await expect(() =>
+    User.create(db, 'Existing Name', 'new-email@persons.org', STRONG_PASSWORD1, 0)
+  ).rejects.toThrow(new UserError('A user already exists with that name'));
+  await expect(() =>
+    User.create(db, 'New Name', 'existing.email@people.edu', STRONG_PASSWORD1, 0)
+  ).rejects.toThrow(new UserError('A user already exists for that email'));
+});
+
+test('unacceptable password', async () => {
+  await expect(() =>
+    User.create(db, 'Person', 'x@y.zz', ` ${STRONG_PASSWORD1} `, Privilege.Coords)
+  ).rejects.toThrow(new UserError(`Password can't begin or end with spaces`));
+
+  await expect(() =>
+    User.create(db, 'Person', 'x@y.zz', WEAK_PASSWORD, Privilege.Coords)
+  ).rejects.toThrow(new UserError('Password not strong enough'));
+
+  const user = await User.create(
+    db,
+    'Person',
+    'x@y.zz',
+    STRONG_PASSWORD1,
+    Privilege.Admin
+  );
+
+  await expect(() => user.setPassword(` ${STRONG_PASSWORD2} `)).rejects.toThrow(
+    new UserError(`Password can't begin or end with spaces`)
+  );
+
+  await expect(() => user.setPassword(WEAK_PASSWORD)).rejects.toThrow(
+    new UserError('Password not strong enough')
+  );
 });
 
 afterAll(async () => {
