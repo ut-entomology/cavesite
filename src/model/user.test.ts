@@ -2,8 +2,12 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
 import { DatabaseMutex, expectRecentTime } from '../util/test_util';
-import { User, Privilege, UserError } from './user';
-import { MIN_PASSWORD_STRENGTH } from '../shared/constants';
+import { User, Privilege } from './user';
+import {
+  MIN_PASSWORD_STRENGTH,
+  UserError,
+  ValidationError
+} from '../shared/validation';
 
 const STRONG_PASSWORD1 = '8afj a aw3rajfla fdj8323214';
 const STRONG_PASSWORD2 = 'VERYstrongPWevenWithOUTnumbers';
@@ -196,12 +200,12 @@ test('invalid user profile', async () => {
   const badEmails = ['foo @bar.com', 'foo bar@baz.com', 'foo@bar..baz', 'foo@baz'];
   await expect(() =>
     User.create(db, '', 'dog.person@persons.org', null, STRONG_PASSWORD1, 0, null)
-  ).rejects.toThrow(new UserError('No user name given'));
+  ).rejects.toThrow(new ValidationError('No user name given'));
 
   for (const badEmail of badEmails) {
     await expect(() =>
       User.create(db, 'Good Name', badEmail, null, STRONG_PASSWORD1, 0, null)
-    ).rejects.toThrow(new UserError('Invalid email address'));
+    ).rejects.toThrow(new ValidationError('Invalid email address'));
   }
 
   await User.create(
@@ -248,11 +252,11 @@ test('unacceptable password', async () => {
       Privilege.Coords,
       null
     )
-  ).rejects.toThrow(new UserError(`Password can't begin or end with spaces`));
+  ).rejects.toThrow(new ValidationError(`Password can't begin or end with spaces`));
 
   await expect(() =>
     User.create(db, 'Person', 'x@y.zz', null, WEAK_PASSWORD, Privilege.Coords, null)
-  ).rejects.toThrow(new UserError('Password not strong enough'));
+  ).rejects.toThrow(new ValidationError('Password not strong enough'));
 
   const user = await User.create(
     db,
@@ -265,11 +269,11 @@ test('unacceptable password', async () => {
   );
 
   await expect(() => user.setPassword(` ${STRONG_PASSWORD2} `)).rejects.toThrow(
-    new UserError(`Password can't begin or end with spaces`)
+    new ValidationError(`Password can't begin or end with spaces`)
   );
 
   await expect(() => user.setPassword(WEAK_PASSWORD)).rejects.toThrow(
-    new UserError('Password not strong enough')
+    new ValidationError('Password not strong enough')
   );
 });
 

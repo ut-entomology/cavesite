@@ -5,7 +5,12 @@ import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import type { DataOf } from '../util/type_util';
 import { DB, PostgresError, toCamelRow } from '../util/pg_util';
-import { EMAIL_REGEX, MIN_PASSWORD_STRENGTH } from '../shared/constants';
+import {
+  VALID_EMAIL_REGEX,
+  MIN_PASSWORD_STRENGTH,
+  UserError,
+  ValidationError
+} from '../shared/validation';
 
 const PASSWORD_HASH_LENGTH = 64;
 
@@ -23,12 +28,6 @@ export enum Privilege {
   Admin = 1, // add/remove users and reset passwords; implies Edit/Coords
   Edit = 2, // modify data, such as the precise coordinates; implies Coords
   Coords = 4 // can see precise coordinates
-}
-
-export class UserError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
 }
 
 type UserData = Omit<DataOf<User>, 'createdOn'> & {
@@ -116,10 +115,10 @@ export class User {
 
   async setPassword(password: string): Promise<void> {
     if (password != password.trim()) {
-      throw new UserError("Password can't begin or end with spaces");
+      throw new ValidationError("Password can't begin or end with spaces");
     }
     if (User.getPasswordStrength(password) < MIN_PASSWORD_STRENGTH) {
-      throw new UserError('Password not strong enough');
+      throw new ValidationError('Password not strong enough');
     }
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(16).toString('hex');
@@ -175,11 +174,11 @@ export class User {
 
     name = name.trim();
     if (name == '') {
-      throw new UserError('No user name given');
+      throw new ValidationError('No user name given');
     }
     email = User._normalizeEmail(email);
-    if (!EMAIL_REGEX.test(email)) {
-      throw new UserError('Invalid email address');
+    if (!VALID_EMAIL_REGEX.test(email)) {
+      throw new ValidationError('Invalid email address');
     }
     if (affiliation) {
       affiliation = affiliation.trim();

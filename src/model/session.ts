@@ -6,7 +6,8 @@ import * as crypto from 'crypto';
 
 import type { DataOf } from '../util/type_util';
 import { toHeaderSafeBase64 } from '../util/http_util';
-import { type User, UserError } from './user';
+import type { User } from './user';
+import { UserError } from '../shared/validation';
 
 export const MAX_SESSIONS_PER_USER = 20; // limits unused browser window pollution
 
