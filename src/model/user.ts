@@ -41,6 +41,7 @@ export class User {
   userID = 0;
   name: string;
   email: string;
+  affiliation: string | null;
   privileges: number;
   createdOn: Date;
   lastLogin: Date | null = null;
@@ -54,6 +55,7 @@ export class User {
     this.userID = data.userID;
     this.name = data.name;
     this.email = data.email;
+    this.affiliation = data.affiliation;
     this.privileges = data.privileges;
     this.createdOn = data.createdOn!;
     this.lastLogin = data.lastLogin;
@@ -67,12 +69,13 @@ export class User {
     if (this.userID === 0) {
       const result = await db.query(
         `insert into users(
-            name, email, password_hash, password_salt,
+            name, email, affiliation, password_hash, password_salt,
             privileges, last_login
-          ) values ($1, $2, $3, $4, $5, $6) returning user_id, created_on`,
+          ) values ($1, $2, $3, $4, $5, $6, $7) returning user_id, created_on`,
         [
           this.name,
           this.email,
+          this.affiliation,
           this._passwordHash,
           this._passwordSalt,
           this.privileges,
@@ -86,12 +89,13 @@ export class User {
     } else {
       const result = await db.query(
         `update users set
-            name=$1, email=$2, password_hash=$3, password_salt=$4,
-            privileges=$5, last_login=$6
-          where user_id=$7`,
+            name=$1, email=$2, affiliation=$3, password_hash=$4, password_salt=$5,
+            privileges=$6, last_login=$7
+          where user_id=$8`,
         [
           this.name,
           this.email,
+          this.affiliation,
           this._passwordHash,
           this._passwordSalt,
           this.privileges,
@@ -117,7 +121,7 @@ export class User {
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(16).toString('hex');
       crypto.scrypt(password, salt, PASSWORD_HASH_LENGTH, (err, derivedKey) => {
-        if (err) reject(err);
+        if (err) return reject(err);
         this._passwordSalt = salt;
         this._passwordHash = derivedKey.toString('hex');
         resolve();
@@ -132,7 +136,7 @@ export class User {
         this._passwordSalt,
         PASSWORD_HASH_LENGTH,
         (err, derivedKey) => {
-          if (err) reject(err);
+          if (err) return reject(err);
           resolve(this._passwordHash == derivedKey.toString('hex'));
         }
       );
@@ -159,6 +163,7 @@ export class User {
     db: DB,
     name: string,
     email: string,
+    affiliation: string | null,
     password: string,
     privileges: number
   ): Promise<User> {
@@ -172,6 +177,12 @@ export class User {
     if (!EMAIL_REGEX.test(email)) {
       throw new UserError('Invalid email address');
     }
+    if (affiliation) {
+      affiliation = affiliation.trim();
+      if (affiliation == '') {
+        affiliation = null;
+      }
+    }
     if (privileges & Privilege.Admin) {
       privileges |= Privilege.Edit | Privilege.Coords;
     } else if (privileges & Privilege.Edit) {
@@ -184,6 +195,7 @@ export class User {
       userID: 0,
       name,
       email,
+      affiliation,
       privileges,
       lastLogin: null,
       passwordHash: '', // temporary

@@ -51,6 +51,7 @@ test('creating, using, and dropping a user', async () => {
     db,
     ' Super Curator ',
     ' Curator@Place.com ',
+    ' Rat Collection ',
     STRONG_PASSWORD1,
     Privilege.Admin
   );
@@ -58,6 +59,7 @@ test('creating, using, and dropping a user', async () => {
     createdUser,
     'Super Curator',
     email,
+    'Rat Collection',
     STRONG_PASSWORD1,
     Privilege.Admin | Privilege.Edit | Privilege.Coords
   );
@@ -100,6 +102,7 @@ test('creating, using, and dropping a user', async () => {
     readUser!,
     'Demoted Curator',
     'bad-curator@place.com',
+    'Rat Collection',
     STRONG_PASSWORD2,
     0
   );
@@ -110,6 +113,7 @@ test('creating, using, and dropping a user', async () => {
     db,
     'Fred Editor',
     'fred@foo.foo.com',
+    'Some Department',
     STRONG_PASSWORD1,
     Privilege.Edit
   );
@@ -117,6 +121,7 @@ test('creating, using, and dropping a user', async () => {
     secondUser,
     'Fred Editor',
     'fred@foo.foo.com',
+    'Some Department',
     STRONG_PASSWORD1,
     Privilege.Edit | Privilege.Coords
   );
@@ -127,6 +132,7 @@ test('creating, using, and dropping a user', async () => {
     db,
     'Carry Coords',
     'carry@xyz.co',
+    null,
     STRONG_PASSWORD1,
     Privilege.Coords
   );
@@ -134,6 +140,7 @@ test('creating, using, and dropping a user', async () => {
     thirdUser,
     'Carry Coords',
     'carry@xyz.co',
+    null,
     STRONG_PASSWORD1,
     Privilege.Coords
   );
@@ -144,10 +151,18 @@ test('creating, using, and dropping a user', async () => {
     db,
     'No Body',
     'no.body@no.where',
+    '  ',
     STRONG_PASSWORD1,
     0
   );
-  await verifyUser(fourthUser, 'No Body', 'no.body@no.where', STRONG_PASSWORD1, 0);
+  await verifyUser(
+    fourthUser,
+    'No Body',
+    'no.body@no.where',
+    null,
+    STRONG_PASSWORD1,
+    0
+  );
 
   // Retrieve all users.
 
@@ -171,12 +186,12 @@ test('creating, using, and dropping a user', async () => {
 test('invalid user profile', async () => {
   const badEmails = ['foo @bar.com', 'foo bar@baz.com', 'foo@bar..baz', 'foo@baz'];
   await expect(() =>
-    User.create(db, '', 'dog.person@persons.org', STRONG_PASSWORD1, 0)
+    User.create(db, '', 'dog.person@persons.org', null, STRONG_PASSWORD1, 0)
   ).rejects.toThrow(new UserError('No user name given'));
 
   for (const badEmail of badEmails) {
     await expect(() =>
-      User.create(db, 'Good Name', badEmail, STRONG_PASSWORD1, 0)
+      User.create(db, 'Good Name', badEmail, null, STRONG_PASSWORD1, 0)
     ).rejects.toThrow(new UserError('Invalid email address'));
   }
 
@@ -184,30 +199,32 @@ test('invalid user profile', async () => {
     db,
     'Existing Name',
     'existing.email@people.edu',
+    null,
     STRONG_PASSWORD1,
     Privilege.Edit
   );
   await expect(() =>
-    User.create(db, 'Existing Name', 'new-email@persons.org', STRONG_PASSWORD1, 0)
+    User.create(db, 'Existing Name', 'new-email@persons.org', null, STRONG_PASSWORD1, 0)
   ).rejects.toThrow(new UserError('A user already exists with that name'));
   await expect(() =>
-    User.create(db, 'New Name', 'existing.email@people.edu', STRONG_PASSWORD1, 0)
+    User.create(db, 'New Name', 'existing.email@people.edu', null, STRONG_PASSWORD1, 0)
   ).rejects.toThrow(new UserError('A user already exists for that email'));
 });
 
 test('unacceptable password', async () => {
   await expect(() =>
-    User.create(db, 'Person', 'x@y.zz', ` ${STRONG_PASSWORD1} `, Privilege.Coords)
+    User.create(db, 'Person', 'x@y.zz', null, ` ${STRONG_PASSWORD1} `, Privilege.Coords)
   ).rejects.toThrow(new UserError(`Password can't begin or end with spaces`));
 
   await expect(() =>
-    User.create(db, 'Person', 'x@y.zz', WEAK_PASSWORD, Privilege.Coords)
+    User.create(db, 'Person', 'x@y.zz', null, WEAK_PASSWORD, Privilege.Coords)
   ).rejects.toThrow(new UserError('Password not strong enough'));
 
   const user = await User.create(
     db,
     'Person',
     'x@y.zz',
+    null,
     STRONG_PASSWORD1,
     Privilege.Admin
   );
@@ -229,11 +246,13 @@ async function verifyUser(
   user: User,
   name: string,
   email: string,
+  affiliation: string | null,
   password: string,
   privileges: number
 ) {
   expect(user.userID).toBeGreaterThan(0);
   expect(user.name).toEqual(name);
+  expect(user.affiliation).toEqual(affiliation);
   expect(user.email).toEqual(email);
   expect(await user.verifyPassword(password)).toEqual(true);
   expect(await user.verifyPassword(WRONG_PASSWORD)).toEqual(false);

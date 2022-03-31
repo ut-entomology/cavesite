@@ -25,6 +25,7 @@ create table users (
     user_id serial primary key, -- locally generated
     name text unique not null,
     email text unique not null,
+    affiliation text,
     password_hash text not null,
     password_salt text not null,
     privileges integer,
