@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as lockfile from 'proper-lockfile';
+import { expect } from 'vitest';
 
 import { DB } from './pg_util';
 
@@ -78,4 +79,12 @@ export class DatabaseMutex {
       }
     }
   }
+}
+
+export function expectRecentTime(date: Date | null) {
+  expect(date?.getTime()).toBeGreaterThan(new Date().getTime() - 500);
+}
+
+export async function sleep(millis: number) {
+  return new Promise((resolve) => setTimeout(resolve, millis));
 }

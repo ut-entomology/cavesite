@@ -1,12 +1,12 @@
 import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../util/pg_util';
-import { DatabaseMutex } from '../util/test_util';
+import { DatabaseMutex, expectRecentTime } from '../util/test_util';
 import { User, Privilege, UserError } from './user';
 import { MIN_PASSWORD_STRENGTH } from '../shared/constants';
 
 const STRONG_PASSWORD1 = '8afj a aw3rajfla fdj8323214';
-const STRONG_PASSWORD2 = 'woahwhatchadoingwiththatkeyboard';
+const STRONG_PASSWORD2 = 'VERYstrongPWevenWithOUTnumbers';
 const WEAK_PASSWORD = 'passwordpasswordpassword';
 const WRONG_PASSWORD = 'foochoohoo838alfaljfZZDqy';
 
@@ -77,7 +77,7 @@ test('creating, using, and dropping a user', async () => {
 
   readUser = await User.authenticate(db, email, STRONG_PASSWORD1);
   expect(readUser?.userID).toEqual(createdUser.userID);
-  expectRecentDate(readUser!.lastLogin);
+  expectRecentTime(readUser!.lastLogin);
 
   // Change the user's password.
 
@@ -257,9 +257,5 @@ async function verifyUser(
   expect(await user.verifyPassword(password)).toEqual(true);
   expect(await user.verifyPassword(WRONG_PASSWORD)).toEqual(false);
   expect(user.privileges).toEqual(privileges);
-  expectRecentDate(user.createdOn);
-}
-
-function expectRecentDate(date: Date | null) {
-  expect(date?.getTime()).toBeGreaterThan(new Date().getTime() - 500);
+  expectRecentTime(user.createdOn);
 }
