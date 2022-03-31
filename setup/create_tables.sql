@@ -154,8 +154,9 @@ create table private_coordinates (
     -- Users will be supplying this data, not GBIF
     location_guid varchar (128) unique not null,
     supplied_by integer references users,
-    precise_latitude float8 not null,
-    precise_longitude float8 not null,
+    modified_on timestamptz not null,
+    latitude float8 not null,
+    longitude float8 not null,
     uncertainty_meters float8
 );
 

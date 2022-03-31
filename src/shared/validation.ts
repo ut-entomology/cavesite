@@ -6,8 +6,8 @@ export const VALID_EMAIL_REGEX = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
 
 export const MIN_PASSWORD_STRENGTH = 10;
 
-const LATITUDE_REGEX = /[-]?(\d+[.]?\d*) *[NS]?/i;
-const LONGITUDE_REGEX = /[-]?(\d+[.]?\d*) *[EW]?/i;
+const LATITUDE_REGEX = /^([-]?\d+[.]?\d*) *[NS]?$/i;
+const LONGITUDE_REGEX = /^([-]?\d+[.]?\d*) *[EW]?$/i;
 
 export class UserError extends Error {
   constructor(message: string) {
@@ -48,7 +48,7 @@ export function parseUncertaintyMeters(uncertaintyStr: string): number | null {
   if (!uncertaintyStr.match(/^(?:\d+[.]?\d*|[.]\d+)$/)) {
     throw new ValidationError('Invalid uncertainty');
   }
-  let uncertainty: number | null = parseInt(uncertaintyStr);
+  let uncertainty: number | null = parseFloat(uncertaintyStr);
   if (isNaN(uncertainty) || uncertainty < 0) {
     throw new ValidationError('Invalid uncertainty');
   }
@@ -71,8 +71,9 @@ function _parseCoordinate(
   if (suffixes.indexOf(lastChar) >= 0) {
     if (coordStr[0] == '-') throwError();
     if (lastChar == suffixes[1]) sign = -1;
+    coordStr = coordStr.substring(0, coordStr.length - 1);
   }
-  const coord = parseInt(match[1]);
+  const coord = parseFloat(match[1]);
   if (isNaN(coord)) throwError();
   return sign * coord;
 }
