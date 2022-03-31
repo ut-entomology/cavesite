@@ -38,13 +38,14 @@ type UserData = Omit<DataOf<User>, 'createdOn'> & {
 };
 
 export class User {
-  userID = 0;
+  userID: number;
   name: string;
   email: string;
   affiliation: string | null;
   privileges: number;
   createdOn: Date;
-  lastLogin: Date | null = null;
+  createdBy: number | null;
+  lastLogin: Date | null;
 
   private _passwordHash: string;
   private _passwordSalt: string;
@@ -58,6 +59,7 @@ export class User {
     this.affiliation = data.affiliation;
     this.privileges = data.privileges;
     this.createdOn = data.createdOn!;
+    this.createdBy = data.createdBy;
     this.lastLogin = data.lastLogin;
     this._passwordHash = data.passwordHash;
     this._passwordSalt = data.passwordSalt;
@@ -70,8 +72,8 @@ export class User {
       const result = await db.query(
         `insert into users(
             name, email, affiliation, password_hash, password_salt,
-            privileges, last_login
-          ) values ($1, $2, $3, $4, $5, $6, $7) returning user_id, created_on`,
+            privileges, created_by, last_login
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8) returning user_id, created_on`,
         [
           this.name,
           this.email,
@@ -79,6 +81,7 @@ export class User {
           this._passwordHash,
           this._passwordSalt,
           this.privileges,
+          this.createdBy,
           // @ts-ignore
           this.lastLogin
         ]
@@ -165,7 +168,8 @@ export class User {
     email: string,
     affiliation: string | null,
     password: string,
-    privileges: number
+    privileges: number,
+    createdBy: User | null
   ): Promise<User> {
     // Validate and normalize user data.
 
@@ -197,6 +201,7 @@ export class User {
       email,
       affiliation,
       privileges,
+      createdBy: createdBy?.userID || null,
       lastLogin: null,
       passwordHash: '', // temporary
       passwordSalt: '' // temporary

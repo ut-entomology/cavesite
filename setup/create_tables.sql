@@ -22,7 +22,7 @@
 
 create table users (
     -- None of these fields are in GBIF.
-    user_id serial primary key, -- locally generated
+    user_id serial primary key, -- locally generated, more stable than email
     name text unique not null,
     email text unique not null,
     affiliation text,
@@ -30,6 +30,7 @@ create table users (
     password_salt text not null,
     privileges integer,
     created_on timestamptz not null default now(),
+    created_by integer references users,
     last_login timestamptz
 );
 

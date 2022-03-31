@@ -47,36 +47,38 @@ test('creating, using, and dropping a user', async () => {
 
   // Create a user.
 
-  const createdUser = await User.create(
+  const adminUser = await User.create(
     db,
     ' Super Curator ',
     ' Curator@Place.com ',
     ' Rat Collection ',
     STRONG_PASSWORD1,
-    Privilege.Admin
+    Privilege.Admin,
+    null
   );
   await verifyUser(
-    createdUser,
+    adminUser,
     'Super Curator',
     email,
     'Rat Collection',
     STRONG_PASSWORD1,
-    Privilege.Admin | Privilege.Edit | Privilege.Coords
+    Privilege.Admin | Privilege.Edit | Privilege.Coords,
+    null
   );
-  expect(createdUser.lastLogin).toBeNull();
+  expect(adminUser.lastLogin).toBeNull();
 
   // Failed authentication.
 
   let readUser = await User.authenticate(db, email, WRONG_PASSWORD);
   expect(readUser).toBeNull();
   readUser = await User.getByEmail(db, email);
-  expect(readUser?.userID).toEqual(createdUser.userID);
+  expect(readUser?.userID).toEqual(adminUser.userID);
   expect(readUser?.lastLogin).toBeNull();
 
   // Successful authentication.
 
   readUser = await User.authenticate(db, email, STRONG_PASSWORD1);
-  expect(readUser?.userID).toEqual(createdUser.userID);
+  expect(readUser?.userID).toEqual(adminUser.userID);
   expectRecentTime(readUser!.lastLogin);
 
   // Change the user's password.
@@ -86,7 +88,7 @@ test('creating, using, and dropping a user', async () => {
   readUser = await User.authenticate(db, email, STRONG_PASSWORD1);
   expect(readUser).toBeNull();
   readUser = await User.authenticate(db, email, STRONG_PASSWORD2);
-  expect(readUser?.userID).toEqual(createdUser.userID);
+  expect(readUser?.userID).toEqual(adminUser.userID);
 
   // Modify the user profile.
 
@@ -97,14 +99,15 @@ test('creating, using, and dropping a user', async () => {
   readUser = await User.getByEmail(db, email);
   expect(readUser).toBeNull();
   readUser = await User.getByEmail(db, 'bad-curator@place.com');
-  expect(readUser?.userID).toEqual(createdUser.userID);
+  expect(readUser?.userID).toEqual(adminUser.userID);
   await verifyUser(
     readUser!,
     'Demoted Curator',
     'bad-curator@place.com',
     'Rat Collection',
     STRONG_PASSWORD2,
-    0
+    0,
+    null
   );
 
   // Add a second user with edit privileges
@@ -115,7 +118,8 @@ test('creating, using, and dropping a user', async () => {
     'fred@foo.foo.com',
     'Some Department',
     STRONG_PASSWORD1,
-    Privilege.Edit
+    Privilege.Edit,
+    adminUser
   );
   await verifyUser(
     secondUser,
@@ -123,7 +127,8 @@ test('creating, using, and dropping a user', async () => {
     'fred@foo.foo.com',
     'Some Department',
     STRONG_PASSWORD1,
-    Privilege.Edit | Privilege.Coords
+    Privilege.Edit | Privilege.Coords,
+    adminUser
   );
 
   // Add a third user with only coordinate privileges.
@@ -134,7 +139,8 @@ test('creating, using, and dropping a user', async () => {
     'carry@xyz.co',
     null,
     STRONG_PASSWORD1,
-    Privilege.Coords
+    Privilege.Coords,
+    adminUser
   );
   await verifyUser(
     thirdUser,
@@ -142,7 +148,8 @@ test('creating, using, and dropping a user', async () => {
     'carry@xyz.co',
     null,
     STRONG_PASSWORD1,
-    Privilege.Coords
+    Privilege.Coords,
+    adminUser
   );
 
   // Add a fourth user with no privileges.
@@ -153,7 +160,8 @@ test('creating, using, and dropping a user', async () => {
     'no.body@no.where',
     '  ',
     STRONG_PASSWORD1,
-    0
+    0,
+    adminUser
   );
   await verifyUser(
     fourthUser,
@@ -161,7 +169,8 @@ test('creating, using, and dropping a user', async () => {
     'no.body@no.where',
     null,
     STRONG_PASSWORD1,
-    0
+    0,
+    adminUser
   );
 
   // Retrieve all users.
@@ -169,7 +178,7 @@ test('creating, using, and dropping a user', async () => {
   const users = await User.getUsers(db);
   const usersByID: Record<number, User> = {};
   users.forEach((user) => (usersByID[user.userID] = user));
-  expect(usersByID[createdUser.userID].name).toEqual('Demoted Curator');
+  expect(usersByID[adminUser.userID].name).toEqual('Demoted Curator');
   expect(usersByID[secondUser.userID].name).toEqual('Fred Editor');
   expect(usersByID[thirdUser.userID].name).toEqual('Carry Coords');
   expect(usersByID[fourthUser.userID].name).toEqual('No Body');
@@ -186,12 +195,12 @@ test('creating, using, and dropping a user', async () => {
 test('invalid user profile', async () => {
   const badEmails = ['foo @bar.com', 'foo bar@baz.com', 'foo@bar..baz', 'foo@baz'];
   await expect(() =>
-    User.create(db, '', 'dog.person@persons.org', null, STRONG_PASSWORD1, 0)
+    User.create(db, '', 'dog.person@persons.org', null, STRONG_PASSWORD1, 0, null)
   ).rejects.toThrow(new UserError('No user name given'));
 
   for (const badEmail of badEmails) {
     await expect(() =>
-      User.create(db, 'Good Name', badEmail, null, STRONG_PASSWORD1, 0)
+      User.create(db, 'Good Name', badEmail, null, STRONG_PASSWORD1, 0, null)
     ).rejects.toThrow(new UserError('Invalid email address'));
   }
 
@@ -201,23 +210,48 @@ test('invalid user profile', async () => {
     'existing.email@people.edu',
     null,
     STRONG_PASSWORD1,
-    Privilege.Edit
+    Privilege.Edit,
+    null
   );
   await expect(() =>
-    User.create(db, 'Existing Name', 'new-email@persons.org', null, STRONG_PASSWORD1, 0)
+    User.create(
+      db,
+      'Existing Name',
+      'new-email@persons.org',
+      null,
+      STRONG_PASSWORD1,
+      0,
+      null
+    )
   ).rejects.toThrow(new UserError('A user already exists with that name'));
   await expect(() =>
-    User.create(db, 'New Name', 'existing.email@people.edu', null, STRONG_PASSWORD1, 0)
+    User.create(
+      db,
+      'New Name',
+      'existing.email@people.edu',
+      null,
+      STRONG_PASSWORD1,
+      0,
+      null
+    )
   ).rejects.toThrow(new UserError('A user already exists for that email'));
 });
 
 test('unacceptable password', async () => {
   await expect(() =>
-    User.create(db, 'Person', 'x@y.zz', null, ` ${STRONG_PASSWORD1} `, Privilege.Coords)
+    User.create(
+      db,
+      'Person',
+      'x@y.zz',
+      null,
+      ` ${STRONG_PASSWORD1} `,
+      Privilege.Coords,
+      null
+    )
   ).rejects.toThrow(new UserError(`Password can't begin or end with spaces`));
 
   await expect(() =>
-    User.create(db, 'Person', 'x@y.zz', null, WEAK_PASSWORD, Privilege.Coords)
+    User.create(db, 'Person', 'x@y.zz', null, WEAK_PASSWORD, Privilege.Coords, null)
   ).rejects.toThrow(new UserError('Password not strong enough'));
 
   const user = await User.create(
@@ -226,7 +260,8 @@ test('unacceptable password', async () => {
     'x@y.zz',
     null,
     STRONG_PASSWORD1,
-    Privilege.Admin
+    Privilege.Admin,
+    null
   );
 
   await expect(() => user.setPassword(` ${STRONG_PASSWORD2} `)).rejects.toThrow(
@@ -248,7 +283,8 @@ async function verifyUser(
   email: string,
   affiliation: string | null,
   password: string,
-  privileges: number
+  privileges: number,
+  createdBy: User | null
 ) {
   expect(user.userID).toBeGreaterThan(0);
   expect(user.name).toEqual(name);
@@ -258,4 +294,5 @@ async function verifyUser(
   expect(await user.verifyPassword(WRONG_PASSWORD)).toEqual(false);
   expect(user.privileges).toEqual(privileges);
   expectRecentTime(user.createdOn);
+  expect(user.createdBy).toEqual(createdBy?.userID || null);
 }
