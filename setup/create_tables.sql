@@ -154,7 +154,7 @@ create index on specimens(locality_id);
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF
     location_guid varchar (128) unique not null,
-    supplied_by integer references users,
+    modified_by integer references users,
     modified_on timestamptz not null,
     latitude float8 not null,
     longitude float8 not null,

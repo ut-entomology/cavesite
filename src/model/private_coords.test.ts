@@ -74,7 +74,7 @@ function verifyCoords(
 ) {
   expect(coords).not.toBeNull();
   expect(coords!.locationGuid).toEqual(guid);
-  expect(coords!.suppliedBy).toEqual(user.userID);
+  expect(coords!.modifiedBy).toEqual(user.userID);
   expectRecentTime(coords!.modifiedOn);
   expect(coords!.latitude).toEqual(latitude);
   expect(coords!.longitude).toEqual(longitude);

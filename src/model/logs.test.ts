@@ -21,7 +21,7 @@ test('creating, reading, and clearing logs', async () => {
     const tag = i % 2 ? 'Fred' : 'TMM12345';
     expectedLogs.push({
       id: 1,
-      timestamp: new Date(),
+      timestamp: new Date(), // ignored
       type,
       tag,
       line: `log line ${i}`
@@ -29,7 +29,7 @@ test('creating, reading, and clearing logs', async () => {
   }
   for (const log of expectedLogs) {
     await Logs.post(db, log.type, log.tag, log.line);
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
   // Verify that we can get the most recent 10 logs.

@@ -11,7 +11,7 @@ type PrivateCoordsData = DataOf<PrivateCoords>;
 
 export class PrivateCoords {
   locationGuid: string;
-  suppliedBy: number | null;
+  modifiedBy: number | null;
   modifiedOn: Date;
   latitude: number;
   longitude: number;
@@ -23,7 +23,7 @@ export class PrivateCoords {
 
   private constructor(data: PrivateCoordsData) {
     this.locationGuid = data.locationGuid;
-    this.suppliedBy = data.suppliedBy;
+    this.modifiedBy = data.modifiedBy;
     this.modifiedOn = data.modifiedOn;
     this.latitude = data.latitude;
     this.longitude = data.longitude;
@@ -37,12 +37,12 @@ export class PrivateCoords {
       if (this._isNew) {
         await db.query(
           `insert into private_coordinates(
-              location_guid, supplied_by, modified_on, latitude, longitude,
+              location_guid, modified_by, modified_on, latitude, longitude,
               uncertainty_meters
             ) values ($1, $2, $3, $4, $5, $6)`,
           [
             this.locationGuid,
-            this.suppliedBy,
+            this.modifiedBy,
             // @ts-ignore
             this.modifiedOn,
             this.latitude,
@@ -54,11 +54,11 @@ export class PrivateCoords {
       } else {
         const result = await db.query(
           `update private_coordinates set 
-              supplied_by=$1, modified_on=$2, latitude=$3, longitude=$4,
+              modified_by=$1, modified_on=$2, latitude=$3, longitude=$4,
               uncertainty_meters=$5
             where location_guid=$6`,
           [
-            this.suppliedBy,
+            this.modifiedBy,
             // @ts-ignore
             this.modifiedOn,
             this.latitude,
@@ -90,7 +90,7 @@ export class PrivateCoords {
   static async create(
     db: DB,
     locationGuid: string,
-    suppliedBy: User,
+    modifiedBy: User,
     latitude: number,
     longitude: number,
     uncertaintyMeters: number | null
@@ -100,7 +100,7 @@ export class PrivateCoords {
     }
     const coords = new PrivateCoords({
       locationGuid,
-      suppliedBy: suppliedBy.userID,
+      modifiedBy: modifiedBy.userID,
       modifiedOn: new Date(),
       latitude,
       longitude,
