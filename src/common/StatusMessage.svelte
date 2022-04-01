@@ -26,7 +26,7 @@
 </script>
 
 <script lang="ts">
-  import { Toast } from 'sveltestrap';
+  import Toast from './toast/Toast.svelte';
 </script>
 
 {#if $messageStore}

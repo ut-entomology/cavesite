@@ -3,10 +3,10 @@
 
   import type { SvelteComponent } from 'svelte';
 
-  import UserLoginDialog from '../dialogs/UserLoginDialog.svelte';
+  //import UserLoginDialog from '../dialogs/UserLoginDialog.svelte';
 
   const targetMap: Record<string, typeof SvelteComponent> = {
-    UserLoginDialog
+    //UserLoginDialog
   };
 
   export function toSvelteTarget(targetName: string): typeof SvelteComponent {

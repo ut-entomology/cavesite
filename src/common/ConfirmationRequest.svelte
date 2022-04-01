@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { Toast, ToastHeader, ToastBody } from 'sveltestrap';
+  import Toast from './toast/Toast.svelte';
+  import ToastHeader from './toast/Toast.svelte';
+  import ToastBody from './toast/Toast.svelte';
 
   export let alert = 'danger';
   export let header = 'CAUTION';
