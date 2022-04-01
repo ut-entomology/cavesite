@@ -1,29 +1,17 @@
 <script lang="ts">
-  import VariableFlash from '../layout/VariableFlash.svelte';
-  import VariableNotice, { showNotice } from '../layout/VariableNotice.svelte';
-  import VariableDialog from '../layout/VariableDialog.svelte';
+  import VariableFlash from '../common/VariableFlash.svelte';
+  import VariableNotice from '../common/VariableNotice.svelte';
+  import VariableDialog from '../common/VariableDialog.svelte';
   import HeaderBar from './HeaderBar.svelte';
+  import { currentDialog } from '../stores/currentDialog';
+  import { toSvelteTarget } from '../targets.svelte';
 
-  async function loginUser() {
-    const userCreds = await window.apis.userApi.getSavedCreds();
-    if (userCreds) {
-      try {
-        // TBD
-      } catch (err: any) {
-        showNotice(
-          `Login failed for user '${userCreds.username}': ${err.message}`,
-          'FAILED',
-          'warning'
-        );
-      }
-    }
-  }
 </script>
 
-  <HeaderBar appTitle="UT SpecTool" />
-  <VariableDialog />
-  <VariableNotice />
-  <VariableFlash />
+<HeaderBar />
+<VariableDialog {currentDialog} {toSvelteTarget} />
+<VariableNotice />
+<VariableFlash />
 
 <style lang="scss" global>
   // Svelte is not allowing a component to have both local and global SCSS.
