@@ -65,7 +65,7 @@ test('missing catalog number', async () => {
       'Missing catalog number',
       true
     );
-    expect(found).toBeTruthy();
+    expect(found).toEqual(true);
   }
   {
     const source = Object.assign({}, baseSource);
@@ -78,7 +78,7 @@ test('missing catalog number', async () => {
       'Missing catalog number',
       true
     );
-    expect(found).toBeTruthy();
+    expect(found).toEqual(true);
   }
 });
 
@@ -252,7 +252,7 @@ test('creating a fully-specified specimen', async () => {
       'Family given without order',
       true
     );
-    expect(found).toBeTruthy();
+    expect(found).toEqual(true);
   }
 
   // Test specimen with invalid location
@@ -274,7 +274,7 @@ test('creating a fully-specified specimen', async () => {
       'Locality name not given',
       true
     );
-    expect(found).toBeTruthy();
+    expect(found).toEqual(true);
   }
 });
 
@@ -289,7 +289,7 @@ test('bad end date', async () => {
   const specimen = await Specimen.create(db, source);
   expect(specimen?.problems).toContain('end date syntax');
   let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
-  expect(found).toBeTruthy();
+  expect(found).toEqual(true);
 
   // make sure problem was written to the database
   const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
@@ -307,7 +307,7 @@ test('end date but no start date', async () => {
     const specimen = await Specimen.create(db, source);
     expect(specimen?.problems).toContain('no start date');
     let found = await containsLog(db, source.catalogNumber, 'no start date', false);
-    expect(found).toBeTruthy();
+    expect(found).toEqual(true);
   }
   {
     const source = Object.assign({}, baseSource);
@@ -320,7 +320,7 @@ test('end date but no start date', async () => {
     const specimen = await Specimen.create(db, source);
     expect(specimen?.problems).toContain('no start date');
     let found = await containsLog(db, source.catalogNumber, 'no start date', false);
-    expect(found).toBeTruthy();
+    expect(found).toEqual(true);
   }
 });
 
@@ -343,7 +343,7 @@ test('start date follows end date', async () => {
     'Start date follows end date',
     false
   );
-  expect(found).toBeTruthy();
+  expect(found).toEqual(true);
 });
 
 test('bad specimen count', async () => {
@@ -361,7 +361,7 @@ test('bad specimen count', async () => {
     'Invalid specimen count',
     false
   );
-  expect(found).toBeTruthy();
+  expect(found).toEqual(true);
 });
 
 test('multiple problems with specimen', async () => {
@@ -377,9 +377,9 @@ test('multiple problems with specimen', async () => {
   expect(specimen?.problems).toContain('end date syntax');
   expect(specimen?.problems).toContain('Invalid specimen count');
   let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
-  expect(found).toBeTruthy();
+  expect(found).toEqual(true);
   found = await containsLog(db, source.catalogNumber, 'Invalid specimen count', false);
-  expect(found).toBeTruthy();
+  expect(found).toEqual(true);
 
   // make sure problem was written to the database
   const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
