@@ -3,6 +3,7 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 import type { DB } from '../util/pg_util';
 import { DatabaseMutex, expectRecentTime } from '../util/test_util';
 import { User, Privilege } from './user';
+import { Logs, LogType } from './logs';
 import {
   MIN_PASSWORD_STRENGTH,
   UserError,
@@ -35,7 +36,7 @@ test('non-existant users', async () => {
   const users = await User.getUsers(db);
   expect(users).toEqual([]);
 
-  let user = await User.authenticate(db, 'no@one.there', STRONG_PASSWORD1);
+  let user = await User.authenticate(db, 'no@one.there', STRONG_PASSWORD1, '<ip>');
   expect(user).toBeNull();
 
   user = await User.getByEmail(db, 'no@one.there');
@@ -69,29 +70,35 @@ test('creating, using, and dropping a user', async () => {
     Privilege.Admin | Privilege.Edit | Privilege.Coords,
     null
   );
-  expect(adminUser.lastLogin).toBeNull();
+  expect(adminUser.lastLoginDate).toBeNull();
 
   // Failed authentication.
 
-  let readUser = await User.authenticate(db, email, WRONG_PASSWORD);
+  let readUser = await User.authenticate(db, email, WRONG_PASSWORD, '<ip>');
   expect(readUser).toBeNull();
   readUser = await User.getByEmail(db, email);
   expect(readUser?.userID).toEqual(adminUser.userID);
-  expect(readUser?.lastLogin).toBeNull();
+  expect(readUser?.lastLoginDate).toBeNull();
+  expect(readUser?.lastLoginIP).toBeNull();
+  let found = await containsLog(db, email, `${readUser!.name} logged in from IP <ip>`);
+  expect(found).toEqual(false);
 
   // Successful authentication.
 
-  readUser = await User.authenticate(db, email, STRONG_PASSWORD1);
+  readUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip>');
   expect(readUser?.userID).toEqual(adminUser.userID);
-  expectRecentTime(readUser!.lastLogin);
+  expectRecentTime(readUser!.lastLoginDate);
+  expect(readUser?.lastLoginIP).toEqual('<ip>');
+  found = await containsLog(db, email, `${readUser!.name} logged in from IP <ip>`);
+  expect(found).toEqual(true);
 
   // Change the user's password.
 
   await readUser!.setPassword(STRONG_PASSWORD2);
   await readUser!.save(db);
-  readUser = await User.authenticate(db, email, STRONG_PASSWORD1);
+  readUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip>');
   expect(readUser).toBeNull();
-  readUser = await User.authenticate(db, email, STRONG_PASSWORD2);
+  readUser = await User.authenticate(db, email, STRONG_PASSWORD2, '<ip>');
   expect(readUser?.userID).toEqual(adminUser.userID);
 
   // Modify the user profile.
@@ -299,4 +306,14 @@ async function verifyUser(
   expect(user.privileges).toEqual(privileges);
   expectRecentTime(user.createdOn);
   expect(user.createdBy).toEqual(createdBy?.userID || null);
+}
+
+async function containsLog(db: DB, email: string, portion: string): Promise<boolean> {
+  const logs = await Logs.getBeforeID(db, 100, 100);
+  for (const log of logs) {
+    if (log.type == LogType.User && log.tag == email) {
+      return log.line.includes(portion);
+    }
+  }
+  return false;
 }

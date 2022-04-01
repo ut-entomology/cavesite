@@ -31,7 +31,8 @@ create table users (
     privileges integer,
     created_on timestamptz not null default now(),
     created_by integer references users,
-    last_login timestamptz
+    last_login_date timestamptz,
+    last_login_ip text
 );
 
 create table taxa (

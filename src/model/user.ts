@@ -5,6 +5,7 @@ import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import type { DataOf } from '../util/type_util';
 import { DB, PostgresError, toCamelRow } from '../util/pg_util';
+import { Logs, LogType } from './logs';
 import {
   VALID_EMAIL_REGEX,
   MIN_PASSWORD_STRENGTH,
@@ -44,7 +45,8 @@ export class User {
   privileges: number;
   createdOn: Date;
   createdBy: number | null;
-  lastLogin: Date | null;
+  lastLoginDate: Date | null;
+  lastLoginIP: string | null;
 
   private _passwordHash: string;
   private _passwordSalt: string;
@@ -59,7 +61,8 @@ export class User {
     this.privileges = data.privileges;
     this.createdOn = data.createdOn!;
     this.createdBy = data.createdBy;
-    this.lastLogin = data.lastLogin;
+    this.lastLoginDate = data.lastLoginDate;
+    this.lastLoginIP = data.lastLoginIP;
     this._passwordHash = data.passwordHash;
     this._passwordSalt = data.passwordSalt;
   }
@@ -71,8 +74,8 @@ export class User {
       const result = await db.query(
         `insert into users(
             name, email, affiliation, password_hash, password_salt,
-            privileges, created_by, last_login
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8) returning user_id, created_on`,
+            privileges, created_by, last_login_date, last_login_ip
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning user_id, created_on`,
         [
           this.name,
           this.email,
@@ -82,7 +85,8 @@ export class User {
           this.privileges,
           this.createdBy,
           // @ts-ignore
-          this.lastLogin
+          this.lastLoginDate,
+          this.lastLoginIP
         ]
       );
       const row = result.rows[0];
@@ -92,8 +96,8 @@ export class User {
       const result = await db.query(
         `update users set
             name=$1, email=$2, affiliation=$3, password_hash=$4, password_salt=$5,
-            privileges=$6, last_login=$7
-          where user_id=$8`,
+            privileges=$6, last_login_date=$7, last_login_ip=$8
+          where user_id=$9`,
         [
           this.name,
           this.email,
@@ -102,7 +106,8 @@ export class User {
           this._passwordSalt,
           this.privileges,
           // @ts-ignore
-          this.lastLogin,
+          this.lastLoginDate,
+          this.lastLoginIP,
           this.userID
         ]
       );
@@ -150,14 +155,27 @@ export class User {
   static async authenticate(
     db: DB,
     email: string,
-    password: string
+    password: string,
+    ipAddress: string
   ): Promise<User | null> {
+    // Verify the credentials.
+
     const user = await this.getByEmail(db, this._normalizeEmail(email));
     if (!user) return null;
     const verified = await user.verifyPassword(password);
     if (!verified) return null;
-    user.lastLogin = new Date();
+
+    // Record the login.
+
+    user.lastLoginDate = new Date();
+    user.lastLoginIP = ipAddress;
     await user.save(db);
+    await Logs.post(
+      db,
+      LogType.User,
+      user.email,
+      `${user.name} logged in from IP ${ipAddress}`
+    );
     return user;
   }
 
@@ -201,7 +219,8 @@ export class User {
       affiliation,
       privileges,
       createdBy: createdBy?.userID || null,
-      lastLogin: null,
+      lastLoginDate: null,
+      lastLoginIP: null,
       passwordHash: '', // temporary
       passwordSalt: '' // temporary
     });

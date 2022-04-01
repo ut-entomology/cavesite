@@ -69,9 +69,11 @@ export function toCamelRow<T>(snakeRow: Record<string, any>): T {
         words[0] +
         words
           .slice(1)
-          .map((word) =>
-            word == 'id' ? 'ID' : word[0].toUpperCase() + word.substring(1)
-          )
+          .map((word) => {
+            if (word == 'id') return 'ID';
+            if (word == 'ip') return 'IP';
+            return word[0].toUpperCase() + word.substring(1);
+          })
           .join('');
       snakeToCamelMap[snakeColumn] = camelColumn;
     }
