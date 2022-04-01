@@ -142,6 +142,7 @@ export class Session {
         let headerSafeID = toHeaderSafeBase64(buffer.toString('base64'));
         if (sessionsByID[headerSafeID]) {
           if (--attemptsLeft == 0) {
+            // TODO: Probably ought to write to log
             return reject(Error(`Unable to create a unique session ID`));
           }
           return Session._createSessionID(attemptsLeft);

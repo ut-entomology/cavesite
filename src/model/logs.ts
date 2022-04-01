@@ -4,6 +4,7 @@
 
 import type { DB } from '../util/pg_util';
 
+// TODO: Add support for database errors
 export enum LogType {
   User = 'user',
   Import = 'import'
