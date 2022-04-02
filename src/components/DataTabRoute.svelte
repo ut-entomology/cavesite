@@ -1,5 +1,5 @@
 <script lang='ts'>
-  import RouteTab, { type Tab } from "../layout/RouteTab.svelte";
+  import RouteTab, { type Tab } from "./RouteTab.svelte";
 
   export let activeTab: string;
 

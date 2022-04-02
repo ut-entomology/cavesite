@@ -2,7 +2,8 @@
   //import { flashMessage } from '../common/VariableFlash.svelte';
   //import { showNotice } from '../common/VariableNotice.svelte';
 
-  export let appTitle = 'Texas Underground';
+  const APP_TITLE = 'Texas Underground';
+  const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
 
   const currentUser:any = null;
 
@@ -11,36 +12,25 @@
   function logout() {}
 </script>
 
-<div class="header_bar container-flud g-0">
-  <div class="row">
-    <div class="col-3 app_title">{appTitle}</div>
-    <div class="col-6 logged_in_user">
-      {#if currentUser === null}
-        <span>not logged in</span>
-      {:else}
-        <div>
-          {currentUser.name}
-          {#if currentUser.saved}
-            <span>(saved login)</span>
-          {/if}
-        </div>
-      {/if}
-    </div>
-    <div class="col-3 login_logout">
+<div class="header_bar">
+  <div class="title_row">
+    <div class="app_title">{APP_TITLE}</div>
+    <div class="user_menu">
       <div>
         {#if currentUser === null}
           <button
-            class="btn btn-major compact"
+            class="btn btn-major"
             on:click={login}
           >
             Login
           </button>
         {:else}
-          <button class="btn btn-minor compact" on:click={logout}>Logout</button>
+          <button class="btn btn-major" on:click={logout}>Logout</button>
         {/if}
       </div>
     </div>
   </div>
+  <div class="app_subtitle text">{APP_SUBTITLE}</div>
 </div>
 
 <style lang="scss">
@@ -49,37 +39,31 @@
   .header_bar {
     flex: 0;
     width: 100%;
-    background-color: $pageBarBackgroundColor;
     color: $pageBarTextColor;
-    padding: 0.3rem $horizontalMargin;
+    padding: 0.5rem 0;
   }
 
-  .app_title,
-  .logged_in_user,
-  .login_logout {
+  .title_row {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .app_title {
-    color: rgb(172, 92, 0);
+    color: $texasRed;
+    font-size: 1.5rem;
+    font-weight: bold;
   }
 
-  .logged_in_user {
-    text-align: center;
+  .app_subtitle {
+    font-size: 1.1rem;
   }
 
-  .login_logout {
-    text-align: right;
-  }
-
-  .login_logout .btn {
+  .user_menu .btn {
     // .btn's vertical align messes up vertical centering
     vertical-align: baseline;
   }
 
-  .logged_in_user span {
-    font-style: italic;
+  button {
+    padding: 0 1rem;
   }
 </style>

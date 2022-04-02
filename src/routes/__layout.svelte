@@ -8,7 +8,7 @@
 
 </script>
 
-<div class="container-lg mt-3 mb-3">
+<div class="container-lg">
   <HeaderBar />
   <slot></slot>
   <VariableDialog {currentDialog} {toSvelteTarget} />
@@ -60,7 +60,7 @@
     display: flex;
     flex-direction: column;
     margin: 0;
-    padding: 0;
+    padding: 0.3rem 0.8rem;
   }
 
   .page-content {
@@ -74,6 +74,10 @@
     font-size: 1.2rem;
     text-align: center;
     margin-bottom: 1.5rem;
+  }
+
+  .text {
+    font-family:'Times New Roman', Times, serif;
   }
 
   // Buttons
