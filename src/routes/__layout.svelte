@@ -85,7 +85,7 @@
   button.btn-major,
   button.btn-minor {
     color: $blueLinkColor;
-    padding: 0.2rem 0.6rem;
+    padding: 0.1rem 1rem;
     border-radius: 0.5rem;
   }
 

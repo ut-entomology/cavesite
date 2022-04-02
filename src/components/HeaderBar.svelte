@@ -58,12 +58,7 @@
     font-size: 1.1rem;
   }
 
-  .user_menu .btn {
-    // .btn's vertical align messes up vertical centering
-    vertical-align: baseline;
-  }
-
-  button {
-    padding: 0 1rem;
+  .user_menu {
+    padding-top: .3rem;
   }
 </style>
