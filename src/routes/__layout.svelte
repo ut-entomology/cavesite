@@ -5,7 +5,6 @@
   import HeaderBar from '../components/HeaderBar.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { toSvelteTarget } from '../targets.svelte';
-
 </script>
 
 <div class="container-lg">

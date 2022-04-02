@@ -1,13 +1,15 @@
 <script lang="ts">
-  //import { flashMessage } from '../common/VariableFlash.svelte';
-  //import { showNotice } from '../common/VariableNotice.svelte';
+  import { DialogSpec } from '../common/VariableDialog.svelte';
+  import { currentDialog } from '../stores/currentDialog.svelte';
 
   const APP_TITLE = 'Texas Underground';
   const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
 
-  const currentUser:any = null;
+  const currentUser: any = null;
 
-  function login() {}
+  function login() {
+    currentDialog.set(new DialogSpec('LoginDialog'));
+  }
 
   function logout() {}
 </script>

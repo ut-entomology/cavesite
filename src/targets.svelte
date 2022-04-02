@@ -1,12 +1,10 @@
 <script lang="ts" context="module">
-  // TODO: This is app-specific so should move up a directory, me thinks.
-
   import type { SvelteComponent } from 'svelte';
 
-  //import UserLoginDialog from '../dialogs/UserLoginDialog.svelte';
+  import LoginDialog from './dialogs/LoginDialog.svelte';
 
   const targetMap: Record<string, typeof SvelteComponent> = {
-    //UserLoginDialog
+    LoginDialog
   };
 
   export function toSvelteTarget(targetName: string): typeof SvelteComponent {
