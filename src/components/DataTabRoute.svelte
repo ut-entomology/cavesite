@@ -5,7 +5,7 @@
 
   const tabs: Tab[] = [
     {
-      label: 'About',
+      label: 'Welcome',
       route: '/'
     },
     {
