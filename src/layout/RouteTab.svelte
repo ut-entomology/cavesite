@@ -1,19 +1,24 @@
 <script lang='ts' context='module'>
-  import type { SvelteComponent } from "svelte";
+  import { goto } from '$app/navigation';
 
   export interface Tab {
     label: string;
-    component: typeof SvelteComponent;
+    route: string;
   }
 </script>
 
 <script lang='ts'>
   // Modified from https://svelte.dev/repl/cf05bd4a4ca14fb8ace8b6cdebbb58da?version=3.17.0
 
-  export let tabs: Tab[] = [];
-  export let activeTab = tabs[0].label;
+  export let tabs: Tab[];
+  export let activeTab: string;
 
-  const handleClick = (label: string) => () => (activeTab = label);
+  const routesByLabel: Record<string, string> = {};
+  tabs.forEach((tab) => { routesByLabel[tab.label] = tab.route; });
+
+  function handleClick(label: string) {
+    return () => goto(routesByLabel[label]);
+  }
 </script>
 
 <ul>
@@ -25,9 +30,9 @@
 </ul>
 {#each tabs as tab}
 	{#if activeTab == tab.label}
-	<div class="box">
-		<svelte:component this={tab.component}/>
-	</div>
+    <div class="box">
+      <slot></slot>
+    </div>
 	{/if}
 {/each}
 <style>

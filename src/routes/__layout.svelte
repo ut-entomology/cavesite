@@ -8,10 +8,13 @@
 
 </script>
 
-<HeaderBar />
-<VariableDialog {currentDialog} {toSvelteTarget} />
-<VariableNotice />
-<VariableFlash />
+<div class="container-lg mt-3 mb-3">
+  <HeaderBar />
+  <slot></slot>
+  <VariableDialog {currentDialog} {toSvelteTarget} />
+  <VariableNotice />
+  <VariableFlash />
+</div>
 
 <style lang="scss" global>
   // Svelte is not allowing a component to have both local and global SCSS.
@@ -25,6 +28,7 @@
 
   // Must precede loading boostrap SCSS
   $utilities: (
+    // responsive width
     'rw': (
       class: 'rw',
       property: width,
@@ -63,8 +67,7 @@
     flex: auto;
     display: flex;
     flex-direction: column;
-    margin: 0 $horizontalMargin;
-    margin-bottom: $horizontalMargin;
+    margin: $horizontalMargin;
   }
 
   h2 {

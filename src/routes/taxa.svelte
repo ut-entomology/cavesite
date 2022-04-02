@@ -2,6 +2,6 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
 </script>
 
-<DataTabRoute activeTab='About'>
-  About this web site.
+<DataTabRoute activeTab='Taxa'>
+  Taxa tools
 </DataTabRoute>
