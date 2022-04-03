@@ -39,7 +39,8 @@ type UserData = Omit<DataOf<User>, 'createdOn'> & {
 
 export class User {
   userID: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   affiliation: string | null;
   privileges: number;
@@ -55,7 +56,8 @@ export class User {
 
   private constructor(data: UserData) {
     this.userID = data.userID;
-    this.name = data.name;
+    this.firstName = data.firstName;
+    this.lastName = data.lastName;
     this.email = data.email;
     this.affiliation = data.affiliation;
     this.privileges = data.privileges;
@@ -73,11 +75,13 @@ export class User {
     if (this.userID === 0) {
       const result = await db.query(
         `insert into users(
-            name, email, affiliation, password_hash, password_salt,
+            first_name, last_name, email, affiliation, password_hash, password_salt,
             privileges, created_by, last_login_date, last_login_ip
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning user_id, created_on`,
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+            returning user_id, created_on`,
         [
-          this.name,
+          this.firstName,
+          this.lastName,
           this.email,
           this.affiliation,
           this._passwordHash,
@@ -95,11 +99,12 @@ export class User {
     } else {
       const result = await db.query(
         `update users set
-            name=$1, email=$2, affiliation=$3, password_hash=$4, password_salt=$5,
-            privileges=$6, last_login_date=$7, last_login_ip=$8
-          where user_id=$9`,
+            first_name=$1, last_name=$2, email=$3, affiliation=$4, password_hash=$5,
+            password_salt=$6, privileges=$7, last_login_date=$8, last_login_ip=$9
+          where user_id=$10`,
         [
-          this.name,
+          this.firstName,
+          this.lastName,
           this.email,
           this.affiliation,
           this._passwordHash,
@@ -174,14 +179,15 @@ export class User {
       db,
       LogType.User,
       user.email,
-      `${user.name} logged in from IP ${ipAddress}`
+      `${user.firstName} ${user.lastName} logged in from IP ${ipAddress}`
     );
     return user;
   }
 
   static async create(
     db: DB,
-    name: string,
+    firstName: string,
+    lastName: string,
     email: string,
     affiliation: string | null,
     password: string,
@@ -190,9 +196,13 @@ export class User {
   ): Promise<User> {
     // Validate and normalize user data.
 
-    name = name.trim();
-    if (name == '') {
-      throw new ValidationError('No user name given');
+    firstName = firstName.trim();
+    if (firstName == '') {
+      throw new ValidationError('No first name given');
+    }
+    lastName = lastName.trim();
+    if (lastName == '') {
+      throw new ValidationError('No last name given');
     }
     email = User._normalizeEmail(email);
     if (!VALID_EMAIL_REGEX.test(email)) {
@@ -214,7 +224,8 @@ export class User {
 
     const user = new User({
       userID: 0,
-      name,
+      firstName,
+      lastName,
       email,
       affiliation,
       privileges,

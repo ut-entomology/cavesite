@@ -23,7 +23,8 @@
 create table users (
     -- None of these fields are in GBIF.
     user_id serial primary key, -- locally generated, more stable than email
-    name text unique not null,
+    first_name text not null,
+    last_name text not null,
     email text unique not null,
     affiliation text,
     password_hash text not null,
@@ -34,6 +35,7 @@ create table users (
     last_login_date timestamptz,
     last_login_ip text
 );
+create index on users(last_name, first_name);
 
 create table taxa (
     -- new data loads into the table prior to completely replacing old data

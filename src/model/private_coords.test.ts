@@ -15,7 +15,8 @@ beforeAll(async () => {
 
   user = await User.create(
     db,
-    'User Name',
+    'User',
+    'Name',
     'user.name@x.yz',
     null,
     '238jfafj9838rcab23rbhefbhh83',

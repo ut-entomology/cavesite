@@ -24,7 +24,8 @@ beforeAll(async () => {
 
   user1 = await User.create(
     db,
-    'User 1',
+    'User',
+    'One',
     'user1@x.yz',
     null,
     PASSWORD,
@@ -33,7 +34,8 @@ beforeAll(async () => {
   );
   user2 = await User.create(
     db,
-    'User 2',
+    'User',
+    'Two',
     'user2@x.yz',
     null,
     PASSWORD,
@@ -42,7 +44,8 @@ beforeAll(async () => {
   );
   user3 = await User.create(
     db,
-    'User 3',
+    'User',
+    'Three',
     'user3@x.yz',
     null,
     PASSWORD,
