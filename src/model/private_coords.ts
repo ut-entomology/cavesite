@@ -3,7 +3,7 @@
  */
 
 import type { DataOf } from '../util/type_util';
-import { DB, toCamelRow, PostgresError } from '../util/pg_util';
+import { type DB, toCamelRow, PostgresError } from '../integrations/postgres';
 import type { User } from './user';
 import { UserError, ValidationError } from '../shared/validation';
 

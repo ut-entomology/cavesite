@@ -3,7 +3,7 @@
  */
 
 import type { DataOf } from '../util/type_util';
-import { DB, toCamelRow } from '../util/pg_util';
+import { type DB, toCamelRow } from '../integrations/postgres';
 import { Taxon } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';

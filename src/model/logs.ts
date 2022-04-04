@@ -2,7 +2,7 @@
  * Class representing a table of log entries.
  */
 
-import type { DB } from '../util/pg_util';
+import type { DB } from '../integrations/postgres';
 
 // TODO: Add support for database errors
 export enum LogType {

@@ -1,23 +1,27 @@
+/**
+ * Provides a connection to a PostgreSQL database.
+ */
+
 import type { ClientConfig } from 'pg';
 import { Client } from 'pg';
 
-/**
- * Class representing the database client, hiding whether the client uses
- * postgres Client or Pool and providing conveniences.
- */
+//// TYPES AND CLASSES ///////////////////////////////////////////////////////
 
-export class DB {
+/**
+ * Type for a PostgresQL database handle.
+ */
+export type DB = DatabaseHandle;
+
+/**
+ * Class providing a handle to a database, with convenience methods.
+ */
+class DatabaseHandle {
+  // Not exported, in order to limit instance creation to this module.
+
   private _client: Client;
 
-  constructor(config: ClientConfig) {
-    this._client = new Client(config);
-  }
-
-  /**
-   * Opens a connection to the database.
-   */
-  async open() {
-    await this._client.connect();
+  constructor(client: Client) {
+    this._client = client;
   }
 
   /**
@@ -38,11 +42,11 @@ export class DB {
     await this._client.end();
   }
 }
+let db: DatabaseHandle | null = null;
 
 /**
  * Class representing a postgres error in the error message.
  */
-
 export class PostgresError extends Error {
   code: string;
 
@@ -53,6 +57,37 @@ export class PostgresError extends Error {
       }: ${err.message} [${sql}]`
     );
     this.code = err.code;
+  }
+}
+
+//// EXPORTED FUNCTIONS //////////////////////////////////////////////////////
+
+/**
+ * Connect to the database using the provided configuration, returning
+ * a handle to the database and making that handle available via getDB().
+ */
+export async function connectDB(config: ClientConfig): Promise<DB> {
+  if (db) throw Error('Prior database connection was not closed');
+  const client = new Client(config);
+  await client.connect();
+  db = new DatabaseHandle(client);
+  return db;
+}
+
+/**
+ * Indicates whether a database connection is active.
+ */
+export function connectedToDB(): boolean {
+  return !db;
+}
+
+/**
+ * Disconnects from the database, if connected.
+ */
+export async function disconnectDB(): Promise<void> {
+  if (db) {
+    await db.close();
+    db = null;
   }
 }
 
@@ -86,7 +121,6 @@ const snakeToCamelMap: Record<string, string> = {};
 /**
  * Returns the given date in the local timezone.
  */
-
 export function toLocalDate(date: Date): Date {
   return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
 }

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as lockfile from 'proper-lockfile';
 import { expect } from 'vitest';
 
-import { DB } from './pg_util';
+import { type DB, connectDB, disconnectDB } from '../integrations/postgres';
 
 const LOCK_RETRY_MILLIS = 100;
 const LOCKFILE = path.join(__dirname, '../../db-test-mutex');
@@ -18,15 +18,12 @@ const TEST_DB_CONFIG = {
 };
 
 export class DatabaseMutex {
-  private _db: DB;
+  private _db: DB | null = null;
   private _lockRelease: Awaited<ReturnType<typeof lockfile.lock>> | null = null;
 
-  constructor() {
-    this._db = new DB(TEST_DB_CONFIG);
-  }
-
   async lock(): Promise<DB> {
-    await this._db.open();
+    if (this._db) throw Error('Database mutex was already locked');
+    this._db = await connectDB(TEST_DB_CONFIG);
 
     // Restrict access to all table for the duration of the test.
 
@@ -61,7 +58,8 @@ export class DatabaseMutex {
       this._lockRelease();
       this._lockRelease = null;
     }
-    await this._db.close();
+    await disconnectDB();
+    this._db = null;
   }
 
   private async _waitForLock(

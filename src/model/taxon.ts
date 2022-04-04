@@ -9,7 +9,7 @@
 // Not enough similarity to base both on a generic class, though.
 
 import type { DataOf } from '../util/type_util';
-import { DB, toCamelRow } from '../util/pg_util';
+import { type DB, toCamelRow } from '../integrations/postgres';
 import { ImportFailure } from './import_failure';
 
 export enum TaxonRank {

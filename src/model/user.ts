@@ -4,7 +4,7 @@ import zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import type { DataOf } from '../util/type_util';
-import { DB, PostgresError, toCamelRow } from '../util/pg_util';
+import { type DB, PostgresError, toCamelRow } from '../integrations/postgres';
 import { Logs, LogType } from './logs';
 import {
   VALID_EMAIL_REGEX,

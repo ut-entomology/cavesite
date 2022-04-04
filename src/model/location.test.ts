@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 
-import type { DB } from '../util/pg_util';
+import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Location, LocationType } from './location';
 import { ImportFailure } from './import_failure';

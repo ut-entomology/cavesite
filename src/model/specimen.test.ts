@@ -1,7 +1,7 @@
 import { test, expect, beforeAll, afterAll } from 'vitest';
 
-import type { DB } from '../util/pg_util';
-import { toLocalDate } from '../util/pg_util';
+import type { DB } from '../integrations/postgres';
+import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Specimen } from './specimen';
 import { Location } from './location';
