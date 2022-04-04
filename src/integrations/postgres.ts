@@ -1,5 +1,6 @@
 /**
- * Provides a connection to a PostgreSQL database.
+ * Manages a connection to a PostgreSQL database, providing the connection
+ * wrapped within a handle that exposes convenience methods.
  */
 
 import type { ClientConfig } from 'pg';
@@ -34,15 +35,8 @@ class DatabaseHandle {
       throw new PostgresError(err, sql);
     }
   }
-
-  /**
-   * Closes the connection to the database.
-   */
-  async close() {
-    await this._client.end();
-  }
 }
-let db: DatabaseHandle | null = null;
+let client: Client | null = null;
 
 /**
  * Class representing a postgres error in the error message.
@@ -53,7 +47,7 @@ export class PostgresError extends Error {
   constructor(err: any, sql: string) {
     super(
       `Code ${err.code}${
-        err.position === undefined ? '' : ' (@' + err.position + ')'
+        err.position === undefined ? '' : ' (at ' + err.position + ')'
       }: ${err.message} [${sql}]`
     );
     this.code = err.code;
@@ -66,29 +60,35 @@ export class PostgresError extends Error {
  * Connect to the database using the provided configuration, returning
  * a handle to the database and making that handle available via getDB().
  */
-export async function connectDB(config: ClientConfig): Promise<DB> {
-  if (db) throw Error('Prior database connection was not closed');
-  const client = new Client(config);
+export async function connectDB(config: ClientConfig): Promise<void> {
+  if (client) throw Error('Prior database connection was not closed');
+  client = new Client(config);
   await client.connect();
-  db = new DatabaseHandle(client);
-  return db;
 }
 
 /**
  * Indicates whether a database connection is active.
  */
 export function connectedToDB(): boolean {
-  return !db;
+  return !!client;
 }
 
 /**
  * Disconnects from the database, if connected.
  */
 export async function disconnectDB(): Promise<void> {
-  if (db) {
-    await db.close();
-    db = null;
+  if (client) {
+    await client.end();
+    client = null;
   }
+}
+
+/**
+ * Returns a handle to the active database.
+ */
+export function getDB(): DB {
+  if (!client) throw Error('Not connected to the database');
+  return new DatabaseHandle(client);
 }
 
 /**
