@@ -1,6 +1,7 @@
 import * as cookie from 'cookie';
 import type { RequestHandler } from '@sveltejs/kit';
 
+import { getDB } from '../../integrations/postgres';
 import { User } from '../../model/user';
 import { Session } from '../../model/session';
 
@@ -13,7 +14,7 @@ type LoginParams = {
 export const post: RequestHandler<LoginParams> = async (request) => {
   const params = request.params;
   const user = await User.authenticate(
-    db,
+    getDB(),
     params.email,
     params.password,
     request.clientAddress
