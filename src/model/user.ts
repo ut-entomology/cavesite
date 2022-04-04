@@ -273,7 +273,7 @@ export class User {
   }
 
   static async getUsers(db: DB): Promise<User[]> {
-    const result = await db.query(`select * from users`);
+    const result = await db.query(`select * from users order by last_name, first_name`);
     return result.rows.map((row) => new User(toCamelRow(row)));
   }
 

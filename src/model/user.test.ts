@@ -159,6 +159,30 @@ test('creating, using, and dropping a user', async () => {
 
   const thirdUser = await User.create(
     db,
+    'Curly',
+    'Coords',
+    'curly@xyz.co',
+    null,
+    STRONG_PASSWORD1,
+    Privilege.Coords,
+    adminUser
+  );
+  await verifyUser(
+    thirdUser,
+    'Curly',
+    'Coords',
+    'curly@xyz.co',
+    null,
+    STRONG_PASSWORD1,
+    Privilege.Coords,
+    adminUser
+  );
+
+  // Add a fourth user with only coordinate privileges and same
+  // last name as prior use but should precede prior user in sort.
+
+  const fourthUser = await User.create(
+    db,
     'Carry',
     'Coords',
     'carry@xyz.co',
@@ -168,7 +192,7 @@ test('creating, using, and dropping a user', async () => {
     adminUser
   );
   await verifyUser(
-    thirdUser,
+    fourthUser,
     'Carry',
     'Coords',
     'carry@xyz.co',
@@ -178,9 +202,9 @@ test('creating, using, and dropping a user', async () => {
     adminUser
   );
 
-  // Add a fourth user with no privileges.
+  // Add a fifth user with no privileges.
 
-  const fourthUser = await User.create(
+  const fifthUser = await User.create(
     db,
     'No',
     'Body',
@@ -191,7 +215,7 @@ test('creating, using, and dropping a user', async () => {
     adminUser
   );
   await verifyUser(
-    fourthUser,
+    fifthUser,
     'No',
     'Body',
     'no.body@no.where',
@@ -204,18 +228,20 @@ test('creating, using, and dropping a user', async () => {
   // Retrieve all users.
 
   const users = await User.getUsers(db);
-  const usersByID: Record<number, User> = {};
-  users.forEach((user) => (usersByID[user.userID] = user));
-  expect(usersByID[adminUser.userID].lastName).toEqual('Curator');
-  expect(usersByID[secondUser.userID].lastName).toEqual('Editor');
-  expect(usersByID[thirdUser.userID].lastName).toEqual('Coords');
-  expect(usersByID[fourthUser.userID].lastName).toEqual('Body');
+  expect(users[0].lastName).toEqual('Body');
+  expect(users[1].lastName).toEqual('Coords');
+  expect(users[1].firstName).toEqual('Carry');
+  expect(users[2].lastName).toEqual('Coords');
+  expect(users[2].firstName).toEqual('Curly');
+  expect(users[3].lastName).toEqual('Curator');
+  expect(users[4].lastName).toEqual('Editor');
+  expect(users.length).toEqual(5);
 
   // Drop a user.
 
   readUser = await User.getByEmail(db, 'no.body@no.where');
   expect(readUser).not.toBeNull();
-  await User.dropByEmail(db, fourthUser.email);
+  await User.dropByEmail(db, fifthUser.email);
   readUser = await User.getByEmail(db, 'no.body@no.where');
   expect(readUser).toBeNull();
 });
