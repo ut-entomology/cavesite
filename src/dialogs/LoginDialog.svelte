@@ -7,31 +7,30 @@
 
   const title = "Login Form";
 
-  export let onSuccess: () => void = () => {};
   let errorMessage = '';
 
   const context = createForm({
     initialValues: { email: '', password: '' },
     validationSchema: yup.object().shape({
       email: yup.string().email().required().label('Email'),
-      password: yup.string().required().label('Password'),
-      saving: yup.bool()
+      password: yup.string().required().label('Password')
     }),
     onSubmit: async (values) => {
-      try {
-        await login(values.email, values.password);
-      } catch (err) {
-        errorMessage = (err as Error).message;
+      const response = await fetch('/api/sign-up', {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        // TBD: update session info?
+        closeDialog();
+        await flashMessage('You are logged in');
+      } else {
+        errorMessage = (await response.json()).message;
       }
     }
   });
-
-  async function login(_username: string, _password: string) {
-    // TODO: do login
-    closeDialog();
-    await flashMessage('You are logged in');
-    onSuccess();
-  }
 
   const closeDialog = () => {
     $currentDialog = null;
