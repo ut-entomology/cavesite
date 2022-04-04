@@ -21,7 +21,6 @@
   export let userInfo: UserInfo | null;
   export let onSuccess: () => void = () => {};
 
-
   enum AccessLevel {
     None = 'none',
     Coords = 'coords',
