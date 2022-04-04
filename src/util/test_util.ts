@@ -10,11 +10,11 @@ const LOCKFILE = path.join(__dirname, '../../db-test-mutex');
 const SETUP_SQL_DIR = path.join(__dirname, '../../setup');
 
 const TEST_DB_CONFIG = {
-  user: 'test_user',
   host: 'localhost',
   database: 'test_caves',
-  password: 'test_pass',
-  port: 5432
+  port: 5432,
+  user: 'test_user',
+  password: 'test_pass'
 };
 
 export class DatabaseMutex {
