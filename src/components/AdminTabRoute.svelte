@@ -6,7 +6,7 @@
   const tabs: Tab[] = [
     {
       label: 'Users',
-      route: '/admin/users'
+      route: '/admin'
     },
     {
       label: 'Private Coordinates',

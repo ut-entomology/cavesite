@@ -9,10 +9,11 @@
   function tabSetChanged() {
     if (selection == 'admin') {
       usingAdminTabs.set(true);
+      goto('/admin/users');
     } else {
       usingAdminTabs.set(false);
+      goto('/');
     }
-    goto('/');
   }
 </script>
 
