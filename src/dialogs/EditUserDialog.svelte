@@ -4,7 +4,7 @@
     lastName: string;
     affiliation: string | null;
     email: string;
-    privileges: number;
+    permissions: number;
   }
 </script>
 
@@ -14,7 +14,7 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { Privilege } from '../model/user';
+  import { Permission } from '../model/user';
 
   export let title: string;
   export let submitLabel: string;
@@ -37,15 +37,15 @@
       lastName: '',
       affiliation: '',
       email: '',
-      privileges: 0
+      permissions: 0
     }
   }
   let accessLevel = AccessLevel.None;
-  if (userInfo.privileges & Privilege.Admin) {
+  if (userInfo.permissions & Permission.Admin) {
     accessLevel = AccessLevel.Admin;
-  } else if (userInfo.privileges & Privilege.Edit) {
+  } else if (userInfo.permissions & Permission.Edit) {
     accessLevel = AccessLevel.Edit;
-  } else if (userInfo.privileges & Privilege.Coords) {
+  } else if (userInfo.permissions & Permission.Coords) {
     accessLevel = AccessLevel.Coords;
   }
   const formUserInfo: FormUserInfo = Object.assign({accessLevel}, userInfo);
@@ -62,15 +62,15 @@
       accessLevel: yup.string().required().label('Access Level'),
     }),
     onSubmit: async (values) => {
-      let privileges = 0;
+      let permissions = 0;
       if (values.accessLevel == AccessLevel.Admin) {
-        privileges = Privilege.Admin | Privilege.Edit | Privilege.Coords;
+        permissions = Permission.Admin | Permission.Edit | Permission.Coords;
       } else if (values.accessLevel == AccessLevel.Edit) {
-        privileges = Privilege.Edit | Privilege.Coords;
+        permissions = Permission.Edit | Permission.Coords;
       } else if (values.accessLevel == AccessLevel.Coords) {
-        privileges = Privilege.Coords;
+        permissions = Permission.Coords;
       }
-      let newUserInfo: UserInfo = Object.assign({privileges}, values);
+      let newUserInfo: UserInfo = Object.assign({permissions}, values);
       try {
         if (creatingUser) {
           await createUser(newUserInfo);

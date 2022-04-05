@@ -9,7 +9,17 @@ declare global {
       sessionID: string | null;
     }
     // interface Platform {}
-    // interface Session {}
+    interface Session {
+      user?: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        affiliation: string | null;
+        permissions: number;
+        lastLoginDate: Date | null;
+        lastLoginIP: string | null;
+      };
+    }
     // interface Stuff {}
   }
 }

@@ -12,6 +12,7 @@ import {
   UserError,
   ValidationError
 } from '../shared/validation';
+import { Permission } from '../shared/user_info';
 
 const PASSWORD_HASH_LENGTH = 64;
 
@@ -23,13 +24,6 @@ zxcvbnOptions.setOptions({
     ...zxcvbnEnPackage.dictionary
   }
 });
-
-export enum Privilege {
-  // values are bit flags and therefore powers of 2
-  Admin = 1, // add/remove users and reset passwords; implies Edit/Coords
-  Edit = 2, // modify data, such as the precise coordinates; implies Coords
-  Coords = 4 // can see precise coordinates
-}
 
 type UserData = Omit<DataOf<User>, 'createdOn'> & {
   createdOn?: Date; // make optional, leaving database to assign value
@@ -43,7 +37,7 @@ export class User {
   lastName: string;
   email: string;
   affiliation: string | null;
-  privileges: number;
+  permissions: number;
   createdOn: Date;
   createdBy: number | null;
   lastLoginDate: Date | null;
@@ -60,7 +54,7 @@ export class User {
     this.lastName = data.lastName;
     this.email = data.email;
     this.affiliation = data.affiliation;
-    this.privileges = data.privileges;
+    this.permissions = data.permissions;
     this.createdOn = data.createdOn!;
     this.createdBy = data.createdBy;
     this.lastLoginDate = data.lastLoginDate;
@@ -76,7 +70,7 @@ export class User {
       const result = await db.query(
         `insert into users(
             first_name, last_name, email, affiliation, password_hash, password_salt,
-            privileges, created_by, last_login_date, last_login_ip
+            permissions, created_by, last_login_date, last_login_ip
           ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
             returning user_id, created_on`,
         [
@@ -86,7 +80,7 @@ export class User {
           this.affiliation,
           this._passwordHash,
           this._passwordSalt,
-          this.privileges,
+          this.permissions,
           this.createdBy,
           // @ts-ignore
           this.lastLoginDate,
@@ -100,7 +94,7 @@ export class User {
       const result = await db.query(
         `update users set
             first_name=$1, last_name=$2, email=$3, affiliation=$4, password_hash=$5,
-            password_salt=$6, privileges=$7, last_login_date=$8, last_login_ip=$9
+            password_salt=$6, permissions=$7, last_login_date=$8, last_login_ip=$9
           where user_id=$10`,
         [
           this.firstName,
@@ -109,7 +103,7 @@ export class User {
           this.affiliation,
           this._passwordHash,
           this._passwordSalt,
-          this.privileges,
+          this.permissions,
           // @ts-ignore
           this.lastLoginDate,
           this.lastLoginIP,
@@ -191,7 +185,7 @@ export class User {
     email: string,
     affiliation: string | null,
     password: string,
-    privileges: number,
+    permissions: number,
     createdBy: User | null
   ): Promise<User> {
     // Validate and normalize user data.
@@ -214,10 +208,10 @@ export class User {
         affiliation = null;
       }
     }
-    if (privileges & Privilege.Admin) {
-      privileges |= Privilege.Edit | Privilege.Coords;
-    } else if (privileges & Privilege.Edit) {
-      privileges |= Privilege.Coords;
+    if (permissions & Permission.Admin) {
+      permissions |= Permission.Edit | Permission.Coords;
+    } else if (permissions & Permission.Edit) {
+      permissions |= Permission.Coords;
     }
 
     // Create the user, setting the password.
@@ -228,7 +222,7 @@ export class User {
       lastName,
       email,
       affiliation,
-      privileges,
+      permissions,
       createdBy: createdBy?.userID || null,
       lastLoginDate: null,
       lastLoginIP: null,

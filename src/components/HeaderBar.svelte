@@ -1,11 +1,13 @@
 <script lang="ts">
+  import { session } from '$app/stores';
+
   import { DialogSpec } from '../common/VariableDialog.svelte';
+  import { Permission } from '../shared/user_info';
+  import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
 
   const APP_TITLE = 'Texas Underground';
   const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
-
-  const currentUser: any = null;
 
   function login() {
     currentDialog.set(new DialogSpec('LoginDialog'));
@@ -19,15 +21,18 @@
     <div class="app_title">{APP_TITLE}</div>
     <div class="user_menu">
       <div>
-        {#if currentUser === null}
+        {#if $session.user}
+          {#if $session.user.permissions & Permission.Admin}
+            <TabSetSelector />
+          {/if}
+          <button class="btn btn-major" on:click={logout}>Logout</button>
+        {:else}
           <button
             class="btn btn-major"
             on:click={login}
           >
             Login
           </button>
-        {:else}
-          <button class="btn btn-major" on:click={logout}>Logout</button>
         {/if}
       </div>
     </div>

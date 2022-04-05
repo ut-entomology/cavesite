@@ -2,7 +2,8 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex, expectRecentTime, sleep } from '../util/test_util';
-import { User, Privilege } from './user';
+import { User } from './user';
+import { Permission } from '../shared/user_info';
 import { UserError } from '../shared/validation';
 import {
   Session,
@@ -29,7 +30,7 @@ beforeAll(async () => {
     'user1@x.yz',
     null,
     PASSWORD,
-    Privilege.Coords,
+    Permission.Coords,
     null
   );
   user2 = await User.create(
@@ -39,7 +40,7 @@ beforeAll(async () => {
     'user2@x.yz',
     null,
     PASSWORD,
-    Privilege.Coords,
+    Permission.Coords,
     null
   );
   user3 = await User.create(
@@ -49,7 +50,7 @@ beforeAll(async () => {
     'user3@x.yz',
     null,
     PASSWORD,
-    Privilege.Coords,
+    Permission.Coords,
     null
   );
 });

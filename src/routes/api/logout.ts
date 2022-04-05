@@ -18,9 +18,6 @@ export const get: RequestHandler = async (request) => {
     headers: {
       'Set-Cookie': cookie.serialize('session_id', '[invalid]', {
         path: '/',
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
         expires: new Date(0)
       })
     },

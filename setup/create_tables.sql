@@ -29,7 +29,7 @@ create table users (
     affiliation text,
     password_hash text not null,
     password_salt text not null,
-    privileges integer,
+    permissions integer,
     created_on timestamptz not null default now(),
     created_by integer references users,
     last_login_date timestamptz,

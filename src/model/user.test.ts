@@ -2,7 +2,8 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex, expectRecentTime } from '../util/test_util';
-import { User, Privilege } from './user';
+import { User } from './user';
+import { Permission } from '../shared/user_info';
 import { Logs, LogType } from './logs';
 import {
   MIN_PASSWORD_STRENGTH,
@@ -59,7 +60,7 @@ test('creating, using, and dropping a user', async () => {
     ' Curator@Place.com ',
     ' Rat Collection ',
     STRONG_PASSWORD1,
-    Privilege.Admin,
+    Permission.Admin,
     null
   );
   await verifyUser(
@@ -69,7 +70,7 @@ test('creating, using, and dropping a user', async () => {
     email,
     'Rat Collection',
     STRONG_PASSWORD1,
-    Privilege.Admin | Privilege.Edit | Privilege.Coords,
+    Permission.Admin | Permission.Edit | Permission.Coords,
     null
   );
   expect(adminUser.lastLoginDate).toBeNull();
@@ -115,7 +116,7 @@ test('creating, using, and dropping a user', async () => {
 
   readUser!.firstName = 'Demoted';
   readUser!.email = 'bad-curator@place.com';
-  readUser!.privileges = 0;
+  readUser!.permissions = 0;
   await readUser!.save(db);
   readUser = await User.getByEmail(db, email);
   expect(readUser).toBeNull();
@@ -132,7 +133,7 @@ test('creating, using, and dropping a user', async () => {
     null
   );
 
-  // Add a second user with edit privileges
+  // Add a second user with edit permissions
 
   const secondUser = await User.create(
     db,
@@ -141,7 +142,7 @@ test('creating, using, and dropping a user', async () => {
     'fred@foo.foo.com',
     'Some Department',
     STRONG_PASSWORD1,
-    Privilege.Edit,
+    Permission.Edit,
     adminUser
   );
   await verifyUser(
@@ -151,11 +152,11 @@ test('creating, using, and dropping a user', async () => {
     'fred@foo.foo.com',
     'Some Department',
     STRONG_PASSWORD1,
-    Privilege.Edit | Privilege.Coords,
+    Permission.Edit | Permission.Coords,
     adminUser
   );
 
-  // Add a third user with only coordinate privileges.
+  // Add a third user with only coordinate permissions.
 
   const thirdUser = await User.create(
     db,
@@ -164,7 +165,7 @@ test('creating, using, and dropping a user', async () => {
     'curly@xyz.co',
     null,
     STRONG_PASSWORD1,
-    Privilege.Coords,
+    Permission.Coords,
     adminUser
   );
   await verifyUser(
@@ -174,11 +175,11 @@ test('creating, using, and dropping a user', async () => {
     'curly@xyz.co',
     null,
     STRONG_PASSWORD1,
-    Privilege.Coords,
+    Permission.Coords,
     adminUser
   );
 
-  // Add a fourth user with only coordinate privileges and same
+  // Add a fourth user with only coordinate permissions and same
   // last name as prior use but should precede prior user in sort.
 
   const fourthUser = await User.create(
@@ -188,7 +189,7 @@ test('creating, using, and dropping a user', async () => {
     'carry@xyz.co',
     null,
     STRONG_PASSWORD1,
-    Privilege.Coords,
+    Permission.Coords,
     adminUser
   );
   await verifyUser(
@@ -198,11 +199,11 @@ test('creating, using, and dropping a user', async () => {
     'carry@xyz.co',
     null,
     STRONG_PASSWORD1,
-    Privilege.Coords,
+    Permission.Coords,
     adminUser
   );
 
-  // Add a fifth user with no privileges.
+  // Add a fifth user with no permissions.
 
   const fifthUser = await User.create(
     db,
@@ -287,7 +288,7 @@ test('invalid user profile', async () => {
     'existing.email@people.edu',
     null,
     STRONG_PASSWORD1,
-    Privilege.Edit,
+    Permission.Edit,
     null
   );
   await expect(() =>
@@ -313,7 +314,7 @@ test('unacceptable password', async () => {
       'x@y.zz',
       null,
       ` ${STRONG_PASSWORD1} `,
-      Privilege.Coords,
+      Permission.Coords,
       null
     )
   ).rejects.toThrow(new ValidationError(`Password can't begin or end with spaces`));
@@ -326,7 +327,7 @@ test('unacceptable password', async () => {
       'x@y.zz',
       null,
       WEAK_PASSWORD,
-      Privilege.Coords,
+      Permission.Coords,
       null
     )
   ).rejects.toThrow(new ValidationError('Password not strong enough'));
@@ -338,7 +339,7 @@ test('unacceptable password', async () => {
     'x@y.zz',
     null,
     STRONG_PASSWORD1,
-    Privilege.Admin,
+    Permission.Admin,
     null
   );
 
@@ -362,7 +363,7 @@ async function verifyUser(
   email: string,
   affiliation: string | null,
   password: string,
-  privileges: number,
+  permissions: number,
   createdBy: User | null
 ) {
   expect(user.userID).toBeGreaterThan(0);
@@ -372,7 +373,7 @@ async function verifyUser(
   expect(user.email).toEqual(email);
   expect(await user.verifyPassword(password)).toEqual(true);
   expect(await user.verifyPassword(WRONG_PASSWORD)).toEqual(false);
-  expect(user.privileges).toEqual(privileges);
+  expect(user.permissions).toEqual(permissions);
   expectRecentTime(user.createdOn);
   expect(user.createdBy).toEqual(createdBy?.userID || null);
 }

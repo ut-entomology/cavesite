@@ -17,7 +17,7 @@ export const getSession: GetSession = (event) => {
       lastName: user.lastName,
       email: user.email,
       affiliation: user.affiliation,
-      privileges: user.privileges,
+      permissions: user.permissions,
       lastLoginDate: user.lastLoginDate,
       lastLoginIP: user.lastLoginIP
     }

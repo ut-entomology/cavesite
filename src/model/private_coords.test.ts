@@ -2,7 +2,8 @@ import { test, expect, beforeAll, afterAll } from 'vitest';
 
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex, expectRecentTime } from '../util/test_util';
-import { User, Privilege } from './user';
+import { User } from './user';
+import { Permission } from '../shared/user_info';
 import { PrivateCoords } from './private_coords';
 import { UserError, ValidationError } from '../shared/validation';
 
@@ -20,7 +21,7 @@ beforeAll(async () => {
     'user.name@x.yz',
     null,
     '238jfafj9838rcab23rbhefbhh83',
-    Privilege.Coords,
+    Permission.Coords,
     null
   );
 });
