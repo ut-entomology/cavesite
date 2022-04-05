@@ -1,42 +1,38 @@
-# Source for the Online Texas Caves Research Platform
+# Source for the Texas Underground Website
 
----
+Created by the University of Texas at Austin to make data from the biospeleology collection available online.
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## Installation
 
-## Creating a project
+- Install and run a PostgreSQL database server.
+- Create development and production databases using SQL given in the `setup/` directory.
+- Create `.env.development` and `.env.production` files providing the following environment variables, with appropriate values:
 
-If you're seeing this, you've probably already done this step. Congrats!
+VITE_DB_HOST=localhost
+VITE_DB_PORT=5432
+VITE_DB_NAME=dev_caves
+VITE_DB_USER=dev_user
+VITE_DB_PASSWORD=dev_pass
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
+- Run `yarn` from the top-level directory to install dependencies.
+- Create the first adminstrator using the tool `tools/create-admin`.
 
-# create a new project in my-app
-npm init svelte@next my-app
-```
+## Development
 
-> Note: the `@next` is temporary
+To run the site locally in development mode:
 
-## Developing
+`yarn run dev`
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+To run the site locally in development mode and open a browser window:
 
-```bash
-npm run dev
+`yarn run dev -- --open`
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Production
 
-## Building
+To preview the production version:
 
-To create a production version of your app:
+`yarn run preview`
 
-```bash
-npm run build
-```
+To create a production version:
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+`yarn run build`
