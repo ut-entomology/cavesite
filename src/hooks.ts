@@ -32,7 +32,7 @@ export const handle: Handle = async (input) => {
       database: import.meta.env.VITE_DB_NAME,
       port: parseInt(import.meta.env.VITE_DB_PORT),
       user: import.meta.env.VITE_DB_USER,
-      password: import.meta.env.VITE_DB_PW
+      password: import.meta.env.VITE_DB_PASSWORD
     });
   }
 
