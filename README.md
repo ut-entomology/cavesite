@@ -5,8 +5,8 @@ Created by the University of Texas at Austin to make data from the biospeleology
 ## Installation
 
 - Install and run a PostgreSQL database server.
-- Create development and production databases using SQL given in the `setup/` directory.
-- Create `.env.development` and `.env.production` files providing the following environment variables, with appropriate values:
+- Create development and production databases, as appropriate, using SQL given in the `setup/` directory.
+- Create `.env.development` and `.env.production` files, as appropriate, providing the following environment variables, with appropriate values:
 
 VITE_DB_HOST=localhost
 VITE_DB_PORT=5432
