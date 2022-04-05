@@ -12,7 +12,7 @@
       goto('/admin/users');
     } else {
       usingAdminTabs.set(false);
-      goto('/');
+      goto('/taxa');
     }
   }
 </script>
