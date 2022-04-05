@@ -1,9 +1,9 @@
 import { Client } from 'pg';
 
-import { Taxon } from '../src/database/taxon';
-import { Location } from '../src/database/location';
-import { SpecimenRecord } from '../src/database/specimen_record';
-import { PrivateCoordinatePair } from '../src/database/private_coord_pair';
+// import { Taxon } from '../src/model/taxon';
+// import { Location } from '../src/model/location';
+// import { Specimen } from '../src/model/specimen';
+// import { PrivateCoords } from '../src/model/private_coords';
 
 export interface GbifRecord {
   catalogNumber: string;
