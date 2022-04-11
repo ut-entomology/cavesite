@@ -1,13 +1,31 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
-    "compilerOptions": {
-        "strict": true,
-        "pretty": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true,
-        "noEmitOnError": true,
-        "outDir": "build"
-    }
+  "compilerOptions": {
+    "sourceMap": true,
+    "sourceRoot": "build",
+    "target": "ES2021",
+    "module": "commonjs",
+    "outDir": "build",
+    "stripInternal": true,
+    "strict": true,
+    "pretty": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "isolatedModules": true
+},
+"include": [
+      "src/**/*.ts"
+  ],
+  "exclude": [
+      "node_modules/**",
+      "build/**",
+      "src/frontend/**"
+  ]
 }

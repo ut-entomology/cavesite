@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as readlineSync from 'readline-sync';
 
-import { getDB, connectDB, disconnectDB } from '../integrations/postgres';
-import { User } from '../model/user';
+import { getDB, connectDB, disconnectDB } from '../backend/integrations/postgres';
+import { User } from '../backend/model/user';
 import { Permission } from '../shared/user_info';
 
 console.log('Creating an admin for Texas Underground...\n');

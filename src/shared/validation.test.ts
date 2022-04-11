@@ -1,5 +1,3 @@
-import { test, expect } from 'vitest';
-
 import {
   parseLatitude,
   parseLongitude,
