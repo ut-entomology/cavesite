@@ -40,7 +40,6 @@
 
   .header_bar {
     flex: 0;
-    width: 100%;
     color: $pageBarTextColor;
     padding: 0.5rem 0;
   }
