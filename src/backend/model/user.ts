@@ -12,7 +12,7 @@ import {
   UserError,
   ValidationError
 } from '../../shared/validation';
-import { Permission } from '../../shared/user_info';
+import { Permission } from '../../shared/user_auth';
 
 const PASSWORD_HASH_LENGTH = 64;
 

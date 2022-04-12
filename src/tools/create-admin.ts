@@ -4,7 +4,7 @@ import * as readlineSync from 'readline-sync';
 
 import { getDB, connectDB, disconnectDB } from '../backend/integrations/postgres';
 import { User } from '../backend/model/user';
-import { Permission } from '../shared/user_info';
+import { Permission } from '../shared/user_auth';
 
 console.log('Creating an admin for Texas Underground...\n');
 

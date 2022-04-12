@@ -1,7 +1,7 @@
 <script lang="ts">
   import { user } from '../stores/user';
 
-  import { Permission } from '../../shared/user_info';
+  import { Permission } from '../../shared/user_auth';
   import { DialogSpec } from '../common/VariableDialog.svelte';
   import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';

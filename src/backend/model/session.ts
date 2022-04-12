@@ -1,6 +1,7 @@
 /**
  * Class representing in-memory sessions, managing all active sessions.
  */
+// NOT PRESENTLY IN USE
 
 import * as crypto from 'crypto';
 

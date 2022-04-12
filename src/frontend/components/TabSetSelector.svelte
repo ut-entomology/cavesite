@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { push } from 'svelte-spa-router';
+  import page from 'page';
   import { usingAdminTabs } from '../stores/usingAdminTabs';
 
   const tabSetLabels = ['Data', 'Admin'];
@@ -9,10 +9,10 @@
   function tabSetChanged() {
     if (selection == 'admin') {
       usingAdminTabs.set(true);
-      push('/admin/users');
+      page('/admin/users');
     } else {
       usingAdminTabs.set(false);
-      push('/taxa');
+      page('/taxa');
     }
   }
 </script>

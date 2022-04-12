@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  import { push } from 'svelte-spa-router';
+  import page from 'page';
 
   export interface Tab {
     label: string;
@@ -19,7 +19,7 @@
   });
 
   function handleClick(label: string) {
-    return () => push(routesByLabel[label]);
+    return () => page(routesByLabel[label]);
   }
 </script>
 

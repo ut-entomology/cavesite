@@ -1,5 +1,6 @@
 <script lang="ts">
-  import Router from 'svelte-spa-router';
+  import router from 'page';
+  import type { SvelteComponent } from 'svelte';
 
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
@@ -25,10 +26,29 @@
 
     '*': NotFound
   };
+
+  let page: typeof SvelteComponent;
+  let params: any = null;
+
+  for (const [route, component] of Object.entries(routes)) {
+    router(
+      route,
+      (ctx, next) => {
+        params = ctx.params;
+        next();
+      },
+      () => (page = component)
+    );
+  }
+  router.start();
 </script>
 
 <Layout>
-  <Router {routes} />
+  {#if params.length > 0}
+    <svelte:component this={page} {params} />
+  {:else}
+    <svelte:component this={page} />
+  {/if}
 </Layout>
 
 <style lang="scss" global>
