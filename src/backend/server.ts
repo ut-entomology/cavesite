@@ -16,6 +16,7 @@ import * as auth from './apis/auth';
 import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
 import { setSessionStore } from './integrations/user_sessions';
 
+const MIN_SESSION_KEY_CHARS = 40;
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
 
 checkEnvironmentVars();
@@ -72,11 +73,18 @@ function checkEnvironmentVars() {
   const errs: string[] = [];
   dotenv.config();
 
-  if (
-    !process.env.CAVESITE_SESSION_KEY ||
-    process.env.CAVESITE_SESSION_KEY.trim().length < 40
-  ) {
-    errs.push('CAVESITE_SESSION_KEY must have at least 40 characters');
+  if (!process.env.CAVESITE_BASE_URL) {
+    errs.push('Missing CAVESITE_BASE_URL');
+  } else if (!process.env.CAVESITE_BASE_URL.startsWith('https://')) {
+    errs.push(`CAVESITE_BASE_URL must start with 'https://'`);
+  }
+
+  if (!process.env.CAVESITE_SESSION_KEY) {
+    errs.push(`Missing CAVESITE_SESSION_KEY (min ${MIN_SESSION_KEY_CHARS} characters)`);
+  } else if (process.env.CAVESITE_SESSION_KEY.trim().length < MIN_SESSION_KEY_CHARS) {
+    errs.push(
+      `CAVESITE_SESSION_KEY must have at least ${MIN_SESSION_KEY_CHARS} characters`
+    );
   }
 
   if (!process.env.CAVESITE_LOG_DIRECTORY) {
