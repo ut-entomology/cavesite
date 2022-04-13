@@ -5,6 +5,7 @@
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import { client, setCSRF } from '../stores/client';
+  import { user } from '../stores/user';
   import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
   const title = 'Login Form';
@@ -21,10 +22,12 @@
       const res = await $client.post('/apis/login', values);
       if (res.status == 200) {
         setCSRF(res.headers[CSRF_TOKEN_HEADER]);
+        $user = res.data.user;
         closeDialog();
         await flashMessage('You are logged in');
       } else {
         setCSRF(null);
+        $user = null;
         errorMessage = res.data.message;
       }
     }
