@@ -66,6 +66,12 @@ app.use((req, res, next) => {
 });
 
 app.use('/auth', auth.router);
+app.use((err: any, _req: any, res: any, next: any) => {
+  if (err.code == 'EBADCSRFTOKEN') {
+    return res.status(403).send('detected tampering');
+  }
+  next(err);
+});
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));
 

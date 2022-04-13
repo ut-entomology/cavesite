@@ -4,8 +4,10 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
+  import { client, setCSRF } from '../stores/client';
+  import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
-  const title = "Login Form";
+  const title = 'Login Form';
 
   let errorMessage = '';
 
@@ -16,18 +18,14 @@
       password: yup.string().required().label('Password')
     }),
     onSubmit: async (values) => {
-      const response = await fetch('/api/sign-up', {
-        method: 'POST',
-        body: JSON.stringify(values),
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (response.ok) {
-        // TBD: update session info?
+      const res = await $client.post('/apis/login', values);
+      if (res.status == 200) {
+        setCSRF(res.headers[CSRF_TOKEN_HEADER]);
         closeDialog();
         await flashMessage('You are logged in');
       } else {
-        errorMessage = (await response.json()).message;
+        setCSRF(null);
+        errorMessage = res.data.message;
       }
     }
   });
@@ -57,7 +55,9 @@
     </div>
     <div class="row g-2">
       <div class="col-12 text-center">
-        <button class="btn btn-minor" type="button" on:click={closeDialog}>Cancel</button>
+        <button class="btn btn-minor" type="button" on:click={closeDialog}
+          >Cancel</button
+        >
         <button class="btn btn-major" type="submit">Login</button>
       </div>
     </div>

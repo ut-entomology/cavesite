@@ -3,8 +3,10 @@
 
   import { Permission } from '../../shared/user_auth';
   import { DialogSpec } from '../common/VariableDialog.svelte';
+  import { flashMessage } from '../common/VariableFlash.svelte';
   import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
+  import { client, setCSRF } from '../stores/client';
 
   const APP_TITLE = 'Texas Underground';
   const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
@@ -13,7 +15,15 @@
     currentDialog.set(new DialogSpec('LoginDialog'));
   }
 
-  function logout() {}
+  async function logout() {
+    const res = await $client.post('/apis/logout');
+    setCSRF(null);
+    if (res.status == 200) {
+      await flashMessage('You have logged out');
+    } else {
+      await flashMessage(`Error ${res.status} logging out`);
+    }
+  }
 </script>
 
 <div class="header_bar">
