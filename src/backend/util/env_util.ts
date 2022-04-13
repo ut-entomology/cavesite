@@ -71,8 +71,9 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
 
   // Show problems found with environment variables.
 
+  const thisApp = forServer ? 'This server' : 'This tool';
   console.log(`
-The server uses the following environment variables, which can be assigned in
+${thisApp} uses the following environment variables, which can be assigned in
 a '.env' file found in the current directory at the time the server is run:`);
 
   if (forServer) {
