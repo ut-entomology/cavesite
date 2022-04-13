@@ -13,12 +13,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
   // Check environment variables that the server uses.
 
   if (forServer) {
-    if (!process.env.CAVESITE_BASE_URL) {
-      errors.push('CAVESITE_BASE_URL - missing');
-    } else if (!process.env.CAVESITE_BASE_URL.startsWith('https://')) {
-      errors.push(`CAVESITE_BASE_URL - invalid`);
-    }
-
     if (process.env.CAVESITE_PORT) {
       if (isNaN(parseInt(process.env.CAVESITE_PORT))) {
         errors.push(`CAVESITE_PORT - invalid`);
@@ -83,7 +77,6 @@ a '.env' file found in the current directory at the time the server is run:`);
       console.log(`
 NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 
-CAVESITE_BASE_URL* - Base URL of the website. Must start with 'https://'.
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.
 CAVESITE_SESSION_KEY* - Secret key for signing sessions. At least ${MIN_SESSION_KEY_CHARS} characters.
 CAVESITE_LOG_DIRECTORY* - Directory for the website access log files.`);
@@ -99,7 +92,7 @@ CAVESITE_DB_PASSWORD* - Database password for the above user.
 * = the environment variable is required
 `);
 
-    console.log('\nPlease correct the following environment variable problems:\n');
+    console.log('Please correct the following environment variable problems:\n');
     for (const error of errors) {
       console.log('-', error);
     }

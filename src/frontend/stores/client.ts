@@ -5,8 +5,10 @@ import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
 const REST_API_TIMEOUT_MILLIS = 2000;
 
+const originalOrigin = window.location.origin;
+
 const baseAxiosConfig: any = {
-  baseURL: process.env.CAVESITE_BASE_URL,
+  baseURL: originalOrigin,
   timeout: REST_API_TIMEOUT_MILLIS
 };
 const publicClient = axios.create(baseAxiosConfig);

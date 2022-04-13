@@ -17,7 +17,7 @@ let password = readlineSync.question('Password: ', { hideEchoBack: true });
 
 (async () => {
   await createAdmin();
-  console.log(`\nCreated user ${firstName} ${lastName} with email ${email}.\n`);
+  console.log(`\nCreated user "${firstName} ${lastName}" with email <${email}>.\n`);
 })();
 
 async function createAdmin() {
