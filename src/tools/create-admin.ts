@@ -1,20 +1,17 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as readlineSync from 'readline-sync';
 
+import { loadAndCheckEnvVars, showRequiredEnvVars } from '../backend/util/env_util';
 import { getDB, connectDB, disconnectDB } from '../backend/integrations/postgres';
 import { User } from '../backend/model/user';
 import { Permission } from '../shared/user_auth';
 
-console.log('Creating an admin for Texas Underground...\n');
+const errors = loadAndCheckEnvVars();
+if (errors) {
+  showRequiredEnvVars(errors);
+  process.exit(1);
+}
 
-const whichDB = readlineSync
-  .question(`Is this for the production database (y/n)? `, {
-    defaultInput: 'yes'
-  })
-  .toLowerCase();
-const production = whichDB == 'yes' || whichDB == 'y';
-const envVars = getEnvironmentVars(production);
+console.log('Creating an admin for Texas Underground...\n');
 
 let firstName = readlineSync.question(`User first name: `).trim();
 let lastName = readlineSync.question(`User last name: `).trim();
@@ -29,11 +26,11 @@ let password = readlineSync.question('Password: ', { hideEchoBack: true });
 
 async function createAdmin() {
   await connectDB({
-    host: envVars['VITE_DB_HOST'],
-    database: envVars['VITE_DB_NAME'],
-    port: parseInt(envVars['VITE_DB_PORT']),
-    user: envVars['VITE_DB_USER'],
-    password: envVars['VITE_DB_PASSWORD']
+    host: process.env.CAVESITE_DB_HOST,
+    database: process.env.CAVESITE_DB_NAME,
+    port: parseInt(process.env.CAVESITE_DB_PORT!),
+    user: process.env.CAVESITE_DB_USER,
+    password: process.env.CAVESITE_DB_PASSWORD
   });
   try {
     await User.create(
@@ -52,23 +49,4 @@ async function createAdmin() {
     process.exit(1);
   }
   await disconnectDB();
-}
-
-function getEnvironmentVars(production: boolean) {
-  const filename = production ? '.env.production' : '.env.development';
-  const filepath = path.join(__dirname, '../', filename);
-  try {
-    const vars: Record<string, string> = {};
-    const text = fs.readFileSync(filepath).toString();
-    for (const line of text.split('\n')) {
-      const values = line.split('=');
-      if (values[0].trim() != '') {
-        vars[values[0].trim()] = values[1].trim();
-      }
-    }
-    return vars;
-  } catch (err: any) {
-    console.log(err.message);
-    process.exit(1);
-  }
 }
