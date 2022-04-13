@@ -11,18 +11,14 @@ import session from 'express-session';
 import memorystore from 'memorystore';
 import csurf from 'csurf';
 
-import { loadAndCheckEnvVars, showRequiredEnvVars } from './util/env_util';
+import { loadAndCheckEnvVars } from './util/env_util';
 import * as auth from './apis/auth';
 import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
 import { setSessionStore } from './integrations/user_sessions';
 
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
 
-const errors = loadAndCheckEnvVars();
-if (errors) {
-  showRequiredEnvVars(errors);
-  process.exit(1);
-}
+loadAndCheckEnvVars(true);
 
 const devMode = process.env.NODE_ENV !== 'production';
 const port = process.env.CAVESITE_PORT || 80;

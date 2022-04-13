@@ -1,15 +1,11 @@
 import * as readlineSync from 'readline-sync';
 
-import { loadAndCheckEnvVars, showRequiredEnvVars } from '../backend/util/env_util';
+import { loadAndCheckEnvVars } from '../backend/util/env_util';
 import { getDB, connectDB, disconnectDB } from '../backend/integrations/postgres';
 import { User } from '../backend/model/user';
 import { Permission } from '../shared/user_auth';
 
-const errors = loadAndCheckEnvVars();
-if (errors) {
-  showRequiredEnvVars(errors);
-  process.exit(1);
-}
+loadAndCheckEnvVars(false);
 
 console.log('Creating an admin for Texas Underground...\n');
 
