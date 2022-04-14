@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w",
-    "start": "sirv public --no-clear --single",
+    "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps ./build/backend/server.js",
     "test": "jest",
     "check": "svelte-check --tsconfig ./src/frontend/tsconfig.json",
     "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
@@ -18,6 +18,7 @@
     "@rollup/plugin-typescript": "^8.0.0",
     "@tsconfig/svelte": "^2.0.0",
     "@types/cookie": "^0.4.1",
+    "@types/cookie-parser": "^1.4.2",
     "@types/csurf": "^1.11.2",
     "@types/express": "^4.17.13",
     "@types/express-session": "^1.17.4",
@@ -33,6 +34,7 @@
     "eslint-plugin-svelte3": "^3.4.1",
     "jest": "^27.5.1",
     "node-sass": "^7.0.1",
+    "nodemon": "^2.0.15",
     "postcss": "^8.4.12",
     "prettier": "^2.6.2",
     "prettier-plugin-svelte": "^2.7.0",
@@ -57,6 +59,7 @@
     "@zxcvbn-ts/language-en": "^2.0.1",
     "axios": "^0.26.1",
     "bootstrap": "^5.1.3",
+    "cookie-parser": "^1.4.6",
     "csurf": "^1.11.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
@@ -68,7 +71,6 @@
     "pg": "^8.7.3",
     "proper-lockfile": "^4.1.2",
     "rotating-file-stream": "^3.0.3",
-    "sirv-cli": "^2.0.0",
     "svelte-forms-lib": "^2.0.1",
     "yup": "^0.32.11"
   }

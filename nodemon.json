@@ -1,0 +1,4 @@
+{
+    "watch": ["build/backend/", "build/shared"],
+    "ext": "js, json"
+}

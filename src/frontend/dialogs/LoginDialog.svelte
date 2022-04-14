@@ -4,9 +4,9 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { client, setCSRF } from '../stores/client';
+  import { client } from '../stores/client';
   import { user } from '../stores/user';
-  import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
+  //import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
   const title = 'Login Form';
 
@@ -19,16 +19,18 @@
       password: yup.string().required().label('Password')
     }),
     onSubmit: async (values) => {
-      const res = await $client.post('/apis/login', values);
-      if (res.status == 200) {
-        setCSRF(res.headers[CSRF_TOKEN_HEADER]);
-        $user = res.data.user;
+      try {
+        console.log('credentials', values);
+        const res = await $client.post('/apis/auth/login', values);
+        //setCSRF(res.headers[CSRF_TOKEN_HEADER]);
+        $user = res.data;
         closeDialog();
         await flashMessage('You are logged in');
-      } else {
-        setCSRF(null);
+      } catch (err: any) {
+        //setCSRF(null);
         $user = null;
-        errorMessage = res.data.message;
+        console.log('login error', err.message);
+        errorMessage = err.message;
       }
     }
   });

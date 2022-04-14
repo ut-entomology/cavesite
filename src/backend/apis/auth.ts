@@ -12,9 +12,10 @@ type LoginParams = {
 
 export const router = Router();
 
-router.post('/login', async (req: Request<LoginParams>, res) => {
-  const params = req.params;
-  const user = await User.authenticate(getDB(), params.email, params.password, req.ip);
+router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
+  const body = req.body;
+  console.log(body);
+  const user = await User.authenticate(getDB(), body.email, body.password, req.ip);
 
   if (!user) {
     return res.status(401).json({ message: 'Incorrect email or password' });
@@ -30,12 +31,12 @@ router.post('/login', async (req: Request<LoginParams>, res) => {
     lastLoginDate: user.lastLoginDate,
     lastLoginIP: user.lastLoginIP
   };
-  return res.status(200).json({ csrfToken: req.csrfToken });
+  return res.status(200).send(req.session.user);
 });
 
 router.get('/logout', async (req, res) => {
   await new Promise<void>((resolve) => {
     req.session.destroy(() => resolve());
   });
-  return res.status(204);
+  return res.status(204).send();
 });

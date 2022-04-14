@@ -17,6 +17,8 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
       if (isNaN(parseInt(process.env.CAVESITE_PORT))) {
         errors.push(`CAVESITE_PORT - invalid`);
       }
+    } else {
+      process.env.CAVESITE_PORT = '80';
     }
 
     if (!process.env.CAVESITE_SESSION_KEY) {
@@ -27,13 +29,13 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
       process.env.CAVESITE_SESSION_KEY = process.env.CAVESITE_SESSION_KEY.trim();
     }
 
-    if (!process.env.CAVESITE_LOG_DIRECTORY) {
-      errors.push('CAVESITE_LOG_DIRECTORY - missing');
+    if (!process.env.CAVESITE_LOG_DIR) {
+      errors.push('CAVESITE_LOG_DIR - missing');
     } else {
-      if (!'/\\'.includes(process.env.CAVESITE_LOG_DIRECTORY[0])) {
-        process.env.CAVESITE_LOG_DIRECTORY = path.join(
+      if (!'/\\'.includes(process.env.CAVESITE_LOG_DIR[0])) {
+        process.env.CAVESITE_LOG_DIR = path.join(
           process.cwd(),
-          process.env.CAVESITE_LOG_DIRECTORY
+          process.env.CAVESITE_LOG_DIR
         );
       }
     }
@@ -79,7 +81,7 @@ NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.
 CAVESITE_SESSION_KEY* - Secret key for signing sessions. At least ${MIN_SESSION_KEY_CHARS} characters.
-CAVESITE_LOG_DIRECTORY* - Directory for the website access log files.`);
+CAVESITE_LOG_DIR* - Directory for the website access log files.`);
     }
 
     console.log(`

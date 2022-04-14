@@ -5,49 +5,49 @@
 import * as path from 'path';
 import express from 'express';
 import morgan from 'morgan';
-import rfs from 'rotating-file-stream';
+import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import session from 'express-session';
 import memorystore from 'memorystore';
-import csurf from 'csurf';
+import cookieParser from 'cookie-parser';
 
 import { loadAndCheckEnvVars } from './util/env_util';
+import { connectDB } from '../backend/integrations/postgres';
 import * as auth from './apis/auth';
-import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
+//import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
 import { setSessionStore } from './integrations/user_sessions';
 
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
 
-loadAndCheckEnvVars(true);
+// Initialize configuration.
 
+loadAndCheckEnvVars(true);
 const devMode = process.env.NODE_ENV !== 'production';
-const port = process.env.CAVESITE_PORT || 80;
+const port = parseInt(process.env.CAVESITE_PORT!);
 const MemoryStore = memorystore(session);
 const maxSessionLengthMillis = MAX_SESSION_LENGTH_MINS * 60000;
 const sessionStore = new MemoryStore({ checkPeriod: maxSessionLengthMillis });
 setSessionStore(sessionStore);
 
-const csrfProtection = csurf({
-  // @ts-ignore
-  value: (req) => req.headers[CSRF_TOKEN_HEADER]
-});
+// Set up pre-route stack.
 
 const app = express();
-app.use(helmet);
 app.use(
   morgan('combined', {
-    stream: rfs.createStream('access.log', {
-      interval: '1w',
-      path: process.env.CAVESITE_LOG_DIRECTORY,
+    stream: createStream('access.log', {
+      interval: '7d',
+      path: process.env.CAVESITE_LOG_DIR,
       maxFiles: 16
     })
   })
 );
 if (!devMode) {
   app.set('trust proxy', 1);
-  app.use(express.static(path.join(__dirname, '../../public')));
+  app.use(helmet());
 }
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(
   session({
     store: sessionStore,
@@ -59,18 +59,38 @@ app.use(
     cookie: { secure: !devMode, sameSite: true, maxAge: maxSessionLengthMillis }
   })
 );
-app.use((req, res, next) => {
-  // Only apply CSRF protection to logged-in users.
-  if (!req.session || !req.session.user) return next();
-  csrfProtection(req, res, next);
-});
 
-app.use('/auth', auth.router);
-app.use((err: any, _req: any, res: any, next: any) => {
+// Set up application routes.
+
+app.use(express.static(path.join(__dirname, '../../public')));
+app.use('/apis/auth', auth.router);
+app.use('*', (_req, _res, next) => {
+  const err = Error('Not found') as any;
+  err.status = 404;
+  next(err);
+});
+app.use((err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
     return res.status(403).send('detected tampering');
   }
-  next(err);
+  // TODO: Log this error
+  res.status(err.status || 500).send({
+    error: {
+      status: err.status || 500,
+      message: err.message || 'Internal Server Error'
+    }
+  });
 });
 
-app.listen(port, () => console.log(`Server listening on port ${port}`));
+// Launch server.
+
+(async () => {
+  await connectDB({
+    host: process.env.CAVESITE_DB_HOST,
+    database: process.env.CAVESITE_DB_NAME,
+    port: parseInt(process.env.CAVESITE_DB_PORT!),
+    user: process.env.CAVESITE_DB_USER,
+    password: process.env.CAVESITE_DB_PASSWORD
+  });
+  app.listen(port, () => console.log(`Server listening on port ${port}`));
+})();

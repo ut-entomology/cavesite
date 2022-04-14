@@ -4,7 +4,7 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
-  import { client, setCSRF } from '../stores/client';
+  import { client } from '../stores/client';
   import { user } from '../stores/user';
 
   const APP_TITLE = 'Texas Underground';
@@ -15,10 +15,11 @@
   }
 
   async function logout() {
-    const res = await $client.post('/apis/logout');
-    setCSRF(null);
+    const res = await $client.get('/apis/auth/logout');
+    //setCSRF(null);
     $user = null;
-    if (res.status == 200) {
+    console.log('logged out');
+    if (res.status == 204) {
       await flashMessage('You have logged out');
     } else {
       await flashMessage(`Error ${res.status} logging out`);
