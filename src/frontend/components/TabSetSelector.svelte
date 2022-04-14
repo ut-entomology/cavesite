@@ -1,17 +1,16 @@
 <script lang="ts">
   import page from 'page';
-  import { usingAdminTabs } from '../stores/usingAdminTabs';
 
   const tabSetLabels = ['Data', 'Admin'];
 
-  let selection = $usingAdminTabs ? 'admin' : 'data';
+  let selection = 'data';
 
-  function tabSetChanged() {
+  $: {
     if (selection == 'admin') {
-      usingAdminTabs.set(true);
+      console.log('admin');
       page('/admin/users');
     } else {
-      usingAdminTabs.set(false);
+      console.log('data');
       page('/taxa');
     }
   }
@@ -20,15 +19,13 @@
 <div class="btn-group" role="group" aria-label="Switch between data and admin tabs">
   {#each tabSetLabels as tabSetLabel}
     {@const tabSet = tabSetLabel.toLowerCase()}
-    {@const checked = tabSet == selection}
     <input
       type="radio"
       class="btn-check"
-      name={tabSet}
+      bind:group={selection}
+      name="tab_set"
       id={tabSet}
-      autocomplete="off"
-      {checked}
-      on:change={tabSetChanged}
+      value={tabSet}
     />
     <label class="btn btn-outline-primary" for={tabSet}>{tabSetLabel}</label>
   {/each}
