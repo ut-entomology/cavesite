@@ -43,13 +43,17 @@
   router.start();
 </script>
 
-<Layout>
-  {#if params.length > 0}
-    <svelte:component this={page} {params} />
-  {:else}
-    <svelte:component this={page} />
-  {/if}
-</Layout>
+{#if page !== NotFound}
+  <Layout>
+    {#if params.length > 0}
+      <svelte:component this={page} {params} />
+    {:else}
+      <svelte:component this={page} />
+    {/if}
+  </Layout>
+{:else}
+  <svelte:component this={page} />
+{/if}
 
 <style lang="scss" global>
   @use 'sass:math';

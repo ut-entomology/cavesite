@@ -1,8 +1,8 @@
-<title>Page not found</title>
+<h1>Page not found</h1>
 
 <style>
-  title {
+  h1 {
     text-align: center;
-    margin-top: 100px;
+    margin-top: 80px;
   }
 </style>

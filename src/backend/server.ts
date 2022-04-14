@@ -18,6 +18,8 @@ import * as auth from './apis/auth';
 import { setSessionStore } from './integrations/user_sessions';
 
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
+const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
+const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 
 // Initialize configuration.
 
@@ -62,12 +64,15 @@ app.use(
 
 // Set up application routes.
 
-app.use(express.static(path.join(__dirname, '../../public')));
+app.use(express.static(PUBLIC_FILE_DIR));
 app.use('/apis/auth', auth.router);
-app.use('*', (_req, _res, next) => {
+app.use('/apis/*', (_req, _res, next) => {
   const err = Error('Not found') as any;
   err.status = 404;
   next(err);
+});
+app.use('*', (_req, res) => {
+  res.sendFile(SPA_INDEX_FILE);
 });
 app.use((err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
