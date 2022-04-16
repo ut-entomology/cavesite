@@ -42,11 +42,7 @@ export class DatabaseMutex {
     const createTablesSQL = fs
       .readFileSync(path.join(SETUP_SQL_DIR, 'create_tables.sql'))
       .toString();
-    try {
-      await this._db.query(dropTablesSQL);
-    } catch (err: any) {
-      if (!err.message.includes('not exist')) throw err;
-    }
+    await this._db.query(dropTablesSQL);
     await this._db.query(createTablesSQL);
 
     return this._db;

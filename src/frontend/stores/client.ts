@@ -9,7 +9,8 @@ const originalOrigin = window.location.origin;
 
 const baseAxiosConfig: any = {
   baseURL: originalOrigin,
-  timeout: REST_API_TIMEOUT_MILLIS
+  timeout: REST_API_TIMEOUT_MILLIS,
+  withCredentials: true
 };
 const publicClient = axios.create(baseAxiosConfig);
 

@@ -1,157 +1,183 @@
 /**
- * Class representing in-memory sessions, managing all active sessions.
+ * Class representing active sessions, kept in memory but backed by a
+ * database table. Using the database allows sessions to survive restarting
+ * node, which is mainly important for testing and debugging. The design is
+ * governed by the need for compatibility with express sessions, and by the
+ * fact that only a few users are expected to have login ability.
  */
-// NOT PRESENTLY IN USE
-
-import * as crypto from 'crypto';
-
+import { type DB, toCamelRow } from '../integrations/postgres';
 import type { DataOf } from '../util/type_util';
-import { toHeaderSafeBase64 } from '../util/http_util';
-import type { User } from './user';
-import { UserError } from '../../shared/validation';
+import { User } from './user';
+import { type UserInfo } from '../../shared/user_auth';
 
-export const MAX_SESSIONS_PER_USER = 20; // limits unused browser window pollution
+const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
+const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
 
-const SESSION_TIMEOUT_MILLIS = 60 * 60 * 1000; // logs out after 1 hour unused
-const EXPIRATION_CHECK_MILLIS = 1000; // check for session expiration every minute
-const SESSION_ID_BYTES = 21; // byte length of random session ID
-const CSRF_TOKEN_BYTES = 8; // byte length of CSRF token
-const MAX_ID_GEN_ATTEMPTS = 5; // max tries to generate a unique session ID
+type SessionData = Omit<DataOf<Session>, 'userInfo'>;
 
-type SessionData = Omit<DataOf<Session>, 'createdAt' | 'expiresAt'>;
-
-const sessionsByID: Record<string, Session> = {};
+const sessionsByID = new Map<string, Session>();
+let sessionTimeoutMillis = SESSION_TIMEOUT_MILLIS;
 let expirationTimer: NodeJS.Timeout | null = null;
 
 export class Session {
   sessionID: string;
-  user: User;
-  createdAt: Date;
+  userInfo: UserInfo;
+  createdOn: Date;
   expiresAt!: Date;
   ipAddress: string;
-  csrfToken: string;
+  // TODO: store this parsed to make session lookups more efficient
+  expressData: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  private constructor(data: SessionData) {
+  private constructor(data: SessionData, userInfo: UserInfo) {
     this.sessionID = data.sessionID;
-    this.user = data.user;
-    this.createdAt = new Date();
-    this.refresh();
+    this.userInfo = userInfo;
+    this.createdOn = data.createdOn;
+    this.expiresAt = data.expiresAt;
     this.ipAddress = data.ipAddress;
-    this.csrfToken = data.csrfToken;
-  }
-
-  /// PUBLIC INSTANCE METHODS ////////////////////////////////////////////////
-
-  /**
-   * Called on user activity to restart the session timeout period. The timeout
-   * period is an optional parameter in order to support testing.
-   */
-  refresh(sessionTimeoutMillis?: number) {
-    sessionTimeoutMillis = sessionTimeoutMillis || SESSION_TIMEOUT_MILLIS;
-    this.expiresAt = new Date(new Date().getTime() + sessionTimeoutMillis);
-  }
-
-  /**
-   * Terminates all of user's sessions but the present one.
-   */
-  reset() {
-    Session.dropUser(this.user.userID);
-    sessionsByID[this.sessionID] = this;
+    this.expressData = data.expressData;
   }
 
   /// PUBLIC CLASS METHODS ///////////////////////////////////////////////////
 
   /**
-   * Creates a new session for a logged-in user.
+   * Initializes the in-memory session cache from the database.
    */
-  static async create(user: User, ipAddress: string): Promise<Session> {
-    // This simple approach is fine because there will be few users.
+  static async init(db: DB) {
+    // Clear cache so that tests can repeatedly call init().
 
-    let sessionCount = 0;
-    for (const session of Object.values(sessionsByID)) {
-      if (session.user.userID == user.userID) {
-        if (++sessionCount == MAX_SESSIONS_PER_USER) {
-          throw new UserError(
-            `Exceeded max ${MAX_SESSIONS_PER_USER} open sessions per user`
-          );
-        }
+    sessionsByID.clear();
+
+    // Load all users, so each session can reference its user.
+
+    const users = await User.getUsers(db);
+    const usersByID: Record<string, User> = {};
+    for (const user of users) {
+      usersByID[user.userID] = user;
+    }
+
+    // Load all sessions, referencing their users.
+
+    const result = await db.query(`select * from sessions`);
+    for (const row of result.rows) {
+      const user = usersByID[row.user_id];
+      if (user) {
+        const session = new Session(toCamelRow(row), user);
+        sessionsByID.set(session.sessionID, session);
+      } else {
+        console.log('dropped session ID', row.session_id);
       }
     }
 
-    const sessionID = await Session._createSessionID(MAX_ID_GEN_ATTEMPTS);
+    // Begin handling session expirations.
 
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(CSRF_TOKEN_BYTES, (err, buffer) => {
-        if (err) return reject(err);
-        let session = new Session({
+    checkExpirations(db, EXPIRATION_CHECK_MILLIS);
+  }
+
+  /**
+   * Creates or refresh a session for a logged-in user.
+   */
+  static async upsert(
+    db: DB,
+    sessionID: string,
+    userInfo: UserInfo,
+    ipAddress: string,
+    expressData: string
+  ): Promise<Session> {
+    let session = Session.getByID(sessionID);
+    if (session) {
+      session.expiresAt = Session._getNewExpiration();
+      await db.query(
+        `update sessions set expires_at=$1, express_data=$2 where session_id=$3`,
+        [
+          // @ts-ignore
+          session.expiresAt,
+          session.expressData,
+          sessionID
+        ]
+      );
+    } else {
+      session = new Session(
+        {
           sessionID,
-          user,
+          createdOn: new Date(),
+          expiresAt: Session._getNewExpiration(),
           ipAddress,
-          csrfToken: toHeaderSafeBase64(buffer.toString('base64'))
-        });
-        sessionsByID[sessionID] = session;
-        resolve(session);
-      });
-    });
+          expressData
+        },
+        userInfo
+      );
+      const result = await db.query(
+        `insert into sessions (
+            session_id, user_id, created_on, expires_at, ip_address, express_data
+          ) values($1, $2, $3, $4, $5, $6)`,
+        [
+          sessionID,
+          userInfo.userID,
+          // @ts-ignore
+          session.createdOn,
+          // @ts-ignore
+          session.expiresAt,
+          ipAddress,
+          expressData
+        ]
+      );
+      if (result.rowCount != 1) {
+        throw Error(`Failed to update session for user ID ${userInfo.userID}`);
+      }
+      sessionsByID.set(sessionID, session);
+    }
+    return session;
   }
 
   /**
    * Closes one session, logging the user out if that was the user's only session.
    */
-  static dropID(sessionID: string) {
-    if (sessionsByID[sessionID]) {
-      delete sessionsByID[sessionID];
+  static async dropID(db: DB, sessionID: string) {
+    if (sessionsByID.get(sessionID)) {
+      sessionsByID.delete(sessionID);
     }
+    await db.query(`delete from sessions where session_id=$1`, [sessionID]);
   }
 
   /**
    * Logs the user out, closing all sessions.
    */
-  static dropUser(userID: number) {
-    for (const session of Object.values(sessionsByID)) {
-      if (session.user.userID == userID) {
-        delete sessionsByID[session.sessionID];
+  static async dropUser(db: DB, userID: number) {
+    for (const session of Array.from(sessionsByID.values())) {
+      if (session.userInfo.userID == userID) {
+        sessionsByID.delete(session.sessionID);
       }
     }
+    await db.query(`delete from sessions where user_id=$1`, [userID]);
   }
 
   /**
    * Returns the session of the given ID or null if no such session exists.
    */
   static getByID(sessionID: string): Session | null {
-    return sessionsByID[sessionID] || null;
+    return sessionsByID.get(sessionID) || null;
   }
 
   /**
-   * Returns all logged-in sessions.
+   * Returns all logged-in sessions, according to the in-memory cache.
    */
   static getSessions(): Session[] {
-    return Object.values(sessionsByID);
+    return Array.from(sessionsByID.values());
   }
 
-  //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
-
   /**
-   * Creates a unique cryptographically-strong session ID.
+   * Set timeout milliseconds to something other than the default.
    */
-  private static async _createSessionID(attemptsLeft: number): Promise<string> {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(SESSION_ID_BYTES, function (err, buffer) {
-        if (err) return reject(err);
-        let headerSafeID = toHeaderSafeBase64(buffer.toString('base64'));
-        if (sessionsByID[headerSafeID]) {
-          if (--attemptsLeft == 0) {
-            // TODO: Probably ought to write to log
-            return reject(Error(`Unable to create a unique session ID`));
-          }
-          return Session._createSessionID(attemptsLeft);
-        } else {
-          resolve(headerSafeID);
-        }
-      });
-    });
+  static setTimeoutMillis(millis: number) {
+    sessionTimeoutMillis = millis;
+  }
+
+  //// PRIVATE CLASS METHODS /////////////////////////////////////////////////
+
+  static _getNewExpiration() {
+    return new Date(new Date().getTime() + sessionTimeoutMillis);
   }
 }
 
@@ -161,22 +187,40 @@ export class Session {
  * loading, so that tests don't have to behave differently at load time.
  * Each call replaces the prior `expirationCheckMillis`.
  */
-export function checkExpirations(expirationCheckMillis: number) {
+export function checkExpirations(db: DB, expirationCheckMillis: number) {
+  // Make it safe to repeatedly call this function.
+
   if (expirationTimer) {
     clearTimeout(expirationTimer);
   }
-  expirationTimer = setTimeout(() => {
+
+  // Drop expired sessions upon reaching timeout.
+
+  expirationTimer = setTimeout(async () => {
+    // Drop expired sessions from memory.
+
     const now = new Date().getTime();
-    for (const session of Object.values(sessionsByID)) {
+    for (const session of Array.from(sessionsByID.values())) {
       if (session.expiresAt.getTime() <= now) {
-        delete sessionsByID[session.sessionID];
+        sessionsByID.delete(session.sessionID);
       }
     }
-    expirationTimer = null;
-    checkExpirations(expirationCheckMillis);
+
+    // Drop expired sessions from the database. It's okay for the in-memory
+    // list to get slightly out of sync with the database.
+
+    await db.query(`delete from sessions where expires_at <= $1`, [
+      // Provide the current date/time to be sure it agrees with the
+      // provided date/times in the database.
+      new Date().toISOString()
+    ]);
+
+    // Schedule next expiration check.
+
+    expirationTimer = null; // release resource despite recursion
+    checkExpirations(db, expirationCheckMillis);
   }, expirationCheckMillis);
 }
-checkExpirations(EXPIRATION_CHECK_MILLIS);
 
 /**
  * Clears the expiration timer.

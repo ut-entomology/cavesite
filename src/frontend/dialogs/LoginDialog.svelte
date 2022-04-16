@@ -5,7 +5,7 @@
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import { client } from '../stores/client';
-  import { user } from '../stores/user';
+  import { userInfo } from '../stores/user_info';
   //import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
   const title = 'Login Form';
@@ -20,16 +20,14 @@
     }),
     onSubmit: async (values) => {
       try {
-        console.log('credentials', values);
         const res = await $client.post('/apis/auth/login', values);
         //setCSRF(res.headers[CSRF_TOKEN_HEADER]);
-        $user = res.data;
+        $userInfo = res.data;
         closeDialog();
         await flashMessage('You are logged in');
       } catch (err: any) {
         //setCSRF(null);
-        $user = null;
-        console.log('login error', err.message);
+        $userInfo = null;
         errorMessage = err.message;
       }
     }

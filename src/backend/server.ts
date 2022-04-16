@@ -8,14 +8,13 @@ import morgan from 'morgan';
 import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import session from 'express-session';
-import memorystore from 'memorystore';
 import cookieParser from 'cookie-parser';
 
 import { loadAndCheckEnvVars } from './util/env_util';
 import { connectDB } from '../backend/integrations/postgres';
 import * as auth from './apis/auth';
 //import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
-import { setSessionStore } from './integrations/user_sessions';
+import { SessionStore } from './integrations/session_store';
 
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
 const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
@@ -26,10 +25,7 @@ const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 loadAndCheckEnvVars(true);
 const devMode = process.env.NODE_ENV !== 'production';
 const port = parseInt(process.env.CAVESITE_PORT!);
-const MemoryStore = memorystore(session);
 const maxSessionLengthMillis = MAX_SESSION_LENGTH_MINS * 60000;
-const sessionStore = new MemoryStore({ checkPeriod: maxSessionLengthMillis });
-setSessionStore(sessionStore);
 
 // Set up pre-route stack.
 
@@ -52,7 +48,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   session({
-    store: sessionStore,
+    store: new SessionStore(),
     // @ts-ignore
     max: 32000,
     resave: false,
@@ -61,6 +57,7 @@ app.use(
     cookie: { secure: !devMode, sameSite: true, maxAge: maxSessionLengthMillis }
   })
 );
+app.use(sessionChecker);
 
 // Set up application routes.
 
@@ -99,3 +96,15 @@ app.use((err: any, _req: any, res: any) => {
   });
   app.listen(port, () => console.log(`Server listening on port ${port}`));
 })();
+
+function sessionChecker(req: any, _res: any, next: any) {
+  if (req.session) {
+    console.log(
+      '**** userInfo?',
+      !!req.session.userInfo,
+      'cookie?',
+      !!req.session.cookie
+    );
+  }
+  next();
+}

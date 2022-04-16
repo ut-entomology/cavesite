@@ -12,6 +12,15 @@ type LoginParams = {
 
 export const router = Router();
 
+router.post('/connect', async (req: Request<void, any, LoginParams>, res) => {
+  const body = req.body;
+  console.log(body);
+  if (req.session && req.session.userInfo) {
+    return res.status(200).send(req.session.userInfo);
+  }
+  return res.status(200).send();
+});
+
 router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
   const body = req.body;
   console.log(body);
@@ -21,7 +30,7 @@ router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
     return res.status(401).json({ message: 'Incorrect email or password' });
   }
 
-  req.session.user = {
+  req.session.userInfo = {
     userID: user.userID,
     firstName: user.firstName,
     lastName: user.lastName,
@@ -31,7 +40,8 @@ router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
     lastLoginDate: user.lastLoginDate,
     lastLoginIP: user.lastLoginIP
   };
-  return res.status(200).send(req.session.user);
+  req.session.ipAddress = req.ip;
+  return res.status(200).send(req.session.userInfo);
 });
 
 router.get('/logout', async (req, res) => {

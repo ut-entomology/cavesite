@@ -2,6 +2,8 @@
   import router from 'page';
   import type { SvelteComponent } from 'svelte';
 
+  import { client } from './stores/client';
+  import { userInfo } from './stores/user_info';
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
   import Taxa from './routes/Taxa.svelte';
@@ -41,19 +43,28 @@
     );
   }
   router.start();
+
+  async function connect() {
+    const res = await $client.post('/apis/auth/connect');
+    if (res.data && res.data.userID) {
+      $userInfo = res.data;
+    }
+  }
 </script>
 
-{#if page !== NotFound}
-  <Layout>
-    {#if params.length > 0}
-      <svelte:component this={page} {params} />
-    {:else}
-      <svelte:component this={page} />
-    {/if}
-  </Layout>
-{:else}
-  <svelte:component this={page} />
-{/if}
+{#await connect() then}
+  {#if page !== NotFound}
+    <Layout>
+      {#if params.length > 0}
+        <svelte:component this={page} {params} />
+      {:else}
+        <svelte:component this={page} />
+      {/if}
+    </Layout>
+  {:else}
+    <svelte:component this={page} />
+  {/if}
+{/await}
 
 <style lang="scss" global>
   @use 'sass:math';

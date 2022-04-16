@@ -1,8 +1,9 @@
 -- Drops tables in reverse order of creation.
 
-drop table logs;
-drop table private_coordinates;
-drop table specimens;
-drop table locations;
-drop table taxa;
-drop table users;
+drop table if exists logs;
+drop table if exists private_coordinates;
+drop table if exists specimens;
+drop table if exists locations;
+drop table if exists taxa;
+drop table if exists sessions;
+drop table if exists users;

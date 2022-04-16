@@ -2,13 +2,7 @@ import type { DB } from '../integrations/postgres';
 import { DatabaseMutex, expectRecentTime, sleep } from '../util/test_util';
 import { User } from './user';
 import { Permission } from '../../shared/user_auth';
-import { UserError } from '../../shared/validation';
-import {
-  Session,
-  checkExpirations,
-  stopCheckingExpirations,
-  MAX_SESSIONS_PER_USER
-} from './session';
+import { Session, checkExpirations, stopCheckingExpirations } from './session';
 
 const PASSWORD = 'woahwhatchadoingwiththatkeyboard';
 const IP = '123.456.789.321';
@@ -56,18 +50,16 @@ beforeAll(async () => {
 test('creating, finding, and destroying sessions', async () => {
   // Create one session for user1.
 
-  const session1a = await Session.create(user1, IP);
-  expect(User.getPasswordStrength(session1a.sessionID)).toBeGreaterThan(15);
-  expect(session1a.user.userID).toEqual(user1.userID);
-  expectRecentTime(session1a.createdAt);
+  const session1a = await Session.upsert(db, '1A', user1, IP, 'data1A');
+  expect(session1a.userInfo.userID).toEqual(user1.userID);
+  expectRecentTime(session1a.createdOn);
   expect(session1a.ipAddress).toEqual(IP);
-  expect(User.getPasswordStrength(session1a.csrfToken)).toBeGreaterThan(10);
 
   // Create another session for user1 and two for user2.
 
-  const session1b = await Session.create(user1, IP);
-  const session2a = await Session.create(user2, IP);
-  const session2b = await Session.create(user2, IP);
+  const session1b = await Session.upsert(db, '1B', user1, IP, 'data1B');
+  const session2a = await Session.upsert(db, '2A', user2, IP, 'data2A');
+  const session2b = await Session.upsert(db, '2B', user2, IP, 'data2B');
   expect(session2a.sessionID).not.toEqual(session2b.sessionID);
 
   // Verify presence of all sessions.
@@ -86,76 +78,96 @@ test('creating, finding, and destroying sessions', async () => {
   expect(Session.getByID(session2a.sessionID)).toBe(session2a);
   expect(Session.getByID(session2b.sessionID)).toBe(session2b);
 
+  await Session.init(db);
+  expect(Session.getByID(session1a.sessionID)).toEqual(session1a);
+  expect(Session.getByID(session1b.sessionID)).toEqual(session1b);
+  expect(Session.getByID(session2a.sessionID)).toEqual(session2a);
+  expect(Session.getByID(session2b.sessionID)).toEqual(session2b);
+
   // Drop a single session.
 
-  Session.dropID(session1b.sessionID);
+  await Session.dropID(db, session1b.sessionID);
   sessions = Session.getSessions();
   expect(sessions.length).toEqual(3);
-  expect(sessions).toContain(session1a);
-  expect(sessions).toContain(session2a);
-  expect(sessions).toContain(session2b);
+  expect(sessions).toContainEqual(session1a);
+  expect(sessions).toContainEqual(session2a);
+  expect(sessions).toContainEqual(session2b);
+
+  await Session.init(db);
+  sessions = Session.getSessions();
+  expect(sessions.length).toEqual(3);
+  expect(sessions).toContainEqual(session1a);
+  expect(sessions).toContainEqual(session2a);
+  expect(sessions).toContainEqual(session2b);
 
   // Drop all sessions of a user.
 
-  Session.dropUser(user2.userID);
+  await Session.dropUser(db, user2.userID);
   sessions = Session.getSessions();
   expect(sessions.length).toEqual(1);
-  expect(sessions).toContain(session1a);
+  expect(sessions).toContainEqual(session1a);
 
-  // Reset a session.
-
-  await Session.create(user1, IP);
-  const session1c = await Session.create(user1, IP);
-  await Session.create(user1, IP);
-  const session2c = await Session.create(user2, IP);
-  const session2d = await Session.create(user2, IP);
-  session1c.reset();
+  await Session.init(db);
   sessions = Session.getSessions();
-  expect(sessions.length).toEqual(3);
-  expect(sessions).toContain(session1c);
-  expect(sessions).toContain(session2c);
-  expect(sessions).toContain(session2d);
-});
-
-test('exceeding max sessions per user', async () => {
-  Session.dropUser(user1.userID);
-
-  for (let i = 0; i < MAX_SESSIONS_PER_USER; ++i) {
-    await Session.create(user1, IP);
-  }
-  await expect(() => Session.create(user1, IP)).rejects.toThrow(
-    new UserError(`Exceeded max ${MAX_SESSIONS_PER_USER} open sessions per user`)
-  );
-
-  Session.dropUser(user1.userID);
+  expect(sessions.length).toEqual(1);
+  expect(sessions).toContainEqual(session1a);
 });
 
 test('session timeouts out if not refreshed', async () => {
-  checkExpirations(500);
-  const session = await Session.create(user3, IP);
+  await Session.init(db);
+
+  checkExpirations(db, 500);
+  const session = await Session.upsert(db, 'Y3', user3, IP, 'dataY3');
   expect(Session.getSessions()).toContain(session);
-  session.refresh(400);
+
+  setExpiration(session, 400);
   // sleep longer than both timeout duration and expiration check period
   await sleep(600);
   expect(Session.getSessions().map((s) => s.sessionID)).not.toContain(
     session.sessionID
   );
+  expect(Session.getByID(session.sessionID)).toBeNull();
+
+  await Session.init(db);
+  expect(Session.getSessions().map((s) => s.sessionID)).not.toContain(
+    session.sessionID
+  );
+  expect(Session.getByID(session.sessionID)).toBeNull();
 });
 
-test('session refreshes prevent timeout', async () => {
-  checkExpirations(500);
-  const session = await Session.create(user3, IP);
-  session.refresh(300);
+test('session refreshes prevent timeout/logout', async () => {
+  await Session.init(db);
+
+  checkExpirations(db, 500);
+  const session = await Session.upsert(db, 'Z3', user3, IP, 'dataZ3');
+  setExpiration(session, 300);
   await sleep(200);
-  session.refresh(300);
+  setExpiration(session, 300);
   await sleep(200);
-  session.refresh(300);
+  setExpiration(session, 300);
   await sleep(200);
+
   // total sleep now longer than expiration check period
   expect(Session.getSessions().map((s) => s.sessionID)).toContain(session.sessionID);
+  expect(Session.getByID(session.sessionID)).not.toBeNull();
+
+  await Session.init(db);
+  expect(Session.getSessions().map((s) => s.sessionID)).toContain(session.sessionID);
+  expect(Session.getByID(session.sessionID)).not.toBeNull();
 });
 
 afterAll(async () => {
   stopCheckingExpirations();
   await mutex.unlock();
 });
+
+function setExpiration(session: Session, millis: number) {
+  Session.setTimeoutMillis(millis);
+  Session.upsert(
+    db,
+    session.sessionID,
+    session.userInfo,
+    session.ipAddress,
+    session.expressData
+  );
+}

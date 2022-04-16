@@ -5,7 +5,7 @@
   import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client } from '../stores/client';
-  import { user } from '../stores/user';
+  import { userInfo } from '../stores/user_info';
 
   const APP_TITLE = 'Texas Underground';
   const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
@@ -17,8 +17,7 @@
   async function logout() {
     const res = await $client.get('/apis/auth/logout');
     //setCSRF(null);
-    $user = null;
-    console.log('logged out');
+    $userInfo = null;
     if (res.status == 204) {
       await flashMessage('You have logged out');
     } else {
@@ -32,8 +31,8 @@
     <div class="app_title">{APP_TITLE}</div>
     <div class="user_menu">
       <div>
-        {#if $user}
-          {#if $user.permissions & Permission.Admin}
+        {#if $userInfo}
+          {#if $userInfo.permissions & Permission.Admin}
             <TabSetSelector />
           {/if}
           <button class="btn btn-major" on:click={logout}>Logout</button>

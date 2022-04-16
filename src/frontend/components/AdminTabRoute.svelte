@@ -1,12 +1,12 @@
-<script lang='ts'>
-  import RouteTab, { type Tab } from "./RouteTab.svelte";
+<script lang="ts">
+  import RouteTab, { type Tab } from './RouteTab.svelte';
 
   export let activeTab: string;
 
   const tabs: Tab[] = [
     {
       label: 'Users',
-      route: '/admin'
+      route: '/admin/users'
     },
     {
       label: 'Private Coordinates',
@@ -19,10 +19,10 @@
     {
       label: 'Logs',
       route: '/admin/logs'
-    },
+    }
   ];
 </script>
 
 <RouteTab {tabs} {activeTab}>
-  <slot></slot>
+  <slot />
 </RouteTab>

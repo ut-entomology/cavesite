@@ -65,7 +65,6 @@
     "express": "^4.17.3",
     "express-session": "^1.17.2",
     "helmet": "^5.0.2",
-    "memorystore": "^1.6.7",
     "morgan": "^1.10.0",
     "page": "^1.11.6",
     "pg": "^8.7.3",
