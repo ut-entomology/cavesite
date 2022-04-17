@@ -3,7 +3,7 @@
  * database table. Using the database allows sessions to survive restarting
  * node, which is mainly important for testing and debugging. The design is
  * governed by the need for compatibility with express sessions, and by the
- * fact that only a few users are expected to have login ability.
+ * fact that only a few dozen users are expected to have login ability.
  */
 import type { SessionData as ExpressSessionData } from 'express-session';
 
