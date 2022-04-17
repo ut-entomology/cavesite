@@ -11,10 +11,11 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 
 import { loadAndCheckEnvVars } from './util/env_util';
-import { connectDB } from '../backend/integrations/postgres';
+import { connectDB, getDB } from '../backend/integrations/postgres';
 import * as auth from './apis/auth';
 //import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
 import { SessionStore } from './integrations/session_store';
+import { Session } from './model/session';
 
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
 const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
@@ -86,7 +87,7 @@ app.use((err: any, _req: any, res: any) => {
 
 // Launch server.
 
-(async () => {
+app.listen(port, async () => {
   await connectDB({
     host: process.env.CAVESITE_DB_HOST,
     database: process.env.CAVESITE_DB_NAME,
@@ -94,8 +95,9 @@ app.use((err: any, _req: any, res: any) => {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
-  app.listen(port, () => console.log(`Server listening on port ${port}`));
-})();
+  await Session.init(getDB());
+  console.log(`Server listening on port ${port}`);
+});
 
 // function sessionChecker(req: any, _res: any, next: any) {
 //   console.log(req.session);
