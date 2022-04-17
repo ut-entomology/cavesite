@@ -72,10 +72,12 @@ test('creating, using, and dropping a user', async () => {
     null
   );
   expect(adminUser.lastLoginDate).toBeNull();
+  let readUser = await User.getByID(db, adminUser.userID);
+  expect(readUser?.email).toEqual(adminUser.email);
 
   // Failed authentication.
 
-  let readUser = await User.authenticate(db, email, WRONG_PASSWORD, '<ip>');
+  readUser = await User.authenticate(db, email, WRONG_PASSWORD, '<ip>');
   expect(readUser).toBeNull();
   readUser = await User.getByEmail(db, email);
   expect(readUser?.userID).toEqual(adminUser.userID);
@@ -153,6 +155,8 @@ test('creating, using, and dropping a user', async () => {
     Permission.Edit | Permission.Coords,
     adminUser
   );
+  readUser = await User.getByID(db, secondUser.userID);
+  expect(readUser?.email).toEqual(secondUser.email);
 
   // Add a third user with only coordinate permissions.
 
@@ -223,6 +227,8 @@ test('creating, using, and dropping a user', async () => {
     0,
     adminUser
   );
+  readUser = await User.getByID(db, fifthUser.userID);
+  expect(readUser?.email).toEqual(fifthUser.email);
 
   // Retrieve all users.
 
@@ -238,10 +244,12 @@ test('creating, using, and dropping a user', async () => {
 
   // Drop a user.
 
-  readUser = await User.getByEmail(db, 'no.body@no.where');
-  expect(readUser).not.toBeNull();
+  readUser = await User.getByID(db, thirdUser.userID);
+  expect(readUser?.email).toEqual(thirdUser.email);
   await User.dropByEmail(db, fifthUser.email);
   readUser = await User.getByEmail(db, 'no.body@no.where');
+  expect(readUser).toBeNull();
+  readUser = await User.getByID(db, fifthUser.userID);
   expect(readUser).toBeNull();
 });
 

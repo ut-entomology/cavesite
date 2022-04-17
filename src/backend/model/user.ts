@@ -262,6 +262,11 @@ export class User {
     return result.rows.length > 0 ? new User(toCamelRow(result.rows[0])) : null;
   }
 
+  static async getByID(db: DB, userID: number): Promise<User | null> {
+    const result = await db.query(`select * from users where user_id=$1`, [userID]);
+    return result.rows.length > 0 ? new User(toCamelRow(result.rows[0])) : null;
+  }
+
   static getPasswordStrength(password: string): number {
     return zxcvbn(password).guessesLog10;
   }
