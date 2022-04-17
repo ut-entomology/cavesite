@@ -56,6 +56,10 @@
         <Input id="password" name="password" type="password" />
       </div>
     </div>
+    <div class="info-row">
+      <a href="https://gdpr.eu/cookies/">EPD Notice</a>: This site uses cookies<br />to
+      track login sessions.
+    </div>
     <div class="row g-2">
       <div class="col-12 text-center">
         <button class="btn btn-minor" type="button" on:click={closeDialog}
@@ -65,7 +69,7 @@
       </div>
     </div>
     {#if errorMessage}
-      <div class="error-region">
+      <div class="info-row">
         <div class="alert alert-danger" role="alert">{errorMessage}</div>
       </div>
     {/if}
@@ -80,10 +84,11 @@
 
   button {
     width: 6rem;
-    margin: 1rem 0.5rem 0 0.5rem;
+    margin: 1.5rem 0.5rem 0 0.5rem;
   }
 
-  .error-region {
-    margin-top: 1rem;
+  .info-row {
+    margin-top: 1.5rem;
+    text-align: center;
   }
 </style>

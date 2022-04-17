@@ -45,22 +45,26 @@
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
-    border-bottom: 2px solid $texasRed;
+    border-bottom: 4px solid $texasRed;
   }
 
   span {
     display: block;
-    padding: 0.4rem 1rem;
+    padding: 0.4em 1em 0.35em 1em;
     color: #888;
     cursor: pointer;
+    border-radius: 0.5em 0.5em 0 0;
   }
 
   span:hover {
-    color: $texasRed;
+    color: #fff;
+    background-color: $texasRed;
+    opacity: 0.6;
   }
 
   li.active > span {
-    color: $texasRed;
-    border-bottom: 2px solid $texasRed;
+    color: #fff;
+    background-color: $texasRed;
+    opacity: 1;
   }
 </style>

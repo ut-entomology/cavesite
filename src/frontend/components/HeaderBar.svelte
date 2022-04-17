@@ -51,7 +51,7 @@
   .header_bar {
     flex: 0;
     color: $pageBarTextColor;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0 1rem 0;
   }
 
   .title_row {
