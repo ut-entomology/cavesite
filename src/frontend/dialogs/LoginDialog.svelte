@@ -57,8 +57,8 @@
       </div>
     </div>
     <div class="info-row">
-      <a href="https://gdpr.eu/cookies/">EPD Notice</a>: This site uses cookies<br />to
-      track login sessions.
+      <a href="https://gdpr.eu/cookies/" target="_blank">EPD Notice</a>: This site uses
+      cookies<br />to track login sessions.
     </div>
     <div class="row g-2">
       <div class="col-12 text-center">
