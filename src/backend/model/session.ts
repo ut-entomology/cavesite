@@ -5,44 +5,45 @@
  * governed by the need for compatibility with express sessions, and by the
  * fact that only a few users are expected to have login ability.
  */
+import type { SessionData as ExpressSessionData } from 'express-session';
+
 import { type DB, toCamelRow } from '../integrations/postgres';
 import type { DataOf } from '../util/type_util';
 import { User } from './user';
-import { type UserInfo } from '../../shared/user_auth';
 
 const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
 const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
 
-type SessionData = Omit<DataOf<Session>, 'userInfo'>;
+type SessionData = Omit<DataOf<Session>, 'sessionData'>;
 
 const sessionsByID = new Map<string, Session>();
 let sessionTimeoutMillis = SESSION_TIMEOUT_MILLIS;
 let expirationTimer: NodeJS.Timeout | null = null;
 
 export class Session {
+  userID: number;
   sessionID: string;
-  userInfo: UserInfo;
   createdOn: Date;
   expiresAt!: Date;
   ipAddress: string;
-  // TODO: store this parsed to make session lookups more efficient
-  expressData: string;
+  sessionData: ExpressSessionData; // includes userInfo
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  private constructor(data: SessionData, userInfo: UserInfo) {
-    this.sessionID = data.sessionID;
-    this.userInfo = userInfo;
-    this.createdOn = data.createdOn;
-    this.expiresAt = data.expiresAt;
-    this.ipAddress = data.ipAddress;
-    this.expressData = data.expressData;
+  private constructor(info: SessionData, sessionData: ExpressSessionData) {
+    this.userID = info.userID;
+    this.sessionID = info.sessionID;
+    this.createdOn = info.createdOn;
+    this.expiresAt = info.expiresAt;
+    this.ipAddress = info.ipAddress;
+    this.sessionData = sessionData;
   }
 
-  /// PUBLIC CLASS METHODS ///////////////////////////////////////////////////
+  //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
   /**
-   * Initializes the in-memory session cache from the database.
+   * Initializes the in-memory session cache from the database. Users will
+   * likely only number in the dozens, limiting the number of sessions.
    */
   static async init(db: DB) {
     // Clear cache so that tests can repeatedly call init().
@@ -63,10 +64,10 @@ export class Session {
     for (const row of result.rows) {
       const user = usersByID[row.user_id];
       if (user) {
-        const session = new Session(toCamelRow(row), user);
+        const expressSessionData = JSON.parse(row.session_data);
+        Session.setUserInfo(expressSessionData, user);
+        const session = new Session(toCamelRow(row), expressSessionData);
         sessionsByID.set(session.sessionID, session);
-      } else {
-        console.log('dropped session ID', row.session_id);
       }
     }
 
@@ -76,41 +77,46 @@ export class Session {
   }
 
   /**
-   * Creates or refresh a session for a logged-in user.
+   * Creates or refresh a session for a logged-in user. `expressSessionData`
+   * must contain a populated `userInfo` property, along with any properties
+   * assigned by express middleware.
    */
   static async upsert(
     db: DB,
     sessionID: string,
-    userInfo: UserInfo,
-    ipAddress: string,
-    expressData: string
+    expressSessionData: ExpressSessionData
   ): Promise<Session> {
+    // Remove userInfo from a copy of expressSessionData so we don't store it.
+    const userInfo = expressSessionData.userInfo;
+    const userlessSessionData = Object.assign({}, expressSessionData) as any;
+    delete userlessSessionData['userInfo'];
+
     let session = Session.getByID(sessionID);
     if (session) {
       session.expiresAt = Session._getNewExpiration();
       await db.query(
-        `update sessions set expires_at=$1, express_data=$2 where session_id=$3`,
+        `update sessions set expires_at=$1, session_data=$2 where session_id=$3`,
         [
           // @ts-ignore
           session.expiresAt,
-          session.expressData,
+          JSON.stringify(userlessSessionData),
           sessionID
         ]
       );
     } else {
       session = new Session(
         {
+          userID: userInfo.userID,
           sessionID,
           createdOn: new Date(),
           expiresAt: Session._getNewExpiration(),
-          ipAddress,
-          expressData
+          ipAddress: expressSessionData.ipAddress
         },
-        userInfo
+        expressSessionData
       );
       const result = await db.query(
         `insert into sessions (
-            session_id, user_id, created_on, expires_at, ip_address, express_data
+            session_id, user_id, created_on, expires_at, ip_address, session_data
           ) values($1, $2, $3, $4, $5, $6)`,
         [
           sessionID,
@@ -119,8 +125,8 @@ export class Session {
           session.createdOn,
           // @ts-ignore
           session.expiresAt,
-          ipAddress,
-          expressData
+          expressSessionData.ipAddress,
+          JSON.stringify(userlessSessionData)
         ]
       );
       if (result.rowCount != 1) {
@@ -146,7 +152,7 @@ export class Session {
    */
   static async dropUser(db: DB, userID: number) {
     for (const session of Array.from(sessionsByID.values())) {
-      if (session.userInfo.userID == userID) {
+      if (session.userID == userID) {
         sessionsByID.delete(session.sessionID);
       }
     }
@@ -168,10 +174,37 @@ export class Session {
   }
 
   /**
+   * Refresh sessions for new user information.
+   */
+  static refreshUserInfo(user: User) {
+    for (const session of Array.from(sessionsByID.values())) {
+      if (session.userID == user.userID) {
+        Session.setUserInfo(session.sessionData, user);
+      }
+    }
+  }
+
+  /**
    * Set timeout milliseconds to something other than the default.
    */
   static setTimeoutMillis(millis: number) {
     sessionTimeoutMillis = millis;
+  }
+
+  /**
+   * Assign user information to the provide express session data.
+   */
+  static setUserInfo(expressSessionData: ExpressSessionData, user: User): void {
+    expressSessionData.userInfo = {
+      userID: user.userID,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      affiliation: user.affiliation,
+      permissions: user.permissions,
+      lastLoginDate: user.lastLoginDate,
+      lastLoginIP: user.lastLoginIP
+    };
   }
 
   //// PRIVATE CLASS METHODS /////////////////////////////////////////////////

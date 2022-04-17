@@ -44,7 +44,7 @@ create table sessions (
     created_on timestamptz not null,
     expires_at timestamptz not null,
     ip_address text not null,
-    express_data text not null
+    session_data text not null
 );
 create index on sessions(user_id);
 create index on sessions(expires_at);

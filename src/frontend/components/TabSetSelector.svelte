@@ -5,15 +5,7 @@
 
   let selection = 'data';
 
-  $: {
-    if (selection == 'admin') {
-      console.log('admin');
-      page('/admin/users');
-    } else {
-      console.log('data');
-      page('/taxa');
-    }
-  }
+  $: page(selection == 'admin' ? '/admin/users' : '/taxa');
 </script>
 
 <div class="btn-group" role="group" aria-label="Switch between data and admin tabs">

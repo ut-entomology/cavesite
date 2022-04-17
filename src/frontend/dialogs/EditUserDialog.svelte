@@ -14,7 +14,7 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { Permission } from '../model/user';
+  import { Permission } from '../../shared/user_auth';
 
   export let title: string;
   export let submitLabel: string;
@@ -27,8 +27,8 @@
     Edit = 'edit',
     Admin = 'admin'
   }
-  type FormUserInfo = UserInfo & { accessLevel: AccessLevel; };
-  
+  type FormUserInfo = UserInfo & { accessLevel: AccessLevel };
+
   let creatingUser = false;
   if (!userInfo) {
     creatingUser = true;
@@ -38,7 +38,7 @@
       affiliation: '',
       email: '',
       permissions: 0
-    }
+    };
   }
   let accessLevel = AccessLevel.None;
   if (userInfo.permissions & Permission.Admin) {
@@ -48,7 +48,7 @@
   } else if (userInfo.permissions & Permission.Coords) {
     accessLevel = AccessLevel.Coords;
   }
-  const formUserInfo: FormUserInfo = Object.assign({accessLevel}, userInfo);
+  const formUserInfo: FormUserInfo = Object.assign({ accessLevel }, userInfo);
 
   let errorMessage = '';
 
@@ -59,7 +59,7 @@
       lastName: yup.string().trim().required().label('Last Name'),
       affiliation: yup.string().trim().label('Affiliation'),
       email: yup.string().trim().email().required().label('Email'),
-      accessLevel: yup.string().required().label('Access Level'),
+      accessLevel: yup.string().required().label('Access Level')
     }),
     onSubmit: async (values) => {
       let permissions = 0;
@@ -70,7 +70,7 @@
       } else if (values.accessLevel == AccessLevel.Coords) {
         permissions = Permission.Coords;
       }
-      let newUserInfo: UserInfo = Object.assign({permissions}, values);
+      let newUserInfo: UserInfo = Object.assign({ permissions }, values);
       try {
         if (creatingUser) {
           await createUser(newUserInfo);
@@ -141,20 +141,19 @@
         <label for="accessLevel" class="col-form-label">Access Level</label>
       </div>
       <div class="col-sm-7">
-        <select
-        id="accessLevel"
-        name="accessLevel"
-      >
-        <option value="none">None (account disabled)</option>
-        <option value="coords">See Private Coordinates</option>
-        <option value="edit">Edit Private Coordiates</option>
-        <option value="admin">Administration</option>
-      </select>
-</div>
+        <select id="accessLevel" name="accessLevel">
+          <option value="none">None (account disabled)</option>
+          <option value="coords">See Private Coordinates</option>
+          <option value="edit">Edit Private Coordiates</option>
+          <option value="admin">Administration</option>
+        </select>
+      </div>
     </div>
     <div class="row g-2">
       <div class="col-12 text-center">
-        <button class="btn btn-minor" type="button" on:click={closeDialog}>Cancel</button>
+        <button class="btn btn-minor" type="button" on:click={closeDialog}
+          >Cancel</button
+        >
         <button class="btn btn-major" type="submit">{submitLabel}</button>
       </div>
     </div>

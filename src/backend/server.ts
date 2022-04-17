@@ -57,7 +57,7 @@ app.use(
     cookie: { secure: !devMode, sameSite: true, maxAge: maxSessionLengthMillis }
   })
 );
-app.use(sessionChecker);
+//app.use(sessionChecker);
 
 // Set up application routes.
 
@@ -97,14 +97,7 @@ app.use((err: any, _req: any, res: any) => {
   app.listen(port, () => console.log(`Server listening on port ${port}`));
 })();
 
-function sessionChecker(req: any, _res: any, next: any) {
-  if (req.session) {
-    console.log(
-      '**** userInfo?',
-      !!req.session.userInfo,
-      'cookie?',
-      !!req.session.cookie
-    );
-  }
-  next();
-}
+// function sessionChecker(req: any, _res: any, next: any) {
+//   console.log(req.session);
+//   next();
+// }
