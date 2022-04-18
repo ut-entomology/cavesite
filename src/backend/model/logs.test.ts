@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import type { Log } from './logs';
-import { LogType, Logs } from './logs';
+import { LogType, Logs, MAX_LOG_LENGTH } from './logs';
 
 const mutex = new DatabaseMutex();
 let db: DB;
@@ -53,6 +53,25 @@ test('creating, reading, and clearing logs', async () => {
   await Logs.clear(db, getNowDate());
   logs = await Logs.getBeforeTime(db, getNowDate(), 100);
   expect(logs.length).toEqual(0);
+
+  // Verify that log lines get truncated to maximum length.
+
+  const longLine = 'x'.repeat(MAX_LOG_LENGTH + 1);
+  await Logs.post(db, LogType.Server, null, longLine);
+  logs = await Logs.getBeforeID(db, 22, 0);
+  verifyLogs(
+    logs,
+    [
+      {
+        id: 21,
+        timestamp: new Date(), // ignored
+        type: LogType.Server,
+        tag: null,
+        line: 'x'.repeat(MAX_LOG_LENGTH - 3) + '...'
+      }
+    ],
+    10
+  );
 });
 
 afterAll(async () => {

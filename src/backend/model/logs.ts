@@ -4,10 +4,12 @@
 
 import type { DB } from '../integrations/postgres';
 
-// TODO: Add support for database errors
+export const MAX_LOG_LENGTH = 2048; // VARCHAR (2048)
+
 export enum LogType {
   User = 'user',
-  Import = 'import'
+  Import = 'import',
+  Server = 'server'
 }
 
 export interface Log {
@@ -15,12 +17,20 @@ export interface Log {
   id: number;
   timestamp: Date;
   type: LogType;
-  tag: string;
+  tag: string | null;
   line: string;
 }
 
 export class Logs {
-  static async post(db: DB, type: LogType, tag: string, line: string): Promise<number> {
+  static async post(
+    db: DB,
+    type: LogType,
+    tag: string | null,
+    line: string
+  ): Promise<number> {
+    if (line.length > MAX_LOG_LENGTH) {
+      line = line.substring(0, MAX_LOG_LENGTH - 3) + '...';
+    }
     const result = await db.query(
       `insert into logs(type, tag, line) values ($1, $2, $3) returning id`,
       [type, tag, line]

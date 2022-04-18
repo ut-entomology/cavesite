@@ -180,7 +180,7 @@ create table logs (
     id serial primary key,
     timestamp timestamptz not null default now(),
     type varchar (16) not null,
-    tag varchar (64) not null,
+    tag varchar (64),
     line varchar (2048) not null
 );
 create index on logs(timestamp);
