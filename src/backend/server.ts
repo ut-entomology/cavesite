@@ -9,6 +9,7 @@ import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 
 import { loadAndCheckEnvVars } from './util/env_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
@@ -66,8 +67,8 @@ app.use(
 app.use(express.static(PUBLIC_FILE_DIR));
 app.use('/apis/auth', auth.router);
 app.use('/apis/*', (_req, _res, next) => {
-  const err = Error('Not found') as any;
-  err.status = 404;
+  const err = Error(ReasonPhrases.NOT_FOUND) as any;
+  err.status = StatusCodes.NOT_FOUND;
   next(err);
 });
 app.use('*', (_req, res) => {
@@ -75,13 +76,13 @@ app.use('*', (_req, res) => {
 });
 app.use(async (err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
-    return res.status(403).send('detected tampering');
+    return res.status(StatusCodes.FORBIDDEN).send('detected tampering');
   }
   await Logs.post(getDB(), LogType.Server, 'error', err.toString());
-  res.status(err.status || 500).send({
+  res.status(err.status || StatusCodes.INTERNAL_SERVER_ERROR).send({
     error: {
-      status: err.status || 500,
-      message: err.message || 'Internal Server Error'
+      status: err.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      message: err.message || ReasonPhrases.INTERNAL_SERVER_ERROR
     }
   });
 });
