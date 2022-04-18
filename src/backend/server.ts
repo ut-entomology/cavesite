@@ -12,10 +12,11 @@ import cookieParser from 'cookie-parser';
 
 import { loadAndCheckEnvVars } from './util/env_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
-import * as auth from './apis/auth';
+import * as auth from './apis/auth_api';
 //import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
 import { SessionStore } from './integrations/session_store';
 import { Session } from './model/session';
+import { LogType, Logs } from './model/logs';
 
 const MAX_SESSION_LENGTH_MINS = 2 * 60;
 const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
@@ -32,11 +33,11 @@ const maxSessionLengthMillis = MAX_SESSION_LENGTH_MINS * 60000;
 
 const app = express();
 app.use(
-  morgan('combined', {
+  morgan('common', {
     stream: createStream('access.log', {
       interval: '7d',
       path: process.env.CAVESITE_LOG_DIR,
-      maxFiles: 16
+      maxFiles: 12
     })
   })
 );
@@ -72,11 +73,11 @@ app.use('/apis/*', (_req, _res, next) => {
 app.use('*', (_req, res) => {
   res.sendFile(SPA_INDEX_FILE);
 });
-app.use((err: any, _req: any, res: any) => {
+app.use(async (err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
     return res.status(403).send('detected tampering');
   }
-  // TODO: Log this error
+  await Logs.post(getDB(), LogType.Server, 'error', err.toString());
   res.status(err.status || 500).send({
     error: {
       status: err.status || 500,
