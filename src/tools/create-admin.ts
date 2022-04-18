@@ -19,6 +19,7 @@ while (password == null && tries < 3) {
   password = readlineSync.question('Password: ', { hideEchoBack: true });
   let confirm = readlineSync.question('Confirm password: ', { hideEchoBack: true });
   if (confirm != password) {
+    console.log('The passwords are different. Please try again...');
     password = null;
     ++tries;
   }
