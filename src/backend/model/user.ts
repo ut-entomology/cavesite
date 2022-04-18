@@ -271,8 +271,8 @@ export class User {
     return user;
   }
 
-  static async dropByEmail(db: DB, email: string): Promise<void> {
-    const result = await db.query(`delete from users where email=$1`, [email]);
+  static async dropByID(db: DB, userID: number): Promise<void> {
+    const result = await db.query(`delete from users where user_id=$1`, [userID]);
     if (result.rowCount != 1) {
       throw new UserError(`User not found`);
     }

@@ -41,7 +41,7 @@ test('non-existant users', async () => {
   user = await User.getByEmail(db, 'no@one.there');
   expect(user).toBeNull();
 
-  await expect(() => User.dropByEmail(db, 'no@one.there')).rejects.toThrow(
+  await expect(() => User.dropByID(db, 1000)).rejects.toThrow(
     new UserError('User not found')
   );
 });
@@ -246,7 +246,7 @@ test('creating, using, and dropping a user', async () => {
 
   readUser = await User.getByID(db, thirdUser.userID);
   expect(readUser?.email).toEqual(thirdUser.email);
-  await User.dropByEmail(db, fifthUser.email);
+  await User.dropByID(db, fifthUser.userID);
   readUser = await User.getByEmail(db, 'no.body@no.where');
   expect(readUser).toBeNull();
   readUser = await User.getByID(db, fifthUser.userID);
