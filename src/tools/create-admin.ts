@@ -13,7 +13,20 @@ let firstName = readlineSync.question(`User first name: `).trim();
 let lastName = readlineSync.question(`User last name: `).trim();
 let email = readlineSync.question(`Email address: `).trim();
 let affiliation = readlineSync.question(`Affiliation (none): `).trim();
-let password = readlineSync.question('Password: ', { hideEchoBack: true });
+let password: string | null = null;
+let tries = 0;
+while (password == null && tries < 3) {
+  password = readlineSync.question('Password: ', { hideEchoBack: true });
+  let confirm = readlineSync.question('Confirm password: ', { hideEchoBack: true });
+  if (confirm != password) {
+    password = null;
+    ++tries;
+  }
+}
+if (password == null) {
+  console.log('\nNo user created.\n');
+  process.exit(0);
+}
 
 (async () => {
   await createAdmin();
@@ -35,7 +48,7 @@ async function createAdmin() {
       lastName,
       email,
       affiliation != '' ? affiliation : null,
-      password,
+      password!,
       Permission.Admin | Permission.Edit | Permission.Coords,
       null
     );
