@@ -17,3 +17,8 @@ export interface UserInfo {
   lastLoginDate: Date | null;
   lastLoginIP: string | null;
 }
+
+export interface AdminUserInfo extends UserInfo {
+  createdOn: Date;
+  createdBy: number | null;
+}

@@ -1,3 +1,23 @@
+import { type Request } from 'express';
+
+import { Permission } from '../../shared/user_auth';
+
+/**
+ * Express middleware limiting access to logged in users with all of
+ * the provided permissions.
+ */
+export function requirePermissions(permissions: Permission) {
+  return (req: Request<void, any, void>, res: any, next: any) => {
+    if (
+      !req.session.userInfo ||
+      (req.session.userInfo.permissions & permissions) != permissions
+    ) {
+      return res.status(403).send();
+    }
+    next();
+  };
+}
+
 /**
  * Translates a base64 string into a string that is safe for HTTP headers.
  * In particular, it strips any trailing equals signs, which only serve as
