@@ -131,6 +131,10 @@
 
   // Buttons
 
+  .btn-group label {
+    padding: 0.1rem 0.7rem;
+  }
+
   button.btn-major,
   button.btn-minor {
     color: $blueLinkColor;

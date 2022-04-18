@@ -72,4 +72,7 @@
   .user_menu {
     padding-top: 0.3rem;
   }
+  .user_menu :global(.btn-group) {
+    margin-right: 1rem;
+  }
 </style>
