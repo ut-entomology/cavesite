@@ -1,11 +1,9 @@
 import { type Request } from 'express';
-import { type SessionData } from 'express-session';
 
 import { getDB } from '../integrations/postgres';
 import { Router } from 'express';
 
 import { User } from '../model/user';
-import { Session } from '../model/session';
 
 type LoginParams = {
   email: string;
@@ -29,7 +27,7 @@ router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
     return res.status(401).json({ message: 'Incorrect email or password' });
   }
 
-  Session.setUserInfo(req.session as SessionData, user);
+  req.session.userInfo = user.toUserInfo();
   req.session.ipAddress = req.ip;
   return res.status(200).send(req.session.userInfo);
 });
