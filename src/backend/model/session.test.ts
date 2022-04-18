@@ -194,9 +194,12 @@ afterAll(async () => {
 });
 
 function sessionData(cookie: string, user: User, ipAddress: string): SessionData {
-  const info = { cookie, ipAddress } as any;
-  Session.setUserInfo(info, user);
-  return info;
+  return {
+    userInfo: user.toUserInfo(),
+    ipAddress,
+    // @ts-ignore
+    cookie
+  };
 }
 
 function setExpiration(session: Session, millis: number) {

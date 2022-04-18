@@ -65,7 +65,7 @@ export class Session {
       const user = usersByID[row.user_id];
       if (user) {
         const expressSessionData = JSON.parse(row.session_data);
-        Session.setUserInfo(expressSessionData, user);
+        expressSessionData.userInfo = user.toUserInfo();
         const session = new Session(toCamelRow(row), expressSessionData);
         sessionsByID.set(session.sessionID, session);
       }
@@ -179,7 +179,7 @@ export class Session {
   static refreshUserInfo(user: User) {
     for (const session of Array.from(sessionsByID.values())) {
       if (session.userID == user.userID) {
-        Session.setUserInfo(session.sessionData, user);
+        session.sessionData.userInfo = user.toUserInfo();
       }
     }
   }
@@ -189,22 +189,6 @@ export class Session {
    */
   static setTimeoutMillis(millis: number) {
     sessionTimeoutMillis = millis;
-  }
-
-  /**
-   * Assign user information to the provide express session data.
-   */
-  static setUserInfo(expressSessionData: ExpressSessionData, user: User): void {
-    expressSessionData.userInfo = {
-      userID: user.userID,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      affiliation: user.affiliation,
-      permissions: user.permissions,
-      lastLoginDate: user.lastLoginDate,
-      lastLoginIP: user.lastLoginIP
-    };
   }
 
   //// PRIVATE CLASS METHODS /////////////////////////////////////////////////

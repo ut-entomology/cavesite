@@ -12,7 +12,7 @@ import {
   UserError,
   ValidationError
 } from '../../shared/validation';
-import { Permission } from '../../shared/user_auth';
+import { Permission, type UserInfo, type AdminUserInfo } from '../../shared/user_auth';
 
 const PASSWORD_HASH_LENGTH = 64;
 
@@ -133,6 +133,28 @@ export class User {
         resolve();
       });
     });
+  }
+
+  // safe method for creating user information to client
+  toAdminUserInfo(): AdminUserInfo {
+    const userInfo = this.toUserInfo() as AdminUserInfo;
+    userInfo.createdBy = this.createdBy;
+    userInfo.createdOn = this.createdOn;
+    return userInfo;
+  }
+
+  // safe method for creating user information to client
+  toUserInfo(): UserInfo {
+    return {
+      userID: this.userID,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      affiliation: this.affiliation,
+      permissions: this.permissions,
+      lastLoginDate: this.lastLoginDate,
+      lastLoginIP: this.lastLoginIP
+    };
   }
 
   async verifyPassword(password: string): Promise<boolean> {
