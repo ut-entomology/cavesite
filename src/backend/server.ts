@@ -13,8 +13,8 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 
 import { loadAndCheckEnvVars } from './util/env_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
-import * as auth from './apis/auth_api';
-//import { CSRF_TOKEN_HEADER } from '../shared/user_auth';
+import { router as authApi } from './apis/auth_api';
+import { router as userApi } from './apis/user_api';
 import { SessionStore } from './integrations/session_store';
 import { Session } from './model/session';
 import { LogType, Logs } from './model/logs';
@@ -65,8 +65,9 @@ app.use(
 // Set up application routes.
 
 app.use(express.static(PUBLIC_FILE_DIR));
-app.use('/apis/auth', auth.router);
-app.use('/apis/*', (_req, _res, next) => {
+app.use('/api/auth', authApi);
+app.use('/api/user', userApi);
+app.use('/api/*', (_req, _res, next) => {
   const err = Error(ReasonPhrases.NOT_FOUND) as any;
   err.status = StatusCodes.NOT_FOUND;
   next(err);

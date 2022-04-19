@@ -1,3 +1,16 @@
+<script lang="ts" context="module">
+  // Useful with argument expansion.
+  export interface ConfirmationDetails {
+    alert?: string;
+    header?: string;
+    message: string;
+    okayButton: string;
+    cancelButton?: string;
+    onOkay: () => any;
+    onCancel: () => any;
+  }
+</script>
+
 <script lang="ts">
   import Toast from './toast/Toast.svelte';
   import ToastHeader from './toast/Toast.svelte';

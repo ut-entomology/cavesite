@@ -1,25 +1,14 @@
-<script lang="ts" context="module">
-  export interface UserInfo {
-    firstName: string;
-    lastName: string;
-    affiliation: string | null;
-    email: string;
-    permissions: number;
-  }
-</script>
-
 <script lang="ts">
+  import { StatusCodes, getReasonPhrase } from 'http-status-codes';
+
   import * as yup from 'yup';
   import { createForm, ContextForm, Input } from '../common/forms';
-  import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { Permission } from '../../shared/user_auth';
-
-  export let title: string;
-  export let submitLabel: string;
-  export let userInfo: UserInfo | null;
-  export let onSuccess: () => void = () => {};
+  import { Permission, UserInfo, AdminUserInfo } from '../../shared/user_auth';
+  import { client } from '../stores/client';
+  import { flashMessage } from '../common/VariableFlash.svelte';
+  import { showNotice } from '../common/VariableNotice.svelte';
 
   enum AccessLevel {
     None = 'none',
@@ -27,11 +16,23 @@
     Edit = 'edit',
     Admin = 'admin'
   }
-  type FormUserInfo = UserInfo & { accessLevel: AccessLevel };
+  type EditableInfo = Omit<UserInfo, 'userID' | 'lastLoginDate' | 'lastLoginIP'>;
+  type FormUserInfo = EditableInfo & { accessLevel: AccessLevel };
+
+  export let userInfo: EditableInfo | null;
+  export let onSuccess: (user: AdminUserInfo) => void = () => {};
 
   let creatingUser = false;
+  let title = 'Edit User';
+  let submitLabel = 'Update';
+  let accessLevel = AccessLevel.None;
+  let errorMessage = '';
+
   if (!userInfo) {
     creatingUser = true;
+    title = 'Add User';
+    submitLabel = 'Add';
+
     userInfo = {
       firstName: '',
       lastName: '',
@@ -40,7 +41,6 @@
       permissions: 0
     };
   }
-  let accessLevel = AccessLevel.None;
   if (userInfo.permissions & Permission.Admin) {
     accessLevel = AccessLevel.Admin;
   } else if (userInfo.permissions & Permission.Edit) {
@@ -49,8 +49,6 @@
     accessLevel = AccessLevel.Coords;
   }
   const formUserInfo: FormUserInfo = Object.assign({ accessLevel }, userInfo);
-
-  let errorMessage = '';
 
   const context = createForm({
     initialValues: formUserInfo,
@@ -70,12 +68,12 @@
       } else if (values.accessLevel == AccessLevel.Coords) {
         permissions = Permission.Coords;
       }
-      let newUserInfo: UserInfo = Object.assign({ permissions }, values);
+      let newInfo: EditableInfo = Object.assign({ permissions }, values);
       try {
         if (creatingUser) {
-          await createUser(newUserInfo);
+          await createUser(newInfo);
         } else {
-          await updateUser(newUserInfo);
+          await updateUser(newInfo);
         }
       } catch (err) {
         errorMessage = (err as Error).message;
@@ -83,18 +81,34 @@
     }
   });
 
-  async function createUser(_userInfo: UserInfo) {
-    // TODO: create user
-    closeDialog();
-    await flashMessage('User created');
-    onSuccess();
+  async function createUser(userInfo: EditableInfo) {
+    const res = await $client.post('/api/user/add', userInfo);
+    if (res.status == StatusCodes.OK) {
+      await flashMessage('Created user');
+      closeDialog();
+      onSuccess(res.data);
+    } else {
+      showNotice(
+        `Failed to add user<br/><br/>` + getReasonPhrase(res.status),
+        'Error',
+        'danger'
+      );
+    }
   }
 
-  async function updateUser(_userInfo: UserInfo) {
-    // TODO: create user
-    closeDialog();
-    await flashMessage('User updated');
-    onSuccess();
+  async function updateUser(_userInfo: EditableInfo) {
+    const res = await $client.post('/api/user/update', userInfo);
+    if (res.status == StatusCodes.OK) {
+      await flashMessage('Updated user');
+      closeDialog();
+      onSuccess(res.data);
+    } else {
+      showNotice(
+        `Failed to update user<br/><br/>` + getReasonPhrase(res.status),
+        'Error',
+        'danger'
+      );
+    }
   }
 
   const closeDialog = () => {

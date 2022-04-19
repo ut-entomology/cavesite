@@ -280,6 +280,19 @@ export class User {
     }
   }
 
+  static generatePassword(length: number): string {
+    let charSet = 'abcdefghijklmnopqrstuvwxyz';
+    charSet += charSet.toUpperCase() + '0123456789!-.?#$%&/';
+    let password;
+    do {
+      password = '';
+      while (password.length < length) {
+        password += charSet[Math.floor(Math.random() * charSet.length)];
+      }
+    } while (User.getPasswordStrength(password) < MIN_PASSWORD_STRENGTH);
+    return password;
+  }
+
   static async getByEmail(db: DB, email: string): Promise<User | null> {
     email = this._normalizeEmail(email);
     const result = await db.query(`select * from users where email=$1`, [email]);

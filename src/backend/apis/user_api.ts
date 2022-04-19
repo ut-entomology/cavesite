@@ -12,7 +12,38 @@ import { Session } from '../model/session';
 
 export const router = Router();
 
+const GENERATED_PASSWORD_LENGTH = 10; // characters
+
 router.use(requirePermissions(Permission.Admin));
+
+router.post('/add', async (req: Request<void, any, { user: UserInfo }>, res) => {
+  const userInfo = req.body.user;
+  const password = User.generatePassword(GENERATED_PASSWORD_LENGTH);
+  console.log(`**** Generated password '${password}' for ${userInfo.email}`);
+  const user = await User.create(
+    getDB(),
+    userInfo.firstName,
+    userInfo.lastName,
+    userInfo.email,
+    userInfo.affiliation,
+    password,
+    userInfo.permissions,
+    null
+  );
+  // TODO: email credentials
+  return res.status(StatusCodes.OK).send(user.toAdminUserInfo());
+});
+
+router.post('/drop', async (req: Request<void, any, { userID: number }>, res) => {
+  const userID = req.body.userID;
+  if (req.session.userInfo!.userID == userID) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: `Can't delete yourself` });
+  }
+  await User.dropByID(getDB(), userID);
+  return res.status(StatusCodes.NO_CONTENT).send();
+});
 
 router.post('/get_all', async (_req: Request<void, any, void>, res) => {
   const users = await User.getUsers(getDB());
@@ -38,16 +69,5 @@ router.post('/update', async (req: Request<void, any, UserInfo>, res) => {
   user.permissions = body.permissions;
   await user.save(getDB());
   Session.refreshUserInfo(user);
-  return res.status(StatusCodes.NO_CONTENT).send();
-});
-
-router.post('/drop', async (req: Request<void, any, { userID: number }>, res) => {
-  const userID = req.body.userID;
-  if (req.session.userInfo!.userID == userID) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .send({ message: `Can't delete yourself` });
-  }
-  await User.dropByID(getDB(), userID);
   return res.status(StatusCodes.NO_CONTENT).send();
 });
