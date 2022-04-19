@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w",
-    "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps ./build/backend/server.js",
+    "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps --watch ./build ./build/backend/server.js",
     "test": "jest",
     "check": "svelte-check --tsconfig ./src/frontend/tsconfig.json",
     "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
