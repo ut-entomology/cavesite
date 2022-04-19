@@ -54,7 +54,7 @@ app.use(
     store: new SessionStore(),
     // @ts-ignore
     max: 32000,
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     secret: process.env.CAVESITE_SESSION_KEY!,
     cookie: { secure: !devMode, sameSite: true, maxAge: maxSessionLengthMillis }
