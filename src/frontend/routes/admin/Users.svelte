@@ -176,7 +176,7 @@
               <div class="col-3 text-end">Last Login:</div>
               <div class="col-9">
                 {#if user.lastLoginDate}
-                  {user.lastLoginDate.toLocaleString()} from IP {user.lastLoginIP}
+                  {user.lastLoginDate.toLocaleString()} <i>from</i> IP {user.lastLoginIP}
                 {:else}
                   user has not yet logged in
                 {/if}
@@ -185,9 +185,8 @@
             <div class="row gx-3 mb-1">
               <div class="col-3 text-end">Created:</div>
               <div class="col-9">
-                {user.createdOn.toLocaleString()} by {user.createdByName
-                  ? user.createdByName
-                  : 'the create-admin tool'}
+                {user.createdOn.toLocaleString()} <i>by</i>
+                {user.createdByName ? user.createdByName : 'the create-admin tool'}
               </div>
             </div>
             <div class="row gx-3 mt-3 mb-3 justify-content-center">
