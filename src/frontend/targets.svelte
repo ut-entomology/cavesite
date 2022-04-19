@@ -2,9 +2,11 @@
   import type { SvelteComponent } from 'svelte';
 
   import LoginDialog from './dialogs/LoginDialog.svelte';
+  import EditUserDialog from './dialogs/EditUserDialog.svelte';
 
   const targetMap: Record<string, typeof SvelteComponent> = {
-    LoginDialog
+    LoginDialog,
+    EditUserDialog
   };
 
   export function toSvelteTarget(targetName: string): typeof SvelteComponent {
