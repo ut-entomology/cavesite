@@ -1,4 +1,6 @@
 <script lang="ts">
+  import page from 'page';
+
   import { Permission } from '../../shared/user_auth';
   import { DialogSpec } from '../common/VariableDialog.svelte';
   import { flashMessage } from '../common/VariableFlash.svelte';
@@ -19,7 +21,7 @@
     //setCSRF(null);
     $userInfo = null;
     if (res.status == 204) {
-      await flashMessage('You have logged out');
+      page('/');
     } else {
       await flashMessage(`Error ${res.status} logging out`);
     }
