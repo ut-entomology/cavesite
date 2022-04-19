@@ -168,45 +168,43 @@
             <div class="col-auto">{@html toUserDescription(user, true, false)}</div>
           </div>
           {#if expanded}
-            <div class="expanded">
-              <div class="row gx-3 mb-1">
-                <div class="col-3 text-end">Email:</div>
-                <div class="col-9">{user.email}</div>
+            <div class="row gx-3 mb-1">
+              <div class="col-3 text-end">Email:</div>
+              <div class="col-9">{user.email}</div>
+            </div>
+            <div class="row gx-3 mb-1">
+              <div class="col-3 text-end">Last Login:</div>
+              <div class="col-9">
+                {#if user.lastLoginDate}
+                  {user.lastLoginDate.toLocaleString()} from IP {user.lastLoginIP}
+                {:else}
+                  user has not yet logged in
+                {/if}
               </div>
-              <div class="row gx-3 mb-1">
-                <div class="col-3 text-end">Last Login:</div>
-                <div class="col-9">
-                  {#if user.lastLoginDate}
-                    {user.lastLoginDate.toLocaleString()} from IP {user.lastLoginIP}
-                  {:else}
-                    user has not yet logged in
-                  {/if}
-                </div>
+            </div>
+            <div class="row gx-3 mb-1">
+              <div class="col-3 text-end">Created:</div>
+              <div class="col-9">
+                {user.createdOn.toLocaleString()} by {user.createdByName
+                  ? user.createdByName
+                  : 'the create-admin tool'}
               </div>
-              <div class="row gx-3 mb-1">
-                <div class="col-3 text-end">Created:</div>
-                <div class="col-9">
-                  {user.createdOn.toLocaleString()} by {user.createdByName
-                    ? user.createdByName
-                    : 'the create-admin tool'}
-                </div>
+            </div>
+            <div class="row gx-3 mt-3 mb-3 justify-content-center">
+              <div class="col-auto">
+                <button class="btn btn-major" on:click={() => editUser(user)}
+                  >Edit</button
+                >
               </div>
-              <div class="row gx-3 mt-3 mb-3 justify-content-center">
-                <div class="col-auto">
-                  <button class="btn btn-major" on:click={() => editUser(user)}
-                    >Edit</button
-                  >
-                </div>
-                <div class="col-auto">
-                  <button class="btn btn-minor" on:click={() => resetPassword(user)}
-                    >Reset Password</button
-                  >
-                </div>
-                <div class="col-auto">
-                  <button class="btn btn-minor" on:click={() => dropUser(user)}
-                    >Drop</button
-                  >
-                </div>
+              <div class="col-auto">
+                <button class="btn btn-minor" on:click={() => resetPassword(user)}
+                  >Reset Password</button
+                >
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-minor" on:click={() => dropUser(user)}
+                  >Drop</button
+                >
               </div>
             </div>
           {/if}
@@ -228,7 +226,7 @@
 
   .general_buttons {
     text-align: right;
-    margin: 1rem 0;
+    margin: 1rem 0 0.5rem 0;
   }
 
   .selectable {
