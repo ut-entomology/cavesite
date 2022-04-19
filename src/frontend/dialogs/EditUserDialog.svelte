@@ -117,7 +117,7 @@
 </script>
 
 <ModalDialog {title} contentClasses="login-form-content">
-  <ContextForm class="container g-0" {context}>
+  <ContextForm class="container-fluid g-0" {context}>
     <div class="row mb-2 justify-content-center">
       <div class="col-sm-3">
         <label for="firstName" class="col-form-label">First Name</label>
@@ -155,7 +155,7 @@
         <label for="accessLevel" class="col-form-label">Access Level</label>
       </div>
       <div class="col-sm-7">
-        <select id="accessLevel" name="accessLevel">
+        <select id="accessLevel" name="accessLevel" class="form-select">
           <option value="none">None (account disabled)</option>
           <option value="coords">See Private Coordinates</option>
           <option value="edit">Edit Private Coordiates</option>
@@ -182,7 +182,7 @@
 <style>
   :global(.login-form-content) {
     margin: 0 auto;
-    max-width: 28rem;
+    max-width: 36rem;
   }
 
   button {
