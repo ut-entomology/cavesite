@@ -31,6 +31,7 @@ function serve() {
 }
 
 export default {
+	context: {}, // needed for loading http-status-codes
 	input: 'src/frontend/main.ts',
 	output: {
 		sourcemap: true,
@@ -47,17 +48,6 @@ export default {
 				// enable run-time checks when not in production
 				dev: !production
 			},
-			// the following should be unnecessary starting with svelte 3.46.5
-			onwarn: (warning, handler) => {
-        const exportedEnums = ['Permission'];
-        const { code, frame } = warning;
-        const mentionsEnum = () =>
-            exportedEnums.reduce((found, name) => (found || frame.includes(name)), false);
-        if (code == "unused-export-let" && mentionsEnum()) {
-          return;
-        }
-        handler(warning);
-      }
 		}),
 		// we'll extract any component CSS out into
 		// a separate file - better for performance
