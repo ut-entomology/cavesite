@@ -3,9 +3,9 @@
 
   const tabSetLabels = ['Data', 'Admin'];
 
-  let selection = 'data';
+  let selection = window.location.pathname.includes('/admin/') ? 'admin' : 'data';
 
-  $: page(selection == 'admin' ? '/admin/users' : '/taxa');
+  const onChange = () => page(selection == 'admin' ? '/admin/users' : '/taxa');
 </script>
 
 <div class="btn-group" role="group" aria-label="Switch between data and admin tabs">
@@ -18,6 +18,7 @@
       name="tab_set"
       id={tabSet}
       value={tabSet}
+      on:change={onChange}
     />
     <label class="btn btn-outline-primary" for={tabSet}>{tabSetLabel}</label>
   {/each}
