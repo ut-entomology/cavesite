@@ -45,7 +45,7 @@
   router.start();
 
   async function connect() {
-    const res = await $client.post('/apis/auth/connect');
+    const res = await $client.post('/api/auth/connect');
     if (res.data && res.data.userID) {
       $userInfo = res.data;
     }

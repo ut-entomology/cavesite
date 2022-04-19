@@ -15,7 +15,7 @@
   }
 
   async function logout() {
-    const res = await $client.get('/apis/auth/logout');
+    const res = await $client.get('/api/auth/logout');
     //setCSRF(null);
     $userInfo = null;
     if (res.status == 204) {
@@ -37,7 +37,7 @@
           {/if}
           <button class="btn btn-major" on:click={logout}>Logout</button>
         {:else}
-          <button class="btn btn-major" on:click={login}> Login </button>
+          <button class="btn btn-major" on:click={login}>Login</button>
         {/if}
       </div>
     </div>

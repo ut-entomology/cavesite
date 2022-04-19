@@ -20,7 +20,7 @@
     }),
     onSubmit: async (values) => {
       try {
-        const res = await $client.post('/apis/auth/login', values);
+        const res = await $client.post('/api/auth/login', values);
         //setCSRF(res.headers[CSRF_TOKEN_HEADER]);
         $userInfo = res.data;
         closeDialog();
