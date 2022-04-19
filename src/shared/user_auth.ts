@@ -20,5 +20,5 @@ export interface UserInfo {
 
 export interface AdminUserInfo extends UserInfo {
   createdOn: Date;
-  createdBy: number | null;
+  createdByName: string | null;
 }

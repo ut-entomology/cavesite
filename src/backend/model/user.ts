@@ -43,6 +43,8 @@ export class User {
   lastLoginDate: Date | null;
   lastLoginIP: string | null;
 
+  createdByName?: string | null;
+
   private _passwordHash: string;
   private _passwordSalt: string;
 
@@ -138,7 +140,7 @@ export class User {
   // safe method for creating user information to client
   toAdminUserInfo(): AdminUserInfo {
     const userInfo = this.toUserInfo() as AdminUserInfo;
-    userInfo.createdBy = this.createdBy;
+    userInfo.createdByName = this.createdByName || null;
     userInfo.createdOn = this.createdOn;
     return userInfo;
   }
@@ -294,8 +296,22 @@ export class User {
   }
 
   static async getUsers(db: DB): Promise<User[]> {
-    const result = await db.query(`select * from users order by last_name, first_name`);
-    return result.rows.map((row) => new User(toCamelRow(row)));
+    const result = await db.query(
+      `select x.*, c.first_name as creator_first_name, c.last_name as creator_last_name
+        from users x left join users c on c.user_id = x.created_by
+        order by x.last_name, x.first_name`
+    );
+    return result.rows.map((row) => {
+      const data = new User(toCamelRow(row));
+      if (row.creator_last_name) {
+        data.createdByName =
+          (row.creator_first_name ? row.creator_first_name + ' ' : '') +
+          row.creator_last_name;
+      } else {
+        data.createdByName = null;
+      }
+      return data;
+    });
   }
 
   //// PRIVATE CLASS METHODS /////////////////////////////////////////////////

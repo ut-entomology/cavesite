@@ -239,7 +239,9 @@ test('creating, using, and dropping a user', async () => {
   expect(users[2].lastName).toEqual('Coords');
   expect(users[2].firstName).toEqual('Curly');
   expect(users[3].lastName).toEqual('Curator');
+  expect(users[3].createdByName).toBeNull();
   expect(users[4].lastName).toEqual('Editor');
+  expect(users[4].createdByName).toEqual('Demoted Curator');
   expect(users.length).toEqual(5);
 
   // Drop a user.
