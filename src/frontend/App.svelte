@@ -104,12 +104,17 @@
 
   // Layout
 
+  html {
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     box-sizing: content-box;
     display: flex;
     flex-direction: column;
     margin: 0;
-    padding: 0.3rem 0.8rem;
+    padding: 0;
   }
 
   .page-content {

@@ -14,3 +14,10 @@
   <VariableNotice />
   <VariableFlash />
 </main>
+
+<style>
+  main {
+    margin: 0;
+    padding: 0.2rem 1.5rem;
+  }
+</style>
