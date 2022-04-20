@@ -4,11 +4,21 @@ import type { DB } from '../integrations/postgres';
 import { DatabaseMutex, expectRecentTime, sleep } from '../util/test_util';
 import { User } from './user';
 import { Permission } from '../../shared/user_auth';
-import { Session, checkExpirations, stopCheckingExpirations } from './session';
+import {
+  SessionOptions,
+  Session,
+  checkExpirations,
+  stopCheckingExpirations
+} from './session';
 
 const PASSWORD = 'woahwhatchadoingwiththatkeyboard';
 const IP = '123.456.789.321';
 const mutex = new DatabaseMutex();
+const options: SessionOptions = {
+  sessionTimeoutMillis: 5 * 60 * 1000, // 5 minutes
+  expirationCheckMillis: 1 * 60 * 1000 // 1 minute
+};
+
 let db: DB;
 let user1: User;
 let user2: User;
@@ -50,6 +60,8 @@ beforeAll(async () => {
 });
 
 test('creating, finding, and destroying sessions', async () => {
+  await Session.init(db, options);
+
   // Create one session for user1.
 
   const session1a = await Session.upsert(db, '1A', sessionData('data1A', user1, IP));
@@ -80,7 +92,7 @@ test('creating, finding, and destroying sessions', async () => {
   expect(Session.getByID(session2a.sessionID)).toBe(session2a);
   expect(Session.getByID(session2b.sessionID)).toBe(session2b);
 
-  await Session.init(db);
+  await Session.init(db, options);
   expect(Session.getByID(session1a.sessionID)).toEqual(session1a);
   expect(Session.getByID(session1b.sessionID)).toEqual(session1b);
   expect(Session.getByID(session2a.sessionID)).toEqual(session2a);
@@ -95,7 +107,7 @@ test('creating, finding, and destroying sessions', async () => {
   expect(sessions).toContainEqual(session2a);
   expect(sessions).toContainEqual(session2b);
 
-  await Session.init(db);
+  await Session.init(db, options);
   sessions = Session.getSessions();
   expect(sessions.length).toEqual(3);
   expect(sessions).toContainEqual(session1a);
@@ -109,14 +121,14 @@ test('creating, finding, and destroying sessions', async () => {
   expect(sessions.length).toEqual(1);
   expect(sessions).toContainEqual(session1a);
 
-  await Session.init(db);
+  await Session.init(db, options);
   sessions = Session.getSessions();
   expect(sessions.length).toEqual(1);
   expect(sessions).toContainEqual(session1a);
 });
 
 test("updating user info refreshes the users's sessions", async () => {
-  await Session.init(db);
+  await Session.init(db, options);
 
   const session1a = await Session.upsert(db, 'R1a', sessionData('dataR1a', user1, IP));
   const session2a = await Session.upsert(db, 'R2a', sessionData('dataR2a', user2, IP));
@@ -136,7 +148,7 @@ test("updating user info refreshes the users's sessions", async () => {
   readSession = Session.getByID(session2b.sessionID);
   expect(readSession?.sessionData.userInfo.firstName).toEqual('Renamed');
 
-  await Session.init(db);
+  await Session.init(db, options);
   readSession = Session.getByID(session1a.sessionID);
   expect(readSession?.sessionData.userInfo.firstName).toEqual('User1');
   readSession = Session.getByID(session2a.sessionID);
@@ -146,7 +158,7 @@ test("updating user info refreshes the users's sessions", async () => {
 });
 
 test('session timeouts out if not refreshed', async () => {
-  await Session.init(db);
+  await Session.init(db, options);
 
   checkExpirations(db, 500);
   const session = await Session.upsert(db, 'Y3', sessionData('dataY3', user3, IP));
@@ -160,7 +172,7 @@ test('session timeouts out if not refreshed', async () => {
   );
   expect(Session.getByID(session.sessionID)).toBeNull();
 
-  await Session.init(db);
+  await Session.init(db, options);
   expect(Session.getSessions().map((s) => s.sessionID)).not.toContain(
     session.sessionID
   );
@@ -168,7 +180,7 @@ test('session timeouts out if not refreshed', async () => {
 });
 
 test('session refreshes prevent timeout/logout', async () => {
-  await Session.init(db);
+  await Session.init(db, options);
 
   checkExpirations(db, 500);
   const session = await Session.upsert(db, 'Z3', sessionData('dataZ3', user3, IP));
@@ -183,7 +195,7 @@ test('session refreshes prevent timeout/logout', async () => {
   expect(Session.getSessions().map((s) => s.sessionID)).toContain(session.sessionID);
   expect(Session.getByID(session.sessionID)).not.toBeNull();
 
-  await Session.init(db);
+  await Session.init(db, options);
   expect(Session.getSessions().map((s) => s.sessionID)).toContain(session.sessionID);
   expect(Session.getByID(session.sessionID)).not.toBeNull();
 });

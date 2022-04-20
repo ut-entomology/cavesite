@@ -11,14 +11,16 @@ import { type DB, toCamelRow } from '../integrations/postgres';
 import type { DataOf } from '../util/type_util';
 import { User } from './user';
 
-const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
-const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
+export interface SessionOptions {
+  sessionTimeoutMillis: number;
+  expirationCheckMillis: number;
+}
 
 type SessionData = Omit<DataOf<Session>, 'sessionData'>;
 
 const sessionsByID = new Map<string, Session>();
-let sessionTimeoutMillis = SESSION_TIMEOUT_MILLIS;
 let expirationTimer: NodeJS.Timeout | null = null;
+let config: SessionOptions;
 
 export class Session {
   userID: number;
@@ -45,10 +47,11 @@ export class Session {
    * Initializes the in-memory session cache from the database. Users will
    * likely only number in the dozens, limiting the number of sessions.
    */
-  static async init(db: DB) {
+  static async init(db: DB, options: SessionOptions) {
     // Clear cache so that tests can repeatedly call init().
 
     sessionsByID.clear();
+    config = Object.assign({}, options);
 
     // Load all users, so each session can reference its user.
 
@@ -73,7 +76,7 @@ export class Session {
 
     // Begin handling session expirations.
 
-    checkExpirations(db, EXPIRATION_CHECK_MILLIS);
+    checkExpirations(db, config.expirationCheckMillis);
   }
 
   /**
@@ -91,6 +94,7 @@ export class Session {
     const userlessSessionData = Object.assign({}, expressSessionData) as any;
     delete userlessSessionData['userInfo'];
 
+    console.log('**** upsert session');
     let session = Session.getByID(sessionID);
     if (session) {
       session.expiresAt = Session._getNewExpiration();
@@ -185,16 +189,17 @@ export class Session {
   }
 
   /**
-   * Set timeout milliseconds to something other than the default.
+   * Set timeout milliseconds to something other than the default. Mainly
+   * useful for testing, given that this is also set from init().
    */
   static setTimeoutMillis(millis: number) {
-    sessionTimeoutMillis = millis;
+    config.sessionTimeoutMillis = millis;
   }
 
   //// PRIVATE CLASS METHODS /////////////////////////////////////////////////
 
   static _getNewExpiration() {
-    return new Date(new Date().getTime() + sessionTimeoutMillis);
+    return new Date(new Date().getTime() + config.sessionTimeoutMillis);
   }
 }
 
