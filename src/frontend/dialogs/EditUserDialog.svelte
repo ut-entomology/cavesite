@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { StatusCodes, getReasonPhrase } from 'http-status-codes';
+  import { getReasonPhrase } from 'http-status-codes';
 
   import * as yup from 'yup';
   import { createForm, ContextForm, Input } from '../common/forms';
@@ -82,32 +82,33 @@
   });
 
   async function createUser(userInfo: EditableInfo) {
-    const res = await $client.post('/api/user/add', userInfo);
-    if (res.status == StatusCodes.OK) {
+    try {
+      const res = await $client.post('/api/user/add', userInfo);
       await flashMessage('Created user');
       closeDialog();
       onSuccess(res.data);
-    } else {
-      showNotice(
-        `Failed to add user<br/><br/>` + getReasonPhrase(res.status),
-        'Error',
-        'danger'
-      );
+    } catch (err: any) {
+      showNotice({
+        message: `Failed to add user<br/><br/>` + getReasonPhrase(err.response.status),
+        header: 'Error',
+        alert: 'danger'
+      });
     }
   }
 
   async function updateUser(_userInfo: EditableInfo) {
-    const res = await $client.post('/api/user/update', userInfo);
-    if (res.status == StatusCodes.OK) {
+    try {
+      const res = await $client.post('/api/user/update', userInfo);
       await flashMessage('Updated user');
       closeDialog();
       onSuccess(res.data);
-    } else {
-      showNotice(
-        `Failed to update user<br/><br/>` + getReasonPhrase(res.status),
-        'Error',
-        'danger'
-      );
+    } catch (err: any) {
+      showNotice({
+        message:
+          `Failed to update user<br/><br/>` + getReasonPhrase(err.response.status),
+        header: 'Error',
+        alert: 'danger'
+      });
     }
   }
 

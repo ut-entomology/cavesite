@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { StatusCodes, getReasonPhrase } from 'http-status-codes';
+  import { getReasonPhrase } from 'http-status-codes';
 
   import { Permission, type AdminUserInfo } from '../../../shared/user_auth';
   import AdminTabRoute from '../../components/AdminTabRoute.svelte';
@@ -63,15 +63,15 @@
       okayButton: 'Drop',
       onOkay: async () => {
         confirmationDetails = null;
-        const res = await $client.post('/api/user/drop', { userID: user.userID });
-        if (res.status == StatusCodes.OK) {
+        try {
+          await $client.post('/api/user/drop', { userID: user.userID });
           await flashMessage('Dropped user');
-        } else {
-          showNotice(
-            `Drop failed<br/><br/>` + getReasonPhrase(res.status),
-            'Error',
-            'danger'
-          );
+        } catch (err: any) {
+          showNotice({
+            message: `Drop failed<br/><br/>` + getReasonPhrase(err.response.status),
+            header: 'Error',
+            alert: 'danger'
+          });
         }
       },
       onCancel: async () => {
