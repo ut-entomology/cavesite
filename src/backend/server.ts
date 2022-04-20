@@ -18,7 +18,10 @@ import { SessionStore } from './integrations/session_store';
 import { Session } from './model/session';
 import { LogType, Logs } from './model/logs';
 
-const MAX_SESSION_LENGTH_MINS = 2 * 60;
+const SESSION_TIMEOUT_MILLIS = 3 * 60 * 1000;
+const EXPIRATION_CHECK_MILLIS = 1 * 60 * 1000;
+// const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
+// const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
 const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
 const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 
@@ -27,7 +30,6 @@ const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 loadAndCheckEnvVars(true);
 const devMode = process.env.NODE_ENV !== 'production';
 const port = parseInt(process.env.CAVESITE_PORT!);
-const maxSessionLengthMillis = MAX_SESSION_LENGTH_MINS * 60000;
 
 // Set up pre-route stack.
 
@@ -50,12 +52,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     store: new SessionStore(),
-    // @ts-ignore
-    max: 32000,
-    resave: true,
+    resave: false, // client must periodically call /api/auth/refresh
     saveUninitialized: false,
     secret: process.env.CAVESITE_SESSION_KEY!,
-    cookie: { secure: !devMode, sameSite: true, maxAge: maxSessionLengthMillis }
+    cookie: { secure: !devMode, sameSite: true, maxAge: SESSION_TIMEOUT_MILLIS }
   })
 );
 //app.use(sessionChecker);
@@ -96,7 +96,10 @@ app.listen(port, async () => {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
-  await Session.init(getDB());
+  await Session.init(getDB(), {
+    sessionTimeoutMillis: SESSION_TIMEOUT_MILLIS,
+    expirationCheckMillis: EXPIRATION_CHECK_MILLIS
+  });
   console.log(`Server listening on port ${port}`);
 });
 

@@ -8,6 +8,7 @@
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client } from '../stores/client';
   import { userInfo } from '../stores/user_info';
+  import { setExpiration } from '../util/refresher';
 
   const APP_TITLE = 'Texas Underground';
   const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
@@ -17,13 +18,14 @@
   }
 
   async function logout() {
-    const res = await $client.get('/api/auth/logout');
-    //setCSRF(null);
-    $userInfo = null;
-    if (res.status == 204) {
+    try {
+      await $client.get('/api/auth/logout');
+      //setCSRF(null);
+      $userInfo = null;
+      setExpiration(null);
       page('/');
-    } else {
-      await flashMessage(`Error ${res.status} logging out`);
+    } catch (err: any) {
+      await flashMessage(`Error ${err.response.status} logging out`);
     }
   }
 </script>

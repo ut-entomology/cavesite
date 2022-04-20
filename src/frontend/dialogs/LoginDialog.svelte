@@ -1,11 +1,14 @@
 <script lang="ts">
   import * as yup from 'yup';
+  import { StatusCodes } from 'http-status-codes';
+
   import { createForm, ContextForm, Input } from '../common/forms';
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import { client } from '../stores/client';
   import { userInfo } from '../stores/user_info';
+  import { setExpiration } from '../util/refresher';
   //import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
   const title = 'Login Form';
@@ -22,13 +25,16 @@
       try {
         const res = await $client.post('/api/auth/login', values);
         //setCSRF(res.headers[CSRF_TOKEN_HEADER]);
-        $userInfo = res.data;
+        $userInfo = res.data.userInfo;
+        setExpiration(new Date(res.data.expiration));
         closeDialog();
         await flashMessage('You are logged in');
       } catch (err: any) {
         //setCSRF(null);
         $userInfo = null;
-        errorMessage = err.message;
+        if (err.response.status == StatusCodes.UNAUTHORIZED) {
+          errorMessage = 'Incorrect email or password';
+        }
       }
     }
   });

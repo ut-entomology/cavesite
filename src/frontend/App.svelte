@@ -4,6 +4,7 @@
 
   import { client } from './stores/client';
   import { userInfo } from './stores/user_info';
+  import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
   import Taxa from './routes/Taxa.svelte';
@@ -14,6 +15,47 @@
   import Logs from './routes/admin/Logs.svelte';
   import Schedule from './routes/admin/Schedule.svelte';
   import NotFound from './routes/NotFound.svelte';
+  import { flashMessage } from './common/VariableFlash.svelte';
+  import { showNotice } from './common/VariableNotice.svelte';
+
+  // Initialize session refresh.
+
+  console.log('**** current time', new Date());
+  initRefresher({
+    refreshMillis: 1 * 60 * 1000 /* 5 minutes */,
+    onRefresh: async () => {
+      try {
+        console.log('**** refreshing...');
+        const res = await $client.post('/api/auth/refresh');
+        return new Date(res.data.expiration);
+      } catch (err: any) {
+        return null;
+      }
+    },
+    onWarning: () => {
+      showNotice({
+        message: 'Your login session is about to expire',
+        header: 'WARNING',
+        alert: 'warning',
+        button: 'Continue',
+        onClose: async () => {
+          try {
+            const res = await $client.post('/api/auth/refresh');
+            setExpiration(res.data.expiration);
+          } catch (err: any) {
+            // ignore
+          }
+        }
+      });
+    },
+    onExpiration: async () => {
+      await flashMessage('Session expired.<br />Logging out...', 'warning');
+      userInfo.set(null);
+      window.location.href = '/';
+    }
+  });
+
+  // Initialize client-side routes.
 
   const routes = {
     '/': Welcome,
@@ -46,8 +88,9 @@
 
   async function connect() {
     const res = await $client.post('/api/auth/connect');
-    if (res.data && res.data.userID) {
-      $userInfo = res.data;
+    if (res.data && res.data.userInfo) {
+      $userInfo = res.data.userInfo;
+      setExpiration(new Date(res.data.expiration));
     }
   }
 </script>
@@ -64,6 +107,8 @@
   {:else}
     <svelte:component this={page} />
   {/if}
+{:catch}
+  Unable to connect to server.
 {/await}
 
 <style lang="scss" global>

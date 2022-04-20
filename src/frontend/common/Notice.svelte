@@ -1,11 +1,10 @@
 <script lang="ts">
-  import Toast from './toast/Toast.svelte';
-  import ToastHeader from './toast/Toast.svelte';
-  import ToastBody from './toast/Toast.svelte';
+  import { Toast, ToastHeader, ToastBody } from 'sveltestrap';
 
   export let alert = 'light';
   export let header = 'Notice';
   export let message = '';
+  export let button: string | null = null;
 
   let isOpen = true;
 
@@ -17,9 +16,18 @@
     class="notice-container p-3 position-fixed start-50 translate-middle bg-{alert} bg-opacity-75"
   >
     <Toast fade={false} on:close={closeNotice} on:close>
-      <ToastHeader class="text-{alert}" toggle={closeNotice}>{header}</ToastHeader>
+      <ToastHeader class="text-{alert}" toggle={button ? undefined : closeNotice}
+        >{header}</ToastHeader
+      >
       <ToastBody>
         {@html message}
+        {#if button}
+          <div class="button">
+            <button class="btn btn-major" type="button" on:click={closeNotice}
+              >{button}</button
+            >
+          </div>
+        {/if}
       </ToastBody>
     </Toast>
   </div>
@@ -30,5 +38,10 @@
 
   .notice-container {
     top: $verticalMessagePosition !important;
+  }
+
+  .button {
+    margin-top: 1em;
+    text-align: center;
   }
 </style>
