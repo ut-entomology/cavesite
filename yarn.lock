@@ -566,6 +566,11 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
+"@popperjs/core@^2.9.2":
+  version "2.11.5"
+  resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.5.tgz#db5a11bf66bdab39569719555b0f76e138d7bd64"
+  integrity sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==
+
 "@rollup/plugin-commonjs@^17.0.0":
   version "17.1.0"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-commonjs/-/plugin-commonjs-17.1.0.tgz#757ec88737dffa8aa913eb392fade2e45aef2a2d"
@@ -5260,6 +5265,13 @@ svelte@^3.0.0:
   version "3.47.0"
   resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.47.0.tgz#ba46fe4aea99fc650d6939c215cd4694f5325a19"
   integrity sha512-4JaJp3HEoTCGARRWZQIZDUanhYv0iyoHikklVHVLH9xFE9db22g4TDv7CPeNA8HD1JgjXI1vlhR1JZvvhaTu2Q==
+
+sveltestrap@^5.9.0:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/sveltestrap/-/sveltestrap-5.9.0.tgz#69cffd4d1178d69da423b097a34d185294b9e1c0"
+  integrity sha512-ZSiYKYrKhDMhhbamnAFK3RK/uqUdcLgjae5Fk3GYdv6Ccth0tN2y6vSg+Vp/PBTYc51u08ZwnYvt8SfWSRNCMA==
+  dependencies:
+    "@popperjs/core" "^2.9.2"
 
 symbol-tree@^3.2.4:
   version "3.2.4"

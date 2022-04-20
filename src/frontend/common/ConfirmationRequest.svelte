@@ -12,9 +12,7 @@
 </script>
 
 <script lang="ts">
-  import Toast from './toast/Toast.svelte';
-  import ToastHeader from './toast/Toast.svelte';
-  import ToastBody from './toast/Toast.svelte';
+  import { Toast, ToastHeader, ToastBody } from 'sveltestrap';
 
   export let alert = 'danger';
   export let header = 'CAUTION';

@@ -28,7 +28,7 @@
 </script>
 
 <script lang="ts">
-  import Toast from './toast/Toast.svelte';
+  import { Toast } from 'sveltestrap';
 </script>
 
 {#if $messageStore}
@@ -40,7 +40,7 @@
       fade={false}
       on:close={closeToast}
     >
-      {$messageStore.text}
+      {@html $messageStore.text}
     </Toast>
   </div>
 {/if}
