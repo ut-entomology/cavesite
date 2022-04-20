@@ -8,7 +8,6 @@ import morgan from 'morgan';
 import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import session from 'express-session';
-import cookieParser from 'cookie-parser';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 
 import { loadAndCheckEnvVars } from './util/env_util';
@@ -48,7 +47,6 @@ if (!devMode) {
 }
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(
   session({
     store: new SessionStore(),
