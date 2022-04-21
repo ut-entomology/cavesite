@@ -18,7 +18,6 @@ export class SessionStore extends Store {
     sessionData: SessionData,
     callback?: (err?: any) => void
   ): void {
-    console.log('**** set session store');
     (async () => {
       await Session.upsert(getDB(), sessionID, sessionData);
       if (callback) callback(null);

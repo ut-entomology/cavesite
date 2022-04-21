@@ -9,10 +9,10 @@
 export interface RefresherOptions {
   // Interval at which to refresh sessions.
   refreshMillis: number;
-  // Handler to refresh a session, returning the new expiration. The
-  // handler does not need to call setExpiration(). Return null if the
-  // refresh fails, and onExpiration() will get called.
-  onRefresh: () => Promise<Date | null>;
+  // Handler to refresh a session, returning the new expiration in Unix
+  // epoch milliseconds. The handler does not need to call setExpiration().
+  // Returns 0 if the refresh fails, and onExpiration() will get called.
+  onRefresh: () => Promise<number>;
   // Handler to display a message that a session is about to expire.
   // The caller is responsible for refreshing the session and for
   // calling setExpiration() to report the new expiration.
@@ -21,6 +21,8 @@ export interface RefresherOptions {
   onExpiration: () => void;
 }
 
+let timer: ReturnType<typeof setTimeout> | null = null;
+let halfRefreshMillis: number;
 let expirationTime = 0; // 0 => not logged in
 let wasActive = false;
 let config: RefresherOptions;
@@ -30,11 +32,11 @@ let config: RefresherOptions;
  */
 export function initRefresher(options: RefresherOptions): void {
   config = Object.assign({}, options);
+  halfRefreshMillis = Math.ceil(config.refreshMillis / 2);
   document.onkeydown = markActive;
   document.onscroll = markActive;
   document.onmousedown = markActive;
   document.onresize = markActive;
-  scheduleRefresh();
 }
 
 /**
@@ -43,42 +45,67 @@ export function initRefresher(options: RefresherOptions): void {
  * and reports that the user has intentionally logged out. There is no
  * need to call this function for automatic refreshes or logouts.
  *
- * @param expiration Date/time of session expiration, or null to report
- *    that the user has intentionally logged out and the session is invalid;
- *    setting to null will not result in a call to onExpiration().
+ * @param expiration Date/time of session expiration in Unix epoch
+ *    milliseconds, or 0 to report that the user has intentionally logged
+ *    out; setting to 0 will not result in a call to onExpiration().
  */
-export function setExpiration(expiration: Date | null): void {
-  console.log('**** set expiration to', expiration);
-  expirationTime = expiration?.getTime() || 0;
+export function setExpiration(expiration: number): void {
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  expirationTime = expiration;
+  if (expiration == 0) {
+    console.log('**** setExpiration(0)');
+  } else {
+    const now = new Date().getTime();
+    // Because setExpiration() is called quickly after each new expiration
+    // is assigned, extraTime will be slightly less than halfRefreshMillis,
+    // making their sum approximately refreshMillis.
+    const extraTime = (expirationTime - now) % halfRefreshMillis;
+    console.log('**** setExpiration ', new Date(expiration));
+    console.log(
+      `****   set first refresh ${new Date(
+        now + halfRefreshMillis + extraTime
+      )} (extra time ${extraTime})`
+    );
+    // Synchronize refreshes with session so that last of session times
+    // out at about time that session would time out.
+    scheduleRefresh(halfRefreshMillis + extraTime);
+  }
+  wasActive = false;
 }
 
 function markActive() {
   wasActive = true;
 }
 
-function scheduleRefresh() {
-  setTimeout(async () => {
-    console.log('**** refresh timeout: expirationTime', expirationTime);
+function scheduleRefresh(nextRefreshMillis: number) {
+  timer = setTimeout(async () => {
+    const now = new Date().getTime();
+    console.log('**** timeout at', new Date(now));
+    timer = null;
     if (expirationTime > 0) {
       if (wasActive) {
         const newExpiration = await config.onRefresh();
-        if (!newExpiration) {
-          setExpiration(null);
+        setExpiration(newExpiration);
+        if (newExpiration == 0) {
           config.onExpiration();
-        } else {
-          setExpiration(newExpiration);
         }
+        wasActive = false;
       } else {
-        const remainingTime = expirationTime - new Date().getTime();
+        const remainingTime = expirationTime - now;
+        console.log('****   compared expiration', new Date(expirationTime));
         if (remainingTime <= 0) {
-          setExpiration(null);
+          setExpiration(0);
           config.onExpiration();
         } else if (remainingTime <= config.refreshMillis) {
+          scheduleRefresh(remainingTime);
           config.onWarning();
+        } else {
+          scheduleRefresh(config.refreshMillis);
         }
       }
     }
-    wasActive = false;
-    scheduleRefresh();
-  }, config.refreshMillis);
+  }, nextRefreshMillis);
 }

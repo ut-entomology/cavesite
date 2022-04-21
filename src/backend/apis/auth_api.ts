@@ -3,7 +3,6 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { User } from '../model/user';
-import { Session } from '../model/session';
 
 type LoginParams = {
   email: string;
@@ -40,17 +39,30 @@ router.get('/logout', async (req, res) => {
 });
 
 router.post('/refresh', async (req, res) => {
-  console.log('**** refresh');
   if (!req.session || !req.session.userInfo) {
     return res.status(StatusCodes.UNAUTHORIZED).send();
   }
-  // @ts-ignore TS not recognizing that req.session.userInfo is set
-  await Session.upsert(getDB(), req.session.id, req.session);
   req.session.touch();
-  console.log('**** new expiration', req.session.cookie.expires);
-  return res.status(StatusCodes.OK).send({ expiration: req.session.cookie.expires });
+  req.session.save();
+  req.session.cookie.expires = new Date(Date.now() + req.session.cookie.maxAge!);
+  const devMode = process.env.NODE_ENV !== 'production';
+  res.cookie('connect.sid', req.sessionID, {
+    secure: !devMode,
+    sameSite: true,
+    expires: req.session.cookie.expires,
+    path: '/',
+    httpOnly: true
+  });
+  return res.status(StatusCodes.OK).send({ expiration: toExpirationTime(req) });
 });
 
 function toLoginInfo(req: Request<any, any, any>) {
-  return { userInfo: req.session.userInfo, expiration: req.session.cookie.expires };
+  return {
+    userInfo: req.session.userInfo,
+    expiration: toExpirationTime(req)
+  };
+}
+
+function toExpirationTime(req: Request<any, any, any>) {
+  return req.session.cookie.expires?.getTime() || 0;
 }

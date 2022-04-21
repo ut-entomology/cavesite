@@ -19,7 +19,6 @@ router.use(requirePermissions(Permission.Admin));
 router.post('/add', async (req: Request<void, any, { user: UserInfo }>, res) => {
   const userInfo = req.body.user;
   const password = User.generatePassword(GENERATED_PASSWORD_LENGTH);
-  console.log(`**** Generated password '${password}' for ${userInfo.email}`);
   const user = await User.create(
     getDB(),
     userInfo.firstName,

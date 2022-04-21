@@ -98,6 +98,7 @@ export class Session {
     let session = Session.getByID(sessionID);
     if (session) {
       session.expiresAt = Session._getNewExpiration();
+      console.log('**** update expiration', session.expiresAt);
       await db.query(
         `update sessions set expires_at=$1, session_data=$2 where session_id=$3`,
         [

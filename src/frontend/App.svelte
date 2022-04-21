@@ -15,32 +15,33 @@
   import Logs from './routes/admin/Logs.svelte';
   import Schedule from './routes/admin/Schedule.svelte';
   import NotFound from './routes/NotFound.svelte';
-  import { flashMessage } from './common/VariableFlash.svelte';
   import { showNotice } from './common/VariableNotice.svelte';
 
   // Initialize session refresh.
 
-  console.log('**** current time', new Date());
+  console.log('**** page load time', new Date());
   initRefresher({
     refreshMillis: 1 * 60 * 1000 /* 5 minutes */,
     onRefresh: async () => {
       try {
-        console.log('**** refreshing...');
         const res = await $client.post('/api/auth/refresh');
-        return new Date(res.data.expiration);
+        console.log('**** /api/refresh updated ', new Date(res.data.expiration));
+        return res.data.expiration;
       } catch (err: any) {
-        return null;
+        return 0;
       }
     },
     onWarning: () => {
       showNotice({
-        message: 'Your login session is about to expire',
+        message: 'Your login session is about to expire.',
         header: 'WARNING',
         alert: 'warning',
         button: 'Continue',
         onClose: async () => {
           try {
+            console.log('**** continuing...');
             const res = await $client.post('/api/auth/refresh');
+            console.log('**** /api/refresh continued', new Date(res.data.expiration));
             setExpiration(res.data.expiration);
           } catch (err: any) {
             // ignore
@@ -49,7 +50,6 @@
       });
     },
     onExpiration: async () => {
-      await flashMessage('Session expired.<br />Logging out...', 'warning');
       userInfo.set(null);
       window.location.href = '/';
     }
@@ -90,7 +90,7 @@
     const res = await $client.post('/api/auth/connect');
     if (res.data && res.data.userInfo) {
       $userInfo = res.data.userInfo;
-      setExpiration(new Date(res.data.expiration));
+      setExpiration(res.data.expiration);
     }
   }
 </script>
