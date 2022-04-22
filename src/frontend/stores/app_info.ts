@@ -1,8 +1,5 @@
 import { writable } from 'svelte/store';
 
-export interface AppInfo {
-  title: string;
-  subtitle: string;
-}
+import type { AppInfo } from '../../shared/user_auth';
 
 export const appInfo = writable<AppInfo>();

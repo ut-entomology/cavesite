@@ -27,9 +27,12 @@ export interface AdminUserInfo extends UserInfo {
 
 export type NewUserInfo = Omit<UserInfo, 'lastLoginDate' | 'lastLoginIP'>;
 
-export interface LoginInfo {
+export interface AppInfo {
   appTitle: string;
   appSubtitle: string;
-  userInfo: UserInfo;
-  expiration: number;
+}
+
+export interface LoginInfo extends AppInfo {
+  userInfo?: UserInfo;
+  expiration?: number;
 }

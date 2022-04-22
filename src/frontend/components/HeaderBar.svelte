@@ -32,7 +32,7 @@
 
 <div class="header_bar">
   <div class="title_row">
-    <div class="app_title">{$appInfo.title}</div>
+    <div class="app_title">{$appInfo.appTitle}</div>
     <div class="user_menu">
       <div>
         {#if $userInfo}
@@ -47,7 +47,7 @@
       </div>
     </div>
   </div>
-  <div class="app_subtitle text">{$appInfo.subtitle}</div>
+  <div class="app_subtitle text">{$appInfo.appSubtitle}</div>
 </div>
 
 <style lang="scss">

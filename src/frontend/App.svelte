@@ -89,11 +89,13 @@
     if (res.data) {
       const loginInfo: LoginInfo = res.data;
       appInfo.set({
-        title: loginInfo.appTitle,
-        subtitle: loginInfo.appSubtitle
+        appTitle: loginInfo.appTitle,
+        appSubtitle: loginInfo.appSubtitle
       });
-      $userInfo = loginInfo.userInfo;
-      setExpiration(loginInfo.expiration);
+      if (loginInfo.userInfo && loginInfo.expiration) {
+        $userInfo = loginInfo.userInfo;
+        setExpiration(loginInfo.expiration);
+      }
     }
   }
 </script>
