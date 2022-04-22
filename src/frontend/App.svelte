@@ -164,6 +164,7 @@
     flex-direction: column;
     margin: 0;
     padding: 0;
+    background-color: $backgroundColor;
   }
 
   .page-content {
@@ -191,7 +192,7 @@
 
   button.btn-major,
   button.btn-minor {
-    color: $blueLinkColor;
+    color: $blueLinkForeColor;
     padding: 0.1rem 1rem;
     border-radius: 0.5rem;
   }
@@ -208,8 +209,8 @@
 
   button.btn-major:hover,
   button.btn-minor:hover {
-    border: 1px solid $blueLinkColor;
-    color: $blueLinkColor;
+    border: 1px solid $blueLinkForeColor;
+    color: $blueLinkForeColor;
   }
 
   button.compact {
