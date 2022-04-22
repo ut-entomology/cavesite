@@ -14,6 +14,8 @@ export interface UserInfo {
   email: string;
   affiliation: string | null;
   permissions: number;
+  priorLoginDate: Date | null;
+  priorLoginIP: string | null;
   lastLoginDate: Date | null;
   lastLoginIP: string | null;
 }

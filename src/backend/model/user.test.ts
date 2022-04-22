@@ -71,7 +71,10 @@ test('creating, using, and dropping a user', async () => {
     Permission.Admin | Permission.Edit | Permission.Coords,
     null
   );
+  expect(adminUser.priorLoginDate).toBeNull();
+  expect(adminUser.priorLoginIP).toBeNull();
   expect(adminUser.lastLoginDate).toBeNull();
+  expect(adminUser.lastLoginIP).toBeNull();
   let readUser = await User.getByID(db, adminUser.userID);
   expect(readUser?.email).toEqual(adminUser.email);
 
@@ -81,6 +84,8 @@ test('creating, using, and dropping a user', async () => {
   expect(readUser).toBeNull();
   readUser = await User.getByEmail(db, email);
   expect(readUser?.userID).toEqual(adminUser.userID);
+  expect(readUser?.priorLoginDate).toBeNull();
+  expect(readUser?.priorLoginIP).toBeNull();
   expect(readUser?.lastLoginDate).toBeNull();
   expect(readUser?.lastLoginIP).toBeNull();
   let found = await containsLog(
@@ -92,16 +97,28 @@ test('creating, using, and dropping a user', async () => {
 
   // Successful authentication.
 
-  readUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip>');
+  readUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip1>');
   expect(readUser?.userID).toEqual(adminUser.userID);
+  expect(readUser?.priorLoginDate).toBeNull();
+  expect(readUser?.priorLoginIP).toBeNull();
   expectRecentTime(readUser!.lastLoginDate);
-  expect(readUser?.lastLoginIP).toEqual('<ip>');
+  expect(readUser?.lastLoginIP).toEqual('<ip1>');
   found = await containsLog(
     db,
     email,
-    `${readUser!.firstName} ${readUser!.lastName} logged in from IP <ip>`
+    `${readUser!.firstName} ${readUser!.lastName} logged in from IP <ip1>`
   );
   expect(found).toEqual(true);
+
+  // Authenticate again to verify prior login date and IP.
+
+  const priorLoginDate = readUser!.lastLoginDate;
+  readUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip2>');
+  expect(readUser?.userID).toEqual(adminUser.userID);
+  expect(readUser?.priorLoginDate).toEqual(priorLoginDate);
+  expect(readUser?.priorLoginIP).toEqual('<ip1>');
+  expectRecentTime(readUser!.lastLoginDate);
+  expect(readUser?.lastLoginIP).toEqual('<ip2>');
 
   // Change the user's password.
 

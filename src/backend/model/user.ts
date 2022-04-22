@@ -40,6 +40,8 @@ export class User {
   permissions: number;
   createdOn: Date;
   createdBy: number | null;
+  priorLoginDate: Date | null;
+  priorLoginIP: string | null;
   lastLoginDate: Date | null;
   lastLoginIP: string | null;
 
@@ -59,6 +61,8 @@ export class User {
     this.permissions = data.permissions;
     this.createdOn = data.createdOn!;
     this.createdBy = data.createdBy;
+    this.priorLoginDate = data.priorLoginDate;
+    this.priorLoginIP = data.priorLoginIP;
     this.lastLoginDate = data.lastLoginDate;
     this.lastLoginIP = data.lastLoginIP;
     this._passwordHash = data.passwordHash;
@@ -72,8 +76,9 @@ export class User {
       const result = await db.query(
         `insert into users(
             first_name, last_name, email, affiliation, password_hash, password_salt,
-            permissions, created_by, last_login_date, last_login_ip
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+            permissions, created_by, prior_login_date, prior_login_ip,
+            last_login_date, last_login_ip
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
             returning user_id, created_on`,
         [
           this.firstName,
@@ -84,6 +89,9 @@ export class User {
           this._passwordSalt,
           this.permissions,
           this.createdBy,
+          // @ts-ignore
+          this.priorLoginDate,
+          this.priorLoginIP,
           // @ts-ignore
           this.lastLoginDate,
           this.lastLoginIP
@@ -96,8 +104,9 @@ export class User {
       const result = await db.query(
         `update users set
             first_name=$1, last_name=$2, email=$3, affiliation=$4, password_hash=$5,
-            password_salt=$6, permissions=$7, last_login_date=$8, last_login_ip=$9
-          where user_id=$10`,
+            password_salt=$6, permissions=$7, prior_login_date=$8, prior_login_ip=$9,
+            last_login_date=$10, last_login_ip=$11
+          where user_id=$12`,
         [
           this.firstName,
           this.lastName,
@@ -106,6 +115,9 @@ export class User {
           this._passwordHash,
           this._passwordSalt,
           this.permissions,
+          // @ts-ignore
+          this.priorLoginDate,
+          this.priorLoginIP,
           // @ts-ignore
           this.lastLoginDate,
           this.lastLoginIP,
@@ -154,6 +166,8 @@ export class User {
       email: this.email,
       affiliation: this.affiliation,
       permissions: this.permissions,
+      priorLoginDate: this.priorLoginDate,
+      priorLoginIP: this.priorLoginIP,
       lastLoginDate: this.lastLoginDate,
       lastLoginIP: this.lastLoginIP
     };
@@ -190,6 +204,8 @@ export class User {
 
     // Record the login.
 
+    user.priorLoginDate = user.lastLoginDate;
+    user.priorLoginIP = user.lastLoginIP;
     user.lastLoginDate = new Date();
     user.lastLoginIP = ipAddress;
     await user.save(db);
@@ -248,6 +264,8 @@ export class User {
       affiliation,
       permissions,
       createdBy: createdBy?.userID || null,
+      priorLoginDate: null,
+      priorLoginIP: null,
       lastLoginDate: null,
       lastLoginIP: null,
       passwordHash: '', // temporary
