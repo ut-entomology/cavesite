@@ -117,7 +117,7 @@
   };
 </script>
 
-<ModalDialog {title} contentClasses="login-form-content">
+<ModalDialog {title} contentClasses="user-form-content">
   <ContextForm class="container-fluid g-0" {context}>
     <div class="row mb-2 justify-content-center">
       <div class="col-sm-3">
@@ -181,7 +181,7 @@
 </ModalDialog>
 
 <style>
-  :global(.login-form-content) {
+  :global(.user-form-content) {
     margin: 0 auto;
     max-width: 36rem;
   }
