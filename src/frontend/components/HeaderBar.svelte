@@ -7,11 +7,9 @@
   import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client } from '../stores/client';
+  import { appInfo } from '../stores/app_info';
   import { userInfo } from '../stores/user_info';
   import { setExpiration } from '../util/refresher';
-
-  const APP_TITLE = 'Texas Underground';
-  const APP_SUBTITLE = 'The University of Texas Biospeleological Collection';
 
   function login() {
     currentDialog.set(new DialogSpec('LoginDialog'));
@@ -22,7 +20,7 @@
       await $client.get('/api/auth/logout');
       //setCSRF(null);
       $userInfo = null;
-      setExpiration(null);
+      setExpiration(0);
       page('/');
     } catch (err: any) {
       await flashMessage(`Error ${err.response.status} logging out`);
@@ -32,7 +30,7 @@
 
 <div class="header_bar">
   <div class="title_row">
-    <div class="app_title">{APP_TITLE}</div>
+    <div class="app_title">{$appInfo.title}</div>
     <div class="user_menu">
       <div>
         {#if $userInfo}
@@ -46,7 +44,7 @@
       </div>
     </div>
   </div>
-  <div class="app_subtitle text">{APP_SUBTITLE}</div>
+  <div class="app_subtitle text">{$appInfo.subtitle}</div>
 </div>
 
 <style lang="scss">

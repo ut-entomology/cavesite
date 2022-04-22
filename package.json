@@ -51,6 +51,7 @@
     "typescript": "^4.0.0"
   },
   "dependencies": {
+    "@sendgrid/mail": "^7.6.2",
     "@types/cookie-parser": "^1.4.2",
     "@types/http-status-codes": "^1.2.0",
     "@types/page": "^1.11.5",

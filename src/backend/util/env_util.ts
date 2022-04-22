@@ -10,6 +10,16 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
 
   // Check environment variables that the server uses.
 
+  if (!process.env.CAVESITE_TITLE) {
+    errors.push('CAVESITE_TITLE - missing');
+  }
+  if (!process.env.CAVESITE_SUBTITLE) {
+    errors.push('CAVESITE_SUBTITLE - missing');
+  }
+  if (!process.env.CAVESITE_SENDER_EMAIL) {
+    errors.push('CAVESITE_SENDER_EMAIL - missing');
+  }
+
   if (forServer) {
     if (process.env.CAVESITE_PORT) {
       if (isNaN(parseInt(process.env.CAVESITE_PORT))) {
@@ -29,6 +39,10 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
         );
       }
     }
+  }
+
+  if (!process.env.SENDGRID_API_KEY) {
+    errors.push('SENDGRID_API_KEY - missing');
   }
 
   // Check environment variables that the server and tools require.
@@ -57,10 +71,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
     errors.push('CAVESITE_DB_PASSWORD - missing');
   }
 
-  if (!process.env.SENDGRID_API_KEY) {
-    errors.push('SENDGRID_API_KEY - missing');
-  }
-
   // Show problems found with environment variables.
 
   if (errors && errors.length > 0) {
@@ -73,6 +83,11 @@ a '.env' file found in the current directory at the time the server is run:`);
       console.log(`
 NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 
+CAVESITE_TITLE* - Title to display for website.
+CAVESITE_SUBTITLE* - Subtitle to display for website.
+CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
+SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
+
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.
 CAVESITE_LOG_DIR* - Directory for the website access log files.`);
     }
@@ -83,7 +98,6 @@ CAVESITE_DB_PORT* - Port of the PostgreSQL database server.
 CAVESITE_DB_NAME* - Name of the database to use within PostgreSQL.
 CAVESITE_DB_USER* - Name of user having all privilates to the database.
 CAVESITE_DB_PASSWORD* - Database password for the above user.
-SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 
 * = the environment variable is required
 `);

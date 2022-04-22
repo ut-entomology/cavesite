@@ -282,7 +282,7 @@ export class User {
 
   static generatePassword(length: number): string {
     let charSet = 'abcdefghijklmnopqrstuvwxyz';
-    charSet += charSet.toUpperCase() + '0123456789!-.?#$%&/';
+    charSet += charSet.toUpperCase() + '0123456789!?#$%&+*';
     let password;
     do {
       password = '';

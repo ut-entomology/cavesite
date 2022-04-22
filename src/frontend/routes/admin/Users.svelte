@@ -63,6 +63,9 @@
         confirmationDetails = null;
         try {
           await $client.post('/api/user/drop', { userID: user.userID });
+          const droppedIndex = users.findIndex((u) => u.userID == user.userID);
+          users.splice(droppedIndex, 1);
+          users = users; // update rendering
           await flashMessage('Dropped user');
         } catch (err: any) {
           showNotice({

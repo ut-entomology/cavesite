@@ -4,6 +4,8 @@
 
   import { client } from './stores/client';
   import { userInfo } from './stores/user_info';
+  import { appInfo } from './stores/app_info';
+  import type { LoginInfo } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
@@ -84,9 +86,14 @@
 
   async function connect() {
     const res = await $client.post('/api/auth/connect');
-    if (res.data && res.data.userInfo) {
-      $userInfo = res.data.userInfo;
-      setExpiration(res.data.expiration);
+    if (res.data) {
+      const loginInfo: LoginInfo = res.data;
+      appInfo.set({
+        title: loginInfo.appTitle,
+        subtitle: loginInfo.appSubtitle
+      });
+      $userInfo = loginInfo.userInfo;
+      setExpiration(loginInfo.expiration);
     }
   }
 </script>
@@ -103,8 +110,9 @@
   {:else}
     <svelte:component this={page} />
   {/if}
-{:catch}
+{:catch err}
   Unable to connect to server.
+  <br />{err}
 {/await}
 
 <style lang="scss" global>

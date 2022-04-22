@@ -7,7 +7,7 @@ import { Permission } from '../shared/user_auth';
 
 loadAndCheckEnvVars(false);
 
-console.log('\nCreating an admin for Texas Underground...\n');
+console.log(`\nCreating an admin for ${process.env.CAVESITE_TITLE}...\n`);
 
 let firstName = readlineSync.question(`User first name: `).trim();
 let lastName = readlineSync.question(`User last name: `).trim();

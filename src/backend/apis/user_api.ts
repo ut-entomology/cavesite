@@ -1,9 +1,8 @@
-import { type Request } from 'express';
+import { Router, type Request } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import sgMail from '@sendgrid/mail';
 
 import { getDB } from '../integrations/postgres';
-import { Router } from 'express';
-import { StatusCodes } from 'http-status-codes';
-
 import { Permission } from '../../shared/user_auth';
 import { requirePermissions } from '../util/http_util';
 import { User } from '../model/user';
@@ -38,7 +37,21 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
     userInfo.permissions,
     null
   );
-  // TODO: email credentials
+  await sgMail.send({
+    to: userInfo.email,
+    from: process.env.CAVESITE_SENDER_EMAIL!,
+    subject: `Your new ${process.env.CAVESITE_TITLE} account`,
+    text: `Hello ${userInfo.firstName}!
+
+    Here are your login credentials for ${process.env.CAVESITE_TITLE}:
+
+    - email: ${userInfo.email}
+    - password: ${password}
+
+    Thank you for working on the conservation of cave invertebrates.
+
+    ${process.env.CAVESITE_SENDER_EMAIL}`
+  });
   return res.status(StatusCodes.OK).send(user.toAdminUserInfo());
 });
 

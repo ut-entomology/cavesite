@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { getDB } from '../integrations/postgres';
 import { User } from '../model/user';
 import { Session } from '../model/session';
+import { type LoginInfo } from '../../shared/user_auth';
 
 type LoginParams = {
   email: string;
@@ -54,8 +55,10 @@ router.post('/refresh', async (req, res) => {
   return res.status(StatusCodes.OK).send({ expiration: expiration.getTime() });
 });
 
-function toLoginInfo(session: Session) {
+function toLoginInfo(session: Session): LoginInfo {
   return {
+    appTitle: process.env.CAVESITE_TITLE!,
+    appSubtitle: process.env.CAVESITE_SUBTITLE!,
     userInfo: session.userInfo,
     expiration: session.expiresAt.getTime()
   };

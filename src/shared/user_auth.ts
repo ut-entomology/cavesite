@@ -24,3 +24,10 @@ export interface AdminUserInfo extends UserInfo {
 }
 
 export type NewUserInfo = Omit<UserInfo, 'lastLoginDate' | 'lastLoginIP'>;
+
+export interface LoginInfo {
+  appTitle: string;
+  appSubtitle: string;
+  userInfo: UserInfo;
+  expiration: number;
+}

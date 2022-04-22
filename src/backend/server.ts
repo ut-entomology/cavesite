@@ -9,6 +9,7 @@ import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
+import sgMail from '@sendgrid/mail';
 
 import { loadAndCheckEnvVars } from './util/env_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
@@ -90,5 +91,6 @@ app.listen(port, async () => {
     sessionTimeoutMillis: SESSION_TIMEOUT_MILLIS,
     expirationCheckMillis: EXPIRATION_CHECK_MILLIS
   });
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
   console.log(`Server listening on port ${port}`);
 });
