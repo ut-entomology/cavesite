@@ -151,22 +151,22 @@
 
 <AdminTabRoute activeTab="Users">
   {#await loadUsers() then}
-    <div class="container-fluid view">
+    <div class="container-fluid g-0 view">
       <div class="general_buttons">
         <button class="btn btn-major add_user" on:click={addUser}>Add User</button>
       </div>
       {#each users as user}
         {@const expanded = user === expandedUser}
-        <div class="user">
-          <div class="row mb-1 selectable" on:click={() => toggleExpansion(user)}>
+        <div class="container-fluid user">
+          <div class="row selectable" on:click={() => toggleExpansion(user)}>
             <div class="col-auto">
               {@html expanded ? EXPANDED_SYMBOL : COLLAPSED_SYMBOL}
             </div>
-            <div class="col-auto">{@html toAccessLevel(user)}</div>
+            <div class="col-auto access-level">{@html toAccessLevel(user)}</div>
             <div class="col-auto">{@html toUserDescription(user, true, false)}</div>
           </div>
           {#if expanded}
-            <div class="row gx-3 mb-1">
+            <div class="row gx-3 mt-3 mb-1">
               <div class="col-3 text-end">Email:</div>
               <div class="col-9">{user.email}</div>
             </div>
@@ -187,7 +187,7 @@
                 {user.createdByName ? user.createdByName : 'create-admin tool'}
               </div>
             </div>
-            <div class="row gx-3 mt-3 mb-3 justify-content-center">
+            <div class="row gx-3 justify-content-center user-buttons">
               <div class="col-auto">
                 <button class="btn btn-major" on:click={() => editUser(user)}
                   >Edit</button
@@ -226,6 +226,9 @@
     margin: 1rem 0 0.5rem 0;
   }
 
+  .user > .row {
+    margin: 0;
+  }
   .selectable {
     padding: 0.5rem;
     border: 1px solid #fff;
@@ -233,19 +236,35 @@
   .selectable:hover {
     cursor: pointer;
     border: 1px solid #0000cc;
-    border-radius: 10px;
+  }
+  .user:nth-child(even) .selectable {
+    background-color: #dcdcdc;
+  }
+  .user:nth-child(odd) .selectable {
+    background-color: #efefef;
+  }
+
+  .access-level {
+    width: 5rem;
   }
 
   :global {
     span.admin {
       color: red;
+      font-weight: bold;
     }
     span.edit {
       color: purple;
+      font-weight: bold;
     }
     span.coords {
       color: green;
+      font-weight: bold;
     }
+  }
+
+  .user-buttons {
+    padding: 0.5rem 0 1rem 0;
   }
 
   .text-end {
