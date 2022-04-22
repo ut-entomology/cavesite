@@ -28,6 +28,10 @@
       await flashMessage(`Error ${err.response.status} logging out`);
     }
   }
+
+  function showLoginInfo() {
+    currentDialog.set(new DialogSpec('LoginInfoDialog'));
+  }
 </script>
 
 <div class="header_bar">
@@ -39,7 +43,7 @@
           {#if $userInfo.permissions & Permission.Admin}
             <TabSetSelector />
           {/if}
-          <div class="padlock">{@html padlockIcon}</div>
+          <div class="padlock" on:click={showLoginInfo}>{@html padlockIcon}</div>
           <button class="btn btn-major" on:click={logout}>Logout</button>
         {:else}
           <button class="btn btn-major" on:click={login}>Login</button>

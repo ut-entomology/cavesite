@@ -2,10 +2,12 @@
   import type { SvelteComponent } from 'svelte';
 
   import LoginDialog from './dialogs/LoginDialog.svelte';
+  import LoginInfoDialog from './dialogs/LoginInfoDialog.svelte';
   import EditUserDialog from './dialogs/EditUserDialog.svelte';
 
   const targetMap: Record<string, typeof SvelteComponent> = {
     LoginDialog,
+    LoginInfoDialog,
     EditUserDialog
   };
 
