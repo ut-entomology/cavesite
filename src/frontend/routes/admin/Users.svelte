@@ -166,7 +166,7 @@
             <div class="col-auto">{@html toUserDescription(user, true, false)}</div>
           </div>
           {#if expanded}
-            <div class="row gx-3 mt-3 mb-1">
+            <div class="row gx-3 mt-2 mb-1">
               <div class="col-3 text-end">Email:</div>
               <div class="col-9">{user.email}</div>
             </div>
