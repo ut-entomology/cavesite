@@ -32,8 +32,12 @@ create table users (
     permissions integer,
     created_on timestamptz not null default now(),
     created_by integer references users,
+    prior_login_date timestamptz,
+    prior_login_ip text,
     last_login_date timestamptz,
-    last_login_ip text
+    last_login_ip text,
+    reset_code text,
+    reset_expiration timestamptz
 );
 create index on users(last_name, first_name);
 
