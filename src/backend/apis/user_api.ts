@@ -16,8 +16,17 @@ const GENERATED_PASSWORD_LENGTH = 10; // characters
 
 router.use(requirePermissions(Permission.Admin));
 
-router.post('/add', async (req: Request<void, any, { user: NewUserInfo }>, res) => {
-  const userInfo = req.body.user;
+router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
+  const userInfo = req.body;
+  if (
+    !userInfo ||
+    !userInfo.firstName ||
+    !userInfo.lastName ||
+    !userInfo.email ||
+    !userInfo.permissions
+  ) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
   const password = User.generatePassword(GENERATED_PASSWORD_LENGTH);
   const user = await User.create(
     getDB(),
@@ -35,6 +44,9 @@ router.post('/add', async (req: Request<void, any, { user: NewUserInfo }>, res) 
 
 router.post('/drop', async (req: Request<void, any, { userID: number }>, res) => {
   const userID = req.body.userID;
+  if (!userID) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
   if (userID == req.session!.userInfo.userID) {
     return res
       .status(StatusCodes.BAD_REQUEST)
@@ -54,26 +66,34 @@ router.post('/get_all', async (_req: Request<void, any, void>, res) => {
 });
 
 router.post('/update', async (req: Request<void, any, NewUserInfo>, res) => {
-  const body = req.body;
+  const userInfo = req.body;
   if (
-    body.userID == req.session!.userInfo.userID &&
-    (body.permissions & Permission.Admin) == 0
+    !userInfo ||
+    !userInfo.userID ||
+    !userInfo.firstName ||
+    !userInfo.lastName ||
+    !userInfo.email ||
+    !userInfo.permissions
+  ) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  if (
+    userInfo.userID == req.session!.userInfo.userID &&
+    (userInfo.permissions & Permission.Admin) == 0
   ) {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .send({ message: `You can't remove your own admin permission.` });
   }
-  const user = await User.getByID(getDB(), body.userID);
+  const user = await User.getByID(getDB(), userInfo.userID);
   if (!user) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .send({ message: `User ID ${body.userID} not found` });
+    return res.status(StatusCodes.BAD_REQUEST).send({ message: `User ID not found` });
   }
-  user.firstName = body.firstName;
-  user.lastName = body.lastName;
-  user.email = body.email;
-  user.affiliation = body.affiliation;
-  user.permissions = body.permissions;
+  user.firstName = userInfo.firstName;
+  user.lastName = userInfo.lastName;
+  user.email = userInfo.email;
+  user.affiliation = userInfo.affiliation;
+  user.permissions = userInfo.permissions;
   await user.save(getDB());
   Session.refreshUserInfo(user);
   return res.status(StatusCodes.OK).send(user.toAdminUserInfo());

@@ -21,6 +21,9 @@ router.post('/connect', async (req, res) => {
 
 router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
   const body = req.body;
+  if (!body.email || !body.password) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
   const user = await User.authenticate(getDB(), body.email, body.password, req.ip);
   if (!user) {
     return res.status(StatusCodes.UNAUTHORIZED).send();
