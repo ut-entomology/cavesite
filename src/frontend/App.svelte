@@ -20,7 +20,7 @@
   // Initialize session refresh.
 
   initRefresher({
-    refreshMillis: 1 * 60 * 1000 /* 5 minutes */,
+    refreshMillis: 5 * 60 * 1000 /* 5 minutes */,
     onRefresh: async () => {
       try {
         const res = await $client.post('/api/auth/refresh');

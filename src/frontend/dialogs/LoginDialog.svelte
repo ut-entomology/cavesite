@@ -26,7 +26,7 @@
         const res = await $client.post('/api/auth/login', values);
         //setCSRF(res.headers[CSRF_TOKEN_HEADER]);
         $userInfo = res.data.userInfo;
-        setExpiration(new Date(res.data.expiration));
+        setExpiration(res.data.expiration);
         closeDialog();
         await flashMessage('You are logged in');
       } catch (err: any) {

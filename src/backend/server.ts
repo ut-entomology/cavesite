@@ -18,10 +18,8 @@ import { router as userApi } from './apis/user_api';
 import { Session } from './model/session';
 import { LogType, Logs } from './model/logs';
 
-const SESSION_TIMEOUT_MILLIS = 3 * 60 * 1000;
-const EXPIRATION_CHECK_MILLIS = 1 * 60 * 1000;
-// const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
-// const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
+const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
+const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
 const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
 const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 
