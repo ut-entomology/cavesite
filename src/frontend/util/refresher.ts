@@ -55,20 +55,12 @@ export function setExpiration(expiration: number): void {
     timer = null;
   }
   expirationTime = expiration;
-  if (expiration == 0) {
-    console.log('**** setExpiration(0)');
-  } else {
-    const now = new Date().getTime();
+  if (expiration > 0) {
     // Because setExpiration() is called quickly after each new expiration
     // is assigned, extraTime will be slightly less than halfRefreshMillis,
     // making their sum approximately refreshMillis.
+    const now = new Date().getTime();
     const extraTime = (expirationTime - now) % halfRefreshMillis;
-    console.log('**** setExpiration ', new Date(expiration));
-    console.log(
-      `****   set first refresh ${new Date(
-        now + halfRefreshMillis + extraTime
-      )} (extra time ${extraTime})`
-    );
     // Synchronize refreshes with session so that last of session times
     // out at about time that session would time out.
     scheduleRefresh(halfRefreshMillis + extraTime);
@@ -82,8 +74,6 @@ function markActive() {
 
 function scheduleRefresh(nextRefreshMillis: number) {
   timer = setTimeout(async () => {
-    const now = new Date().getTime();
-    console.log('**** timeout at', new Date(now));
     timer = null;
     if (expirationTime > 0) {
       if (wasActive) {
@@ -94,8 +84,7 @@ function scheduleRefresh(nextRefreshMillis: number) {
         }
         wasActive = false;
       } else {
-        const remainingTime = expirationTime - now;
-        console.log('****   compared expiration', new Date(expirationTime));
+        const remainingTime = expirationTime - new Date().getTime();
         if (remainingTime <= 0) {
           setExpiration(0);
           config.onExpiration();

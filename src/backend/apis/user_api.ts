@@ -35,7 +35,7 @@ router.post('/add', async (req: Request<void, any, { user: UserInfo }>, res) => 
 
 router.post('/drop', async (req: Request<void, any, { userID: number }>, res) => {
   const userID = req.body.userID;
-  if (req.session.userInfo!.userID == userID) {
+  if (req.session!.userInfo.userID == userID) {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .send({ message: `Can't delete yourself` });

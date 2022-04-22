@@ -19,13 +19,11 @@
 
   // Initialize session refresh.
 
-  console.log('**** page load time', new Date());
   initRefresher({
     refreshMillis: 1 * 60 * 1000 /* 5 minutes */,
     onRefresh: async () => {
       try {
         const res = await $client.post('/api/auth/refresh');
-        console.log('**** /api/refresh updated ', new Date(res.data.expiration));
         return res.data.expiration;
       } catch (err: any) {
         return 0;
@@ -39,9 +37,7 @@
         button: 'Continue',
         onClose: async () => {
           try {
-            console.log('**** continuing...');
             const res = await $client.post('/api/auth/refresh');
-            console.log('**** /api/refresh continued', new Date(res.data.expiration));
             setExpiration(res.data.expiration);
           } catch (err: any) {
             // ignore

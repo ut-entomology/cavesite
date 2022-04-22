@@ -5,18 +5,23 @@
  * governed by the need for compatibility with express sessions, and by the
  * fact that only a few dozen users are expected to have login ability.
  */
-import type { SessionData as ExpressSessionData } from 'express-session';
+import * as crypto from 'crypto';
 
+import { toHeaderSafeBase64 } from '../util/http_util';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import type { DataOf } from '../util/type_util';
 import { User } from './user';
+import { UserInfo } from '../../shared/user_auth';
 
 export interface SessionOptions {
   sessionTimeoutMillis: number;
   expirationCheckMillis: number;
 }
 
-type SessionData = Omit<DataOf<Session>, 'sessionData'>;
+type SessionData = Omit<DataOf<Session>, 'userInfo'>;
+
+const SESSION_ID_BYTES = 24; // byte length of random session ID
+const MAX_ID_GEN_ATTEMPTS = 10; // maximum attempts to create a unique ID
 
 const sessionsByID = new Map<string, Session>();
 let expirationTimer: NodeJS.Timeout | null = null;
@@ -28,17 +33,17 @@ export class Session {
   createdOn: Date;
   expiresAt!: Date;
   ipAddress: string;
-  sessionData: ExpressSessionData; // includes userInfo
+  userInfo: UserInfo;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
-  private constructor(info: SessionData, sessionData: ExpressSessionData) {
+  private constructor(info: SessionData, userInfo: UserInfo) {
     this.userID = info.userID;
     this.sessionID = info.sessionID;
     this.createdOn = info.createdOn;
     this.expiresAt = info.expiresAt;
     this.ipAddress = info.ipAddress;
-    this.sessionData = sessionData;
+    this.userInfo = userInfo;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -67,9 +72,7 @@ export class Session {
     for (const row of result.rows) {
       const user = usersByID[row.user_id];
       if (user) {
-        const expressSessionData = JSON.parse(row.session_data);
-        expressSessionData.userInfo = user.toUserInfo();
-        const session = new Session(toCamelRow(row), expressSessionData);
+        const session = new Session(toCamelRow(row), user.toUserInfo());
         sessionsByID.set(session.sessionID, session);
       }
     }
@@ -80,65 +83,37 @@ export class Session {
   }
 
   /**
-   * Creates or refresh a session for a logged-in user. `expressSessionData`
-   * must contain a populated `userInfo` property, along with any properties
-   * assigned by express middleware.
+   * Creates a session for the provided newly logged-in user.
    */
-  static async upsert(
-    db: DB,
-    sessionID: string,
-    expressSessionData: ExpressSessionData
-  ): Promise<Session> {
-    // Remove userInfo from a copy of expressSessionData so we don't store it.
-    const userInfo = expressSessionData.userInfo;
-    const userlessSessionData = Object.assign({}, expressSessionData) as any;
-    delete userlessSessionData['userInfo'];
-
-    console.log('**** upsert session');
-    let session = Session.getByID(sessionID);
-    if (session) {
-      session.expiresAt = Session._getNewExpiration();
-      console.log('**** update expiration', session.expiresAt);
-      await db.query(
-        `update sessions set expires_at=$1, session_data=$2 where session_id=$3`,
-        [
-          // @ts-ignore
-          session.expiresAt,
-          JSON.stringify(userlessSessionData),
-          sessionID
-        ]
-      );
-    } else {
-      session = new Session(
-        {
-          userID: userInfo.userID,
-          sessionID,
-          createdOn: new Date(),
-          expiresAt: Session._getNewExpiration(),
-          ipAddress: expressSessionData.ipAddress
-        },
-        expressSessionData
-      );
-      const result = await db.query(
-        `insert into sessions (
-            session_id, user_id, created_on, expires_at, ip_address, session_data
-          ) values($1, $2, $3, $4, $5, $6)`,
-        [
-          sessionID,
-          userInfo.userID,
-          // @ts-ignore
-          session.createdOn,
-          // @ts-ignore
-          session.expiresAt,
-          expressSessionData.ipAddress,
-          JSON.stringify(userlessSessionData)
-        ]
-      );
-      if (result.rowCount != 1) {
-        throw Error(`Failed to update session for user ID ${userInfo.userID}`);
-      }
-      sessionsByID.set(sessionID, session);
+  static async create(db: DB, userInfo: UserInfo, ipAddress: string): Promise<Session> {
+    const session = new Session(
+      {
+        userID: userInfo.userID,
+        sessionID: await Session._createSessionID(MAX_ID_GEN_ATTEMPTS),
+        createdOn: new Date(),
+        expiresAt: Session._getNewExpiration(),
+        ipAddress
+      },
+      userInfo
+    );
+    const result = await db.query(
+      `insert into sessions (
+            session_id, user_id, created_on, expires_at, ip_address
+          ) values($1, $2, $3, $4, $5)`,
+      [
+        session.sessionID,
+        session.userID,
+        // @ts-ignore
+        session.createdOn,
+        // @ts-ignore
+        session.expiresAt,
+        ipAddress
+      ]
+    );
+    if (result.rowCount != 1) {
+      throw Error(`Failed to update session for user ID ${session.userID}`);
     }
+    sessionsByID.set(session.sessionID, session);
     return session;
   }
 
@@ -179,12 +154,28 @@ export class Session {
   }
 
   /**
+   * Refresh the session with the givne ID, returning the new expiration date.
+   */
+  static async refreshSession(db: DB, sessionID: string): Promise<Date | null> {
+    const session = Session.getByID(sessionID);
+    if (!session) return null;
+    session.expiresAt = Session._getNewExpiration();
+    await db.query(`update sessions set expires_at=$1 where session_id=$2`, [
+      // @ts-ignore
+      session.expiresAt,
+      session.sessionID
+    ]);
+    return session.expiresAt;
+  }
+
+  /**
    * Refresh sessions for new user information.
    */
   static refreshUserInfo(user: User) {
+    const userInfo = user.toUserInfo();
     for (const session of Array.from(sessionsByID.values())) {
       if (session.userID == user.userID) {
-        session.sessionData.userInfo = user.toUserInfo();
+        session.userInfo = userInfo;
       }
     }
   }
@@ -198,6 +189,26 @@ export class Session {
   }
 
   //// PRIVATE CLASS METHODS /////////////////////////////////////////////////
+
+  /**
+   * Creates a unique cryptographically-strong session ID.
+   */
+  private static async _createSessionID(attemptsLeft: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(SESSION_ID_BYTES, function (err, buffer) {
+        if (err) return reject(err);
+        let headerSafeID = toHeaderSafeBase64(buffer.toString('base64'));
+        if (sessionsByID.get(headerSafeID)) {
+          if (--attemptsLeft == 0) {
+            return reject(Error(`Unable to create a unique session ID`));
+          }
+          return Session._createSessionID(attemptsLeft);
+        } else {
+          resolve(headerSafeID);
+        }
+      });
+    });
+  }
 
   static _getNewExpiration() {
     return new Date(new Date().getTime() + config.sessionTimeoutMillis);

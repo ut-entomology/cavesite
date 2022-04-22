@@ -7,14 +7,14 @@ import express from 'express';
 import morgan from 'morgan';
 import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
-import session from 'express-session';
+import cookieParser from 'cookie-parser';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 
 import { loadAndCheckEnvVars } from './util/env_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
+import { sessionware } from '../backend/integrations/sessionware';
 import { router as authApi } from './apis/auth_api';
 import { router as userApi } from './apis/user_api';
-import { SessionStore } from './integrations/session_store';
 import { Session } from './model/session';
 import { LogType, Logs } from './model/logs';
 
@@ -49,16 +49,8 @@ if (!devMode) {
 }
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    store: new SessionStore(),
-    resave: false, // client must periodically call /api/auth/refresh
-    saveUninitialized: false,
-    secret: process.env.CAVESITE_SESSION_KEY!,
-    cookie: { secure: !devMode, sameSite: true, maxAge: SESSION_TIMEOUT_MILLIS }
-  })
-);
-//app.use(sessionChecker);
+app.use(cookieParser());
+app.use(sessionware);
 
 // Set up application routes.
 
@@ -102,8 +94,3 @@ app.listen(port, async () => {
   });
   console.log(`Server listening on port ${port}`);
 });
-
-// function sessionChecker(req: any, _res: any, next: any) {
-//   console.log(req.session);
-//   next();
-// }

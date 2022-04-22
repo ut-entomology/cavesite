@@ -9,7 +9,7 @@ import { Permission } from '../../shared/user_auth';
 export function requirePermissions(permissions: Permission) {
   return (req: Request<void, any, void>, res: any, next: any) => {
     if (
-      !req.session.userInfo ||
+      !req.session ||
       (req.session.userInfo.permissions & permissions) != permissions
     ) {
       return res.status(403).send();
