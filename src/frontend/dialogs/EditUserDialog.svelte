@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { getReasonPhrase } from 'http-status-codes';
-
   import * as yup from 'yup';
-  import { createForm, ContextForm, Input } from '../common/forms';
+  import { createForm, ContextForm, Input, Select } from '../common/forms';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { Permission, UserInfo, AdminUserInfo } from '../../shared/user_auth';
-  import { client } from '../stores/client';
+  import { Permission, AdminUserInfo, NewUserInfo } from '../../shared/user_auth';
+  import { client, errorReason } from '../stores/client';
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
 
@@ -16,10 +14,8 @@
     Edit = 'edit',
     Admin = 'admin'
   }
-  type EditableInfo = Omit<UserInfo, 'userID' | 'lastLoginDate' | 'lastLoginIP'>;
-  type FormUserInfo = EditableInfo & { accessLevel: AccessLevel };
 
-  export let userInfo: EditableInfo | null;
+  export let userInfo: NewUserInfo | null;
   export let onSuccess: (user: AdminUserInfo) => void = () => {};
 
   let creatingUser = false;
@@ -34,6 +30,7 @@
     submitLabel = 'Add';
 
     userInfo = {
+      userID: 0,
       firstName: '',
       lastName: '',
       affiliation: '',
@@ -48,10 +45,9 @@
   } else if (userInfo.permissions & Permission.Coords) {
     accessLevel = AccessLevel.Coords;
   }
-  const formUserInfo: FormUserInfo = Object.assign({ accessLevel }, userInfo);
 
   const context = createForm({
-    initialValues: formUserInfo,
+    initialValues: Object.assign({ accessLevel }, userInfo),
     validationSchema: yup.object().shape({
       firstName: yup.string().trim().required().label('First Name'),
       lastName: yup.string().trim().required().label('Last Name'),
@@ -68,12 +64,12 @@
       } else if (values.accessLevel == AccessLevel.Coords) {
         permissions = Permission.Coords;
       }
-      let newInfo: EditableInfo = Object.assign({ permissions }, values);
+      let newUserInfo = Object.assign({}, values, { permissions });
       try {
         if (creatingUser) {
-          await createUser(newInfo);
+          await createUser(newUserInfo);
         } else {
-          await updateUser(newInfo);
+          await updateUser(newUserInfo);
         }
       } catch (err) {
         errorMessage = (err as Error).message;
@@ -81,31 +77,31 @@
     }
   });
 
-  async function createUser(userInfo: EditableInfo) {
+  async function createUser(userInfo: NewUserInfo) {
     try {
+      closeDialog();
       const res = await $client.post('/api/user/add', userInfo);
       await flashMessage('Created user');
-      closeDialog();
       onSuccess(res.data);
     } catch (err: any) {
       showNotice({
-        message: `Failed to add user<br/><br/>` + getReasonPhrase(err.response.status),
+        message: `Failed to add user<br/><br/>` + errorReason(err.response),
         header: 'Error',
         alert: 'danger'
       });
     }
   }
 
-  async function updateUser(_userInfo: EditableInfo) {
+  async function updateUser(userInfo: NewUserInfo) {
     try {
+      closeDialog();
       const res = await $client.post('/api/user/update', userInfo);
       await flashMessage('Updated user');
-      closeDialog();
       onSuccess(res.data);
     } catch (err: any) {
+      console.log('*** got err.response', err.response);
       showNotice({
-        message:
-          `Failed to update user<br/><br/>` + getReasonPhrase(err.response.status),
+        message: `Failed to update user<br/><br/>` + errorReason(err.response),
         header: 'Error',
         alert: 'danger'
       });
@@ -156,12 +152,12 @@
         <label for="accessLevel" class="col-form-label">Access Level</label>
       </div>
       <div class="col-sm-7">
-        <select id="accessLevel" name="accessLevel" class="form-select">
+        <Select id="accessLevel" name="accessLevel" class="form-select">
           <option value="none">None (account disabled)</option>
-          <option value="coords">See Private Coordinates</option>
-          <option value="edit">Edit Private Coordiates</option>
-          <option value="admin">Administration</option>
-        </select>
+          <option value="coords">See Precise Coordinates</option>
+          <option value="edit">Edit Precise Coordinates</option>
+          <option value="admin">Admin (all permissions)</option>
+        </Select>
       </div>
     </div>
     <div class="row g-2">

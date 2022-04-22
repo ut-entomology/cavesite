@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { getReasonPhrase } from 'http-status-codes';
-
   import { Permission, type AdminUserInfo } from '../../../shared/user_auth';
   import AdminTabRoute from '../../components/AdminTabRoute.svelte';
   import ServerError from '../../components/ServerError.svelte';
@@ -11,7 +9,7 @@
   import { showNotice } from '../../common/VariableNotice.svelte';
   import { DialogSpec } from '../../common/VariableDialog.svelte';
   import { currentDialog } from '../../stores/currentDialog.svelte';
-  import { client } from '../../stores/client';
+  import { client, errorReason } from '../../stores/client';
 
   const EXPANDED_SYMBOL = '&#9660';
   const COLLAPSED_SYMBOL = '&#9654;';
@@ -68,7 +66,7 @@
           await flashMessage('Dropped user');
         } catch (err: any) {
           showNotice({
-            message: `Drop failed<br/><br/>` + getReasonPhrase(err.response.status),
+            message: `Drop failed<br/><br/>` + errorReason(err.response),
             header: 'Error',
             alert: 'danger'
           });

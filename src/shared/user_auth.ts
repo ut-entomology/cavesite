@@ -22,3 +22,5 @@ export interface AdminUserInfo extends UserInfo {
   createdOn: Date;
   createdByName: string | null;
 }
+
+export type NewUserInfo = Omit<UserInfo, 'lastLoginDate' | 'lastLoginIP'>;

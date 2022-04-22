@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
-import axios, { type AxiosInstance } from 'axios';
+import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
+import { getReasonPhrase } from 'http-status-codes';
 
 import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
@@ -24,4 +25,8 @@ export function setCSRF(csrfToken: string | null) {
     config[CSRF_TOKEN_HEADER] = csrfToken;
     client.set(axios.create(config));
   }
+}
+
+export function errorReason(res: AxiosResponse): string {
+  return res.data?.message || getReasonPhrase(res.status);
 }
