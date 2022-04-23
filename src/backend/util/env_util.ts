@@ -16,6 +16,16 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
   if (!process.env.CAVESITE_SUBTITLE) {
     errors.push('CAVESITE_SUBTITLE - missing');
   }
+  if (process.env.CAVESITE_BASE_URL) {
+    if (
+      !process.env.CAVESITE_BASE_URL.startsWith('http://') &&
+      !process.env.CAVESITE_BASE_URL.startsWith('https://')
+    ) {
+      errors.push('CAVESITE_BASE_URL - must begin with http:// or https://');
+    }
+  } else {
+    errors.push('CAVESITE_BASE_URL - missing');
+  }
   if (!process.env.CAVESITE_SENDER_EMAIL) {
     errors.push('CAVESITE_SENDER_EMAIL - missing');
   }
@@ -86,6 +96,7 @@ NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 CAVESITE_TITLE* - Title to display for website.
 CAVESITE_SUBTITLE* - Subtitle to display for website.
 CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
+CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.

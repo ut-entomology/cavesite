@@ -1,5 +1,6 @@
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import sgMail from '@sendgrid/mail';
 
 import { getDB } from '../integrations/postgres';
 import { User } from '../model/user';
@@ -55,7 +56,7 @@ router.post('/refresh', async (req, res) => {
   return res.status(StatusCodes.OK).send({ expiration: expiration.getTime() });
 });
 
-router.post('/request_reset', async (req, res) => {
+router.post('/request-reset', async (req, res) => {
   const body = req.body;
   if (!body.email) {
     return res.status(StatusCodes.BAD_REQUEST).send();
@@ -67,10 +68,24 @@ router.post('/request_reset', async (req, res) => {
       .send({ message: `Email address not found` });
   }
   const resetCode = await user.generateResetCode(getDB());
-  return res.status(StatusCodes.OK).send({ resetCode });
+  await sgMail.send({
+    to: user.email,
+    from: process.env.CAVESITE_SENDER_EMAIL!,
+    subject: `Your password reset request`,
+    text: `Hello ${user.firstName}!
+
+A request was made to reset your ${process.env.CAVESITE_TITLE} password.
+
+If this was not you, ignore this email to leave the password unchanged.
+
+If you want to reset your password, click on the following link:
+
+${process.env.CAVESITE_BASE_URL}/reset?email=${encodeURI(user.email)}&code=${resetCode}`
+  });
+  return res.status(StatusCodes.NO_CONTENT).send();
 });
 
-router.post('/change_password', async (req, res) => {
+router.post('/change-password', async (req, res) => {
   const body = req.body as PasswordChangeInfo;
   if (!body.resetCode || !body.email || !body.password) {
     return res.status(StatusCodes.BAD_REQUEST).send();
