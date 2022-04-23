@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex, expectRecentTime } from '../util/test_util';
+import { DatabaseMutex, expectRecentTime, sleep } from '../util/test_util';
 import { User } from './user';
 import { Permission } from '../../shared/user_auth';
 import { Logs, LogType } from './logs';
@@ -11,6 +11,7 @@ import {
 
 const STRONG_PASSWORD1 = '8afj a aw3rajfla fdj8323214';
 const STRONG_PASSWORD2 = 'VERYstrongPWevenWithOUTnumbers';
+const STRONG_PASSWORD3 = 'dh87s834$82jZZXi20!@+32ffgzil';
 const WEAK_PASSWORD = 'passwordpasswordpassword';
 const WRONG_PASSWORD = 'foochoohoo838alfaljfZZDqy';
 
@@ -47,7 +48,7 @@ test('non-existant users', async () => {
 });
 
 test('creating, using, and dropping a user', async () => {
-  const email = 'curator@place.com';
+  let email = 'curator@place.com';
 
   // Create a user.
 
@@ -120,7 +121,7 @@ test('creating, using, and dropping a user', async () => {
   expectRecentTime(readUser!.lastLoginDate);
   expect(readUser?.lastLoginIP).toEqual('<ip2>');
 
-  // Change the user's password.
+  // Change the user's password, directly.
 
   await readUser!.setPassword(STRONG_PASSWORD2);
   await readUser!.save(db);
@@ -149,6 +150,34 @@ test('creating, using, and dropping a user', async () => {
     0,
     null
   );
+  email = readUser!.email;
+
+  // Attempt to change the user's password with an invalid reset code.
+
+  let resetCode = await readUser!.generateResetCode(db);
+  let changed = await readUser!.changePassword(db, 'invalid', STRONG_PASSWORD3);
+  expect(changed).toBe(false);
+  let badUser = await User.authenticate(db, email, STRONG_PASSWORD3, '<ip>');
+  expect(badUser).toBeNull();
+
+  // Change the user's password with a valid reset code.
+
+  changed = await readUser!.changePassword(db, resetCode, STRONG_PASSWORD3);
+  expect(changed).toBe(true);
+  readUser = await User.authenticate(db, email, STRONG_PASSWORD3, '<ip>');
+  expect(readUser?.userID).toEqual(adminUser.userID);
+  expect(readUser?.resetCode).toBeNull();
+  expect(readUser?.resetExpiration).toBeNull();
+
+  // Fail to change user's password after reset expiration.
+
+  User.setResetCodeDuration(1 / 60);
+  resetCode = await readUser!.generateResetCode(db);
+  await sleep(1200);
+  changed = await readUser!.changePassword(db, resetCode, STRONG_PASSWORD1);
+  expect(changed).toBe(false);
+  badUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip>');
+  expect(badUser).toBeNull();
 
   // Add a second user with edit permissions
 

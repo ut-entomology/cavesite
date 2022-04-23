@@ -12,6 +12,8 @@ import { Session } from '../model/session';
 export const router = Router();
 
 const GENERATED_PASSWORD_LENGTH = 10; // characters
+let PASSWORD_CHARSET = 'abcdefghijklmnopqrstuvwxyz';
+PASSWORD_CHARSET += PASSWORD_CHARSET.toUpperCase() + '0123456789!?#$%&+*';
 
 router.use(requirePermissions(Permission.Admin));
 
@@ -26,7 +28,7 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
   ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  const password = User.generatePassword(GENERATED_PASSWORD_LENGTH);
+  const password = User.generatePassword(PASSWORD_CHARSET, GENERATED_PASSWORD_LENGTH);
   const user = await User.create(
     getDB(),
     userInfo.firstName,

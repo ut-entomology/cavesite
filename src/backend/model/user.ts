@@ -15,6 +15,11 @@ import {
 import { Permission, type UserInfo, type AdminUserInfo } from '../../shared/user_auth';
 
 const PASSWORD_HASH_LENGTH = 64;
+const RESET_CODE_LENGTH = 24;
+let RESET_CODE_CHARSET = 'abcdefghijklmnopqrstuvwxyz';
+RESET_CODE_CHARSET += RESET_CODE_CHARSET.toUpperCase() + '0123456789';
+const RESET_CODE_DURATION_MINS = 10; // 10 minutes
+let resetCodeDurationMins = RESET_CODE_DURATION_MINS;
 
 zxcvbnOptions.setOptions({
   translations: zxcvbnEnPackage.translations,
@@ -44,6 +49,8 @@ export class User {
   priorLoginIP: string | null;
   lastLoginDate: Date | null;
   lastLoginIP: string | null;
+  resetCode: string | null;
+  resetExpiration: Date | null;
 
   createdByName?: string | null;
 
@@ -65,11 +72,44 @@ export class User {
     this.priorLoginIP = data.priorLoginIP;
     this.lastLoginDate = data.lastLoginDate;
     this.lastLoginIP = data.lastLoginIP;
+    this.resetCode = data.resetCode;
+    this.resetExpiration = data.resetExpiration;
     this._passwordHash = data.passwordHash;
     this._passwordSalt = data.passwordSalt;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
+
+  async changePassword(
+    db: DB,
+    resetCode: string,
+    newPassword: string
+  ): Promise<boolean> {
+    if (!this.resetCode) return false;
+    // Use hash lookup to reduce effectiveness of timing attacks.
+    const expected: Record<string, boolean> = {};
+    expected[this.resetCode] = true;
+    if (
+      !expected[resetCode] ||
+      new Date().getTime() > this.resetExpiration!.getTime()
+    ) {
+      return false;
+    }
+    await this.setPassword(newPassword);
+    this.resetCode = null;
+    this.resetExpiration = null;
+    await this.save(db);
+    return true;
+  }
+
+  async generateResetCode(db: DB): Promise<string> {
+    this.resetCode = User.generatePassword(RESET_CODE_CHARSET, RESET_CODE_LENGTH);
+    this.resetExpiration = new Date(
+      new Date().getTime() + resetCodeDurationMins * 60 * 1000
+    );
+    await this.save(db);
+    return this.resetCode;
+  }
 
   async save(db: DB): Promise<number> {
     if (this.userID === 0) {
@@ -77,8 +117,8 @@ export class User {
         `insert into users(
             first_name, last_name, email, affiliation, password_hash, password_salt,
             permissions, created_by, prior_login_date, prior_login_ip,
-            last_login_date, last_login_ip
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+            last_login_date, last_login_ip, reset_code, reset_expiration
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
             returning user_id, created_on`,
         [
           this.firstName,
@@ -94,7 +134,10 @@ export class User {
           this.priorLoginIP,
           // @ts-ignore
           this.lastLoginDate,
-          this.lastLoginIP
+          this.lastLoginIP,
+          this.resetCode,
+          // @ts-ignore
+          this.resetExpiration
         ]
       );
       const row = result.rows[0];
@@ -105,8 +148,8 @@ export class User {
         `update users set
             first_name=$1, last_name=$2, email=$3, affiliation=$4, password_hash=$5,
             password_salt=$6, permissions=$7, prior_login_date=$8, prior_login_ip=$9,
-            last_login_date=$10, last_login_ip=$11
-          where user_id=$12`,
+            last_login_date=$10, last_login_ip=$11, reset_code=$12, reset_expiration=$13
+          where user_id=$14`,
         [
           this.firstName,
           this.lastName,
@@ -121,6 +164,9 @@ export class User {
           // @ts-ignore
           this.lastLoginDate,
           this.lastLoginIP,
+          this.resetCode,
+          // @ts-ignore
+          this.resetExpiration,
           this.userID
         ]
       );
@@ -268,6 +314,8 @@ export class User {
       priorLoginIP: null,
       lastLoginDate: null,
       lastLoginIP: null,
+      resetCode: null,
+      resetExpiration: null,
       passwordHash: '', // temporary
       passwordSalt: '' // temporary
     });
@@ -298,14 +346,12 @@ export class User {
     }
   }
 
-  static generatePassword(length: number): string {
-    let charSet = 'abcdefghijklmnopqrstuvwxyz';
-    charSet += charSet.toUpperCase() + '0123456789!?#$%&+*';
+  static generatePassword(charset: string, length: number): string {
     let password;
     do {
       password = '';
       while (password.length < length) {
-        password += charSet[Math.floor(Math.random() * charSet.length)];
+        password += charset[Math.floor(Math.random() * charset.length)];
       }
     } while (User.getPasswordStrength(password) < MIN_PASSWORD_STRENGTH);
     return password;
@@ -343,6 +389,11 @@ export class User {
       }
       return data;
     });
+  }
+
+  // Used for testing.
+  static setResetCodeDuration(minutes: number): void {
+    resetCodeDurationMins = minutes;
   }
 
   //// PRIVATE CLASS METHODS /////////////////////////////////////////////////
