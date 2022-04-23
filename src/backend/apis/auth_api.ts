@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { getDB } from '../integrations/postgres';
 import { User } from '../model/user';
 import { Session } from '../model/session';
-import type { AppInfo, LoginInfo } from '../../shared/user_auth';
+import type { AppInfo, LoginInfo, PasswordChangeInfo } from '../../shared/user_auth';
 
 type LoginParams = {
   email: string;
@@ -53,6 +53,42 @@ router.post('/refresh', async (req, res) => {
   }
   req.setSession(req.session);
   return res.status(StatusCodes.OK).send({ expiration: expiration.getTime() });
+});
+
+router.post('/request_reset', async (req, res) => {
+  const body = req.body;
+  if (!body.email) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  const user = await User.getByEmail(getDB(), body.email);
+  if (!user) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: `Email address not found` });
+  }
+  const resetCode = await user.generateResetCode(getDB());
+  return res.status(StatusCodes.OK).send({ resetCode });
+});
+
+router.post('/change_password', async (req, res) => {
+  const body = req.body as PasswordChangeInfo;
+  if (!body.resetCode || !body.email || !body.password) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  const user = await User.getByEmail(getDB(), body.email);
+  if (!user) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: `Email address not found` });
+  }
+  if (!(await user.changePassword(getDB(), body.resetCode, body.password))) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: `Reset request has expired` });
+  }
+  const sessionID = req.session ? req.session.sessionID : null;
+  await Session.dropUser(getDB(), user.userID, sessionID);
+  return res.status(StatusCodes.NO_CONTENT).send();
 });
 
 let appInfo: AppInfo;

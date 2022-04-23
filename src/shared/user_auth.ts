@@ -36,3 +36,9 @@ export interface LoginInfo extends AppInfo {
   userInfo?: UserInfo;
   expiration?: number;
 }
+
+export interface PasswordChangeInfo {
+  email: string;
+  resetCode: string;
+  password: string;
+}
