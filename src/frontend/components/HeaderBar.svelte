@@ -41,7 +41,13 @@
           {#if $userInfo.permissions & Permission.Admin}
             <TabSetSelector />
           {/if}
-          <div class="login_info" on:click={showLoginInfo}>i</div>
+          <div
+            class="login_info"
+            on:click={showLoginInfo}
+            aria-label="Login information"
+          >
+            i
+          </div>
           <!-- <button
             class="btn btn-minor login_info"
             aria-label="Login information"
