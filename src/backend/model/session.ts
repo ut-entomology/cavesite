@@ -128,15 +128,23 @@ export class Session {
   }
 
   /**
-   * Logs the user out, closing all sessions.
+   * Logs the user out, closing all sessions but the indicated on, if any
+   * is indicated.
    */
-  static async dropUser(db: DB, userID: number) {
+  static async dropUser(db: DB, userID: number, exceptSessionID: string | null) {
     for (const session of Array.from(sessionsByID.values())) {
-      if (session.userID == userID) {
+      if (session.userID == userID && session.sessionID != exceptSessionID) {
         sessionsByID.delete(session.sessionID);
       }
     }
-    await db.query(`delete from sessions where user_id=$1`, [userID]);
+    if (exceptSessionID) {
+      await db.query(`delete from sessions where user_id=$1 and session_id!=$2`, [
+        userID,
+        exceptSessionID
+      ]);
+    } else {
+      await db.query(`delete from sessions where user_id=$1`, [userID]);
+    }
   }
 
   /**

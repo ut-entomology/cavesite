@@ -118,7 +118,7 @@ test('creating, finding, and destroying sessions', async () => {
 
   // Drop all sessions of a user.
 
-  await Session.dropUser(db, user2.userID);
+  await Session.dropUser(db, user2.userID, null);
   sessions = Session.getSessions();
   expect(sessions.length).toEqual(1);
   expect(sessions).toContainEqual(session1a);
@@ -127,6 +127,29 @@ test('creating, finding, and destroying sessions', async () => {
   sessions = Session.getSessions();
   expect(sessions.length).toEqual(1);
   expect(sessions).toContainEqual(session1a);
+
+  // Drop all if a user's sessions but the indicated session.
+
+  const session1x = await Session.create(db, user1.toUserInfo(), IP);
+  const session1y = await Session.create(db, user1.toUserInfo(), IP);
+  const session1z = await Session.create(db, user1.toUserInfo(), IP);
+  const session2x = await Session.create(db, user2.toUserInfo(), IP);
+  await Session.dropUser(db, user1.userID, session1y.sessionID);
+
+  sessions = Session.getSessions();
+  expect(sessions.length).toEqual(2);
+  expect(sessions).not.toContainEqual(session1x);
+  expect(sessions).toContainEqual(session1y);
+  expect(sessions).not.toContainEqual(session1z);
+  expect(sessions).toContainEqual(session2x);
+
+  await Session.init(db, options);
+  sessions = Session.getSessions();
+  expect(sessions.length).toEqual(2);
+  expect(sessions).not.toContainEqual(session1x);
+  expect(sessions).toContainEqual(session1y);
+  expect(sessions).not.toContainEqual(session1z);
+  expect(sessions).toContainEqual(session2x);
 });
 
 test("updating user info refreshes the users's sessions", async () => {
