@@ -18,12 +18,14 @@
     {#if $userInfo?.priorLoginDate}
       <div class="row mb-4">
         <div>
-          Your current IP address is <span class="ip">{$userInfo?.lastLoginIP}</span>.
+          Your current IP address is<br /><span class="ip"
+            >{$userInfo?.lastLoginIP}</span
+          >.
         </div>
       </div>
       <div class="row mb-2">
         <div>
-          You previously logged in on<br />{new Date(
+          You previous login was on<br />{new Date(
             $userInfo.priorLoginDate
           ).toLocaleString()}.<br />
           {#if $userInfo.priorLoginIP == $userInfo.lastLoginIP}
