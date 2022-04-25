@@ -37,7 +37,7 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
     userInfo.affiliation,
     password,
     userInfo.permissions,
-    null
+    req.session!.userID
   );
   await sendEmail(EmailType.NewAccount, user, { password });
   return res.status(StatusCodes.OK).send(user.toAdminUserInfo());

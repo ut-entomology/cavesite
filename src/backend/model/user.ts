@@ -272,7 +272,7 @@ export class User {
     affiliation: string | null,
     password: string,
     permissions: number,
-    createdBy: User | null
+    createdByID: number | null
   ): Promise<User> {
     // Validate and normalize user data.
 
@@ -309,7 +309,7 @@ export class User {
       email,
       affiliation,
       permissions,
-      createdBy: createdBy?.userID || null,
+      createdBy: createdByID,
       priorLoginDate: null,
       priorLoginIP: null,
       lastLoginDate: null,

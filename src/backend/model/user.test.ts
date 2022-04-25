@@ -189,7 +189,7 @@ test('creating, using, and dropping a user', async () => {
     'Some Department',
     STRONG_PASSWORD1,
     Permission.Edit,
-    adminUser
+    adminUser.userID
   );
   await verifyUser(
     secondUser,
@@ -199,7 +199,7 @@ test('creating, using, and dropping a user', async () => {
     'Some Department',
     STRONG_PASSWORD1,
     Permission.Edit | Permission.Coords,
-    adminUser
+    adminUser.userID
   );
   readUser = await User.getByID(db, secondUser.userID);
   expect(readUser?.email).toEqual(secondUser.email);
@@ -214,7 +214,7 @@ test('creating, using, and dropping a user', async () => {
     null,
     STRONG_PASSWORD1,
     Permission.Coords,
-    adminUser
+    adminUser.userID
   );
   await verifyUser(
     thirdUser,
@@ -224,7 +224,7 @@ test('creating, using, and dropping a user', async () => {
     null,
     STRONG_PASSWORD1,
     Permission.Coords,
-    adminUser
+    adminUser.userID
   );
 
   // Add a fourth user with only coordinate permissions and same
@@ -238,7 +238,7 @@ test('creating, using, and dropping a user', async () => {
     null,
     STRONG_PASSWORD1,
     Permission.Coords,
-    adminUser
+    adminUser.userID
   );
   await verifyUser(
     fourthUser,
@@ -248,7 +248,7 @@ test('creating, using, and dropping a user', async () => {
     null,
     STRONG_PASSWORD1,
     Permission.Coords,
-    adminUser
+    adminUser.userID
   );
 
   // Add a fifth user with no permissions.
@@ -261,7 +261,7 @@ test('creating, using, and dropping a user', async () => {
     '  ',
     STRONG_PASSWORD1,
     0,
-    adminUser
+    adminUser.userID
   );
   await verifyUser(
     fifthUser,
@@ -271,7 +271,7 @@ test('creating, using, and dropping a user', async () => {
     null,
     STRONG_PASSWORD1,
     0,
-    adminUser
+    adminUser.userID
   );
   readUser = await User.getByID(db, fifthUser.userID);
   expect(readUser?.email).toEqual(fifthUser.email);
@@ -418,7 +418,7 @@ async function verifyUser(
   affiliation: string | null,
   password: string,
   permissions: number,
-  createdBy: User | null
+  createdBy: number | null
 ) {
   expect(user.userID).toBeGreaterThan(0);
   expect(user.firstName).toEqual(firstName);
@@ -429,7 +429,7 @@ async function verifyUser(
   expect(await user.verifyPassword(WRONG_PASSWORD)).toEqual(false);
   expect(user.permissions).toEqual(permissions);
   expectRecentTime(user.createdOn);
-  expect(user.createdBy).toEqual(createdBy?.userID || null);
+  expect(user.createdBy).toEqual(createdBy);
 }
 
 async function containsLog(db: DB, email: string, portion: string): Promise<boolean> {
