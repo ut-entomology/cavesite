@@ -3,6 +3,9 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import { userInfo } from '../stores/user_info';
 
+  $: userName = $userInfo!.firstName
+    ? $userInfo!.firstName + ' ' + $userInfo!.lastName
+    : $userInfo!.lastName;
   function requestReset() {
     closeDialog();
     //$currentDialog = TBD;
@@ -18,9 +21,13 @@
     {#if $userInfo?.priorLoginDate}
       <div class="row mb-4">
         <div>
-          Your current IP address is<br /><span class="ip"
-            >{$userInfo?.lastLoginIP}</span
-          >.
+          Your are logged in as<br /><span class="user_name">{userName}</span>
+          {#if $userInfo.affiliation}<br />{$userInfo.affiliation}{/if}
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div>
+          at IP address <span class="ip">{$userInfo?.lastLoginIP}</span>.
         </div>
       </div>
       <div class="row mb-2">
@@ -31,7 +38,7 @@
           {#if $userInfo.priorLoginIP == $userInfo.lastLoginIP}
             from the same IP address.
           {:else}
-            from IP address <span class="ip">{$userInfo.priorLoginIP}</span>.
+            from IP <span class="ip">{$userInfo.priorLoginIP}</span>.
           {/if}
         </div>
       </div>
@@ -63,6 +70,10 @@
   .login-info {
     border-radius: $border-radius;
     text-align: center;
+  }
+
+  span.user_name {
+    font-weight: bold;
   }
 
   span.ip {
