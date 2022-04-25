@@ -1,0 +1,13 @@
+Subject: Your new {cavesite-title} account
+
+Hello {first-name}!
+
+Here are your login credentials for {cavesite-title}:
+
+- email: {user-email}
+- password: {password}
+
+Thank you for working on the conservation of cave invertebrates.
+
+{sender-name}
+{sender-email}

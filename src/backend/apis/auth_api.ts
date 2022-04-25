@@ -1,11 +1,11 @@
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import sgMail from '@sendgrid/mail';
 
 import { getDB } from '../integrations/postgres';
 import { User } from '../model/user';
 import { Session } from '../model/session';
 import type { AppInfo, LoginInfo, PasswordChangeInfo } from '../../shared/user_auth';
+import { EmailType, sendEmail } from '../util/email_util';
 
 type LoginParams = {
   email: string;
@@ -68,19 +68,10 @@ router.post('/request-reset', async (req, res) => {
       .send({ message: `Email address not found` });
   }
   const resetCode = await user.generateResetCode(getDB());
-  await sgMail.send({
-    to: user.email,
-    from: process.env.CAVESITE_SENDER_EMAIL!,
-    subject: `Your password reset request`,
-    text: `Hello ${user.firstName}!
-
-A request was made to reset your ${process.env.CAVESITE_TITLE} password.
-
-If this was not you, ignore this email to leave the password unchanged.
-
-If you want to reset your password, click on the following link:
-
-${process.env.CAVESITE_BASE_URL}/reset?email=${encodeURI(user.email)}&code=${resetCode}`
+  await sendEmail(EmailType.PasswordReset, user, {
+    'reset-link': `${process.env.CAVESITE_BASE_URL}/reset?email=${encodeURI(
+      user.email
+    )}&code=${resetCode}`
   });
   return res.status(StatusCodes.NO_CONTENT).send();
 });
