@@ -24,7 +24,8 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
     !userInfo.firstName ||
     !userInfo.lastName ||
     !userInfo.email ||
-    !userInfo.permissions
+    // @ts-ignore
+    isNaN(parseInt(userInfo.permissions))
   ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
@@ -40,7 +41,12 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
     req.session!.userID
   );
   await sendEmail(EmailType.NewAccount, user, { password });
-  return res.status(StatusCodes.OK).send(user.toAdminUserInfo());
+  const loginUserInfo = req.session!.userInfo;
+  const newUserInfo = user.toAdminUserInfo();
+  newUserInfo.createdByName = loginUserInfo.firstName
+    ? loginUserInfo.firstName + ' ' + loginUserInfo.lastName
+    : loginUserInfo.lastName;
+  return res.status(StatusCodes.OK).send(newUserInfo);
 });
 
 router.post('/drop', async (req: Request<void, any, { userID: number }>, res) => {
