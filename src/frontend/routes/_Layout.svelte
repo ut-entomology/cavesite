@@ -7,7 +7,7 @@
   import { toSvelteTarget } from '../targets.svelte';
 </script>
 
-<main class="container-lg">
+<main class="container-xl">
   <HeaderBar />
   <slot />
   <VariableDialog {currentDialog} {toSvelteTarget} />
@@ -17,7 +17,6 @@
 
 <style>
   main {
-    margin: 0;
     padding: 0.2rem 1.5rem;
   }
 </style>

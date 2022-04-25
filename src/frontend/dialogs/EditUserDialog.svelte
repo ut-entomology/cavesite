@@ -35,7 +35,9 @@
       lastName: '',
       affiliation: '',
       email: '',
-      permissions: 0
+      permissions: 0,
+      priorLoginDate: null,
+      priorLoginIP: null
     };
   }
   if (userInfo.permissions & Permission.Admin) {
@@ -81,7 +83,7 @@
     try {
       closeDialog();
       const res = await $client.post('/api/user/add', userInfo);
-      await flashMessage('Created user');
+      await flashMessage('Created user<br/>Emailed credentials', 'warning', 1750);
       onSuccess(res.data);
     } catch (err: any) {
       showNotice({

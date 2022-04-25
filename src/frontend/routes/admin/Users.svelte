@@ -33,7 +33,9 @@
     const res = await $client.post('/api/user/get_all');
     for (const userInfo of res.data) {
       userInfo.createdOn = new Date(userInfo.createdOn);
-      userInfo.lastLoginDate = new Date(userInfo.lastLoginDate);
+      userInfo.lastLoginDate = userInfo.lastLoginDate
+        ? new Date(userInfo.lastLoginDate)
+        : null;
       users.push(userInfo);
     }
   }
