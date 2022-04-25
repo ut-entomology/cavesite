@@ -6,7 +6,7 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { client } from '../stores/client';
+  import { client, errorReason } from '../stores/client';
 
   let errorMessage = '';
 
@@ -35,9 +35,7 @@
         if (err.response.status == StatusCodes.UNAUTHORIZED) {
           errorMessage = 'Incorrect password';
         } else {
-          errorMessage = err.response.data?.message
-            ? err.response.data.message
-            : getReasonPhrase(err.response.status);
+          errorMessage = errorReason(err.response);
         }
       }
     }
