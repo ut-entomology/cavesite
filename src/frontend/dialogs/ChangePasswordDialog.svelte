@@ -1,4 +1,6 @@
 <script lang="ts">
+  // See also the similar ResetPasswordDialog.
+
   import * as yup from 'yup';
   import { StatusCodes } from 'http-status-codes';
 
@@ -6,6 +8,7 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
+  import type { PasswordChangeInfo } from '../../shared/user_auth';
   import { client, errorReason } from '../stores/client';
 
   let errorMessage = '';
@@ -28,7 +31,7 @@
         await $client.post('/api/auth/change-password', {
           oldPassword: values.currentPassword,
           newPassword: values.newPassword
-        });
+        } as PasswordChangeInfo);
         closeDialog();
         await flashMessage('Changed password');
       } catch (err: any) {
