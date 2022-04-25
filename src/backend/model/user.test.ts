@@ -155,14 +155,14 @@ test('creating, using, and dropping a user', async () => {
   // Attempt to change the user's password with an invalid reset code.
 
   let resetCode = await readUser!.generateResetCode(db);
-  let changed = await readUser!.changePassword(db, 'invalid', STRONG_PASSWORD3);
+  let changed = await readUser!.resetPassword(db, 'invalid', STRONG_PASSWORD3);
   expect(changed).toBe(false);
   let badUser = await User.authenticate(db, email, STRONG_PASSWORD3, '<ip>');
   expect(badUser).toBeNull();
 
   // Change the user's password with a valid reset code.
 
-  changed = await readUser!.changePassword(db, resetCode, STRONG_PASSWORD3);
+  changed = await readUser!.resetPassword(db, resetCode, STRONG_PASSWORD3);
   expect(changed).toBe(true);
   readUser = await User.authenticate(db, email, STRONG_PASSWORD3, '<ip>');
   expect(readUser?.userID).toEqual(adminUser.userID);
@@ -174,7 +174,7 @@ test('creating, using, and dropping a user', async () => {
   User.setResetCodeDuration(1 / 60);
   resetCode = await readUser!.generateResetCode(db);
   await sleep(1200);
-  changed = await readUser!.changePassword(db, resetCode, STRONG_PASSWORD1);
+  changed = await readUser!.resetPassword(db, resetCode, STRONG_PASSWORD1);
   expect(changed).toBe(false);
   badUser = await User.authenticate(db, email, STRONG_PASSWORD1, '<ip>');
   expect(badUser).toBeNull();

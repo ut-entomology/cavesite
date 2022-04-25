@@ -4,8 +4,14 @@ import { StatusCodes } from 'http-status-codes';
 import { getDB } from '../integrations/postgres';
 import { User } from '../model/user';
 import { Session } from '../model/session';
-import type { AppInfo, LoginInfo, PasswordChangeInfo } from '../../shared/user_auth';
+import type {
+  AppInfo,
+  LoginInfo,
+  PasswordChangeInfo,
+  PasswordResetInfo
+} from '../../shared/user_auth';
 import { EmailType, sendEmail } from '../util/email_util';
+import { ValidationError } from '../../shared/validation';
 
 type LoginParams = {
   email: string;
@@ -56,6 +62,34 @@ router.post('/refresh', async (req, res) => {
   return res.status(StatusCodes.OK).send({ expiration: expiration.getTime() });
 });
 
+router.post('/change-password', async (req, res) => {
+  if (!req.session) {
+    return res.status(StatusCodes.UNAUTHORIZED).send();
+  }
+  const body = req.body as PasswordChangeInfo;
+  if (!body.oldPassword || !body.newPassword) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  const user = await User.getByID(getDB(), req.session.userID);
+  if (!user) {
+    return res.status(StatusCodes.BAD_REQUEST).send({ message: `User ID not found` });
+  }
+  if (!(await user.verifyPassword(body.oldPassword))) {
+    return res.status(StatusCodes.UNAUTHORIZED).send();
+  }
+  try {
+    await user.setPassword(body.newPassword);
+    await user.save(getDB());
+  } catch (err: any) {
+    if (err instanceof ValidationError) {
+      return res.status(StatusCodes.BAD_REQUEST).send({ message: err.message });
+    }
+  }
+  const sessionID = req.session.sessionID;
+  await Session.dropUser(getDB(), user.userID, sessionID);
+  return res.status(StatusCodes.NO_CONTENT).send();
+});
+
 router.post('/request-reset', async (req, res) => {
   const body = req.body;
   if (!body.email) {
@@ -76,8 +110,8 @@ router.post('/request-reset', async (req, res) => {
   return res.status(StatusCodes.NO_CONTENT).send();
 });
 
-router.post('/change-password', async (req, res) => {
-  const body = req.body as PasswordChangeInfo;
+router.post('/reset-password', async (req, res) => {
+  const body = req.body as PasswordResetInfo;
   if (!body.resetCode || !body.email || !body.password) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
@@ -87,7 +121,7 @@ router.post('/change-password', async (req, res) => {
       .status(StatusCodes.BAD_REQUEST)
       .send({ message: `Email address not found` });
   }
-  if (!(await user.changePassword(getDB(), body.resetCode, body.password))) {
+  if (!(await user.resetPassword(getDB(), body.resetCode, body.password))) {
     return res
       .status(StatusCodes.BAD_REQUEST)
       .send({ message: `Reset request has expired` });

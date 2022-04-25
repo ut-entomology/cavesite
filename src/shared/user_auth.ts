@@ -38,6 +38,11 @@ export interface LoginInfo extends AppInfo {
 }
 
 export interface PasswordChangeInfo {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface PasswordResetInfo {
   email: string;
   resetCode: string;
   password: string;

@@ -80,7 +80,7 @@ export class User {
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
 
-  async changePassword(
+  async resetPassword(
     db: DB,
     resetCode: string,
     newPassword: string
