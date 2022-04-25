@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as yup from 'yup';
-  import { StatusCodes, getReasonPhrase } from 'http-status-codes';
+  import { StatusCodes } from 'http-status-codes';
 
   import { createForm, ContextForm, Input } from '../common/forms';
   import { flashMessage } from '../common/VariableFlash.svelte';
