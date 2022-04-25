@@ -4,12 +4,16 @@
   import LoginDialog from './dialogs/LoginDialog.svelte';
   import LoginInfoDialog from './dialogs/LoginInfoDialog.svelte';
   import ChangePasswordDialog from './dialogs/ChangePasswordDialog.svelte';
+  import ResetRequestDialog from './dialogs/ResetRequestDialog.svelte';
+  import ResetPasswordDialog from './dialogs/ResetPasswordDialog.svelte';
   import EditUserDialog from './dialogs/EditUserDialog.svelte';
 
   const targetMap: Record<string, typeof SvelteComponent> = {
     LoginDialog,
     LoginInfoDialog,
     ChangePasswordDialog,
+    ResetRequestDialog,
+    ResetPasswordDialog,
     EditUserDialog
   };
 

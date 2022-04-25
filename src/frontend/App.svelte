@@ -1,11 +1,12 @@
 <script lang="ts">
   import router from 'page';
-  import type { SvelteComponent } from 'svelte';
+  import { type SvelteComponent, onMount } from 'svelte';
 
   import { client } from './stores/client';
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
-  import type { LoginInfo } from '../shared/user_auth';
+  import { currentDialog } from './stores/currentDialog.svelte';
+  import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
@@ -17,7 +18,9 @@
   import Logs from './routes/admin/Logs.svelte';
   import Schedule from './routes/admin/Schedule.svelte';
   import NotFound from './routes/NotFound.svelte';
+  import { DialogSpec } from './common/VariableDialog.svelte';
   import { showNotice } from './common/VariableNotice.svelte';
+  import { logoutUser } from './util/user_util';
 
   // Initialize session refresh.
 
@@ -69,7 +72,7 @@
     '*': NotFound
   };
 
-  let page: typeof SvelteComponent;
+  let pageComponent: typeof SvelteComponent;
   let params: any = null;
 
   for (const [route, component] of Object.entries(routes)) {
@@ -79,12 +82,14 @@
         params = ctx.params;
         next();
       },
-      () => (page = component)
+      () => (pageComponent = component)
     );
   }
   router.start();
 
   async function connect() {
+    // Get app information and re-establish any prior login.
+
     const res = await $client.post('/api/auth/connect');
     if (res.data) {
       const loginInfo: LoginInfo = res.data;
@@ -97,20 +102,49 @@
         setExpiration(loginInfo.expiration);
       }
     }
+
+    // Handle a password reset request.
+
+    const resetParams = getResetParams();
+    if (resetParams && $userInfo && resetParams.email !== $userInfo.email) {
+      await logoutUser();
+      router('/' + toResetQueryStr(resetParams.email, resetParams.resetCode));
+    }
+  }
+
+  onMount(() => {
+    const resetParams = getResetParams();
+    if (resetParams) {
+      $currentDialog = new DialogSpec('ResetPasswordDialog', resetParams);
+    }
+  });
+
+  function getResetParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') != 'reset') {
+      return null;
+    }
+    const email = params.get('email');
+    const resetCode = params.get('code');
+    if (!email || !resetCode) {
+      router('/');
+      return null;
+    }
+    return { email, resetCode };
   }
 </script>
 
 {#await connect() then}
-  {#if page !== NotFound}
+  {#if pageComponent !== NotFound}
     <Layout>
       {#if params.length > 0}
-        <svelte:component this={page} {params} />
+        <svelte:component this={pageComponent} {params} />
       {:else}
-        <svelte:component this={page} />
+        <svelte:component this={pageComponent} />
       {/if}
     </Layout>
   {:else}
-    <svelte:component this={page} />
+    <svelte:component this={pageComponent} />
   {/if}
 {:catch err}
   Unable to connect to server.

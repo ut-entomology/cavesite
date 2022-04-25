@@ -18,7 +18,8 @@ const validParams = [
   'password',
   'sender-name',
   'sender-email',
-  'reset-link'
+  'reset-link',
+  'reset-link-minutes'
 ];
 const subjectMarker = 'subject:';
 

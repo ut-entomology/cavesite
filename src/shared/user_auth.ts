@@ -47,3 +47,7 @@ export interface PasswordResetInfo {
   resetCode: string;
   password: string;
 }
+
+export function toResetQueryStr(email: string, resetCode: string) {
+  return `?action=reset&email=${encodeURI(email)}&code=${resetCode}`;
+}

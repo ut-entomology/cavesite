@@ -2,7 +2,7 @@ import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
-import { User } from '../model/user';
+import { User, RESET_CODE_DURATION_MINS } from '../model/user';
 import { Session } from '../model/session';
 import type {
   AppInfo,
@@ -10,6 +10,7 @@ import type {
   PasswordChangeInfo,
   PasswordResetInfo
 } from '../../shared/user_auth';
+import { toResetQueryStr } from '../../shared/user_auth';
 import { EmailType, sendEmail } from '../util/email_util';
 import { ValidationError } from '../../shared/validation';
 
@@ -97,15 +98,15 @@ router.post('/request-reset', async (req, res) => {
   }
   const user = await User.getByEmail(getDB(), body.email);
   if (!user) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .send({ message: `Email address not found` });
+    return res.status(StatusCodes.NO_CONTENT).send();
   }
   const resetCode = await user.generateResetCode(getDB());
   await sendEmail(EmailType.PasswordReset, user, {
-    'reset-link': `${process.env.CAVESITE_BASE_URL}/reset?email=${encodeURI(
-      user.email
-    )}&code=${resetCode}`
+    'reset-link': `${process.env.CAVESITE_BASE_URL}/${toResetQueryStr(
+      user.email,
+      resetCode
+    )}`,
+    'reset-link-minutes': RESET_CODE_DURATION_MINS
   });
   return res.status(StatusCodes.NO_CONTENT).send();
 });

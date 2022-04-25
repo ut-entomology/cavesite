@@ -9,6 +9,7 @@
   import { client } from '../stores/client';
   import { userInfo } from '../stores/user_info';
   import { setExpiration } from '../util/refresher';
+  import { DialogSpec } from '../common/VariableDialog.svelte';
   //import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
   const title = 'Login Form';
@@ -24,13 +25,11 @@
     onSubmit: async (values) => {
       try {
         const res = await $client.post('/api/auth/login', values);
-        //setCSRF(res.headers[CSRF_TOKEN_HEADER]);
         $userInfo = res.data.userInfo;
         setExpiration(res.data.expiration);
         closeDialog();
         await flashMessage('You are logged in');
       } catch (err: any) {
-        //setCSRF(null);
         $userInfo = null;
         if (err.response.status == StatusCodes.UNAUTHORIZED) {
           errorMessage = 'Incorrect email or password';
@@ -38,6 +37,11 @@
       }
     }
   });
+
+  async function requestPasswordReset() {
+    closeDialog();
+    $currentDialog = new DialogSpec('ResetRequestDialog');
+  }
 
   const closeDialog = () => {
     $currentDialog = null;
@@ -63,8 +67,10 @@
       </div>
     </div>
     <div class="info-row">
-      <a href="https://gdpr.eu/cookies/" target="_blank">EPD Notice</a>: This site uses
-      cookies<br />to track login sessions.
+      You may request a <!-- svelte-ignore a11y-invalid-attribute --><a
+        href="#"
+        on:click={requestPasswordReset}>password reset</a
+      ><br />if you forgot your password.
     </div>
     <div class="row g-2">
       <div class="col-12 text-center">
@@ -73,6 +79,10 @@
         >
         <button class="btn btn-major" type="submit">Login</button>
       </div>
+    </div>
+    <div class="info-row">
+      <a href="https://gdpr.eu/cookies/" target="_blank">EPD Notice</a>: This site uses
+      cookies<br />to track login sessions.
     </div>
     {#if errorMessage}
       <div class="info-row">

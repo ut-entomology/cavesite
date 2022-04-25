@@ -6,10 +6,9 @@
   import { flashMessage } from '../common/VariableFlash.svelte';
   import TabSetSelector from '../components/TabSetSelector.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
-  import { client } from '../stores/client';
   import { appInfo } from '../stores/app_info';
   import { userInfo } from '../stores/user_info';
-  import { setExpiration } from '../util/refresher';
+  import { logoutUser } from '../util/user_util';
 
   function login() {
     currentDialog.set(new DialogSpec('LoginDialog'));
@@ -17,10 +16,7 @@
 
   async function logout() {
     try {
-      await $client.get('/api/auth/logout');
-      //setCSRF(null);
-      $userInfo = null;
-      setExpiration(0);
+      await logoutUser();
       page('/');
     } catch (err: any) {
       await flashMessage(`Error ${err.response.status} logging out`);

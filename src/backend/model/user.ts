@@ -14,11 +14,12 @@ import {
 } from '../../shared/validation';
 import { Permission, type UserInfo, type AdminUserInfo } from '../../shared/user_auth';
 
+export const RESET_CODE_DURATION_MINS = 10; // 10 minutes
+
 const PASSWORD_HASH_LENGTH = 64;
 const RESET_CODE_LENGTH = 24;
 let RESET_CODE_CHARSET = 'abcdefghijklmnopqrstuvwxyz';
 RESET_CODE_CHARSET += RESET_CODE_CHARSET.toUpperCase() + '0123456789';
-const RESET_CODE_DURATION_MINS = 10; // 10 minutes
 let resetCodeDurationMins = RESET_CODE_DURATION_MINS;
 
 zxcvbnOptions.setOptions({
