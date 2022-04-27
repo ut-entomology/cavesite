@@ -72,7 +72,7 @@ export class Specimen {
   collectionStartDate: Date | null;
   collectionEndDate: Date | null;
   collectors: string | null; // |-delimited names, last name last
-  determinationDate: Date | null;
+  determinationYear: number | null;
   determiners: string | null; // |-delimited names, last name last
   collectionRemarks: string | null;
   occurrenceRemarks: string | null;
@@ -107,7 +107,7 @@ export class Specimen {
     this.collectionStartDate = data.collectionStartDate;
     this.collectionEndDate = data.collectionEndDate;
     this.collectors = data.collectors; // |-delimited names, last name last
-    this.determinationDate = data.determinationDate;
+    this.determinationYear = data.determinationYear;
     this.determiners = data.determiners; // |-delimited names, last name last
     this.collectionRemarks = data.collectionRemarks;
     this.occurrenceRemarks = data.occurrenceRemarks;
@@ -152,7 +152,11 @@ export class Specimen {
       // Create the associated taxa and locations, if they don't already exist.
 
       taxon = await Taxon.getOrCreate(db, source);
-      taxonIDs = taxon.parentIDSeries.split(',');
+      if (taxon.parentIDSeries == '') {
+        taxonIDs = [];
+      } else {
+        taxonIDs = taxon.parentIDSeries.split(',');
+      }
 
       location = await Location.getOrCreate(db, source);
       locationIDs = location.parentIDSeries.split(',');
@@ -196,6 +200,17 @@ export class Specimen {
       }
     }
 
+    // Parse the determination year. Depending on where the data was imported
+    // from, the month and day may be zeros or random values.
+
+    let determinationYear: number | null = null;
+    if (source.determinationDate) {
+      const match = source.determinationDate.match(/\d{4}/);
+      if (match) {
+        determinationYear = parseInt(match[0]);
+      }
+    }
+
     // Parse the speciment count.
 
     let specimenCount: number | null = null;
@@ -203,6 +218,7 @@ export class Specimen {
       specimenCount = parseInt(source.organismQuantity);
       if (isNaN(specimenCount)) {
         problemList.push('Invalid specimen count; assuming no specimen count');
+        specimenCount = null;
       }
     }
 
@@ -231,11 +247,9 @@ export class Specimen {
 
       collectionStartDate: startDate,
       collectionEndDate: endDate,
-      collectors: source.collectors?.replace(/ [|] /g, '|') || null,
-      determinationDate: source.determinationDate
-        ? new Date(source.determinationDate)
-        : null,
-      determiners: source.determiners?.replace(/ [|] /g, '|') || null,
+      collectors: source.collectors?.replace(/ ?[|] ?/g, '|') || null,
+      determinationYear,
+      determiners: source.determiners?.replace(/ ?[|] ?/g, '|') || null,
       collectionRemarks: collectionRemarks,
       occurrenceRemarks: source.occurrenceRemarks || null,
       determinationRemarks: source.determinationRemarks || null,
@@ -254,8 +268,8 @@ export class Specimen {
           continent_id, country_id, state_province_id,
           county_id, locality_id, precise_location_id,
           collection_start_date, collection_end_date,
-          collectors, determination_date, determiners,
-          collection_remarks, occurrence_remarks,  determination_remarks,
+          collectors, determination_year, determiners,
+          collection_remarks, occurrence_remarks, determination_remarks,
           type_status, specimen_count, problems
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
             $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
@@ -280,7 +294,7 @@ export class Specimen {
         specimen.collectionStartDate?.toISOString() || null,
         specimen.collectionEndDate?.toISOString() || null,
         specimen.collectors,
-        specimen.determinationDate?.toISOString() || null,
+        specimen.determinationYear,
         specimen.determiners,
         specimen.collectionRemarks,
         specimen.occurrenceRemarks,
@@ -344,7 +358,7 @@ async function logImportProblem(
     line += '.';
   }
   if (failed) {
-    line += ' IMPORT FAILED';
+    line += ' NOT IMPORTED';
   }
   const catalogNumber = source.catalogNumber
     ? source.catalogNumber

@@ -135,8 +135,8 @@ create table specimens (
     collection_end_date timestamptz, -- not in GBIF
     -- GBIF recordedBy (|-delimited names, last name last)
     collectors text,
-    -- GBIF dateIdentified
-    determination_date timestamptz,
+    -- from GBIF dateIdentified
+    determination_year integer,
     -- GBIF identifiedBy (|-delimited names, last name last)
     determiners text,
     -- GBIF eventRemarks (collecting event/info/habitat/end date)

@@ -108,7 +108,7 @@ test('creating a fully-specified specimen', async () => {
       collectionStartDate: startDate,
       collectionEndDate: endDate,
       collectors: 'Person A|Person B',
-      determinationDate: detDate,
+      determinationYear: detDate.getUTCFullYear(),
       determiners: 'Person C|Person D',
       collectionRemarks: 'meadow',
       occurrenceRemarks: baseSource.occurrenceRemarks,
@@ -180,7 +180,7 @@ test('creating a fully-specified specimen', async () => {
       collectionStartDate: startDate,
       collectionEndDate: null,
       collectors: 'Person A',
-      determinationDate: null,
+      determinationYear: null,
       determiners: 'Person C',
       collectionRemarks: null,
       occurrenceRemarks: null,
@@ -344,6 +344,32 @@ test('start date follows end date', async () => {
   expect(found).toEqual(true);
 });
 
+test('partial determination dates', async () => {
+  let source = Object.assign({}, baseSource);
+  source.catalogNumber = 'DET1';
+  source.determinationDate = '1985';
+  await Specimen.create(db, source);
+
+  source = Object.assign({}, baseSource);
+  source.catalogNumber = 'DET2';
+  source.determinationDate = '00/00/1999';
+  await Specimen.create(db, source);
+
+  source = Object.assign({}, baseSource);
+  source.catalogNumber = 'DET3';
+  source.determinationDate = '01-00-2001';
+  await Specimen.create(db, source);
+
+  await Specimen.commit(db);
+
+  let specimen = await Specimen.getByCatNum(db, 'DET1', true);
+  expect(specimen?.determinationYear).toEqual(1985);
+  specimen = await Specimen.getByCatNum(db, 'DET2', true);
+  expect(specimen?.determinationYear).toEqual(1999);
+  specimen = await Specimen.getByCatNum(db, 'DET3', true);
+  expect(specimen?.determinationYear).toEqual(2001);
+});
+
 test('bad specimen count', async () => {
   const source = Object.assign({}, baseSource);
   source.catalogNumber = 'C7';
@@ -406,7 +432,7 @@ async function containsLog(
       log.tag == catalogNumber &&
       log.line.includes(portion)
     ) {
-      return !failed || log.line.includes('IMPORT FAILED');
+      return !failed || log.line.includes('NOT IMPORTED');
     }
   }
   return false;
