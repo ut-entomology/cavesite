@@ -84,9 +84,6 @@ async function loadDB() {
         isNaN(new Date(specimenSource.startDate).getTime())
       ) {
         ++partialStartDateCount;
-        console.log(
-          `Cat# ${record.catalogNumber}: partial startDate [${specimenSource.startDate}]`
-        );
       } else {
         console.log(`Cat# ${record.catalogNumber}:`, err.message);
       }
