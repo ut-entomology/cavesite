@@ -301,7 +301,7 @@ test('sequentially dependent taxa tests', async () => {
       'Philodromus',
       'Eurycea rathbuni (Stejneger, 1896)'
     ];
-    const readTaxa = await Taxon.getByName(db, taxaNames);
+    let readTaxa = await Taxon.getByName(db, taxaNames);
     expect(readTaxa.length).toEqual(taxaNames.length);
 
     const findTaxon = (lookFor: string) => {
@@ -312,6 +312,9 @@ test('sequentially dependent taxa tests', async () => {
     for (const name of taxaNames) {
       expect(findTaxon(name)).toBe(true);
     }
+
+    readTaxa = await Taxon.getByName(db, ['foo', 'bar']);
+    expect(readTaxa.length).toEqual(0);
   }
 
   // test providing the scientific name of an existing taxon
