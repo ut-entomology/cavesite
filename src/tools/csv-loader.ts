@@ -4,6 +4,8 @@ import { parse as parseCSV } from '@fast-csv/parse';
 
 import { loadAndCheckEnvVars } from '../backend/util/env_util';
 import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres';
+import { Taxon } from '../backend/model/taxon';
+import { Location } from '../backend/model/location';
 import { Specimen } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 
@@ -143,5 +145,7 @@ function toScientificName(record: CsvSpecimen): string {
   });
   await loadDB();
   await Specimen.commit(getDB());
+  await Location.commit(getDB());
+  await Taxon.commit(getDB());
   await disconnectDB();
 })();

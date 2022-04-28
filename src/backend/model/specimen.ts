@@ -119,6 +119,8 @@ export class Specimen {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
+  // Must commit specimens before committing taxa and locations because
+  // specimens references taxa and locations.
   static async commit(db: DB): Promise<void> {
     await db.query('delete from specimens where committed=true');
     await db.query('update specimens set committed=true');
