@@ -290,6 +290,30 @@ test('sequentially dependent taxa tests', async () => {
     expect(createdTaxon).toEqual(readTaxon);
   }
 
+  // test reading multiple taxa by name
+
+  {
+    const taxaNames = [
+      'Animalia',
+      'Arachnida',
+      'Mecaphesa',
+      'Mecaphesa dubia (Keyserling, 1880)',
+      'Philodromus',
+      'Eurycea rathbuni (Stejneger, 1896)'
+    ];
+    const readTaxa = await Taxon.getByName(db, taxaNames);
+    expect(readTaxa.length).toEqual(taxaNames.length);
+
+    const findTaxon = (lookFor: string) => {
+      return !!readTaxa.find(
+        (found) => found.taxonName == lookFor || found.scientificName == lookFor
+      );
+    };
+    for (const name of taxaNames) {
+      expect(findTaxon(name)).toBe(true);
+    }
+  }
+
   // test providing the scientific name of an existing taxon
 
   {

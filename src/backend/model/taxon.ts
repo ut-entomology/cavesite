@@ -151,6 +151,17 @@ export class Taxon {
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
+  static async getByName(db: DB, names: string[]): Promise<Taxon[]> {
+    const result = await db.query(
+      `select * from taxa where taxon_name=any ($1) or scientific_name=any ($1)`,
+      [
+        // @ts-ignore
+        names
+      ]
+    );
+    return result.rows.map((row) => new Taxon(toCamelRow(row)));
+  }
+
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 
