@@ -10,29 +10,8 @@
 
 import type { DataOf } from '../util/type_util';
 import { type DB, toCamelRow } from '../integrations/postgres';
+import { TaxonRank, taxonRanks } from '../../shared/model';
 import { ImportFailure } from './import_failure';
-
-export enum TaxonRank {
-  Kingdom = 'kingdom',
-  Phylum = 'phylum',
-  Class = 'class',
-  Order = 'order',
-  Family = 'family',
-  Genus = 'genus',
-  Species = 'species',
-  Subspecies = 'subspecies'
-}
-
-export const taxonRanks = [
-  TaxonRank.Kingdom,
-  TaxonRank.Phylum,
-  TaxonRank.Class,
-  TaxonRank.Order,
-  TaxonRank.Family,
-  TaxonRank.Genus,
-  TaxonRank.Species,
-  TaxonRank.Subspecies
-];
 
 export interface TaxonSource {
   // GBIF field names
