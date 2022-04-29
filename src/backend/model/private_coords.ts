@@ -2,7 +2,7 @@
  * Class representing private coordinates stored in the database.
  */
 
-import type { DataOf } from '../util/type_util';
+import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow, PostgresError } from '../integrations/postgres';
 import type { User } from './user';
 import { UserError, ValidationError } from '../../shared/validation';

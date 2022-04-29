@@ -9,7 +9,7 @@ import * as crypto from 'crypto';
 
 import { toHeaderSafeBase64 } from '../util/http_util';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import type { DataOf } from '../util/type_util';
+import type { DataOf } from '../../shared/data_of';
 import { User } from './user';
 import { UserInfo } from '../../shared/user_auth';
 

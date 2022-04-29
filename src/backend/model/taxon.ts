@@ -8,7 +8,7 @@
 // so any correction made here should be investigated in location.ts.
 // Not enough similarity to base both on a generic class, though.
 
-import type { DataOf } from '../util/type_util';
+import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { TaxonRank, taxonRanks } from '../../shared/model';
 import { ImportFailure } from './import_failure';
@@ -33,7 +33,7 @@ interface TaxonSpec {
   parentNameSeries: string;
 }
 
-type TaxonData = DataOf<Taxon>;
+export type TaxonData = DataOf<Taxon>;
 
 export class Taxon {
   taxonID = 0;

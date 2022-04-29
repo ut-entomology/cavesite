@@ -2,7 +2,7 @@
  * Class representing a vial of specimens all of the same taxon.
  */
 
-import type { DataOf } from '../util/type_util';
+import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Taxon } from './taxon';
 import { Location } from './location';

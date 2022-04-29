@@ -8,7 +8,7 @@
 // so any correction made here should be investigated in taxon.ts.
 // Not enough similarity to base both on a generic class, though.
 
-import type { DataOf } from '../util/type_util';
+import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { ImportFailure } from './import_failure';
 

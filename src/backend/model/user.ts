@@ -3,7 +3,7 @@ import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
-import type { DataOf } from '../util/type_util';
+import type { DataOf } from '../../shared/data_of';
 import { type DB, PostgresError, toCamelRow } from '../integrations/postgres';
 import { Logs, LogType } from './logs';
 import {
