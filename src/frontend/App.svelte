@@ -51,7 +51,7 @@
       });
     },
     onExpiration: async () => {
-      userInfo.set(null);
+      logoutUser(false);
       window.location.href = '/';
     }
   });
@@ -107,7 +107,7 @@
 
     const resetParams = getResetParams();
     if (resetParams && $userInfo && resetParams.email !== $userInfo.email) {
-      await logoutUser();
+      await logoutUser(true);
       router('/' + toResetQueryStr(resetParams.email, resetParams.resetCode));
     }
   }

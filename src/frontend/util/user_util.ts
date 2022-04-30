@@ -8,8 +8,11 @@ let clientValue: AxiosInstance;
 
 client.subscribe((value) => (clientValue = value));
 
-export async function logoutUser() {
-  await clientValue.get('/api/auth/logout');
+export async function logoutUser(initiate: boolean) {
+  if (initiate) {
+    await clientValue.get('/api/auth/logout');
+  }
   userInfo.set(null);
+  sessionStorage.clear();
   setExpiration(0);
 }

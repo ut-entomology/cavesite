@@ -16,7 +16,7 @@
 
   async function logout() {
     try {
-      await logoutUser();
+      await logoutUser(true);
       page('/');
     } catch (err: any) {
       await flashMessage(`Error ${err.response.status} logging out`);

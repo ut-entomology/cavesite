@@ -72,6 +72,8 @@ create table taxa (
     -- |-delimited series of taxon names defining parent
     parent_name_series varchar (1024) not null
 );
+create index on taxa(taxon_name);
+create index on taxa(scientific_name);
 create index on taxa(parent_name_series);
 
 create table locations (
