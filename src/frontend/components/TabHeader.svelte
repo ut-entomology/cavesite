@@ -16,7 +16,7 @@
 <div class="row justify-content-center">
   <div class="tab-instructions">{@html instructions}</div>
 </div>
-<div class="row mb-2 justify-content-between">
+<div class="row mb-2 justify-content-center">
   <div class="col-auto">
     <slot name="work-buttons" />
   </div>
@@ -28,6 +28,7 @@
 <style>
   .title {
     font-weight: bold;
+    font-size: 1.2rem;
   }
   .tab-instructions {
     margin-bottom: 1rem;

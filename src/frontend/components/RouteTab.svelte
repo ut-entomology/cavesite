@@ -30,11 +30,13 @@
     </li>
   {/each}
 </ul>
-{#each tabs as tab}
-  {#if activeTab == tab.label}
-    <slot />
-  {/if}
-{/each}
+<div class="tab-area">
+  {#each tabs as tab}
+    {#if activeTab == tab.label}
+      <slot />
+    {/if}
+  {/each}
+</div>
 
 <style lang="scss">
   @import '../variables.scss';
@@ -42,6 +44,7 @@
   ul {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
@@ -51,20 +54,23 @@
   span {
     display: block;
     padding: 0.4em 1em 0.35em 1em;
-    color: #888;
+    color: $blueLinkForeColor;
     cursor: pointer;
     border-radius: 0.5em 0.5em 0 0;
   }
 
   span:hover {
-    color: #fff;
-    background-color: $texasRed;
-    opacity: 0.6;
+    background-color: $minorButtonColor;
   }
 
   li.active > span {
     color: #fff;
     background-color: $texasRed;
     opacity: 1;
+  }
+
+  .tab-area {
+    background-color: #fff;
+    flex-grow: 1;
   }
 </style>

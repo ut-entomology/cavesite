@@ -29,34 +29,36 @@
 </script>
 
 <div class="header_bar">
-  <div class="title_row">
-    <div class="app_title">{$appInfo.appTitle}</div>
-    <div class="user_menu">
-      <div>
-        {#if $userInfo}
-          {#if $userInfo.permissions & Permission.Admin}
-            <TabSetSelector />
-          {/if}
-          <div
-            class="login_info"
-            on:click={showLoginInfo}
-            aria-label="Login information"
-          >
-            i
-          </div>
-          <!-- <button
+  <div class="container-fluid">
+    <div class="title_row">
+      <div class="app_title">{$appInfo.appTitle}</div>
+      <div class="user_menu">
+        <div>
+          {#if $userInfo}
+            {#if $userInfo.permissions & Permission.Admin}
+              <TabSetSelector />
+            {/if}
+            <div
+              class="login_info"
+              on:click={showLoginInfo}
+              aria-label="Login information"
+            >
+              i
+            </div>
+            <!-- <button
             class="btn btn-minor login_info"
             aria-label="Login information"
             on:click={showLoginInfo}>i</button
           > -->
-          <button class="btn btn-major" on:click={logout}>Logout</button>
-        {:else}
-          <button class="btn btn-major" on:click={login}>Login</button>
-        {/if}
+            <button class="btn btn-major" on:click={logout}>Logout</button>
+          {:else}
+            <button class="btn btn-major" on:click={login}>Login</button>
+          {/if}
+        </div>
       </div>
     </div>
+    <div class="app_subtitle text">{$appInfo.appSubtitle}</div>
   </div>
-  <div class="app_subtitle text">{$appInfo.appSubtitle}</div>
 </div>
 
 <style lang="scss">

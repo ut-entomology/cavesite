@@ -196,18 +196,10 @@
 
   body {
     box-sizing: content-box;
-    display: flex;
-    flex-direction: column;
-    margin: 0;
+    margin: 0 1.5rem;
     padding: 0;
     background-color: $backgroundColor;
-  }
-
-  .page-content {
-    flex: auto;
-    display: flex;
-    flex-direction: column;
-    margin: $horizontalMargin;
+    height: 100%;
   }
 
   h2 {

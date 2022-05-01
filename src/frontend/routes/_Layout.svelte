@@ -7,7 +7,7 @@
   import { toSvelteTarget } from '../targets.svelte';
 </script>
 
-<div class="page container-xl">
+<div class="page">
   <HeaderBar />
   <slot />
   <VariableDialog {currentDialog} {toSvelteTarget} />
@@ -17,6 +17,11 @@
 
 <style>
   .page {
-    padding: 0.2rem 1.5rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 0.2rem;
+    margin: 0 auto;
+    max-width: 1024px;
   }
 </style>
