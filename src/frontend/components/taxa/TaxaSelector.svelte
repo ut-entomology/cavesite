@@ -69,7 +69,7 @@
   <div class="container-lg">
     <TabHeader
       title="Selected Taxa"
-      instructions="Other tabs may restrict taxa to those shown in <b>bold</b> here."
+      instructions="Other tabs may restrict taxa to the selected taxa shown in <b>bold</b> here."
     >
       <span slot="main-buttons">
         <button class="btn btn-major" type="button" on:click={browseTaxa}
