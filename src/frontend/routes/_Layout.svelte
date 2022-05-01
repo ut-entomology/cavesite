@@ -7,16 +7,16 @@
   import { toSvelteTarget } from '../targets.svelte';
 </script>
 
-<main class="container-xl">
+<div class="page container-xl">
   <HeaderBar />
   <slot />
   <VariableDialog {currentDialog} {toSvelteTarget} />
   <VariableNotice />
   <VariableFlash />
-</main>
+</div>
 
 <style>
-  main {
+  .page {
     padding: 0.2rem 1.5rem;
   }
 </style>

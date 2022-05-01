@@ -1,8 +1,4 @@
 <script lang="ts" context="module">
-  // External to this module, the taxa that this module ultimately selects are
-  // called "selected" taxa. Internal to the module, these are called "included"
-  // taxa, because "selected" taxa are those with checked checkboxes.
-
   import type { AxiosInstance } from 'axios';
 
   import type { DataOf } from '../../shared/data_of';
@@ -25,10 +21,10 @@
     children: TaxonNode[] | null;
   }
 
-  export const selectedTaxa = createSessionStore<SelectedTaxa | null>(
+  export const includedTaxa = createSessionStore<IncludedTaxa | null>(
     'included_taxa',
     null,
-    (obj) => (obj ? new SelectedTaxa(obj) : null)
+    (obj) => (obj ? new IncludedTaxa(obj) : null)
   );
 
   const DEFAULT_EXCLUDED_NODE_FLAGS =
@@ -40,7 +36,7 @@
   let currentClient: AxiosInstance;
   client.subscribe((newClient) => (currentClient = newClient));
 
-  export class SelectedTaxa {
+  export class IncludedTaxa {
     // caution: this class gets JSON-serialized
 
     // only taxa names are guaranteed to survive GBIF downloads
@@ -48,7 +44,7 @@
     taxonNames: string[];
     treeRoot: TaxonNode;
 
-    constructor(data: DataOf<SelectedTaxa>) {
+    constructor(data: DataOf<IncludedTaxa>) {
       this.taxonNames = data.taxonNames;
       this.taxonIDs = data.taxonIDs;
       this.treeRoot = data.treeRoot;
@@ -98,7 +94,7 @@
 
     // Saves to sessionStore
     save() {
-      selectedTaxa.set(this);
+      includedTaxa.set(this);
     }
 
     _addAncestors(rootNode: TaxonNode, taxon: TaxonInfo): TaxonNode {
