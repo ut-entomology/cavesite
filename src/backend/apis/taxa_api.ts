@@ -8,7 +8,16 @@ export type TaxonInfo = TaxonData;
 
 export const router = Router();
 
-router.post('/get', async (req: Request<void, any, string[]>, res) => {
+router.post('/get_children', async (req: Request<void, any, string>, res) => {
+  const taxaName = req.body;
+  if (typeof taxaName != 'string' || taxaName.length > 100) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  const taxa = await Taxon.getChildrenOf(getDB(), taxaName);
+  return res.status(StatusCodes.OK).send(taxa as TaxonInfo[]);
+});
+
+router.post('/get_list', async (req: Request<void, any, string[]>, res) => {
   const taxaNames = req.body;
   if (!Array.isArray(taxaNames)) {
     return res.status(StatusCodes.BAD_REQUEST).send();

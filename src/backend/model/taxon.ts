@@ -141,6 +141,14 @@ export class Taxon {
     return result.rows.map((row) => new Taxon(toCamelRow(row)));
   }
 
+  static async getChildrenOf(db: DB, parentName: string): Promise<Taxon[]> {
+    const result = await db.query(
+      `select * from taxa c join taxa p on c.parent_id = p.taxon_id and p.taxon_name=$1`,
+      [parentName]
+    );
+    return result.rows.map((row) => new Taxon(toCamelRow(row)));
+  }
+
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 

@@ -303,19 +303,21 @@ test('sequentially dependent taxa tests', async () => {
       'Eurycea rathbuni (Stejneger, 1896)'
     ];
     let readTaxa = await Taxon.getByName(db, taxaNames);
-    expect(readTaxa.length).toEqual(taxaNames.length);
-
-    const findTaxon = (lookFor: string) => {
-      return !!readTaxa.find(
-        (found) => found.taxonName == lookFor || found.scientificName == lookFor
-      );
-    };
-    for (const name of taxaNames) {
-      expect(findTaxon(name)).toBe(true);
-    }
+    findTaxa(readTaxa, taxaNames);
 
     readTaxa = await Taxon.getByName(db, ['foo', 'bar']);
     expect(readTaxa.length).toEqual(0);
+  }
+
+  // test getting children of parent by parent name
+
+  {
+    const taxaNames = ['Thomisidae', 'Philodromidae'];
+    let readTaxa = await Taxon.getChildrenOf(db, 'Araneae');
+    findTaxa(readTaxa, taxaNames);
+
+    readTaxa = await Taxon.getChildrenOf(db, 'not there');
+    findTaxa(readTaxa, []);
   }
 
   // test providing the scientific name of an existing taxon
@@ -448,3 +450,13 @@ test('poorly sourced taxa', async () => {
 afterAll(async () => {
   await mutex.unlock();
 });
+
+function findTaxa(taxa: Taxon[], lookForNames: string[]) {
+  for (const name of lookForNames) {
+    const taxon = taxa.find(
+      (found) => found.taxonName == name || found.scientificName == name
+    );
+    expect(taxon).not.toBeNull();
+  }
+  expect(taxa.length).toEqual(lookForNames.length);
+}
