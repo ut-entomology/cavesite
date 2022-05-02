@@ -4,7 +4,7 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
-  import { TaxonNode, selectedTaxa } from '../stores/included_taxa.svelte';
+  import { TaxonNode, selectedTaxa } from '../stores/selectedTaxa.svelte';
   import InteractiveTree, {
     InteractiveTreeFlags
   } from '../components/InteractiveTree.svelte';
