@@ -15,13 +15,16 @@
   <VariableFlash />
 </div>
 
-<style>
+<style lang="scss" global>
+  @import '../variables.scss';
+
   .page {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    padding-top: 0.2rem;
+    padding: 0.2rem 1.5rem 0 1.5rem;
     margin: 0 auto;
     max-width: 1024px;
+    background-color: $backgroundColor;
   }
 </style>

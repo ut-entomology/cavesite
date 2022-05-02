@@ -196,9 +196,9 @@
 
   body {
     box-sizing: content-box;
-    margin: 0 1.5rem;
+    margin: 0;
     padding: 0;
-    background-color: $backgroundColor;
+    background-color: rgb(120, 84, 84);
     height: 100%;
   }
 
