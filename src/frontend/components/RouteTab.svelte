@@ -50,25 +50,34 @@
     padding-left: 0;
     margin-bottom: 0;
     list-style: none;
+    font-size: 1.1rem;
     border-bottom: 4px solid $texasRed;
   }
 
   span {
     display: block;
-    padding: 0.4em 1em 0.35em 1em;
+    padding: 0.3em 0.9em 0.2em 0.9em;
     color: $blueLinkForeColor;
     cursor: pointer;
     border-radius: 0.5em 0.5em 0 0;
+    border-top: 1px solid $backgroundColor;
+    border-left: 1px solid $backgroundColor;
+    border-right: 1px solid $backgroundColor;
   }
 
   span:hover {
     background-color: $minorButtonColor;
+    border-top: 1px solid $blueLinkBackColor;
+    border-left: 1px solid $blueLinkBackColor;
+    border-right: 1px solid $blueLinkBackColor;
   }
 
   li.active > span {
     color: #fff;
     background-color: $texasRed;
-    opacity: 1;
+    border-top: 1px solid $texasRed;
+    border-left: 1px solid $texasRed;
+    border-right: 1px solid $texasRed;
   }
 
   main {
