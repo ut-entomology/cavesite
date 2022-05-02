@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Permission, type AdminUserInfo } from '../../../shared/user_auth';
   import AdminTabRoute from '../../components/AdminTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
   import ServerError from '../../components/ServerError.svelte';
   import ConfirmationRequest, {
     ConfirmationDetails
@@ -156,13 +157,15 @@
 
 <AdminTabRoute activeTab="Users">
   {#await loadUsers() then}
-    <div class="container-fluid g-0 view">
-      <div class="general_buttons">
-        <button class="btn btn-major add_user" on:click={addUser}>Add User</button>
-      </div>
+    <div class="container-fluid">
+      <TabHeader title="Registered Users">
+        <span slot="main-buttons">
+          <button class="btn btn-major add_user" on:click={addUser}>Add User</button>
+        </span>
+      </TabHeader>
       {#each users as user}
         {@const expanded = user === expandedUser}
-        <div class="container-fluid user">
+        <div class="container-fluid g-0 user">
           <div class="row selectable" on:click={() => toggleExpansion(user)}>
             <div class="col-auto">
               {@html expanded ? EXPANDED_SYMBOL : COLLAPSED_SYMBOL}
@@ -222,15 +225,6 @@
 </AdminTabRoute>
 
 <style lang="scss">
-  .view {
-    margin: 0.5rem 0;
-  }
-
-  .general_buttons {
-    text-align: right;
-    margin: 1rem 0 0.5rem 0;
-  }
-
   .user > .row {
     margin: 0;
   }
