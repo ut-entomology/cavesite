@@ -58,19 +58,19 @@ create table taxa (
 
     taxon_id serial primary key, -- locally generated
     -- GBIF taxonRank, locally translated
-    taxon_rank varchar (50) not null,
+    taxon_rank text not null,
     -- GBIF kingdom/phylum/class/order/family/genus/specificEpithet/infraspecificEpithet
-    taxon_name varchar (128) not null,
+    taxon_name text not null,
     -- GBIF scientificName
-    scientific_name varchar (256),
+    scientific_name text,
     parent_id integer references taxa, -- locally generated
 
     -- these allow for fast non-recursive taxon queries/autocompletion:
 
     -- comma-delimited series of taxon IDs, kingdom-to-parent
-    parent_id_series varchar (64) not null,
+    parent_id_series text not null,
     -- |-delimited series of taxon names defining parent
-    parent_name_series varchar (1024) not null
+    parent_name_series text not null
 );
 create index on taxa(taxon_name);
 create index on taxa(scientific_name);
@@ -82,10 +82,10 @@ create table locations (
 
     location_id serial primary key, -- locally generated
     -- GBIF substring of georeferenceSources (Specify location.guid)
-    location_guid varchar (128), -- can't enforce uniqueness due to import
-    location_type varchar (50) not null, -- locally assigned
+    location_guid text, -- can't enforce uniqueness due to import
+    location_type text not null, -- locally assigned
     -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
-    location_name varchar (512) not null,
+    location_name text not null,
     -- GBIF decimalLongitude
     public_latitude float8,
     -- GBIF decimalLatitude
@@ -95,9 +95,9 @@ create table locations (
     -- these allow for fast non-recursive location queries/autocompletion:
 
     -- comma-delimited series of location IDs, continent-to-parent
-    parent_id_series varchar (64) not null,
+    parent_id_series text not null,
     -- |-delimited series of location names defining parent
-    parent_name_series varchar (1024) not null 
+    parent_name_series text not null 
 );
 create index on locations(location_guid);
 create index on locations(parent_name_series);
@@ -107,9 +107,9 @@ create table specimens (
     committed boolean not null default false,
 
     -- GBIF catalogNumber
-    catalog_number varchar (32) not null, -- can't enforce uniqueness due to import
+    catalog_number text not null, -- can't enforce uniqueness due to import
     -- GBIF occurrenceID (specify co.GUID)
-    occurrence_guid varchar (128), -- can't enforce uniqueness due to import
+    occurrence_guid text, -- can't enforce uniqueness due to import
 
     -- all taxon and location IDs are locally generated...
 
@@ -148,7 +148,7 @@ create table specimens (
     -- GBIF identificationRemarks
     determination_remarks text,
     -- GBIF typeStatus
-    type_status varchar (50),
+    type_status text,
     -- GBIF organismQuantity
     specimen_count integer,
 
@@ -172,7 +172,7 @@ create index on specimens(locality_id);
 
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF
-    location_guid varchar (128) unique not null,
+    location_guid text unique not null,
     modified_by integer references users,
     modified_on timestamptz not null,
     latitude float8 not null,
@@ -184,8 +184,8 @@ create table logs (
     -- column names must be identical in snakecase and camelcase
     id serial primary key,
     timestamp timestamptz not null default now(),
-    type varchar (16) not null,
-    tag varchar (64),
-    line varchar (2048) not null
+    type text not null,
+    tag text,
+    line text not null
 );
 create index on logs(timestamp);
