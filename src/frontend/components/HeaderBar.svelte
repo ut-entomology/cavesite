@@ -28,7 +28,7 @@
   }
 </script>
 
-<div class="header_bar">
+<header>
   <div class="container-fluid">
     <div class="title_row">
       <div class="app_title">{$appInfo.appTitle}</div>
@@ -59,12 +59,12 @@
     </div>
     <div class="app_subtitle text">{$appInfo.appSubtitle}</div>
   </div>
-</div>
+</header>
 
 <style lang="scss">
   @import '../variables.scss';
 
-  .header_bar {
+  header {
     flex: 0;
     color: $pageBarTextColor;
     padding: 0.5rem 0 1rem 0;

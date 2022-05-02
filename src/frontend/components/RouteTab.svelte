@@ -23,20 +23,22 @@
   }
 </script>
 
-<ul>
-  {#each tabs as tab}
-    <li class={activeTab === tab.label ? 'active' : ''}>
-      <span on:click={handleClick(tab.label)}>{tab.label}</span>
-    </li>
-  {/each}
-</ul>
-<div class="tab-area">
+<nav>
+  <ul>
+    {#each tabs as tab}
+      <li class={activeTab === tab.label ? 'active' : ''}>
+        <span on:click={handleClick(tab.label)}>{tab.label}</span>
+      </li>
+    {/each}
+  </ul>
+</nav>
+<main>
   {#each tabs as tab}
     {#if activeTab == tab.label}
       <slot />
     {/if}
   {/each}
-</div>
+</main>
 
 <style lang="scss">
   @import '../variables.scss';
@@ -69,8 +71,11 @@
     opacity: 1;
   }
 
-  .tab-area {
+  main {
     background-color: #fff;
     flex-grow: 1;
+    flex: auto;
+    display: flex;
+    flex-direction: column;
   }
 </style>
