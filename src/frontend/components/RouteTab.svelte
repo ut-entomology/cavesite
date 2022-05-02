@@ -74,6 +74,7 @@
 
   li.active > span {
     color: #fff;
+    cursor: default;
     background-color: $texasRed;
     border-top: 1px solid $texasRed;
     border-left: 1px solid $texasRed;
