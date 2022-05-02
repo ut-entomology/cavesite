@@ -12,7 +12,7 @@
   import Welcome from './routes/Welcome.svelte';
   import Taxa from './routes/Taxa.svelte';
   import Locations from './routes/Locations.svelte';
-  import Specimens from './routes/Specimens.svelte';
+  import Data from './routes/Data.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
   import Logs from './routes/admin/Logs.svelte';
@@ -62,7 +62,7 @@
     '/': Welcome,
     '/taxa': Taxa,
     '/locations': Locations,
-    '/specimens': Specimens,
+    '/data': Data,
 
     '/admin/users': Users,
     '/admin/coords': Coords,

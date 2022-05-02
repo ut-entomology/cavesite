@@ -2,4 +2,4 @@
   import AdminTabRoute from '../../components/AdminTabRoute.svelte';
 </script>
 
-<AdminTabRoute activeTab="Private Coordinates">Private coordinates</AdminTabRoute>
+<AdminTabRoute activeTab="Coordinates">Private coordinates</AdminTabRoute>

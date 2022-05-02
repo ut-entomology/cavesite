@@ -2,4 +2,4 @@
   import AdminTabRoute from '../../components/AdminTabRoute.svelte';
 </script>
 
-<AdminTabRoute activeTab="Download Schedule">Download schedule</AdminTabRoute>
+<AdminTabRoute activeTab="Schedule">Download schedule</AdminTabRoute>

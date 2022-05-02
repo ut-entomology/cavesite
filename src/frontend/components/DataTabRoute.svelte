@@ -1,5 +1,5 @@
-<script lang='ts'>
-  import RouteTab, { type Tab } from "./RouteTab.svelte";
+<script lang="ts">
+  import RouteTab, { type Tab } from './RouteTab.svelte';
 
   export let activeTab: string;
 
@@ -17,12 +17,12 @@
       route: '/locations'
     },
     {
-      label: 'Specimens',
-      route: '/specimens'
-    },
+      label: 'Data',
+      route: '/data'
+    }
   ];
 </script>
 
 <RouteTab {tabs} {activeTab}>
-  <slot></slot>
+  <slot />
 </RouteTab>

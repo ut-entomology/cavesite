@@ -2,4 +2,4 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
 </script>
 
-<DataTabRoute activeTab="Specimens">Specimen tools</DataTabRoute>
+<DataTabRoute activeTab="Data">Query results</DataTabRoute>

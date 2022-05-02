@@ -9,11 +9,11 @@
       route: '/admin/users'
     },
     {
-      label: 'Private Coordinates',
+      label: 'Coordinates',
       route: '/admin/coords'
     },
     {
-      label: 'Download Schedule',
+      label: 'Schedule',
       route: '/admin/schedule'
     },
     {
