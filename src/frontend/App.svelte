@@ -281,6 +281,6 @@
   // Multi-page code-provided CSS
 
   .taxon-rank {
-    opacity: 0.6;
+    opacity: $deemphOpacity;
   }
 </style>

@@ -17,8 +17,7 @@
 <g><path d="M497.938,430.063l-126.914-126.91C389.287,272.988,400,237.762,400,200C400,89.719,310.281,0,200,0
 		C89.719,0,0,89.719,0,200c0,110.281,89.719,200,200,200c37.762,0,72.984-10.711,103.148-28.973l126.914,126.91
 		C439.438,507.313,451.719,512,464,512c12.281,0,24.563-4.688,33.938-14.063C516.688,479.195,516.688,448.805,497.938,430.063z
-		 M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/>
-</g></svg>`;
+		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
   const checkmarkIcon = '&#10003;';
   const plusIcon = '+';
 
@@ -82,7 +81,7 @@
           >
         </div>
       </div>
-      <div class="row mt-3 mb-3">
+      <div class="row mt-3 mb-3 ancestors-row">
         <div class="col">
           {#each ancestorNames as ancestorName, i}
             <div class="row mt-1">
@@ -107,6 +106,15 @@
           </div>
         </div>
       {/each}
+      <div class="row info-row">
+        <div class="col-auto mt-4 small">
+          This box only shows taxa for which there are records. Click on a taxon to
+          navigate to it. A plus ({@html plusIcon}) indicates a taxon that can be
+          selected. A check ({@html checkmarkIcon}) indicates a taxon that has been
+          selected. Click on the {@html plusIcon} or {@html checkmarkIcon} to toggle the
+          selection. Type taxa in the box for autocompletion assistance.
+        </div>
+      </div>
     </div>
   </ModalDialog>
 {:catch err}
@@ -135,5 +143,14 @@
 
   :global(.selection .taxon-name) {
     font-weight: bold;
+  }
+
+  .ancestors-row {
+    margin: 0;
+  }
+
+  .info-row {
+    margin: 0;
+    opacity: $deemphOpacity;
   }
 </style>
