@@ -8,6 +8,9 @@ export type TaxonInfo = TaxonData;
 
 export const router = Router();
 
+// TODO: don't return raw taxa, as someone may put sensitive data in the
+// table in the future.
+
 router.post('/get_children', async (req: Request<void, any, string>, res) => {
   const taxaName = req.body;
   if (typeof taxaName != 'string' || taxaName.length > 100) {
@@ -27,6 +30,6 @@ router.post('/get_list', async (req: Request<void, any, string[]>, res) => {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
-  const taxa = await Taxon.getByName(getDB(), taxaNames);
+  const taxa = await Taxon.getByUniqueName(getDB(), taxaNames);
   return res.status(StatusCodes.OK).send(taxa as TaxonInfo[]);
 });

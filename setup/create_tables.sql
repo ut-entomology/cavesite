@@ -61,8 +61,10 @@ create table taxa (
     taxon_rank text not null,
     -- GBIF kingdom/phylum/class/order/family/genus/specificEpithet/infraspecificEpithet
     taxon_name text not null,
-    -- GBIF scientificName
-    scientific_name text,
+    -- Minimal unique scientific name sans author
+    unique_name text not null,
+    -- extracted from GBIF scientificName
+    author text,
     parent_id integer references taxa, -- locally generated
 
     -- these allow for fast non-recursive taxon queries/autocompletion:
@@ -73,7 +75,7 @@ create table taxa (
     parent_name_series text not null
 );
 create index on taxa(taxon_name);
-create index on taxa(scientific_name);
+create index on taxa(unique_name);
 create index on taxa(parent_name_series);
 
 create table locations (

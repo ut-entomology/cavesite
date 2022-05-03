@@ -44,13 +44,15 @@
     // caution: this class gets JSON-serialized
 
     // only taxa names are guaranteed to survive GBIF downloads
-    taxonIDs: number[];
+    taxonIDs: number[]; // TODO: don't even keep IDs
     taxonNames: string[];
+    authors: string[];
     treeRoot: TaxonNode;
 
     constructor(data: DataOf<SelectedTaxa>) {
       this.taxonNames = data.taxonNames;
       this.taxonIDs = data.taxonIDs;
+      this.authors = data.authors;
       this.treeRoot = data.treeRoot;
     }
 
@@ -58,6 +60,7 @@
       this._dropSelectedTaxa(this.treeRoot);
       this.taxonIDs = [];
       this.taxonNames = [];
+      this.authors = [];
       this._collectIncludedTaxa(this.treeRoot);
     }
 
@@ -88,7 +91,8 @@
           nodeFlags: DEFAULT_INCLUDED_NODE_FLAGS,
           nodeHTML: this._formatIncludedTaxon(
             taxon.taxonRank,
-            taxon.scientificName || taxon.taxonName
+            taxon.taxonName,
+            taxon.author
           ),
           children: null
         });
@@ -125,7 +129,7 @@
             rank,
             name,
             nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
-            nodeHTML: this._formatTaxonName(rank, name),
+            nodeHTML: this._formatTaxonName(rank, name, null),
             children: null
           };
           parent.children.push(nextParent);
@@ -159,18 +163,25 @@
       }
     }
 
-    private _formatTaxonName(rank: TaxonRank, name: string) {
-      if (rank == TaxonRank.Species || rank == TaxonRank.Subspecies) {
-        return `<i>${name}</i>`;
+    private _formatTaxonName(
+      rank: TaxonRank,
+      name: string,
+      author: string | null
+    ): string {
+      let html = rank != TaxonRank.Species ? rank + ': ' : '';
+      if ([TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
+        html += `<i>${name}</i>`;
+      } else {
+        html += name;
       }
-      if (rank == TaxonRank.Genus) {
-        name = `<i>${name}</i>`;
+      if (author) {
+        html += ' ' + author;
       }
-      return `${rank}: ${name}`;
+      return html;
     }
 
-    private _formatIncludedTaxon(rank: TaxonRank, name: string) {
-      return `<span>${this._formatTaxonName(rank, name)}</span>`;
+    private _formatIncludedTaxon(rank: TaxonRank, name: string, author: string | null) {
+      return `<span>${this._formatTaxonName(rank, name, author)}</span>`;
     }
   }
 </script>

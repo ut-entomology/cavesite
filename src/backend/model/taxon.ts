@@ -29,17 +29,20 @@ export interface TaxonSource {
 interface TaxonSpec {
   taxonRank: TaxonRank;
   taxonName: string;
-  scientificName: string | null; // null => not retrieved from GBIF
+  uniqueName: string;
+  author: string | null; // null => not retrieved from GBIF
   parentNameSeries: string;
 }
 
 export type TaxonData = DataOf<Taxon>;
 
+// TODO: Add uniqueName for binomials.
 export class Taxon {
   taxonID = 0;
   taxonRank: TaxonRank;
   taxonName: string;
-  scientificName: string | null; // null => not retrieved from GBIF
+  uniqueName: string;
+  author: string | null; // null => not retrieved from GBIF
   parentID: number | null;
   parentIDSeries: string;
   parentNameSeries: string;
@@ -50,7 +53,8 @@ export class Taxon {
     this.taxonID = data.taxonID;
     this.taxonRank = data.taxonRank;
     this.taxonName = data.taxonName;
-    this.scientificName = data.scientificName;
+    this.uniqueName = data.uniqueName;
+    this.author = data.author;
     this.parentID = data.parentID;
     this.parentIDSeries = data.parentIDSeries;
     this.parentNameSeries = data.parentNameSeries;
@@ -62,13 +66,14 @@ export class Taxon {
     if (this.taxonID === 0) {
       const result = await db.query(
         `insert into taxa(
-            taxon_rank, taxon_name, scientific_name,
+            taxon_rank, taxon_name, unique_name, author,
             parent_id, parent_id_series, parent_name_series
-          ) values ($1, $2, $3, $4, $5, $6) returning taxon_id`,
+          ) values ($1, $2, $3, $4, $5, $6, $7) returning taxon_id`,
         [
           this.taxonRank,
           this.taxonName,
-          this.scientificName,
+          this.uniqueName,
+          this.author,
           this.parentID,
           this.parentIDSeries,
           this.parentNameSeries
@@ -78,13 +83,14 @@ export class Taxon {
     } else {
       const result = await db.query(
         `update taxa set
-            taxon_rank=$1, taxon_name=$2, scientific_name=$3,
-            parent_id=$4, parent_id_series=$5, parent_name_series=$6
-          where taxon_id=$7`,
+            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4,
+            parent_id=$5, parent_id_series=$6, parent_name_series=$7
+          where taxon_id=$8`,
         [
           this.taxonRank,
           this.taxonName,
-          this.scientificName,
+          this.uniqueName,
+          this.author,
           this.parentID,
           this.parentIDSeries,
           this.parentNameSeries,
@@ -130,21 +136,18 @@ export class Taxon {
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
-  static async getByName(db: DB, names: string[]): Promise<Taxon[]> {
-    const result = await db.query(
-      `select * from taxa where taxon_name=any ($1) or scientific_name=any ($1)`,
-      [
-        // @ts-ignore
-        names
-      ]
-    );
+  static async getByUniqueName(db: DB, names: string[]): Promise<Taxon[]> {
+    const result = await db.query(`select * from taxa where unique_name=any ($1)`, [
+      // @ts-ignore
+      names
+    ]);
     return result.rows.map((row) => new Taxon(toCamelRow(row)));
   }
 
-  static async getChildrenOf(db: DB, parentName: string): Promise<Taxon[]> {
+  static async getChildrenOf(db: DB, parentUniqueName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select * from taxa c join taxa p on c.parent_id = p.taxon_id and p.taxon_name=$1`,
-      [parentName]
+      `select * from taxa c join taxa p on c.parent_id = p.taxon_id and p.unique_name=$1`,
+      [parentUniqueName]
     );
     return result.rows.map((row) => new Taxon(toCamelRow(row)));
   }
@@ -152,14 +155,17 @@ export class Taxon {
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 
-    const [parentTaxa, taxonName] = Taxon._parseTaxonSpec(source);
+    const [parentTaxa, taxonName] = Taxon._extractTaxa(source);
     let taxon = await Taxon._getByNameSeries(db, parentTaxa.join('|'), taxonName);
     if (taxon) {
       // If the taxon was previously created by virtue of being implied,
-      // it won't have a scientific name, so assign it now.
-      if (!taxon.scientificName) {
-        taxon.scientificName = source.scientificName;
-        await taxon.save(db);
+      // it won't have been assign an author, so assign it now.
+      if (!taxon.author) {
+        const author = Taxon._extractAuthor(source.scientificName);
+        if (author) {
+          taxon.author = author;
+          await taxon.save(db);
+        }
       }
       return taxon;
     }
@@ -168,12 +174,16 @@ export class Taxon {
 
     const specs: TaxonSpec[] = [];
     let parentNameSeries = '';
+    let uniqueName = '';
+
     for (let i = 0; i < parentTaxa.length; ++i) {
       const ancestorName = parentTaxa[i];
+      uniqueName = Taxon._nextUniqueName(uniqueName, ancestorName);
       specs.push({
         taxonRank: taxonRanks[i],
         taxonName: ancestorName,
-        scientificName: null,
+        uniqueName: uniqueName,
+        author: null,
         parentNameSeries
       });
       if (parentNameSeries == '') {
@@ -188,7 +198,8 @@ export class Taxon {
     specs.push({
       taxonRank: taxonRanks[parentTaxa.length],
       taxonName,
-      scientificName: source.scientificName,
+      uniqueName: Taxon._nextUniqueName(uniqueName, taxonName),
+      author: Taxon._extractAuthor(source.scientificName),
       parentNameSeries
     });
 
@@ -199,7 +210,7 @@ export class Taxon {
 
   static async matchName(db: DB, partialName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select * from taxa where taxon_name like $1 and committed=true
+      `select * from taxa where unique_name like $1 and committed=true
         order by taxon_name`,
       [`%${partialName}%`]
     );
@@ -227,7 +238,8 @@ export class Taxon {
       taxon = await Taxon.create(db, spec.parentNameSeries, parentIDSeries, {
         taxonRank: spec.taxonRank,
         taxonName: spec.taxonName,
-        scientificName: spec.scientificName,
+        uniqueName: spec.uniqueName,
+        author: spec.author,
         parentID: taxon?.taxonID || null
       });
     }
@@ -267,7 +279,17 @@ export class Taxon {
     return Taxon._getClosestTaxon(db, specs, specIndex - 1);
   }
 
-  private static _parseTaxonSpec(source: TaxonSource): [string[], string] {
+  private static _extractAuthor(scientificName: string | null): string | null {
+    if (scientificName) {
+      const matches = scientificName.match(/.[^(A-Z]+(.*)$/);
+      if (matches) {
+        return matches[1] == '' ? null : matches[1];
+      }
+    }
+    return null;
+  }
+
+  private static _extractTaxa(source: TaxonSource): [string[], string] {
     if (!source.kingdom) throw new ImportFailure('Kingdom not given');
     const parentTaxa: string[] = [source.kingdom];
     if (source.phylum) {
@@ -302,5 +324,11 @@ export class Taxon {
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     const taxonName = parentTaxa.pop();
     return [parentTaxa, taxonName!];
+  }
+
+  private static _nextUniqueName(parentUniqueName: string, taxonName: string): string {
+    return taxonName[0] == taxonName[0].toUpperCase()
+      ? taxonName
+      : `${parentUniqueName} ${taxonName}`;
   }
 }
