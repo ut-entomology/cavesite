@@ -7,8 +7,7 @@
 
   import type { DataOf } from '../../shared/data_of';
   import { createSessionStore } from '../util/session_store';
-  import { TaxonRank, taxonRanks } from '../../shared/model';
-  import type { TaxonInfo } from '../../backend/apis/taxa_api';
+  import { TaxonRank, taxonRanks, TaxonInfo } from '../../shared/client_model';
   import {
     InteractiveTreeFlags,
     InteractiveTreeNode
@@ -19,9 +18,7 @@
   export const COLLECTED_LEAF_FLAG = 1 << 31;
 
   export interface TaxonNode extends InteractiveTreeNode {
-    id: number;
-    rank: TaxonRank;
-    name: string;
+    taxonInfo: TaxonInfo;
     children: TaxonNode[] | null;
   }
 
@@ -43,24 +40,17 @@
   export class SelectedTaxa {
     // caution: this class gets JSON-serialized
 
-    // only taxa names are guaranteed to survive GBIF downloads
-    taxonIDs: number[]; // TODO: don't even keep IDs
-    taxonNames: string[];
-    authors: string[];
+    taxaInfo: TaxonInfo[];
     treeRoot: TaxonNode;
 
     constructor(data: DataOf<SelectedTaxa>) {
-      this.taxonNames = data.taxonNames;
-      this.taxonIDs = data.taxonIDs;
-      this.authors = data.authors;
+      this.taxaInfo = data.taxaInfo;
       this.treeRoot = data.treeRoot;
     }
 
     dropSelectedTaxa() {
       this._dropSelectedTaxa(this.treeRoot);
-      this.taxonIDs = [];
-      this.taxonNames = [];
-      this.authors = [];
+      this.taxaInfo = [];
       this._collectIncludedTaxa(this.treeRoot);
     }
 
@@ -70,11 +60,15 @@
       const taxa = res.data;
       if (taxa.length == 0) return false;
 
+      const rootName = taxa[0].ancestors!.split(',')[0];
       this.treeRoot = {
-        // root is top-most parent ID of any taxon
-        id: parseInt(taxa[0].parentIDSeries.split(',')[0]),
-        rank: TaxonRank.Kingdom,
-        name: taxa[0].parentNameSeries.split(',')[0],
+        taxonInfo: {
+          rank: TaxonRank.Kingdom,
+          name: rootName,
+          unique: rootName,
+          author: null,
+          ancestors: null
+        },
         nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
         nodeHTML: '(NEVER DISPLAYED)',
         children: null
@@ -85,15 +79,15 @@
           parent.children = [];
         }
         parent.children.push({
-          id: taxon.taxonID,
-          rank: taxon.taxonRank,
-          name: taxon.taxonName,
+          taxonInfo: {
+            rank: taxon.rank,
+            name: taxon.name,
+            unique: taxon.unique,
+            author: taxon.author,
+            ancestors: taxon.ancestors
+          },
           nodeFlags: DEFAULT_INCLUDED_NODE_FLAGS,
-          nodeHTML: this._formatIncludedTaxon(
-            taxon.taxonRank,
-            taxon.taxonName,
-            taxon.author
-          ),
+          nodeHTML: this._formatIncludedTaxon(taxon.rank, taxon.name, taxon.author),
           children: null
         });
       }
@@ -106,14 +100,13 @@
     }
 
     _addAncestors(rootNode: TaxonNode, taxon: TaxonInfo): TaxonNode {
-      const parentIDs = taxon.parentIDSeries.split(',').map((idStr) => parseInt(idStr));
-      const parentNames = taxon.parentNameSeries.split('|');
+      const ancestorNames = taxon.ancestors!.split('|');
       let parent = rootNode;
-      for (let i = 1; i < parentIDs.length; ++i) {
+      for (let i = 1; i < ancestorNames.length; ++i) {
         let nextParent: TaxonNode | null = null;
         if (parent.children) {
           for (const child of parent.children) {
-            if (child.id == parentIDs[i]) {
+            if (child.taxonInfo.name == ancestorNames[i]) {
               nextParent = child;
               break;
             }
@@ -123,11 +116,15 @@
         }
         if (!nextParent) {
           const rank = taxonRanks[i];
-          const name = parentNames[i];
+          const name = ancestorNames[i];
           nextParent = {
-            id: parentIDs[i],
-            rank,
-            name,
+            taxonInfo: {
+              rank,
+              name,
+              unique: name,
+              author: null,
+              ancestors: ancestorNames.slice(0, i).join('|')
+            },
             nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
             nodeHTML: this._formatTaxonName(rank, name, null),
             children: null
@@ -144,8 +141,7 @@
         fromNode.children.forEach((child) => this._collectIncludedTaxa(child));
       } else {
         // the leaf nodes are the included taxa
-        this.taxonIDs.push(fromNode.id);
-        this.taxonNames.push(fromNode.name);
+        this.taxaInfo.push(fromNode.taxonInfo);
       }
     }
 

@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, taxonRanks } from '../../shared/model';
+import { TaxonRank, taxonRanks } from '../../shared/client_model';
 import { ImportFailure } from './import_failure';
 
 export interface TaxonSource {

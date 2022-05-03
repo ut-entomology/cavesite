@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Taxon } from './taxon';
-import { TaxonRank } from '../../shared/model';
+import { TaxonRank } from '../../shared/client_model';
 import { ImportFailure } from './import_failure';
 
 const mutex = new DatabaseMutex();
