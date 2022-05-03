@@ -310,6 +310,9 @@ test('sequentially dependent taxa tests', async () => {
       parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea'
     });
     expect(createdTaxon).toEqual(readTaxon);
+
+    const readTaxa = await Taxon.getChildrenOf(db, 'Animalia');
+    findTaxa(readTaxa, ['Arthropoda', 'Chordata']);
   }
 
   // test reading multiple taxa by name
@@ -474,8 +477,8 @@ afterAll(async () => {
 
 function findTaxa(taxa: Taxon[], lookForNames: string[]) {
   for (const name of lookForNames) {
-    const taxon = taxa.find((found) => found.taxonName == name);
-    expect(taxon).not.toBeNull();
+    const taxon = taxa.find((t) => t.uniqueName == name);
+    expect(taxon).not.toBeUndefined();
   }
   expect(taxa.length).toEqual(lookForNames.length);
 }
