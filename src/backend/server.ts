@@ -17,6 +17,7 @@ import { connectDB, getDB } from '../backend/integrations/postgres';
 import { sessionware } from '../backend/integrations/sessionware';
 import { router as authApi } from './apis/auth_api';
 import { router as userApi } from './apis/user_api';
+import { router as taxaApi } from './apis/taxa_api';
 import { Session } from './model/session';
 import { LogType, Logs } from './model/logs';
 
@@ -57,6 +58,7 @@ app.use(sessionware);
 app.use(express.static(PUBLIC_FILE_DIR));
 app.use('/api/auth', authApi);
 app.use('/api/user', userApi);
+app.use('/api/taxa', taxaApi);
 app.use('/api/*', (_req, _res, next) => {
   const err = Error(ReasonPhrases.NOT_FOUND) as any;
   err.status = StatusCodes.NOT_FOUND;

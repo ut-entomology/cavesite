@@ -126,7 +126,7 @@
               ancestors: ancestorNames.slice(0, i).join('|')
             },
             nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
-            nodeHTML: this._formatTaxonName(rank, name, null),
+            nodeHTML: formatTaxonName(rank, name, null),
             children: null
           };
           parent.children.push(nextParent);
@@ -159,25 +159,25 @@
       }
     }
 
-    private _formatTaxonName(
-      rank: TaxonRank,
-      name: string,
-      author: string | null
-    ): string {
-      let html = rank != TaxonRank.Species ? rank + ': ' : '';
-      if ([TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
-        html += `<i>${name}</i>`;
-      } else {
-        html += name;
-      }
-      if (author) {
-        html += ' ' + author;
-      }
-      return html;
-    }
-
     private _formatIncludedTaxon(rank: TaxonRank, name: string, author: string | null) {
-      return `<span>${this._formatTaxonName(rank, name, author)}</span>`;
+      return `<span>${formatTaxonName(rank, name, author)}</span>`;
     }
+  }
+
+  export function formatTaxonName(
+    rank: TaxonRank,
+    name: string,
+    author: string | null
+  ): string {
+    let html = rank != TaxonRank.Species ? rank + ': ' : '';
+    if ([TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
+      html += `<i>${name}</i>`;
+    } else {
+      html += name;
+    }
+    if (author) {
+      html += ' ' + author;
+    }
+    return html;
   }
 </script>

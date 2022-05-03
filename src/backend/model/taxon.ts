@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, taxonRanks } from '../../shared/client_model';
+import { TaxonRank, taxonRanks, nextUniqueName } from '../../shared/client_model';
 import { ImportFailure } from './import_failure';
 
 export interface TaxonSource {
@@ -146,7 +146,7 @@ export class Taxon {
 
   static async getChildrenOf(db: DB, parentUniqueName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select * from taxa c join taxa p on c.parent_id = p.taxon_id and p.unique_name=$1`,
+      `select c.* from taxa c join taxa p on c.parent_id = p.taxon_id and p.unique_name=$1`,
       [parentUniqueName]
     );
     return result.rows.map((row) => new Taxon(toCamelRow(row)));
@@ -178,7 +178,7 @@ export class Taxon {
 
     for (let i = 0; i < parentTaxa.length; ++i) {
       const ancestorName = parentTaxa[i];
-      uniqueName = Taxon._nextUniqueName(uniqueName, ancestorName);
+      uniqueName = nextUniqueName(uniqueName, ancestorName);
       specs.push({
         taxonRank: taxonRanks[i],
         taxonName: ancestorName,
@@ -198,7 +198,7 @@ export class Taxon {
     specs.push({
       taxonRank: taxonRanks[parentTaxa.length],
       taxonName,
-      uniqueName: Taxon._nextUniqueName(uniqueName, taxonName),
+      uniqueName: nextUniqueName(uniqueName, taxonName),
       author: Taxon._extractAuthor(source.scientificName),
       parentNameSeries
     });
@@ -324,11 +324,5 @@ export class Taxon {
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     const taxonName = parentTaxa.pop();
     return [parentTaxa, taxonName!];
-  }
-
-  private static _nextUniqueName(parentUniqueName: string, taxonName: string): string {
-    return taxonName[0] == taxonName[0].toUpperCase()
-      ? taxonName
-      : `${parentUniqueName} ${taxonName}`;
   }
 }

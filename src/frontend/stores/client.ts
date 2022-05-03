@@ -17,6 +17,10 @@ const publicClient = axios.create(baseAxiosConfig);
 
 export const client = writable<AxiosInstance>(publicClient);
 
+export const bubbleUpError = (err: any) => {
+  throw err;
+};
+
 export function setCSRF(csrfToken: string | null) {
   if (csrfToken === null) {
     client.set(publicClient);

@@ -4,11 +4,13 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
+  import { DialogSpec } from '../common/VariableDialog.svelte';
   import { TaxonNode, selectedTaxa } from '../stores/selectedTaxa.svelte';
   import InteractiveTree, {
     InteractiveTreeFlags
   } from '../components/InteractiveTree.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
+  import { currentDialog } from '../stores/currentDialog.svelte';
 
   export let treeRoot = $selectedTaxa ? $selectedTaxa.treeRoot : null;
 
@@ -24,7 +26,12 @@
     return false;
   }
 
-  function browseTaxa() {}
+  function browseTaxa() {
+    $currentDialog = new DialogSpec('BrowseTaxaDialog', {
+      title: 'Browse and Select Taxa',
+      parentUnique: 'Animalia'
+    });
+  }
 
   function collapseAll() {
     if (treeRoot && treeRoot.children) {

@@ -28,3 +28,9 @@ export interface TaxonInfo {
   author: string | null;
   ancestors: string | null;
 }
+
+export function nextUniqueName(parentUniqueName: string, taxonName: string): string {
+  return taxonName[0] == taxonName[0].toUpperCase()
+    ? taxonName
+    : `${parentUniqueName} ${taxonName}`;
+}
