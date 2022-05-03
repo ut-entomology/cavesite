@@ -277,4 +277,10 @@
   .alert {
     margin-bottom: 0; // override default 1rem
   }
+
+  // Multi-page code-provided CSS
+
+  .taxon-rank {
+    opacity: 0.6;
+  }
 </style>

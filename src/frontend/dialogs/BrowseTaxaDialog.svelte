@@ -82,17 +82,19 @@
           >
         </div>
       </div>
-      <div class="row">
+      <div class="row mt-3 mb-3">
         <div class="col">
           {#each ancestorNames as ancestorName, i}
-            <div class="row">
-              <div class="col" style="margin-left: {1.5 * i}em">{ancestorName}</div>
+            <div class="row mt-1">
+              <div class="col" style="margin-left: {1.5 * i}em">
+                {@html ancestorName}
+              </div>
             </div>
           {/each}
         </div>
       </div>
       {#each childrenInfo as childInfo}
-        <div class="row">
+        <div class="row mt-1">
           <div class="col-auto">
             {#if selectedTaxaByUnique[childInfo.unique]}
               <div class="addRemoveIcon">{@html checkmarkIcon}</div>
@@ -101,7 +103,7 @@
             {/if}
           </div>
           <div class="col">
-            {formatTaxonName(childInfo.rank, childInfo.name, childInfo.author)}
+            {@html formatTaxonName(childInfo.rank, childInfo.name, childInfo.author)}
           </div>
         </div>
       {/each}
@@ -129,5 +131,9 @@
     margin-top: -0.1rem;
     width: 1.5rem;
     height: 1.5rem;
+  }
+
+  :global(.selection .taxon-name) {
+    font-weight: bold;
   }
 </style>

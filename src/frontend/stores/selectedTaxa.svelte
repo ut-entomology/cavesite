@@ -160,7 +160,7 @@
     }
 
     private _formatIncludedTaxon(rank: TaxonRank, name: string, author: string | null) {
-      return `<span>${formatTaxonName(rank, name, author)}</span>`;
+      return `<span class="selection">${formatTaxonName(rank, name, author)}</span>`;
     }
   }
 
@@ -169,14 +169,16 @@
     name: string,
     author: string | null
   ): string {
-    let html = rank != TaxonRank.Species ? rank + ': ' : '';
-    if ([TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
-      html += `<i>${name}</i>`;
-    } else {
-      html += name;
+    let html = '';
+    if (![TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
+      html = `<span class="taxon-rank">${rank}:</span> `;
     }
+    if ([TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
+      name = `<i>${name}</i>`;
+    }
+    html += `<span class="taxon-name">${name}</span>`;
     if (author) {
-      html += ' ' + author;
+      html += ` <span class="taxon-author">${author}</span>`;
     }
     return html;
   }
