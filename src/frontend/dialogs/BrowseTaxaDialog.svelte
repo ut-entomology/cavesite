@@ -1,6 +1,7 @@
 <script lang="ts">
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
+  import InputGroupButton from '../components/InputGroupButton.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
@@ -13,43 +14,11 @@
 
   const loupeIcon = `<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
-<g>
-	<path d="M497.938,430.063l-126.914-126.91C389.287,272.988,400,237.762,400,200C400,89.719,310.281,0,200,0
+<g><path d="M497.938,430.063l-126.914-126.91C389.287,272.988,400,237.762,400,200C400,89.719,310.281,0,200,0
 		C89.719,0,0,89.719,0,200c0,110.281,89.719,200,200,200c37.762,0,72.984-10.711,103.148-28.973l126.914,126.91
 		C439.438,507.313,451.719,512,464,512c12.281,0,24.563-4.688,33.938-14.063C516.688,479.195,516.688,448.805,497.938,430.063z
 		 M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-</svg>`;
+</g></svg>`;
   const checkmarkIcon = '&#10003;';
   const plusIcon = '+';
 
@@ -98,15 +67,13 @@
 {#await load() then}
   <ModalDialog {title} contentClasses="taxa-browser-content">
     <div class="container-md">
-      <div class="row">
+      <div class="row align-items-center">
         <div class="col">
           <div class="input-group me-4">
             <input class="form-control" bind:value={typedTaxon} />
-            <div class="input-group-btn">
-              <button class="btn btn-secondary" type="button" on:click={loadTypedTaxon}
-                ><div class="loupeIcon">{@html loupeIcon}</div></button
-              >
-            </div>
+            <InputGroupButton on:click={loadTypedTaxon}>
+              <div class="loupeIcon">{@html loupeIcon}</div>
+            </InputGroupButton>
           </div>
         </div>
         <div class="col-auto">
@@ -151,12 +118,15 @@
   {:else}{bubbleUpError(err)}{/if}
 {/await}
 
-<style>
+<style lang="scss">
+  @import '../variables.scss';
+
   :global(.taxa-browser-content) {
     margin: 0 auto;
   }
 
   .loupeIcon {
+    margin-top: -0.1rem;
     width: 1.5rem;
     height: 1.5rem;
   }
