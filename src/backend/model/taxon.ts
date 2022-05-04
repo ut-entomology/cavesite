@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, taxonRanks, nextUniqueName } from '../../shared/taxa';
+import { TaxonRank, taxonRanks, TaxonSpec, nextUniqueName } from '../../shared/taxa';
 import { ImportFailure } from './import_failure';
 
 export interface TaxonSource {
@@ -24,14 +24,6 @@ export interface TaxonSource {
   specificEpithet?: string;
   infraspecificEpithet?: string;
   scientificName: string;
-}
-
-interface TaxonSpec {
-  taxonRank: TaxonRank;
-  taxonName: string;
-  uniqueName: string;
-  author: string | null; // null => not retrieved from GBIF
-  containingNames: string;
 }
 
 export type TaxonData = DataOf<Taxon>;
@@ -184,9 +176,9 @@ export class Taxon {
       const containingName = containingNamesList[i];
       uniqueName = nextUniqueName(uniqueName, containingName);
       specs.push({
-        taxonRank: taxonRanks[i],
-        taxonName: containingName,
-        uniqueName: uniqueName,
+        rank: taxonRanks[i],
+        name: containingName,
+        unique: uniqueName,
         author: null,
         containingNames
       });
@@ -200,9 +192,9 @@ export class Taxon {
     // Create a spec for the particular requested taxon.
 
     specs.push({
-      taxonRank: taxonRanks[containingNamesList.length],
-      taxonName,
-      uniqueName: nextUniqueName(uniqueName, taxonName),
+      rank: taxonRanks[containingNamesList.length],
+      name: taxonName,
+      unique: nextUniqueName(uniqueName, taxonName),
       author: Taxon._extractAuthor(source.scientificName),
       containingNames
     });
@@ -240,9 +232,9 @@ export class Taxon {
       }
       const spec = specs[taxonIndex];
       taxon = await Taxon.create(db, spec.containingNames, containingIDs, {
-        taxonRank: spec.taxonRank,
-        taxonName: spec.taxonName,
-        uniqueName: spec.uniqueName,
+        taxonRank: spec.rank,
+        taxonName: spec.name,
+        uniqueName: spec.unique,
         author: spec.author,
         parentID: taxon?.taxonID || null
       });
@@ -269,11 +261,7 @@ export class Taxon {
     specIndex: number
   ): Promise<[Taxon | null, number]> {
     const spec = specs[specIndex];
-    const taxon = await Taxon._getByNameSeries(
-      db,
-      spec.containingNames,
-      spec.taxonName
-    );
+    const taxon = await Taxon._getByNameSeries(db, spec.containingNames, spec.name);
     if (taxon) {
       return [taxon, specIndex];
     }

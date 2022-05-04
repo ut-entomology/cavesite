@@ -20,13 +20,13 @@ export const taxonRanks = [
   TaxonRank.Subspecies
 ];
 
-export interface TaxonInfo {
+export interface TaxonSpec {
   // excludes ID because IDs change with each GBIF import
   rank: TaxonRank;
   name: string;
   unique: string;
   author: string | null;
-  ancestors: string | null;
+  containingNames: string;
 }
 
 export function nextUniqueName(parentUniqueName: string, taxonName: string): string {

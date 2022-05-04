@@ -5,7 +5,7 @@
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
-  import { taxonRanks, TaxonInfo, nextUniqueName } from '../../shared/client_model';
+  import { taxonRanks, TaxonSpec, nextUniqueName } from '../../shared/taxa';
   import { formatTaxonName } from '../stores/selectedTaxa.svelte';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
@@ -21,37 +21,59 @@
   const checkmarkIcon = '&#10003;';
   const plusIcon = '+';
 
-  let selectedTaxaByUnique: Record<string, TaxonInfo> = {};
+  let selectedTaxaByUnique: Record<string, TaxonSpec> = {};
   let typedTaxon = '';
-  let parentInfo: TaxonInfo;
-  let ancestorNames: string[];
-  let childrenInfo: TaxonInfo[];
+  let parentSpec: TaxonSpec;
+  let containingSpecs: TaxonSpec[];
+  let childSpecs: TaxonSpec[];
 
   if ($selectedTaxa) {
-    for (const taxonInfo of $selectedTaxa.taxaInfo) {
-      selectedTaxaByUnique[taxonInfo.unique] = taxonInfo;
+    for (const taxonSpec of $selectedTaxa.taxonSpecs) {
+      selectedTaxaByUnique[taxonSpec.unique] = taxonSpec;
     }
   }
 
   async function load() {
     let res = await $client.post('api/taxa/get_list', { taxonUniques: [parentUnique] });
-    parentInfo = res.data.taxaInfo[0];
+    // TODO: Handle case where nothing is returned (taxonSpecs == [])
+    parentSpec = res.data.taxonSpecs[0];
     res = await $client.post('api/taxa/get_children', { parentUnique });
-    childrenInfo = res.data.taxaInfo;
+    childSpecs = res.data.taxonSpecs;
 
-    ancestorNames = [];
+    // TODO: this duplicates code in taxon.ts
+    // const containingNamesList = parentSpec.containingNames
+    //   ? parentSpec.containingNames.split('|')
+    //   : [];
+    let containingNames = '';
+    containingSpecs = [];
     let uniqueName = '';
     let i = 0;
-    if (parentInfo.ancestors) {
-      const ancestors = parentInfo.ancestors!.split('|');
-      while (i < ancestors.length) {
-        uniqueName = nextUniqueName(uniqueName, ancestorNames[i]);
-        ancestorNames.push(formatTaxonName(taxonRanks[i], uniqueName, null));
-        ++i;
-      }
-    }
-    uniqueName = nextUniqueName(uniqueName, parentInfo.name);
-    ancestorNames.push(formatTaxonName(taxonRanks[i], uniqueName, parentInfo.author));
+    // if (containingNamesList.length > 0) {
+    //   // TBD: this is broken
+    //   const containingNamesList = parentSpec.containingNames!.split('|');
+    //   while (i < containingNames.length) {
+    //     let taxonName = containingSpecs[i].name;
+    //     uniqueName = nextUniqueName(uniqueName, taxonName);
+    //     containingNames += (containingNames == '' ? '' : '|') + taxonName;
+    //     containingSpecs.push({
+    //       rank: taxonRanks[i],
+    //       name: taxonName,
+    //       unique: uniqueName,
+    //       author: null,
+    //       containingNames: containingNames
+    //     });
+    //     ++i;
+    //   }
+    // }
+    uniqueName = nextUniqueName(uniqueName, parentSpec.name);
+    containingNames += (containingNames == '' ? '' : '|') + parentSpec.name;
+    containingSpecs.push({
+      rank: taxonRanks[i],
+      name: parentSpec.name,
+      unique: uniqueName,
+      author: parentSpec.author,
+      containingNames: containingNames
+    });
   }
 
   const loadTypedTaxon = () => {
@@ -83,16 +105,16 @@
       </div>
       <div class="row mt-3 mb-3 ancestors-row">
         <div class="col">
-          {#each ancestorNames as ancestorName, i}
+          {#each containingSpecs as containingSpec, i}
             <div class="row mt-1">
               <div class="col" style="margin-left: {1.5 * i}em">
-                {@html ancestorName}
+                {@html containingSpec.name}
               </div>
             </div>
           {/each}
         </div>
       </div>
-      {#each childrenInfo as childInfo}
+      {#each childSpecs as childInfo}
         <div class="row mt-1">
           <div class="col-auto">
             {#if selectedTaxaByUnique[childInfo.unique]}

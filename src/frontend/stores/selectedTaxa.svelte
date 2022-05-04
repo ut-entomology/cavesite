@@ -7,7 +7,7 @@
 
   import type { DataOf } from '../../shared/data_of';
   import { createSessionStore } from '../util/session_store';
-  import { TaxonRank, taxonRanks, TaxonInfo } from '../../shared/taxa';
+  import { TaxonRank, taxonRanks, TaxonSpec } from '../../shared/taxa';
   import {
     InteractiveTreeFlags,
     InteractiveTreeNode
@@ -18,7 +18,7 @@
   export const COLLECTED_LEAF_FLAG = 1 << 31;
 
   export interface TaxonNode extends InteractiveTreeNode {
-    taxonInfo: TaxonInfo;
+    taxonSpec: TaxonSpec;
     children: TaxonNode[] | null;
   }
 
@@ -40,34 +40,34 @@
   export class SelectedTaxa {
     // caution: this class gets JSON-serialized
 
-    taxaInfo: TaxonInfo[];
+    taxonSpecs: TaxonSpec[];
     treeRoot: TaxonNode;
 
     constructor(data: DataOf<SelectedTaxa>) {
-      this.taxaInfo = data.taxaInfo;
+      this.taxonSpecs = data.taxonSpecs;
       this.treeRoot = data.treeRoot;
     }
 
     dropSelectedTaxa() {
       this._dropSelectedTaxa(this.treeRoot);
-      this.taxaInfo = [];
+      this.taxonSpecs = [];
       this._collectIncludedTaxa(this.treeRoot);
     }
 
     async loadIncludedTaxa(taxaNames: string[]): Promise<boolean> {
       if (taxaNames.length == 0) return false;
-      const res = await currentClient.post<TaxonInfo[]>('api/taxa/get', taxaNames);
+      const res = await currentClient.post<TaxonSpec[]>('api/taxa/get', taxaNames);
       const taxa = res.data;
       if (taxa.length == 0) return false;
 
-      const rootName = taxa[0].ancestors!.split(',')[0];
+      const rootName = taxa[0].containingNames!.split(',')[0];
       this.treeRoot = {
-        taxonInfo: {
+        taxonSpec: {
           rank: TaxonRank.Kingdom,
           name: rootName,
           unique: rootName,
           author: null,
-          ancestors: null
+          containingNames: ''
         },
         nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
         nodeHTML: '(NEVER DISPLAYED)',
@@ -79,12 +79,12 @@
           parent.children = [];
         }
         parent.children.push({
-          taxonInfo: {
+          taxonSpec: {
             rank: taxon.rank,
             name: taxon.name,
             unique: taxon.unique,
             author: taxon.author,
-            ancestors: taxon.ancestors
+            containingNames: taxon.containingNames
           },
           nodeFlags: DEFAULT_INCLUDED_NODE_FLAGS,
           nodeHTML: this._formatIncludedTaxon(taxon.rank, taxon.name, taxon.author),
@@ -99,14 +99,14 @@
       selectedTaxa.set(this);
     }
 
-    _addAncestors(rootNode: TaxonNode, taxon: TaxonInfo): TaxonNode {
-      const ancestorNames = taxon.ancestors!.split('|');
+    _addAncestors(rootNode: TaxonNode, taxon: TaxonSpec): TaxonNode {
+      const ancestorNames = taxon.containingNames!.split('|');
       let parent = rootNode;
       for (let i = 1; i < ancestorNames.length; ++i) {
         let nextParent: TaxonNode | null = null;
         if (parent.children) {
           for (const child of parent.children) {
-            if (child.taxonInfo.name == ancestorNames[i]) {
+            if (child.taxonSpec.name == ancestorNames[i]) {
               nextParent = child;
               break;
             }
@@ -118,12 +118,12 @@
           const rank = taxonRanks[i];
           const name = ancestorNames[i];
           nextParent = {
-            taxonInfo: {
+            taxonSpec: {
               rank,
               name,
               unique: name,
               author: null,
-              ancestors: ancestorNames.slice(0, i).join('|')
+              containingNames: ancestorNames.slice(0, i).join('|')
             },
             nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
             nodeHTML: formatTaxonName(rank, name, null),
@@ -141,7 +141,7 @@
         fromNode.children.forEach((child) => this._collectIncludedTaxa(child));
       } else {
         // the leaf nodes are the included taxa
-        this.taxaInfo.push(fromNode.taxonInfo);
+        this.taxonSpecs.push(fromNode.taxonSpec);
       }
     }
 
