@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, taxonRanks, TaxonSpec, nextUniqueName } from '../../shared/taxa';
+import { TaxonRank, TaxonSpec, toTaxonSpecs } from '../../shared/taxa';
 import { ImportFailure } from './import_failure';
 
 export interface TaxonSource {
@@ -166,38 +166,13 @@ export class Taxon {
       return taxon;
     }
 
-    // If the taxon doesn't exist yet, create specs for all its containing taxa.
+    // Ccreate specs for all containing taxa and the taxon itself.
 
-    const specs: TaxonSpec[] = [];
-    let containingNames = '';
-    let uniqueName = '';
-
-    for (let i = 0; i < containingNamesList.length; ++i) {
-      const containingName = containingNamesList[i];
-      uniqueName = nextUniqueName(uniqueName, containingName);
-      specs.push({
-        rank: taxonRanks[i],
-        name: containingName,
-        unique: uniqueName,
-        author: null,
-        containingNames
-      });
-      if (containingNames == '') {
-        containingNames = containingName; // necessarily kingdom
-      } else {
-        containingNames += '|' + containingName;
-      }
-    }
-
-    // Create a spec for the particular requested taxon.
-
-    specs.push({
-      rank: taxonRanks[containingNamesList.length],
-      name: taxonName,
-      unique: nextUniqueName(uniqueName, taxonName),
-      author: Taxon._extractAuthor(source.scientificName),
-      containingNames
-    });
+    const specs = toTaxonSpecs(
+      containingNamesList,
+      taxonName,
+      Taxon._extractAuthor(source.scientificName)
+    );
 
     // Create all implied taxa.
 

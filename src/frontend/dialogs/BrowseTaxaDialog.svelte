@@ -5,7 +5,7 @@
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
-  import { taxonRanks, TaxonSpec, nextUniqueName } from '../../shared/taxa';
+  import { TaxonSpec, toTaxonSpecs } from '../../shared/taxa';
   import { formatTaxonName } from '../stores/selectedTaxa.svelte';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
@@ -40,40 +40,15 @@
     res = await $client.post('api/taxa/get_children', { parentUnique });
     childSpecs = res.data.taxonSpecs;
 
-    // TODO: this duplicates code in taxon.ts
-    // const containingNamesList = parentSpec.containingNames
-    //   ? parentSpec.containingNames.split('|')
-    //   : [];
-    let containingNames = '';
-    containingSpecs = [];
-    let uniqueName = '';
-    let i = 0;
-    // if (containingNamesList.length > 0) {
-    //   // TBD: this is broken
-    //   const containingNamesList = parentSpec.containingNames!.split('|');
-    //   while (i < containingNames.length) {
-    //     let taxonName = containingSpecs[i].name;
-    //     uniqueName = nextUniqueName(uniqueName, taxonName);
-    //     containingNames += (containingNames == '' ? '' : '|') + taxonName;
-    //     containingSpecs.push({
-    //       rank: taxonRanks[i],
-    //       name: taxonName,
-    //       unique: uniqueName,
-    //       author: null,
-    //       containingNames: containingNames
-    //     });
-    //     ++i;
-    //   }
-    // }
-    uniqueName = nextUniqueName(uniqueName, parentSpec.name);
-    containingNames += (containingNames == '' ? '' : '|') + parentSpec.name;
-    containingSpecs.push({
-      rank: taxonRanks[i],
-      name: parentSpec.name,
-      unique: uniqueName,
-      author: parentSpec.author,
-      containingNames: containingNames
-    });
+    let containingNamesList: string[] = [];
+    if (parentSpec.containingNames.length > 0) {
+      containingNamesList = parentSpec.containingNames.split('|');
+    }
+    containingSpecs = toTaxonSpecs(
+      containingNamesList,
+      parentSpec.name,
+      parentSpec.author
+    );
   }
 
   const loadTypedTaxon = () => {

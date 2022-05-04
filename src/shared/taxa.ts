@@ -29,7 +29,44 @@ export interface TaxonSpec {
   containingNames: string;
 }
 
-export function nextUniqueName(parentUniqueName: string, taxonName: string): string {
+export function toTaxonSpecs(
+  containingNamesList: string[],
+  taxonName: string,
+  taxonAuthor: string | null
+): TaxonSpec[] {
+  const specs: TaxonSpec[] = [];
+  let containingNames = '';
+  let uniqueName = '';
+
+  for (let i = 0; i < containingNamesList.length; ++i) {
+    const containingName = containingNamesList[i];
+    uniqueName = _nextUniqueName(uniqueName, containingName);
+    specs.push({
+      rank: taxonRanks[i],
+      name: containingName,
+      unique: uniqueName,
+      author: null,
+      containingNames
+    });
+    if (containingNames == '') {
+      containingNames = containingName; // necessarily kingdom
+    } else {
+      containingNames += '|' + containingName;
+    }
+  }
+
+  specs.push({
+    rank: taxonRanks[containingNamesList.length],
+    name: taxonName,
+    unique: _nextUniqueName(uniqueName, taxonName),
+    author: taxonAuthor,
+    containingNames
+  });
+
+  return specs;
+}
+
+function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
   return taxonName[0] == taxonName[0].toUpperCase()
     ? taxonName
     : `${parentUniqueName} ${taxonName}`;
