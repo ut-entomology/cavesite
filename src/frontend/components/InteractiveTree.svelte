@@ -9,7 +9,6 @@
 
   export interface InteractiveTreeNode {
     nodeFlags: number;
-    nodeHTML: string;
     children: InteractiveTreeNode[] | null;
   }
 </script>
@@ -160,9 +159,9 @@
           on:change={toggleSelection}
         />
       </div>
-      <div class="selectable" on:click={toggleSelection}>{@html tree.nodeHTML}</div>
+      <div class="selectable" on:click={toggleSelection}><slot /></div>
     {:else}
-      <div>{@html tree.nodeHTML}</div>
+      <div><slot /></div>
     {/if}
   </div>
   {#if flags & InteractiveTreeFlags.Expanded}
@@ -172,8 +171,11 @@
           <svelte:self
             bind:this={childComponents[i]}
             tree={childNode}
+            let:tree={childNode}
             _deselect={_deselectAncestors}
-          />
+          >
+            <slot tree={childNode} />
+          </svelte:self>
         {/each}
       </div>
     {/if}

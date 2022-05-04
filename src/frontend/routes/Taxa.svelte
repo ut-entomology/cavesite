@@ -4,6 +4,7 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
+  import TaxonText from '../components/TaxonText.svelte';
   import { DialogSpec } from '../common/VariableDialog.svelte';
   import { TaxonNode, selectedTaxa } from '../stores/selectedTaxa.svelte';
   import InteractiveTree, {
@@ -113,7 +114,9 @@
         <EmptyTab message="No taxa selected" />
       {:else}
         {#each treeRoot.children as child, i}
-          <InteractiveTree bind:this={rootChildrenComponents[i]} tree={child} />
+          <InteractiveTree bind:this={rootChildrenComponents[i]} tree={child} let:tree>
+            <TaxonText spec={tree.taxonSpec} />
+          </InteractiveTree>
         {/each}
       {/if}
     </div>

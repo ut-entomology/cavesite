@@ -70,7 +70,6 @@
           containingNames: ''
         },
         nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
-        nodeHTML: '(NEVER DISPLAYED)',
         children: null
       };
       for (const taxon of res.data) {
@@ -87,7 +86,6 @@
             containingNames: taxon.containingNames
           },
           nodeFlags: DEFAULT_INCLUDED_NODE_FLAGS,
-          nodeHTML: this._formatIncludedTaxon(taxon.rank, taxon.name, taxon.author),
           children: null
         });
       }
@@ -126,7 +124,6 @@
               containingNames: ancestorNames.slice(0, i).join('|')
             },
             nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
-            nodeHTML: formatTaxonName(rank, name, null),
             children: null
           };
           parent.children.push(nextParent);
@@ -158,28 +155,5 @@
         }
       }
     }
-
-    private _formatIncludedTaxon(rank: TaxonRank, name: string, author: string | null) {
-      return `<span class="selection">${formatTaxonName(rank, name, author)}</span>`;
-    }
-  }
-
-  export function formatTaxonName(
-    rank: TaxonRank,
-    name: string,
-    author: string | null
-  ): string {
-    let html = '';
-    if (![TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
-      html = `<span class="taxon-rank">${rank}:</span> `;
-    }
-    if ([TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(rank)) {
-      name = `<i>${name}</i>`;
-    }
-    html += `<span class="taxon-name">${name}</span>`;
-    if (author) {
-      html += ` <span class="taxon-author">${author}</span>`;
-    }
-    return html;
   }
 </script>

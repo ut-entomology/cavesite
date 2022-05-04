@@ -2,11 +2,11 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
   import InputGroupButton from '../components/InputGroupButton.svelte';
+  import TaxonText from '../components/TaxonText.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
   import { TaxonSpec, toTaxonSpecs } from '../../shared/taxa';
-  import { formatTaxonName } from '../stores/selectedTaxa.svelte';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
   export let title: string;
@@ -80,26 +80,27 @@
       </div>
       <div class="row mt-3 mb-3 ancestors-row">
         <div class="col">
-          {#each containingSpecs as containingSpec, i}
+          {#each containingSpecs as spec, i}
             <div class="row mt-1">
               <div class="col" style="margin-left: {1.5 * i}em">
-                {@html containingSpec.name}
+                <TaxonText {spec} />
               </div>
             </div>
           {/each}
         </div>
       </div>
-      {#each childSpecs as childInfo}
+      {#each childSpecs as spec}
+        {@const isSelection = selectedTaxaByUnique[spec.unique] !== undefined}
         <div class="row mt-1">
           <div class="col-auto">
-            {#if selectedTaxaByUnique[childInfo.unique]}
+            {#if isSelection}
               <div class="addRemoveIcon">{@html checkmarkIcon}</div>
             {:else}
               <div class="addRemoveIcon">{@html plusIcon}</div>
             {/if}
           </div>
           <div class="col">
-            {@html formatTaxonName(childInfo.rank, childInfo.name, childInfo.author)}
+            <TaxonText class={isSelection ? 'selection' : ''} {spec} />
           </div>
         </div>
       {/each}
