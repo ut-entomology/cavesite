@@ -40,6 +40,6 @@ function _toTaxonInfo(taxon: Taxon): TaxonInfo {
     name: taxon.taxonName,
     unique: taxon.uniqueName,
     author: taxon.author,
-    ancestors: taxon.parentNameSeries
+    ancestors: taxon.containingNames
   };
 }

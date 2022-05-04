@@ -46,7 +46,7 @@ interface LocationSpec {
   locationGuid: string | null;
   publicLatitude: number | null;
   publicLongitude: number | null;
-  parentNameSeries: string;
+  containingNames: string;
 }
 
 type LocationData = DataOf<Location>;
@@ -59,8 +59,8 @@ export class Location {
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentID: number | null;
-  parentIDSeries: string;
-  parentNameSeries: string;
+  containingIDs: string;
+  containingNames: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -72,8 +72,8 @@ export class Location {
     this.publicLatitude = data.publicLatitude;
     this.publicLongitude = data.publicLongitude;
     this.parentID = data.parentID;
-    this.parentIDSeries = data.parentIDSeries;
-    this.parentNameSeries = data.parentNameSeries;
+    this.containingIDs = data.containingIDs;
+    this.containingNames = data.containingNames;
   }
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
@@ -84,7 +84,7 @@ export class Location {
         `insert into locations(
 						location_type, location_name, location_guid,
             public_latitude, public_longitude,
-						parent_id, parent_id_series, parent_name_series
+						parent_id, containing_ids, containing_names
 					) values ($1, $2, $3, $4, $5, $6, $7, $8)
 					returning location_id`,
         [
@@ -94,8 +94,8 @@ export class Location {
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
-          this.parentIDSeries,
-          this.parentNameSeries
+          this.containingIDs,
+          this.containingNames
         ]
       );
       this.locationID = result.rows[0].location_id;
@@ -104,7 +104,7 @@ export class Location {
         `update locations set 
 						location_type=$1, location_name=$2, location_guid=$3,
             public_latitude=$4, public_longitude=$5,
-						parent_id=$6, parent_id_series=$7, parent_name_series=$8
+						parent_id=$6, containing_ids=$7, containing_names=$8
 					where location_id=$9`,
         [
           this.locationType,
@@ -113,8 +113,8 @@ export class Location {
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
-          this.parentIDSeries,
-          this.parentNameSeries,
+          this.containingIDs,
+          this.containingNames,
           this.locationID
         ]
       );
@@ -134,16 +134,16 @@ export class Location {
 
   static async create(
     db: DB,
-    parentNameSeries: string,
-    parentIDSeries: string,
-    data: Omit<LocationData, 'locationID' | 'parentIDSeries' | 'parentNameSeries'>
+    containingNames: string,
+    containingIDs: string,
+    data: Omit<LocationData, 'locationID' | 'containingIDs' | 'containingNames'>
   ): Promise<Location> {
     const location = new Location(
       Object.assign(
         {
           locationID: 0 /* DB will assign a value */,
-          parentIDSeries,
-          parentNameSeries
+          containingIDs,
+          containingNames
         },
         data
       )
@@ -182,37 +182,38 @@ export class Location {
       const location = await Location.getByGUID(db, source.locationID, false);
       if (location) return location;
     }
-    const [parentLocations, locationName] = Location._parseLocationSpec(source);
+    const [containingNamesList, locationName] = Location._parseLocationSpec(source);
     if (!source.locationID) {
       let location = await Location._getByNameSeries(
         db,
-        parentLocations.join('|'),
+        containingNamesList.join('|'),
         locationName
       );
       if (location) return location;
     }
 
-    // If the location doesn't exist yet, create specs for all its ancestors.
+    // If the location doesn't exist yet, create specs for all its
+    // containing locations.
 
     const specs: LocationSpec[] = [];
-    let parentNameSeries = '';
-    for (let i = 0; i < parentLocations.length; ++i) {
-      const ancestorName = parentLocations[i];
-      if (ancestorName) {
+    let containingNames = '';
+    for (let i = 0; i < containingNamesList.length; ++i) {
+      const containingName = containingNamesList[i];
+      if (containingName) {
         specs.push({
           locationType: locationTypes[i],
-          locationName: ancestorName,
+          locationName: containingName,
           locationGuid: null, // not needed above locality
           publicLatitude: null,
           publicLongitude: null,
-          parentNameSeries
+          containingNames
         });
       }
-      if (parentNameSeries == '') {
-        parentNameSeries = ancestorName!; // necessarily continent
+      if (containingNames == '') {
+        containingNames = containingName!; // necessarily continent
       } else {
-        // Name for a missing ancestor is represented as '-'
-        parentNameSeries += '|' + (ancestorName ? ancestorName : '-');
+        // Name for a missing containing Name is represented as '-'
+        containingNames += '|' + (containingName ? containingName : '-');
       }
     }
 
@@ -232,12 +233,12 @@ export class Location {
     // Create a spec for the particular requested location.
 
     specs.push({
-      locationType: locationTypes[parentLocations.length],
+      locationType: locationTypes[containingNamesList.length],
       locationName,
       locationGuid: source.locationID || null,
       publicLatitude: latitude,
       publicLongitude: longitude,
-      parentNameSeries
+      containingNames
     });
 
     // Create all implied locations.
@@ -265,20 +266,20 @@ export class Location {
       specs,
       specs.length - 1 // nearest to the last specified location
     );
-    let parentIDSeries = location?.parentIDSeries || '';
+    let containingIDs = location?.containingIDs || '';
     while (++locationIndex < specs.length) {
       const spec = specs[locationIndex];
       if (location) {
-        if (parentIDSeries == '') {
-          parentIDSeries = location.locationID.toString(); // necessarily continent
+        if (containingIDs == '') {
+          containingIDs = location.locationID.toString(); // necessarily continent
         } else {
-          parentIDSeries += ',' + location.locationID.toString();
+          containingIDs += ',' + location.locationID.toString();
           for (let i = locationIndex; locationTypes[i] != spec.locationType; ++i) {
-            parentIDSeries += ',-'; // '-' for ID of missing intermediate location
+            containingIDs += ',-'; // '-' for ID of missing intermediate location
           }
         }
       }
-      location = await Location.create(db, spec.parentNameSeries, parentIDSeries, {
+      location = await Location.create(db, spec.containingNames, containingIDs, {
         locationType: spec.locationType,
         locationName: spec.locationName,
         locationGuid: spec.locationGuid,
@@ -292,13 +293,13 @@ export class Location {
 
   private static async _getByNameSeries(
     db: DB,
-    parentNameSeries: string,
+    containingNames: string,
     locationName: string
   ): Promise<Location | null> {
     const result = await db.query(
-      `select * from locations where parent_name_series=$1 and location_name=$2
+      `select * from locations where containing_names=$1 and location_name=$2
         and committed=false`,
-      [parentNameSeries, locationName]
+      [containingNames, locationName]
     );
     return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
   }
@@ -315,7 +316,7 @@ export class Location {
     } else {
       location = await Location._getByNameSeries(
         db,
-        spec.parentNameSeries,
+        spec.containingNames,
         spec.locationName
       );
     }
@@ -332,14 +333,14 @@ export class Location {
     source: LocationSource
   ): [(string | null)[], string] {
     if (!source.continent) throw new ImportFailure('Continent not given');
-    const parentLocations: (string | null)[] = [source.continent];
-    parentLocations.push(source.country || null);
+    const containingNamesList: (string | null)[] = [source.continent];
+    containingNamesList.push(source.country || null);
     if (source.stateProvince && !source.country)
       throw new ImportFailure('State/province given without country');
-    parentLocations.push(source.stateProvince || null);
+    containingNamesList.push(source.stateProvince || null);
     if (source.county && !source.stateProvince)
       throw new ImportFailure('County given without state/province');
-    parentLocations.push(source.county || null);
+    containingNamesList.push(source.county || null);
     if (!source.locality) throw new ImportFailure('Locality name not given');
 
     if (source.decimalLatitude && !source.decimalLongitude)
@@ -347,6 +348,6 @@ export class Location {
     if (source.decimalLongitude && !source.decimalLatitude)
       throw new ImportFailure('Longitude given without latitude');
 
-    return [parentLocations, source.locality];
+    return [containingNamesList, source.locality];
   }
 }

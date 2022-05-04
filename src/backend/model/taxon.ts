@@ -31,7 +31,7 @@ interface TaxonSpec {
   taxonName: string;
   uniqueName: string;
   author: string | null; // null => not retrieved from GBIF
-  parentNameSeries: string;
+  containingNames: string;
 }
 
 export type TaxonData = DataOf<Taxon>;
@@ -44,8 +44,8 @@ export class Taxon {
   uniqueName: string;
   author: string | null; // null => not retrieved from GBIF
   parentID: number | null;
-  parentIDSeries: string;
-  parentNameSeries: string;
+  containingIDs: string;
+  containingNames: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -56,8 +56,8 @@ export class Taxon {
     this.uniqueName = data.uniqueName;
     this.author = data.author;
     this.parentID = data.parentID;
-    this.parentIDSeries = data.parentIDSeries;
-    this.parentNameSeries = data.parentNameSeries;
+    this.containingIDs = data.containingIDs;
+    this.containingNames = data.containingNames;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
@@ -67,7 +67,7 @@ export class Taxon {
       const result = await db.query(
         `insert into taxa(
             taxon_rank, taxon_name, unique_name, author,
-            parent_id, parent_id_series, parent_name_series
+            parent_id, containing_ids, containing_names
           ) values ($1, $2, $3, $4, $5, $6, $7) returning taxon_id`,
         [
           this.taxonRank,
@@ -75,8 +75,8 @@ export class Taxon {
           this.uniqueName,
           this.author,
           this.parentID,
-          this.parentIDSeries,
-          this.parentNameSeries
+          this.containingIDs,
+          this.containingNames
         ]
       );
       this.taxonID = result.rows[0].taxon_id;
@@ -84,7 +84,7 @@ export class Taxon {
       const result = await db.query(
         `update taxa set
             taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4,
-            parent_id=$5, parent_id_series=$6, parent_name_series=$7
+            parent_id=$5, containing_ids=$6, containing_names=$7
           where taxon_id=$8`,
         [
           this.taxonRank,
@@ -92,8 +92,8 @@ export class Taxon {
           this.uniqueName,
           this.author,
           this.parentID,
-          this.parentIDSeries,
-          this.parentNameSeries,
+          this.containingIDs,
+          this.containingNames,
           this.taxonID
         ]
       );
@@ -113,16 +113,16 @@ export class Taxon {
 
   static async create(
     db: DB,
-    parentNameSeries: string,
-    parentIDSeries: string,
-    data: Omit<TaxonData, 'taxonID' | 'parentIDSeries' | 'parentNameSeries'>
+    containingNames: string,
+    containingIDs: string,
+    data: Omit<TaxonData, 'taxonID' | 'containingIDs' | 'containingNames'>
   ): Promise<Taxon> {
     const taxon = new Taxon(
       Object.assign(
         {
           taxonID: 0 /* DB will assign a value */,
-          parentNameSeries,
-          parentIDSeries
+          containingNames,
+          containingIDs
         },
         data
       )
@@ -155,8 +155,12 @@ export class Taxon {
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 
-    const [parentTaxa, taxonName] = Taxon._extractTaxa(source);
-    let taxon = await Taxon._getByNameSeries(db, parentTaxa.join('|'), taxonName);
+    const [containingNamesList, taxonName] = Taxon._extractTaxa(source);
+    let taxon = await Taxon._getByNameSeries(
+      db,
+      containingNamesList.join('|'),
+      taxonName
+    );
     if (taxon) {
       // If the taxon was previously created by virtue of being implied,
       // it won't have been assign an author, so assign it now.
@@ -170,37 +174,37 @@ export class Taxon {
       return taxon;
     }
 
-    // If the taxon doesn't exist yet, create specs for all its ancestors.
+    // If the taxon doesn't exist yet, create specs for all its containing taxa.
 
     const specs: TaxonSpec[] = [];
-    let parentNameSeries = '';
+    let containingNames = '';
     let uniqueName = '';
 
-    for (let i = 0; i < parentTaxa.length; ++i) {
-      const ancestorName = parentTaxa[i];
-      uniqueName = nextUniqueName(uniqueName, ancestorName);
+    for (let i = 0; i < containingNamesList.length; ++i) {
+      const containingName = containingNamesList[i];
+      uniqueName = nextUniqueName(uniqueName, containingName);
       specs.push({
         taxonRank: taxonRanks[i],
-        taxonName: ancestorName,
+        taxonName: containingName,
         uniqueName: uniqueName,
         author: null,
-        parentNameSeries
+        containingNames
       });
-      if (parentNameSeries == '') {
-        parentNameSeries = ancestorName; // necessarily kingdom
+      if (containingNames == '') {
+        containingNames = containingName; // necessarily kingdom
       } else {
-        parentNameSeries += '|' + ancestorName;
+        containingNames += '|' + containingName;
       }
     }
 
     // Create a spec for the particular requested taxon.
 
     specs.push({
-      taxonRank: taxonRanks[parentTaxa.length],
+      taxonRank: taxonRanks[containingNamesList.length],
       taxonName,
       uniqueName: nextUniqueName(uniqueName, taxonName),
       author: Taxon._extractAuthor(source.scientificName),
-      parentNameSeries
+      containingNames
     });
 
     // Create all implied taxa.
@@ -225,17 +229,17 @@ export class Taxon {
       specs,
       specs.length - 1 // nearest to the last specified taxon
     );
-    let parentIDSeries = taxon?.parentIDSeries || '';
+    let containingIDs = taxon?.containingIDs || '';
     while (++taxonIndex < specs.length) {
       if (taxon) {
-        if (parentIDSeries == '') {
-          parentIDSeries = taxon.taxonID.toString();
+        if (containingIDs == '') {
+          containingIDs = taxon.taxonID.toString();
         } else {
-          parentIDSeries += ',' + taxon.taxonID.toString();
+          containingIDs += ',' + taxon.taxonID.toString();
         }
       }
       const spec = specs[taxonIndex];
-      taxon = await Taxon.create(db, spec.parentNameSeries, parentIDSeries, {
+      taxon = await Taxon.create(db, spec.containingNames, containingIDs, {
         taxonRank: spec.taxonRank,
         taxonName: spec.taxonName,
         uniqueName: spec.uniqueName,
@@ -248,13 +252,13 @@ export class Taxon {
 
   private static async _getByNameSeries(
     db: DB,
-    parentNameSeries: string,
+    containingNames: string,
     taxonName: string
   ): Promise<Taxon | null> {
     const result = await db.query(
-      `select * from taxa where parent_name_series=$1 and taxon_name=$2
+      `select * from taxa where containing_names=$1 and taxon_name=$2
         and committed=false`,
-      [parentNameSeries, taxonName]
+      [containingNames, taxonName]
     );
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
@@ -267,7 +271,7 @@ export class Taxon {
     const spec = specs[specIndex];
     const taxon = await Taxon._getByNameSeries(
       db,
-      spec.parentNameSeries,
+      spec.containingNames,
       spec.taxonName
     );
     if (taxon) {
@@ -291,38 +295,38 @@ export class Taxon {
 
   private static _extractTaxa(source: TaxonSource): [string[], string] {
     if (!source.kingdom) throw new ImportFailure('Kingdom not given');
-    const parentTaxa: string[] = [source.kingdom];
+    const containingNamesList: string[] = [source.kingdom];
     if (source.phylum) {
-      parentTaxa.push(source.phylum);
+      containingNamesList.push(source.phylum);
     }
     if (source.class) {
       if (!source.phylum) throw new ImportFailure('Class given without phylum');
-      parentTaxa.push(source.class);
+      containingNamesList.push(source.class);
     }
     if (source.order) {
       if (!source.class) throw new ImportFailure('Order given without class');
-      parentTaxa.push(source.order);
+      containingNamesList.push(source.order);
     }
     if (source.family) {
       if (!source.order) throw new ImportFailure('Family given without order');
-      parentTaxa.push(source.family);
+      containingNamesList.push(source.family);
     }
     if (source.genus) {
       if (!source.family) throw new ImportFailure('Genus given without family');
-      parentTaxa.push(source.genus);
+      containingNamesList.push(source.genus);
     }
     if (source.specificEpithet) {
       if (!source.genus)
         throw new ImportFailure('Specific epithet given without genus');
-      parentTaxa.push(source.specificEpithet);
+      containingNamesList.push(source.specificEpithet);
     }
     if (source.infraspecificEpithet) {
       if (!source.specificEpithet)
         throw new ImportFailure('Infraspecific epithet given without specific epithet');
-      parentTaxa.push(source.infraspecificEpithet);
+      containingNamesList.push(source.infraspecificEpithet);
     }
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
-    const taxonName = parentTaxa.pop();
-    return [parentTaxa, taxonName!];
+    const taxonName = containingNamesList.pop();
+    return [containingNamesList, taxonName!];
   }
 }

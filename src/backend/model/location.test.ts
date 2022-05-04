@@ -26,7 +26,7 @@ describe('without location GUIDs', () => {
         parentID: null
       };
       const expectedLocation = Object.assign(
-        { locationID: 1, parentIDSeries: '', parentNameSeries: '' },
+        { locationID: 1, containingIDs: '', containingNames: '' },
         sourceLocation
       );
       const createdLocation = await Location.create(db, '', '', sourceLocation);
@@ -47,7 +47,7 @@ describe('without location GUIDs', () => {
         parentID: 1
       };
       const expectedLocation = Object.assign(
-        { locationID: 2, parentIDSeries: '1', parentNameSeries: 'North America' },
+        { locationID: 2, containingIDs: '1', containingNames: 'North America' },
         sourceLocation
       );
       const createdLocation = await Location.create(
@@ -78,8 +78,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        parentIDSeries: '1,2,-,-',
-        parentNameSeries: 'North America|United States|-|-'
+        containingIDs: '1,2,-,-',
+        containingNames: 'North America|United States|-|-'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -114,8 +114,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        parentIDSeries: '1,2',
-        parentNameSeries: 'North America|United States'
+        containingIDs: '1,2',
+        containingNames: 'North America|United States'
       });
       const readLocation = await Location.getByID(db, 5);
       expect(readLocation).toEqual({
@@ -126,8 +126,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDSeries: '1,2,4,-',
-        parentNameSeries: 'North America|United States|Texas|-'
+        containingIDs: '1,2,4,-',
+        containingNames: 'North America|United States|Texas|-'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -152,8 +152,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDSeries: '1,2,4',
-        parentNameSeries: 'North America|United States|Texas'
+        containingIDs: '1,2,4',
+        containingNames: 'North America|United States|Texas'
       });
       const readLocation = await Location.getByID(db, 7);
       expect(readLocation).toEqual({
@@ -164,8 +164,8 @@ describe('without location GUIDs', () => {
         publicLatitude: 28.12,
         publicLongitude: -97.34,
         parentID: 6,
-        parentIDSeries: '1,2,4,6',
-        parentNameSeries: 'North America|United States|Texas|Travis County'
+        containingIDs: '1,2,4,6',
+        containingNames: 'North America|United States|Texas|Travis County'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -190,8 +190,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 1,
-        parentIDSeries: '1',
-        parentNameSeries: 'North America'
+        containingIDs: '1',
+        containingNames: 'North America'
       });
       expect(await Location.getByID(db, 9)).toEqual({
         locationID: 9,
@@ -201,8 +201,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 8,
-        parentIDSeries: '1,8',
-        parentNameSeries: 'North America|Mexico'
+        containingIDs: '1,8',
+        containingNames: 'North America|Mexico'
       });
       expect(await Location.getByID(db, 10)).toEqual({
         locationID: 10,
@@ -212,8 +212,8 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 9,
-        parentIDSeries: '1,8,9',
-        parentNameSeries: 'North America|Mexico|Chihuahua'
+        containingIDs: '1,8,9',
+        containingNames: 'North America|Mexico|Chihuahua'
       });
       const readLocation = await Location.getByID(db, 11);
       expect(readLocation).toEqual({
@@ -224,8 +224,8 @@ describe('without location GUIDs', () => {
         publicLatitude: 21.12,
         publicLongitude: -96.34,
         parentID: 10,
-        parentIDSeries: '1,8,9,10',
-        parentNameSeries: 'North America|Mexico|Chihuahua|Mun. Xyz'
+        containingIDs: '1,8,9,10',
+        containingNames: 'North America|Mexico|Chihuahua|Mun. Xyz'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -330,7 +330,7 @@ describe('with location GUIDs', () => {
         parentID: null
       };
       const expectedLocation = Object.assign(
-        { locationID: 1, parentIDSeries: '', parentNameSeries: '' },
+        { locationID: 1, containingIDs: '', containingNames: '' },
         sourceLocation
       );
       const createdLocation = await Location.create(db, '', '', sourceLocation);
@@ -353,7 +353,7 @@ describe('with location GUIDs', () => {
         parentID: 1
       };
       const expectedLocation = Object.assign(
-        { locationID: 2, parentIDSeries: '1', parentNameSeries: 'North America' },
+        { locationID: 2, containingIDs: '1', containingNames: 'North America' },
         sourceLocation
       );
       const createdLocation = await Location.create(
@@ -387,8 +387,8 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        parentIDSeries: '1,2,-,-',
-        parentNameSeries: 'North America|United States|-|-'
+        containingIDs: '1,2,-,-',
+        containingNames: 'North America|United States|-|-'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -425,8 +425,8 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        parentIDSeries: '1,2',
-        parentNameSeries: 'North America|United States'
+        containingIDs: '1,2',
+        containingNames: 'North America|United States'
       });
       let readLocation = await Location.getByID(db, 5);
       expect(readLocation).toEqual({
@@ -437,8 +437,8 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDSeries: '1,2,4,-',
-        parentNameSeries: 'North America|United States|Texas|-'
+        containingIDs: '1,2,4,-',
+        containingNames: 'North America|United States|Texas|-'
       });
       expect(createdLocation).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G5', false);
@@ -464,8 +464,8 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDSeries: '1,2,4,-',
-        parentNameSeries: 'North America|United States|Texas|-'
+        containingIDs: '1,2,4,-',
+        containingNames: 'North America|United States|Texas|-'
       });
       expect(createdLocation).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G6', false);
@@ -503,8 +503,8 @@ describe('with location GUIDs', () => {
         publicLatitude: 23.89,
         publicLongitude: -97.78,
         parentID: 4,
-        parentIDSeries: '1,2,4,-',
-        parentNameSeries: 'North America|United States|Texas|-'
+        containingIDs: '1,2,4,-',
+        containingNames: 'North America|United States|Texas|-'
       });
       expect(createdLocation1).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G7', false);
@@ -519,8 +519,8 @@ describe('with location GUIDs', () => {
         publicLatitude: 23.0,
         publicLongitude: -97.0,
         parentID: 4,
-        parentIDSeries: '1,2,4,-',
-        parentNameSeries: 'North America|United States|Texas|-'
+        containingIDs: '1,2,4,-',
+        containingNames: 'North America|United States|Texas|-'
       });
       expect(createdLocation2).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G8', false);

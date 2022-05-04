@@ -70,13 +70,13 @@ create table taxa (
     -- these allow for fast non-recursive taxon queries/autocompletion:
 
     -- comma-delimited series of taxon IDs, kingdom-to-parent
-    parent_id_series text not null,
-    -- |-delimited series of taxon names defining parent
-    parent_name_series text not null
+    containing_ids text not null,
+    -- |-delimited series of taxon names for containing taxa
+    containing_names text not null
 );
 create index on taxa(taxon_name);
 create index on taxa(unique_name);
-create index on taxa(parent_name_series);
+create index on taxa(containing_names);
 
 create table locations (
     -- new data loads into the table prior to completely replacing old data
@@ -97,12 +97,12 @@ create table locations (
     -- these allow for fast non-recursive location queries/autocompletion:
 
     -- comma-delimited series of location IDs, continent-to-parent
-    parent_id_series text not null,
-    -- |-delimited series of location names defining parent
-    parent_name_series text not null 
+    containing_ids text not null,
+    -- |-delimited series of location names for containing locations
+    containing_names text not null 
 );
 create index on locations(location_guid);
-create index on locations(parent_name_series);
+create index on locations(containing_names);
 
 create table specimens (
     -- new data loads into the table prior to completely replacing old data

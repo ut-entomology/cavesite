@@ -28,8 +28,8 @@ test('sequentially dependent taxa tests', async () => {
     const expectedTaxon = Object.assign(
       {
         taxonID: 1,
-        parentIDSeries: '',
-        parentNameSeries: ''
+        containingIDs: '',
+        containingNames: ''
       },
       taxonInfo
     );
@@ -51,7 +51,7 @@ test('sequentially dependent taxa tests', async () => {
       parentID: 1
     };
     const expectedTaxon = Object.assign(
-      { taxonID: 2, parentIDSeries: '1', parentNameSeries: 'Animalia' },
+      { taxonID: 2, containingIDs: '1', containingNames: 'Animalia' },
       taxonInfo
     );
     const createdTaxon = await Taxon.create(db, 'Animalia', '1', taxonInfo);
@@ -91,8 +91,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: taxonName,
       author: null,
       parentID: 2,
-      parentIDSeries: '1,2',
-      parentNameSeries: 'Animalia|Arthropoda'
+      containingIDs: '1,2',
+      containingNames: 'Animalia|Arthropoda'
     });
   }
 
@@ -116,8 +116,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Araneae',
       author: null,
       parentID: 3,
-      parentIDSeries: '1,2,3',
-      parentNameSeries: 'Animalia|Arthropoda|Arachnida'
+      containingIDs: '1,2,3',
+      containingNames: 'Animalia|Arthropoda|Arachnida'
     });
     expect(await Taxon.getByID(db, 5)).toEqual({
       taxonID: 5,
@@ -126,8 +126,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Thomisidae',
       author: null,
       parentID: 4,
-      parentIDSeries: '1,2,3,4',
-      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae'
+      containingIDs: '1,2,3,4',
+      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae'
     });
     expect(await Taxon.getByID(db, 6)).toEqual({
       taxonID: 6,
@@ -136,8 +136,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Mecaphesa',
       author: null,
       parentID: 5,
-      parentIDSeries: '1,2,3,4,5',
-      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae'
+      containingIDs: '1,2,3,4,5',
+      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae'
     });
     const readTaxon = await Taxon.getByID(db, 7);
     expect(readTaxon).toEqual({
@@ -147,8 +147,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Mecaphesa dubia',
       author: '(Keyserling, 1880)',
       parentID: 6,
-      parentIDSeries: '1,2,3,4,5,6',
-      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa'
+      containingIDs: '1,2,3,4,5,6',
+      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa'
     });
     expect(createdTaxon).toEqual(readTaxon);
   }
@@ -196,8 +196,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromidae',
       author: null,
       parentID: 4,
-      parentIDSeries: '1,2,3,4',
-      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae'
+      containingIDs: '1,2,3,4',
+      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae'
     });
     expect(await Taxon.getByID(db, 9)).toEqual({
       taxonID: 9,
@@ -206,8 +206,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromus',
       author: null,
       parentID: 8,
-      parentIDSeries: '1,2,3,4,8',
-      parentNameSeries: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae'
+      containingIDs: '1,2,3,4,8',
+      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae'
     });
     expect(await Taxon.getByID(db, 10)).toEqual({
       taxonID: 10,
@@ -216,9 +216,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromus rufus',
       author: null,
       parentID: 9,
-      parentIDSeries: '1,2,3,4,8,9',
-      parentNameSeries:
-        'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus'
+      containingIDs: '1,2,3,4,8,9',
+      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus'
     });
     const readTaxon = await Taxon.getByID(db, 11);
     expect(readTaxon).toEqual({
@@ -228,8 +227,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromus rufus jenningsi',
       author: 'Author',
       parentID: 10,
-      parentIDSeries: '1,2,3,4,8,9,10',
-      parentNameSeries:
+      containingIDs: '1,2,3,4,8,9,10',
+      containingNames:
         'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus|rufus'
     });
     expect(createdTaxon).toEqual(readTaxon);
@@ -255,8 +254,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Chordata',
       author: null,
       parentID: 1,
-      parentIDSeries: '1',
-      parentNameSeries: 'Animalia'
+      containingIDs: '1',
+      containingNames: 'Animalia'
     });
     expect(await Taxon.getByID(db, 13)).toEqual({
       taxonID: 13,
@@ -265,8 +264,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Amphibia',
       author: null,
       parentID: 12,
-      parentIDSeries: '1,12',
-      parentNameSeries: 'Animalia|Chordata'
+      containingIDs: '1,12',
+      containingNames: 'Animalia|Chordata'
     });
     expect(await Taxon.getByID(db, 14)).toEqual({
       taxonID: 14,
@@ -275,8 +274,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Urodela',
       author: null,
       parentID: 13,
-      parentIDSeries: '1,12,13',
-      parentNameSeries: 'Animalia|Chordata|Amphibia'
+      containingIDs: '1,12,13',
+      containingNames: 'Animalia|Chordata|Amphibia'
     });
     expect(await Taxon.getByID(db, 15)).toEqual({
       taxonID: 15,
@@ -285,8 +284,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Plethodontidae',
       author: null,
       parentID: 14,
-      parentIDSeries: '1,12,13,14',
-      parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela'
+      containingIDs: '1,12,13,14',
+      containingNames: 'Animalia|Chordata|Amphibia|Urodela'
     });
     expect(await Taxon.getByID(db, 16)).toEqual({
       taxonID: 16,
@@ -295,8 +294,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Eurycea',
       author: null,
       parentID: 15,
-      parentIDSeries: '1,12,13,14,15',
-      parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae'
+      containingIDs: '1,12,13,14,15',
+      containingNames: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae'
     });
     const readTaxon = await Taxon.getByID(db, 17);
     expect(readTaxon).toEqual({
@@ -306,8 +305,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Eurycea rathbuni',
       author: '(Stejneger, 1896)',
       parentID: 16,
-      parentIDSeries: '1,12,13,14,15,16',
-      parentNameSeries: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea'
+      containingIDs: '1,12,13,14,15,16',
+      containingNames: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea'
     });
     expect(createdTaxon).toEqual(readTaxon);
 

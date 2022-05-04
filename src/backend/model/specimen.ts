@@ -154,14 +154,14 @@ export class Specimen {
       // Create the associated taxa and locations, if they don't already exist.
 
       taxon = await Taxon.getOrCreate(db, source);
-      if (taxon.parentIDSeries == '') {
+      if (taxon.containingIDs == '') {
         taxonIDs = [];
       } else {
-        taxonIDs = taxon.parentIDSeries.split(',');
+        taxonIDs = taxon.containingIDs.split(',');
       }
 
       location = await Location.getOrCreate(db, source);
-      locationIDs = location.parentIDSeries.split(',');
+      locationIDs = location.containingIDs.split(',');
     } catch (err: any) {
       // Fail the import on error.
 
