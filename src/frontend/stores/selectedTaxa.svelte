@@ -7,7 +7,7 @@
 
   import type { DataOf } from '../../shared/data_of';
   import { createSessionStore } from '../util/session_store';
-  import { TaxonRank, taxonRanks, TaxonInfo } from '../../shared/client_model';
+  import { TaxonRank, taxonRanks, TaxonInfo } from '../../shared/taxa';
   import {
     InteractiveTreeFlags,
     InteractiveTreeNode

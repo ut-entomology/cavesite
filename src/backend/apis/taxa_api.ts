@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { Taxon } from '../model/taxon';
-import { TaxonInfo } from '../../shared/client_model';
+import { TaxonInfo } from '../../shared/taxa';
 
 export const router = Router();
 
