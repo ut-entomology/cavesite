@@ -5,9 +5,8 @@
 
   import type { AxiosInstance } from 'axios';
 
-  import type { DataOf } from '../../shared/data_of';
   import { createSessionStore } from '../util/session_store';
-  import { TaxonRank, taxonRanks, TaxonSpec } from '../../shared/taxa';
+  import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
   import {
     InteractiveTreeFlags,
     InteractiveTreeNode
@@ -19,77 +18,91 @@
 
   export interface TaxonNode extends InteractiveTreeNode {
     taxonSpec: TaxonSpec;
-    children: TaxonNode[] | null;
+    children: TaxonNode[] | null; // redefines children
   }
-
-  export const selectedTaxa = createSessionStore<SelectedTaxa | null>(
-    'selected_taxa',
-    null,
-    (obj) => (obj ? new SelectedTaxa(obj) : null)
-  );
-
-  const DEFAULT_EXCLUDED_NODE_FLAGS =
-    InteractiveTreeFlags.Expanded |
-    InteractiveTreeFlags.Selectable |
-    InteractiveTreeFlags.IncludesDescendants;
-  const DEFAULT_INCLUDED_NODE_FLAGS = InteractiveTreeFlags.Selectable;
 
   let currentClient: AxiosInstance;
   client.subscribe((newClient) => (currentClient = newClient));
 
+  /**
+   * SelectedTaxa is a class representing the taxa that have been selected
+   * for constraining queries. It contains a tree of taxa, and the selections
+   * are the leaf nodes of this tree but not any parent nodes.
+   */
+
   export class SelectedTaxa {
-    // caution: this class gets JSON-serialized
+    selectedUniques: string[]; // configures for loading
+    rootNode: TaxonNode | null = null; // must be loaded
+    nodesByTaxonUnique: Record<string, TaxonNode> = {};
 
-    taxonSpecs: TaxonSpec[];
-    treeRoot: TaxonNode;
-
-    constructor(data: DataOf<SelectedTaxa>) {
-      this.taxonSpecs = data.taxonSpecs;
-      this.treeRoot = data.treeRoot;
+    constructor(selectedUniques: string[]) {
+      this.selectedUniques = selectedUniques;
     }
 
-    dropSelectedTaxa() {
-      this._dropSelectedTaxa(this.treeRoot);
-      this.taxonSpecs = [];
-      this._collectIncludedTaxa(this.treeRoot);
-    }
-
-    async loadIncludedTaxa(taxaNames: string[]): Promise<boolean> {
-      if (taxaNames.length == 0) return false;
-      const res = await currentClient.post<TaxonSpec[]>('api/taxa/get', taxaNames);
-      const taxa = res.data;
-      if (taxa.length == 0) return false;
-
-      const rootName = taxa[0].containingNames!.split(',')[0];
-      this.treeRoot = {
-        taxonSpec: {
-          rank: TaxonRank.Kingdom,
-          name: rootName,
-          unique: rootName,
-          author: null,
-          containingNames: ''
-        },
-        nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
-        children: null
-      };
-      for (const taxon of res.data) {
-        const parent = this._addAncestors(this.treeRoot, taxon);
-        if (!parent.children) {
-          parent.children = [];
-        }
-        parent.children.push({
-          taxonSpec: {
-            rank: taxon.rank,
-            name: taxon.name,
-            unique: taxon.unique,
-            author: taxon.author,
-            containingNames: taxon.containingNames
-          },
-          nodeFlags: DEFAULT_INCLUDED_NODE_FLAGS,
-          children: null
+    async load(): Promise<void> {
+      this.rootNode = null;
+      if (this.selectedUniques.length > 0) {
+        const res = await currentClient.post('api/taxa/get_list', {
+          selectedUniques: this.selectedUniques
         });
+        const specs: TaxonSpec[] = res.data.taxonSpecs;
+        specs.forEach((spec) => this.addSelection(spec));
       }
-      return true;
+    }
+
+    addSelection(forSpec: TaxonSpec): void {
+      const specs = createTaxonSpecs(forSpec);
+      specs.push(forSpec); // specs won't be empty
+
+      if (!this.rootNode) {
+        const rootSpec = specs.shift()!;
+        this.rootNode = this._toDefaultNode(rootSpec);
+      }
+      let node = this.rootNode;
+      for (const spec of specs) {
+        let nextNode = this.nodesByTaxonUnique[spec.unique];
+        if (!nextNode) {
+          nextNode = this._toDefaultNode(spec);
+          if (node.children === null) {
+            node.children = [];
+            node.nodeFlags |= InteractiveTreeFlags.Expanded;
+          }
+          node.children.push(nextNode);
+          node = nextNode;
+        } else if (nextNode.taxonSpec.unique == forSpec.unique) {
+          nextNode.children = null;
+          break; // this is redundant but clarifies behavior
+        }
+      }
+      this._tallyNodes(); // inefficient, but simplifies code
+    }
+
+    dropCheckedTaxa() {
+      if (this.rootNode) {
+        this._dropCheckedTaxa(this.rootNode);
+        this._tallyNodes(); // inefficient, but simplifies code
+      }
+    }
+
+    removeTaxon(spec: TaxonSpec): void {
+      const node = this.nodesByTaxonUnique[spec.unique];
+      if (!node) return;
+
+      const containingSpecs = createTaxonSpecs(spec);
+      if (containingSpecs.length == 0) {
+        this.selectedUniques = [];
+        this.rootNode = null;
+        this.nodesByTaxonUnique = {};
+      } else {
+        const parentSpec = containingSpecs.pop()!;
+        const parentNode = this.nodesByTaxonUnique[parentSpec.unique]!;
+        const childIndex = parentNode.children!.indexOf(node);
+        parentNode.children!.splice(childIndex, 1);
+        if (parentNode.children!.length == 0) {
+          parentNode.children = null;
+        }
+      }
+      this._tallyNodes(); // inefficient, but simplifies code
     }
 
     // Saves to sessionStore
@@ -97,52 +110,32 @@
       selectedTaxa.set(this);
     }
 
-    _addAncestors(rootNode: TaxonNode, taxon: TaxonSpec): TaxonNode {
-      const ancestorNames = taxon.containingNames!.split('|');
-      let parent = rootNode;
-      for (let i = 1; i < ancestorNames.length; ++i) {
-        let nextParent: TaxonNode | null = null;
-        if (parent.children) {
-          for (const child of parent.children) {
-            if (child.taxonSpec.name == ancestorNames[i]) {
-              nextParent = child;
-              break;
-            }
-          }
-        } else {
-          parent.children = [];
-        }
-        if (!nextParent) {
-          const rank = taxonRanks[i];
-          const name = ancestorNames[i];
-          nextParent = {
-            taxonSpec: {
-              rank,
-              name,
-              unique: name,
-              author: null,
-              containingNames: ancestorNames.slice(0, i).join('|')
-            },
-            nodeFlags: DEFAULT_EXCLUDED_NODE_FLAGS,
-            children: null
-          };
-          parent.children.push(nextParent);
-        }
-        parent = nextParent;
-      }
-      return parent;
+    private _tallyNodes(): void {
+      this.selectedUniques = Object.values(this.nodesByTaxonUnique)
+        .filter((node) => node.children === null)
+        .map((node) => node.taxonSpec.unique);
     }
 
-    private _collectIncludedTaxa(fromNode: TaxonNode) {
-      if (fromNode.children) {
-        fromNode.children.forEach((child) => this._collectIncludedTaxa(child));
+    private _tallyNode(node: TaxonNode): void {
+      const taxonUnique = node.taxonSpec.unique;
+      if (node.children === null) {
+        this.selectedUniques.push(taxonUnique);
       } else {
-        // the leaf nodes are the included taxa
-        this.taxonSpecs.push(fromNode.taxonSpec);
+        node.children.forEach((child) => this._tallyNode(child));
       }
+      this.nodesByTaxonUnique[taxonUnique] = node;
     }
 
-    private _dropSelectedTaxa(fromNode: TaxonNode) {
+    private _toDefaultNode(spec: TaxonSpec): TaxonNode {
+      return {
+        taxonSpec: spec,
+        nodeFlags:
+          InteractiveTreeFlags.Selectable | InteractiveTreeFlags.IncludesDescendants,
+        children: null
+      };
+    }
+
+    private _dropCheckedTaxa(fromNode: TaxonNode) {
       if (!fromNode.children) return;
       let i = 0;
       while (i < fromNode.children.length) {
@@ -150,10 +143,17 @@
         if (child.nodeFlags & InteractiveTreeFlags.Selected) {
           fromNode.children.splice(i, 1);
         } else {
-          this._dropSelectedTaxa(child);
+          this._dropCheckedTaxa(child);
           ++i;
         }
       }
     }
   }
+
+  export const selectedTaxa = createSessionStore<SelectedTaxa | null, string[]>(
+    'selected_taxa',
+    null,
+    (data) => new SelectedTaxa(data),
+    (value) => (value ? value.selectedUniques : [])
+  );
 </script>

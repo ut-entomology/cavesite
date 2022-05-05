@@ -13,7 +13,7 @@
   import { showNotice } from '../common/VariableNotice.svelte';
   import { currentDialog } from '../stores/currentDialog.svelte';
 
-  export let treeRoot = $selectedTaxa ? $selectedTaxa.treeRoot : null;
+  export let treeRoot = $selectedTaxa ? $selectedTaxa.rootNode : null;
 
   let rootChildrenComponents: SvelteComponent[] = [];
 
@@ -59,8 +59,12 @@
   }
 
   function removeCheckedTaxa() {
-    if ($selectedTaxa && treeIncludesSelections($selectedTaxa.treeRoot)) {
-      $selectedTaxa.dropSelectedTaxa();
+    if (
+      $selectedTaxa &&
+      $selectedTaxa.rootNode &&
+      treeIncludesSelections($selectedTaxa.rootNode)
+    ) {
+      $selectedTaxa.dropCheckedTaxa();
       $selectedTaxa.save();
     } else {
       showNotice({ message: 'No taxa selected.', header: 'FAILED', alert: 'warning' });

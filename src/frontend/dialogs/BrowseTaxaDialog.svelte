@@ -6,7 +6,7 @@
   import { currentDialog } from '../stores/currentDialog.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
-  import { TaxonSpec, toTaxonSpecs } from '../../shared/taxa';
+  import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
   export let title: string;
@@ -21,34 +21,22 @@
   const checkmarkIcon = '&#10003;';
   const plusIcon = '+';
 
-  let selectedTaxaByUnique: Record<string, TaxonSpec> = {};
   let typedTaxon = '';
   let parentSpec: TaxonSpec;
   let containingSpecs: TaxonSpec[];
   let childSpecs: TaxonSpec[];
 
-  if ($selectedTaxa) {
-    for (const taxonSpec of $selectedTaxa.taxonSpecs) {
-      selectedTaxaByUnique[taxonSpec.unique] = taxonSpec;
-    }
-  }
-
   async function load() {
     let res = await $client.post('api/taxa/get_list', { taxonUniques: [parentUnique] });
-    // TODO: Handle case where nothing is returned (taxonSpecs == [])
-    parentSpec = res.data.taxonSpecs[0];
+    const taxonSpecs = res.data.taxonSpecs;
+    if (taxonSpecs.length == 0) {
+      throw Error(`Failed to load taxon '${parentUnique}'`);
+    }
+    parentSpec = taxonSpecs[0];
     res = await $client.post('api/taxa/get_children', { parentUnique });
     childSpecs = res.data.taxonSpecs;
-
-    let containingNamesList: string[] = [];
-    if (parentSpec.containingNames.length > 0) {
-      containingNamesList = parentSpec.containingNames.split('|');
-    }
-    containingSpecs = toTaxonSpecs(
-      containingNamesList,
-      parentSpec.name,
-      parentSpec.author
-    );
+    containingSpecs = createTaxonSpecs(parentSpec);
+    containingSpecs.push(parentSpec);
   }
 
   const loadTypedTaxon = () => {
@@ -80,17 +68,18 @@
       </div>
       <div class="row mt-3 mb-3 ancestors-row">
         <div class="col">
-          {#each containingSpecs as spec, i}
+          {#each containingSpecs as containingSpec, i}
             <div class="row mt-1">
               <div class="col" style="margin-left: {1.5 * i}em">
-                <TaxonText {spec} />
+                <TaxonText spec={containingSpec} />
               </div>
             </div>
           {/each}
         </div>
       </div>
-      {#each childSpecs as spec}
-        {@const isSelection = selectedTaxaByUnique[spec.unique] !== undefined}
+      {#each childSpecs as childSpec}
+        {@const taxonNode = $selectedTaxa?.nodesByTaxonUnique[childSpec.unique]}
+        {@const isSelection = taxonNode && taxonNode.children === null}
         <div class="row mt-1">
           <div class="col-auto">
             {#if isSelection}
@@ -100,7 +89,7 @@
             {/if}
           </div>
           <div class="col">
-            <TaxonText class={isSelection ? 'selection' : ''} {spec} />
+            <TaxonText class={isSelection ? 'selection' : ''} spec={childSpec} />
           </div>
         </div>
       {/each}

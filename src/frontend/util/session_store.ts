@@ -1,31 +1,27 @@
 import { Writable, writable } from 'svelte/store';
 
-type NonFunctionProperties<T> = {
-  [p in keyof T]: T[p] extends Function ? never : T[p];
-};
-
-export function createSessionStore<T>(
+export function createSessionStore<T, S = T>(
   key: string,
   initialValue: T,
-  reconstruct?: (obj: NonFunctionProperties<T>) => T
+  fromSavedData: (savedData: S) => T = (s) => s as any,
+  toSavedData: (transientValue: T) => S = (t) => t as any
 ): Writable<T> {
-  const setSessionStorage = (value: T) => {
-    if (value === undefined) {
+  const setSessionStorage = (data: S) => {
+    if (data === undefined) {
       throw Error("Can't set session store to undefined");
     }
-    sessionStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem(key, JSON.stringify(data));
   };
 
-  const sessionValueJSON = sessionStorage.getItem(key);
-  if (sessionValueJSON) {
-    const sessionValue = JSON.parse(sessionValueJSON);
-    initialValue = reconstruct ? reconstruct(sessionValue) : sessionValue;
+  const savedDataJSON = sessionStorage.getItem(key);
+  if (savedDataJSON) {
+    initialValue = fromSavedData(JSON.parse(savedDataJSON));
   } else {
-    setSessionStorage(initialValue);
+    setSessionStorage(toSavedData(initialValue));
   }
 
   const svelteStore = writable(initialValue);
-  svelteStore.subscribe((value) => setSessionStorage(value));
+  svelteStore.subscribe((value) => setSessionStorage(toSavedData(value)));
 
   return svelteStore;
 }

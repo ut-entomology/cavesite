@@ -31,7 +31,10 @@ export interface TaxonSpec {
 
 export function createTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
   const containingSpecs: TaxonSpec[] = [];
-  let containingNamesList = fromSpec.containingNames?.split('|') || [];
+  let containingNamesList: string[] = [];
+  if (fromSpec.containingNames != '') {
+    containingNamesList = fromSpec.containingNames?.split('|');
+  }
   let containingNames = '';
   let uniqueName = '';
 
