@@ -40,6 +40,7 @@ function _toTaxonInfo(taxon: Taxon): TaxonSpec {
     name: taxon.taxonName,
     unique: taxon.uniqueName,
     author: taxon.author,
-    containingNames: taxon.containingNames
+    containingNames: taxon.containingNames,
+    childCount: taxon.childCount
   };
 }

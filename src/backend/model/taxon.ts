@@ -13,6 +13,8 @@ import { type DB, toCamelRow } from '../integrations/postgres';
 import { TaxonRank, TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
 import { ImportFailure } from './import_failure';
 
+const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
+
 export interface TaxonSource {
   // GBIF field names
   kingdom: string;
@@ -38,6 +40,7 @@ export class Taxon {
   parentID: number | null;
   containingIDs: string;
   containingNames: string;
+  childCount: number | null; // null => count not known
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -50,6 +53,7 @@ export class Taxon {
     this.parentID = data.parentID;
     this.containingIDs = data.containingIDs;
     this.containingNames = data.containingNames;
+    this.childCount = data.childCount ? parseInt(data.childCount as any) : null;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
@@ -130,7 +134,7 @@ export class Taxon {
 
   static async getByUniqueNames(db: DB, names: string[]): Promise<Taxon[]> {
     const result = await db.query(
-      `select * from taxa where unique_name=any ($1) and committed=true`,
+      `select *, ${childCountSql} from taxa x where unique_name=any ($1) and committed=true`,
       [
         // @ts-ignore
         names
@@ -141,7 +145,7 @@ export class Taxon {
 
   static async getChildrenOf(db: DB, parentUniqueName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select c.* from taxa c join taxa p on c.parent_id = p.taxon_id and
+      `select x.*, ${childCountSql} from taxa x join taxa p on x.parent_id = p.taxon_id and
          p.unique_name=$1 and p.committed=true`,
       [parentUniqueName]
     );
@@ -176,7 +180,8 @@ export class Taxon {
       name: taxonName,
       unique: '',
       author: Taxon._extractAuthor(source.scientificName),
-      containingNames
+      containingNames,
+      childCount: null
     };
     const specs = createTaxonSpecs(spec);
     specs.push(spec);
@@ -188,11 +193,11 @@ export class Taxon {
 
   static async matchName(db: DB, partialName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select * from taxa where unique_name like $1 and committed=true
+      `select *, ${childCountSql} from taxa x where unique_name like $1 and committed=true
         order by taxon_name`,
       [`%${partialName}%`]
     );
-    return result.rows.map((row) => toCamelRow(row));
+    return result.rows.map((row) => new Taxon(toCamelRow(row)));
   }
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
@@ -218,7 +223,8 @@ export class Taxon {
         taxonName: spec.name,
         uniqueName: spec.unique,
         author: spec.author,
-        parentID: taxon?.taxonID || null
+        parentID: taxon?.taxonID || null,
+        childCount: spec.childCount || null
       });
     }
     return taxon!;
