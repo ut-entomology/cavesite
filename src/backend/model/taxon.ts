@@ -129,16 +129,20 @@ export class Taxon {
   }
 
   static async getByUniqueName(db: DB, names: string[]): Promise<Taxon[]> {
-    const result = await db.query(`select * from taxa where unique_name=any ($1)`, [
-      // @ts-ignore
-      names
-    ]);
+    const result = await db.query(
+      `select * from taxa where unique_name=any ($1) and committed=true`,
+      [
+        // @ts-ignore
+        names
+      ]
+    );
     return result.rows.map((row) => new Taxon(toCamelRow(row)));
   }
 
   static async getChildrenOf(db: DB, parentUniqueName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select c.* from taxa c join taxa p on c.parent_id = p.taxon_id and p.unique_name=$1`,
+      `select c.* from taxa c join taxa p on c.parent_id = p.taxon_id and
+         p.unique_name=$1 and p.committed=true`,
       [parentUniqueName]
     );
     return result.rows.map((row) => new Taxon(toCamelRow(row)));

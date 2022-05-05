@@ -309,9 +309,19 @@ test('sequentially dependent taxa tests', async () => {
       containingNames: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea'
     });
     expect(createdTaxon).toEqual(readTaxon);
+  }
 
-    const readTaxa = await Taxon.getChildrenOf(db, 'Animalia');
-    findTaxa(readTaxa, ['Arthropoda', 'Chordata']);
+  // test committing followed by an exact match
+
+  {
+    let matches = await Taxon.matchName(db, 'Arachnida');
+    expect(matches.length).toEqual(0);
+
+    await Taxon.commit(db);
+
+    matches = await Taxon.matchName(db, 'Arachnida');
+    expect(matches.length).toEqual(1);
+    expect(matches[0].taxonName).toEqual('Arachnida');
   }
 
   // test reading multiple taxa by name
@@ -332,17 +342,6 @@ test('sequentially dependent taxa tests', async () => {
     expect(readTaxa.length).toEqual(0);
   }
 
-  // test getting children of parent by parent name
-
-  {
-    const taxaNames = ['Thomisidae', 'Philodromidae'];
-    let readTaxa = await Taxon.getChildrenOf(db, 'Araneae');
-    findTaxa(readTaxa, taxaNames);
-
-    readTaxa = await Taxon.getChildrenOf(db, 'not there');
-    findTaxa(readTaxa, []);
-  }
-
   // test providing the author of an existing taxon
 
   {
@@ -353,67 +352,73 @@ test('sequentially dependent taxa tests', async () => {
     const readTaxon = await Taxon.getByID(db, 4);
     expect(readTaxon).toEqual(expectedTaxon);
   }
-});
-
-test('committing taxa and matching names', async () => {
-  // test committing followed by an exact match
-
-  let matches = await Taxon.matchName(db, 'Arachnida');
-  expect(matches.length).toEqual(0);
-
-  await Taxon.commit(db);
-
-  matches = await Taxon.matchName(db, 'Arachnida');
-  expect(matches.length).toEqual(1);
-  expect(matches[0].taxonName).toEqual('Arachnida');
 
   // test multiple internal subset matches
 
-  matches = await Taxon.matchName(db, 'ida');
-  expect(matches.map((taxon) => taxon.taxonName)).toEqual([
-    'Arachnida',
-    'Philodromidae',
-    'Plethodontidae',
-    'Thomisidae'
-  ]);
+  {
+    let matches = await Taxon.matchName(db, 'ida');
+    expect(matches.map((taxon) => taxon.taxonName)).toEqual([
+      'Arachnida',
+      'Philodromidae',
+      'Plethodontidae',
+      'Thomisidae'
+    ]);
+  }
+
+  // test getting children of parent by parent name
+
+  {
+    let readTaxa = await Taxon.getChildrenOf(db, 'Animalia');
+    console.log('****', readTaxa);
+    findTaxa(readTaxa, ['Arthropoda', 'Chordata']);
+
+    const taxaNames = ['Thomisidae', 'Philodromidae'];
+    readTaxa = await Taxon.getChildrenOf(db, 'Araneae');
+    findTaxa(readTaxa, taxaNames);
+
+    readTaxa = await Taxon.getChildrenOf(db, 'not there');
+    findTaxa(readTaxa, []);
+  }
 
   // test replacing existing records
 
-  await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Arachnida',
-    order: 'Araneae',
-    family: 'Philodromidae',
-    genus: 'Philodromus',
-    specificEpithet: 'rufus',
-    infraspecificEpithet: 'jenningsi',
-    scientificName: 'Philodromus rufus jenningsi New Author'
-  });
-  matches = await Taxon.matchName(db, 'jenningsi');
-  expect(matches.length).toEqual(1);
-  expect(matches[0].author).toEqual('Author');
+  {
+    await Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Arachnida',
+      order: 'Araneae',
+      family: 'Philodromidae',
+      genus: 'Philodromus',
+      specificEpithet: 'rufus',
+      infraspecificEpithet: 'jenningsi',
+      scientificName: 'Philodromus rufus jenningsi New Author'
+    });
+    let matches = await Taxon.matchName(db, 'jenningsi');
+    expect(matches.length).toEqual(1);
+    expect(matches[0].author).toEqual('Author');
 
-  await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Arachnida',
-    order: 'Araneae',
-    family: 'Salticidae',
-    scientificName: 'Salticidae'
-  });
-  matches = await Taxon.matchName(db, 'Salticidae');
-  expect(matches.length).toEqual(0);
+    await Taxon.getOrCreate(db, {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Arachnida',
+      order: 'Araneae',
+      family: 'Salticidae',
+      scientificName: 'Salticidae'
+    });
+    matches = await Taxon.matchName(db, 'Salticidae');
+    expect(matches.length).toEqual(0);
 
-  await Taxon.commit(db);
+    await Taxon.commit(db);
 
-  matches = await Taxon.matchName(db, 'jenningsi');
-  expect(matches.length).toEqual(1);
-  expect(matches[0].author).toEqual('New Author');
-  matches = await Taxon.matchName(db, 'Salticidae');
-  expect(matches.length).toEqual(1);
-  matches = await Taxon.matchName(db, 'Thomisidae');
-  expect(matches.length).toEqual(0);
+    matches = await Taxon.matchName(db, 'jenningsi');
+    expect(matches.length).toEqual(1);
+    expect(matches[0].author).toEqual('New Author');
+    matches = await Taxon.matchName(db, 'Salticidae');
+    expect(matches.length).toEqual(1);
+    matches = await Taxon.matchName(db, 'Thomisidae');
+    expect(matches.length).toEqual(0);
+  }
 });
 
 test('poorly sourced taxa', async () => {
