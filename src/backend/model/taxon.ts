@@ -128,7 +128,7 @@ export class Taxon {
     return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
   }
 
-  static async getByUniqueName(db: DB, names: string[]): Promise<Taxon[]> {
+  static async getByUniqueNames(db: DB, names: string[]): Promise<Taxon[]> {
     const result = await db.query(
       `select * from taxa where unique_name=any ($1) and committed=true`,
       [

@@ -28,7 +28,7 @@ router.post('/get_list', async (req: Request, res) => {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
-  const taxa = await Taxon.getByUniqueName(getDB(), taxaNames);
+  const taxa = await Taxon.getByUniqueNames(getDB(), taxaNames);
   return res
     .status(StatusCodes.OK)
     .send({ taxonSpecs: taxa.map((t) => _toTaxonInfo(t)) });

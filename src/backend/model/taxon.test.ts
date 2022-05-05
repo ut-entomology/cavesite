@@ -335,10 +335,10 @@ test('sequentially dependent taxa tests', async () => {
       'Philodromus',
       'Eurycea rathbuni'
     ];
-    let readTaxa = await Taxon.getByUniqueName(db, taxaNames);
+    let readTaxa = await Taxon.getByUniqueNames(db, taxaNames);
     findTaxa(readTaxa, taxaNames);
 
-    readTaxa = await Taxon.getByUniqueName(db, ['foo', 'bar']);
+    readTaxa = await Taxon.getByUniqueNames(db, ['foo', 'bar']);
     expect(readTaxa.length).toEqual(0);
   }
 
