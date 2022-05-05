@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, TaxonSpec, toTaxonSpecs } from '../../shared/taxa';
+import { TaxonRank, TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
 import { ImportFailure } from './import_failure';
 
 export interface TaxonSource {
@@ -147,12 +147,11 @@ export class Taxon {
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
     // Return the taxon if it already exists.
 
-    const [containingNamesList, taxonName] = Taxon._extractTaxa(source);
-    let taxon = await Taxon._getByNameSeries(
-      db,
-      containingNamesList.join('|'),
-      taxonName
-    );
+    const [taxonNames, taxonRank] = Taxon._extractTaxa(source);
+    const taxonName = taxonNames.pop()!;
+    const containingNames = taxonNames.join('|');
+
+    let taxon = await Taxon._getByNameSeries(db, containingNames, taxonName);
     if (taxon) {
       // If the taxon was previously created by virtue of being implied,
       // it won't have been assign an author, so assign it now.
@@ -168,11 +167,15 @@ export class Taxon {
 
     // Ccreate specs for all containing taxa and the taxon itself.
 
-    const specs = toTaxonSpecs(
-      containingNamesList,
-      taxonName,
-      Taxon._extractAuthor(source.scientificName)
-    );
+    const spec: TaxonSpec = {
+      rank: taxonRank,
+      name: taxonName,
+      unique: '',
+      author: Taxon._extractAuthor(source.scientificName),
+      containingNames
+    };
+    const specs = createTaxonSpecs(spec);
+    specs.push(spec);
 
     // Create all implied taxa.
 
@@ -256,40 +259,49 @@ export class Taxon {
     return null;
   }
 
-  private static _extractTaxa(source: TaxonSource): [string[], string] {
+  private static _extractTaxa(source: TaxonSource): [string[], TaxonRank] {
     if (!source.kingdom) throw new ImportFailure('Kingdom not given');
-    const containingNamesList: string[] = [source.kingdom];
+
+    let taxonRank = TaxonRank.Kingdom;
+    const taxonNames: string[] = [source.kingdom];
+
     if (source.phylum) {
-      containingNamesList.push(source.phylum);
+      taxonRank = TaxonRank.Phylum;
+      taxonNames.push(source.phylum);
     }
     if (source.class) {
       if (!source.phylum) throw new ImportFailure('Class given without phylum');
-      containingNamesList.push(source.class);
+      taxonRank = TaxonRank.Class;
+      taxonNames.push(source.class);
     }
     if (source.order) {
       if (!source.class) throw new ImportFailure('Order given without class');
-      containingNamesList.push(source.order);
+      taxonRank = TaxonRank.Order;
+      taxonNames.push(source.order);
     }
     if (source.family) {
       if (!source.order) throw new ImportFailure('Family given without order');
-      containingNamesList.push(source.family);
+      taxonRank = TaxonRank.Family;
+      taxonNames.push(source.family);
     }
     if (source.genus) {
       if (!source.family) throw new ImportFailure('Genus given without family');
-      containingNamesList.push(source.genus);
+      taxonRank = TaxonRank.Genus;
+      taxonNames.push(source.genus);
     }
     if (source.specificEpithet) {
       if (!source.genus)
         throw new ImportFailure('Specific epithet given without genus');
-      containingNamesList.push(source.specificEpithet);
+      taxonRank = TaxonRank.Species;
+      taxonNames.push(source.specificEpithet);
     }
     if (source.infraspecificEpithet) {
       if (!source.specificEpithet)
         throw new ImportFailure('Infraspecific epithet given without specific epithet');
-      containingNamesList.push(source.infraspecificEpithet);
+      taxonRank = TaxonRank.Subspecies;
+      taxonNames.push(source.infraspecificEpithet);
     }
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
-    const taxonName = containingNamesList.pop();
-    return [containingNamesList, taxonName!];
+    return [taxonNames, taxonRank];
   }
 }

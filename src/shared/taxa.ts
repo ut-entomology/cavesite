@@ -29,19 +29,16 @@ export interface TaxonSpec {
   containingNames: string;
 }
 
-export function toTaxonSpecs(
-  containingNamesList: string[],
-  taxonName: string,
-  taxonAuthor: string | null
-): TaxonSpec[] {
-  const specs: TaxonSpec[] = [];
+export function createTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
+  const containingSpecs: TaxonSpec[] = [];
+  let containingNamesList = fromSpec.containingNames?.split('|') || [];
   let containingNames = '';
   let uniqueName = '';
 
   for (let i = 0; i < containingNamesList.length; ++i) {
     const containingName = containingNamesList[i];
     uniqueName = _nextUniqueName(uniqueName, containingName);
-    specs.push({
+    containingSpecs.push({
       rank: taxonRanks[i],
       name: containingName,
       unique: uniqueName,
@@ -55,15 +52,10 @@ export function toTaxonSpecs(
     }
   }
 
-  specs.push({
-    rank: taxonRanks[containingNamesList.length],
-    name: taxonName,
-    unique: _nextUniqueName(uniqueName, taxonName),
-    author: taxonAuthor,
-    containingNames
-  });
-
-  return specs;
+  if (fromSpec.unique == '') {
+    fromSpec.unique = _nextUniqueName(uniqueName, fromSpec.name);
+  }
+  return containingSpecs;
 }
 
 function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
