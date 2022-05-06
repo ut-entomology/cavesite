@@ -8,6 +8,7 @@ import { Taxon } from '../backend/model/taxon';
 import { Location } from '../backend/model/location';
 import { Specimen } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
+import { ROOT_TAXON } from '../shared/taxa';
 
 const CSV_FILEPATH = path.join(
   __dirname,
@@ -43,7 +44,7 @@ async function loadDB() {
       catalogNumber: record.catalogNumber,
       occurrenceID: 'GBIF:' + record.catalogNumber,
 
-      kingdom: 'Animalia',
+      kingdom: ROOT_TAXON,
       phylum: record.phylum,
       class: record.class,
       order: record.order,
@@ -130,7 +131,7 @@ function toScientificName(record: CsvSpecimen): string {
   if (record.order) return record.order;
   if (record.class) return record.class;
   if (record.phylum) return record.phylum;
-  return 'Animalia';
+  return ROOT_TAXON;
 }
 
 (async () => {

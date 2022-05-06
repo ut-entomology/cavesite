@@ -73,14 +73,12 @@
           break; // this is redundant but clarifies behavior
         }
       }
-      this._tallyNodes(); // inefficient, but simplifies code
       this.save();
     }
 
     dropCheckedTaxa() {
       if (this.rootNode) {
         this._dropCheckedTaxa(this.rootNode);
-        this._tallyNodes(); // inefficient, but simplifies code
         this.save();
       }
     }
@@ -90,11 +88,7 @@
       if (!node) return;
 
       const containingSpecs = createTaxonSpecs(spec);
-      if (containingSpecs.length == 0) {
-        this.selectedUniques = [];
-        this.rootNode = null;
-        this.nodesByTaxonUnique = {};
-      } else {
+      if (containingSpecs.length > 0) {
         const parentSpec = containingSpecs.pop()!;
         const parentNode = this.nodesByTaxonUnique[parentSpec.unique]!;
         const childIndex = parentNode.children!.indexOf(node);
@@ -102,22 +96,18 @@
         if (parentNode.children!.length == 0) {
           parentNode.children = null;
         }
+        this.save();
       }
-      this._tallyNodes(); // inefficient, but simplifies code
-      this.save();
     }
 
     // Saves to sessionStore
     save() {
-      selectedTaxa.set(this);
-    }
-
-    private _tallyNodes(): void {
       this.selectedUniques = [];
       this.nodesByTaxonUnique = {};
       if (this.rootNode) {
         this._tallyNode(this.rootNode);
       }
+      selectedTaxa.set(this);
     }
 
     private _tallyNode(node: TaxonNode): void {

@@ -11,6 +11,7 @@
     InteractiveTreeFlags
   } from '../components/InteractiveTree.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
+  import { ROOT_TAXON } from '../../shared/taxa';
 
   export let treeRoot: TaxonNode | null;
   $: treeRoot = $selectedTaxa ? $selectedTaxa.rootNode : null;
@@ -20,7 +21,7 @@
 
   onMount(async () => {
     if ($selectedTaxa === null) {
-      $selectedTaxa = new SelectedTaxa(['Animalia']);
+      $selectedTaxa = new SelectedTaxa([ROOT_TAXON]);
     }
     await $selectedTaxa!.load();
   });
@@ -95,7 +96,7 @@
         <button
           class="btn btn-major"
           type="button"
-          on:click={() => openTaxonBrowser('Animalia')}>Browse Taxa</button
+          on:click={() => openTaxonBrowser(ROOT_TAXON)}>Browse Taxa</button
         >
       </span>
       <span slot="work-buttons">

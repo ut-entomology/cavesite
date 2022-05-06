@@ -1,3 +1,5 @@
+export const ROOT_TAXON = 'Animalia';
+
 export enum TaxonRank {
   Kingdom = 'kingdom',
   Phylum = 'phylum',
