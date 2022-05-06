@@ -5,17 +5,21 @@
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
   import TaxonText from '../components/TaxonText.svelte';
-  import { DialogSpec } from '../common/VariableDialog.svelte';
+  import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonNode, selectedTaxa } from '../stores/selectedTaxa.svelte';
   import InteractiveTree, {
     InteractiveTreeFlags
   } from '../components/InteractiveTree.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
-  import { currentDialog } from '../stores/currentDialog.svelte';
 
   export let treeRoot = $selectedTaxa ? $selectedTaxa.rootNode : null;
 
   let rootChildrenComponents: SvelteComponent[] = [];
+  let browseTaxonUnique: string | null = null;
+
+  const openTaxonBrowser = (taxonUnique: string) => {
+    browseTaxonUnique = taxonUnique;
+  };
 
   function treeIncludesSelections(node: TaxonNode): boolean {
     if (node.nodeFlags & InteractiveTreeFlags.Selected) return true;
@@ -25,13 +29,6 @@
       }
     }
     return false;
-  }
-
-  function browseTaxa() {
-    $currentDialog = new DialogSpec('BrowseTaxaDialog', {
-      title: 'Browse and Select Taxa',
-      parentUnique: 'Animalia'
-    });
   }
 
   function collapseAll() {
@@ -87,8 +84,10 @@
       instructions="Other tabs optionally restrict taxa to the selections shown here in <b>bold</b>."
     >
       <span slot="main-buttons">
-        <button class="btn btn-major" type="button" on:click={browseTaxa}
-          >Browse Taxa</button
+        <button
+          class="btn btn-major"
+          type="button"
+          on:click={() => openTaxonBrowser('Animalia')}>Browse Taxa</button
         >
       </span>
       <span slot="work-buttons">
@@ -126,6 +125,16 @@
     </div>
   </div>
 </DataTabRoute>
+
+{#if browseTaxonUnique !== null}
+  <BrowseTaxaDialog
+    title="Browse and Select Taxa"
+    parentUnique={browseTaxonUnique}
+    onClose={() => {
+      browseTaxonUnique = null;
+    }}
+  />
+{/if}
 
 <style>
   :global(.tree_area) :global(.tree_node) {

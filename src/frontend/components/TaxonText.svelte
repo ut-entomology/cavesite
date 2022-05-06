@@ -4,8 +4,8 @@
   let classes = '';
   export { classes as class };
   export let spec: TaxonSpec;
-  export let clickable: boolean;
-  export let onClick: () => Promise<void>;
+  export let clickable = false;
+  export let onClick: (() => Promise<void>) | null = null;
 
   let italic = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(
     spec.rank

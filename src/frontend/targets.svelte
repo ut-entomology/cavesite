@@ -7,7 +7,6 @@
   import ResetRequestDialog from './dialogs/ResetRequestDialog.svelte';
   import ResetPasswordDialog from './dialogs/ResetPasswordDialog.svelte';
   import EditUserDialog from './dialogs/EditUserDialog.svelte';
-  import BrowseTaxaDialog from './dialogs/BrowseTaxaDialog.svelte';
 
   const targetMap: Record<string, typeof SvelteComponent> = {
     LoginDialog,
@@ -15,8 +14,7 @@
     ChangePasswordDialog,
     ResetRequestDialog,
     ResetPasswordDialog,
-    EditUserDialog,
-    BrowseTaxaDialog
+    EditUserDialog
   };
 
   export function toSvelteTarget(targetName: string): typeof SvelteComponent {

@@ -3,7 +3,6 @@
   import Notice from '../common/Notice.svelte';
   import InputGroupButton from '../components/InputGroupButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
-  import { currentDialog } from '../stores/currentDialog.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
   import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
@@ -11,6 +10,7 @@
 
   export let title: string;
   export let parentUnique: string;
+  export let onClose: () => void;
 
   const loupeIcon = `<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
@@ -43,10 +43,6 @@
     console.log(`load ${typedTaxon}`);
   };
 
-  const closeDialog = () => {
-    $currentDialog = null;
-  };
-
   const gotoTaxon = async (taxonUnique: string) => {
     parentUnique = taxonUnique;
     await load();
@@ -66,9 +62,7 @@
           </div>
         </div>
         <div class="col-auto">
-          <button class="btn btn-major" type="button" on:click={closeDialog}
-            >Close</button
-          >
+          <button class="btn btn-major" type="button" on:click={onClose}>Close</button>
         </div>
       </div>
       <div class="row mt-3 mb-3 ancestors-row">
@@ -125,7 +119,7 @@
       header="ERROR"
       alert="danger"
       message="Failed to load taxon '{parentUnique}':<br/>{errorReason(err.response)}"
-      on:close={closeDialog}
+      on:close={onClose}
     />
   {:else}{bubbleUpError(err)}{/if}
 {/await}
