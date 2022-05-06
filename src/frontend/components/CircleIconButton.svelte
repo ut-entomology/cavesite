@@ -1,10 +1,17 @@
 <script lang="ts">
   let classes = '';
   export { classes as class };
+  export let bordered = false;
   export let label: string;
 </script>
 
-<div class="icon_button {classes}" on:click title={label} aria-label={label}>
+<div
+  class="icon_button {classes}"
+  class:bordered
+  on:click
+  title={label}
+  aria-label={label}
+>
   <slot />
 </div>
 
@@ -13,7 +20,6 @@
 
   .icon_button {
     display: inline-block;
-    border: 1px solid $blueLinkBackColor;
     border-radius: 50%;
     color: $blueLinkBackColor;
     text-align: center;
@@ -23,5 +29,8 @@
   .icon_button:hover {
     color: $backgroundColor;
     background-color: $blueLinkBackColor;
+  }
+  .bordered {
+    border: 1px solid $blueLinkBackColor;
   }
 </style>

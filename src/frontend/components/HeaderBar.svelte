@@ -42,6 +42,7 @@
             <CircleIconButton
               class="login_info"
               on:click={showLoginInfo}
+              bordered={true}
               label="Login information"
             >
               i

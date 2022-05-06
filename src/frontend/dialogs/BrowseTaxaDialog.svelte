@@ -120,11 +120,11 @@
           <div class="col-auto">
             {#if isSelection}
               <CircleIconButton
-                class="taxon_selector"
+                class="selection taxon_selector"
                 on:click={() => removeSelection(spec)}
                 label="Remove from selections"
               >
-                {@html checkmarkIcon}
+                <div>{@html checkmarkIcon}</div>
               </CircleIconButton>
             {:else}
               <CircleIconButton
@@ -132,7 +132,7 @@
                 on:click={() => addSelection(spec)}
                 label="Add to selections"
               >
-                {@html plusIcon}
+                <div>{@html plusIcon}</div>
               </CircleIconButton>
             {/if}
           </div>
@@ -186,16 +186,20 @@
   }
 
   :global(.taxon_selector) {
+    margin-top: -0.05rem;
     width: 1.4rem;
     height: 1.4rem;
-    font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter',
-      monospace;
+    line-height: 1.1rem;
+    font-size: 1.2rem;
     font-weight: bold;
-    font-size: 0.9rem;
   }
 
   :global(.selection .taxon-name) {
     font-weight: bold;
+  }
+
+  :global(.taxon_selector div) {
+    margin-top: 0.05rem;
   }
 
   .ancestors-row {
