@@ -9,6 +9,8 @@
   import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
+  const ANCESTOR_ITEM_LEFT_MARGIN = 1.3; // em
+
   export let title: string;
   export let parentUnique: string;
   export let onClose: () => void;
@@ -95,7 +97,7 @@
         <div class="col">
           {#each containingSpecs as spec, i}
             <div class="row mt-1">
-              <div class="col" style="margin-left: {1.5 * i}em">
+              <div class="col" style="margin-left: {ANCESTOR_ITEM_LEFT_MARGIN * i}em">
                 <span class="ancestor_icon">
                   {@html selectedAncestorUniques[spec.unique]
                     ? checkmarkIcon
@@ -124,7 +126,7 @@
                 on:click={() => removeSelection(spec)}
                 label="Remove from selections"
               >
-                {checkmarkIcon}
+                {@html checkmarkIcon}
               </CircleIconButton>
             {:else}
               <CircleIconButton
@@ -132,7 +134,7 @@
                 on:click={() => addSelection(spec)}
                 label="Add to selections"
               >
-                {plusIcon}
+                {@html plusIcon}
               </CircleIconButton>
             {/if}
           </div>

@@ -159,9 +159,9 @@
           on:change={toggleSelection}
         />
       </div>
-      <div class="selectable" on:click={toggleSelection}><slot /></div>
+      <div class="selectable" on:click={toggleSelection}><slot {tree} /></div>
     {:else}
-      <div><slot /></div>
+      <div><slot {tree} /></div>
     {/if}
   </div>
   {#if flags & InteractiveTreeFlags.Expanded}

@@ -40,10 +40,9 @@
     }
 
     async load(): Promise<void> {
-      this.rootNode = null;
-      if (this.selectedUniques.length > 0) {
+      if (this.rootNode == null && this.selectedUniques.length > 0) {
         const res = await currentClient.post('api/taxa/get_list', {
-          selectedUniques: this.selectedUniques
+          taxonUniques: this.selectedUniques
         });
         const specs: TaxonSpec[] = res.data.taxonSpecs;
         specs.forEach((spec) => this.addSelection(spec));
@@ -75,12 +74,14 @@
         }
       }
       this._tallyNodes(); // inefficient, but simplifies code
+      this.save();
     }
 
     dropCheckedTaxa() {
       if (this.rootNode) {
         this._dropCheckedTaxa(this.rootNode);
         this._tallyNodes(); // inefficient, but simplifies code
+        this.save();
       }
     }
 
@@ -103,6 +104,7 @@
         }
       }
       this._tallyNodes(); // inefficient, but simplifies code
+      this.save();
     }
 
     // Saves to sessionStore
@@ -111,9 +113,11 @@
     }
 
     private _tallyNodes(): void {
-      this.selectedUniques = Object.values(this.nodesByTaxonUnique)
-        .filter((node) => node.children === null)
-        .map((node) => node.taxonSpec.unique);
+      this.selectedUniques = [];
+      this.nodesByTaxonUnique = {};
+      if (this.rootNode) {
+        this._tallyNode(this.rootNode);
+      }
     }
 
     private _tallyNode(node: TaxonNode): void {

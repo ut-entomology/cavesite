@@ -1,21 +1,32 @@
 <script lang="ts">
-  import type { SvelteComponent } from 'svelte';
+  import { type SvelteComponent, onMount } from 'svelte';
 
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
-  import { TaxonNode, selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import { TaxonNode, SelectedTaxa, selectedTaxa } from '../stores/selectedTaxa.svelte';
   import InteractiveTree, {
     InteractiveTreeFlags
   } from '../components/InteractiveTree.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
 
-  export let treeRoot = $selectedTaxa ? $selectedTaxa.rootNode : null;
+  export let treeRoot: TaxonNode | null;
+  $: treeRoot = $selectedTaxa ? $selectedTaxa.rootNode : null;
 
   let rootChildrenComponents: SvelteComponent[] = [];
   let browseTaxonUnique: string | null = null;
+
+  onMount(async () => {
+    console.log('preparing...');
+    if ($selectedTaxa === null) {
+      $selectedTaxa = new SelectedTaxa(['Animalia']);
+    }
+    console.log('set selectedTaxa');
+    await $selectedTaxa!.load();
+    console.log('done preparing');
+  });
 
   const openTaxonBrowser = (taxonUnique: string) => {
     browseTaxonUnique = taxonUnique;
@@ -112,6 +123,7 @@
         </div>
       </span>
     </TabHeader>
+
     <div class="tree_area">
       {#if !treeRoot || !treeRoot.children}
         <EmptyTab message="No taxa selected" />
@@ -137,6 +149,10 @@
 {/if}
 
 <style>
+  :global(.tree_area) {
+    margin-top: 1.5rem;
+    margin-left: -1.3em;
+  }
   :global(.tree_area) :global(.tree_node) {
     margin: 0.3em 0 0 1.5em;
   }
