@@ -19,13 +19,10 @@
   let browseTaxonUnique: string | null = null;
 
   onMount(async () => {
-    console.log('preparing...');
     if ($selectedTaxa === null) {
       $selectedTaxa = new SelectedTaxa(['Animalia']);
     }
-    console.log('set selectedTaxa');
     await $selectedTaxa!.load();
-    console.log('done preparing');
   });
 
   const openTaxonBrowser = (taxonUnique: string) => {
