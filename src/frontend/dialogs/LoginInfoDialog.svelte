@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentDialog } from '../stores/currentDialog.svelte';
+  import { globalDialog } from '../stores/globalDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import { userInfo } from '../stores/user_info';
   import { DialogSpec } from '../common/VariableDialog.svelte';
@@ -9,11 +9,11 @@
     : $userInfo!.lastName;
   function changePassword() {
     closeDialog();
-    $currentDialog = new DialogSpec('ChangePasswordDialog');
+    $globalDialog = new DialogSpec('ChangePasswordDialog');
   }
 
   function closeDialog() {
-    $currentDialog = null;
+    $globalDialog = null;
   }
 </script>
 

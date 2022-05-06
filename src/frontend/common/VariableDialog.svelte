@@ -14,13 +14,13 @@
   import type { SvelteComponent } from 'svelte';
   import type { Writable } from 'svelte/store';
 
-  export let currentDialog: Writable<DialogSpec | null>;
+  export let globalDialog: Writable<DialogSpec | null>;
   export let toSvelteTarget: (targetName: string) => typeof SvelteComponent;
 </script>
 
-{#if $currentDialog !== null}
+{#if $globalDialog !== null}
   <svelte:component
-    this={toSvelteTarget($currentDialog.targetName)}
-    {...$currentDialog.params}
+    this={toSvelteTarget($globalDialog.targetName)}
+    {...$globalDialog.params}
   />
 {/if}

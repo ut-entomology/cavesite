@@ -6,7 +6,7 @@
 
   import { createForm, ContextForm, Input } from '../common/forms';
   import { flashMessage } from '../common/VariableFlash.svelte';
-  import { currentDialog } from '../stores/currentDialog.svelte';
+  import { globalDialog } from '../stores/globalDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import type { PasswordResetInfo } from '../../shared/user_auth';
   import { client, errorReason } from '../stores/client';
@@ -50,7 +50,7 @@
   };
 
   const closeDialog = () => {
-    $currentDialog = null;
+    $globalDialog = null;
   };
 </script>
 

@@ -3,14 +3,14 @@
   import VariableNotice from '../common/VariableNotice.svelte';
   import VariableDialog from '../common/VariableDialog.svelte';
   import HeaderBar from '../components/HeaderBar.svelte';
-  import { currentDialog } from '../stores/currentDialog.svelte';
+  import { globalDialog } from '../stores/globalDialog.svelte';
   import { toSvelteTarget } from '../targets.svelte';
 </script>
 
 <div class="page">
   <HeaderBar />
   <slot />
-  <VariableDialog {currentDialog} {toSvelteTarget} />
+  <VariableDialog {globalDialog} {toSvelteTarget} />
   <VariableNotice />
   <VariableFlash />
 </div>

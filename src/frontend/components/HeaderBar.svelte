@@ -6,13 +6,13 @@
   import { DialogSpec } from '../common/VariableDialog.svelte';
   import { flashMessage } from '../common/VariableFlash.svelte';
   import TabSetSelector from '../components/TabSetSelector.svelte';
-  import { currentDialog } from '../stores/currentDialog.svelte';
+  import { globalDialog } from '../stores/globalDialog.svelte';
   import { appInfo } from '../stores/app_info';
   import { userInfo } from '../stores/user_info';
   import { logoutUser } from '../util/user_util';
 
   function login() {
-    currentDialog.set(new DialogSpec('LoginDialog'));
+    globalDialog.set(new DialogSpec('LoginDialog'));
   }
 
   async function logout() {
@@ -25,7 +25,7 @@
   }
 
   function showLoginInfo() {
-    currentDialog.set(new DialogSpec('LoginInfoDialog'));
+    globalDialog.set(new DialogSpec('LoginInfoDialog'));
   }
 </script>
 

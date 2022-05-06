@@ -4,7 +4,7 @@
 
   import { createForm, ContextForm, Input } from '../common/forms';
   import { flashMessage } from '../common/VariableFlash.svelte';
-  import { currentDialog } from '../stores/currentDialog.svelte';
+  import { globalDialog } from '../stores/globalDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import { client } from '../stores/client';
   import { userInfo } from '../stores/user_info';
@@ -40,11 +40,11 @@
 
   async function requestPasswordReset() {
     closeDialog();
-    $currentDialog = new DialogSpec('ResetRequestDialog');
+    $globalDialog = new DialogSpec('ResetRequestDialog');
   }
 
   const closeDialog = () => {
-    $currentDialog = null;
+    $globalDialog = null;
   };
 </script>
 

@@ -5,7 +5,7 @@
   import { client } from './stores/client';
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
-  import { currentDialog } from './stores/currentDialog.svelte';
+  import { globalDialog } from './stores/globalDialog.svelte';
   import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
@@ -115,7 +115,7 @@
   onMount(() => {
     const resetParams = getResetParams();
     if (resetParams) {
-      $currentDialog = new DialogSpec('ResetPasswordDialog', resetParams);
+      $globalDialog = new DialogSpec('ResetPasswordDialog', resetParams);
     }
   });
 
