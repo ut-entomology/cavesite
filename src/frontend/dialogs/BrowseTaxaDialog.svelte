@@ -69,11 +69,10 @@
         <div class="col">
           {#each containingSpecs as spec, i}
             <div class="row mt-1">
-              <!-- TODO: ancestors are never clickable. -->
               <div class="col" style="margin-left: {1.5 * i}em">
                 <TaxonText
                   {spec}
-                  clickable={spec.unique != parentSpec.unique && !!spec.childCount}
+                  clickable={spec.childCount === null}
                   onClick={() => gotoTaxon(spec.unique)}
                 />
               </div>
