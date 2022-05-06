@@ -2,6 +2,7 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
   import InputGroupButton from '../components/InputGroupButton.svelte';
+  import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
@@ -25,6 +26,8 @@
   let parentSpec: TaxonSpec;
   let containingSpecs: TaxonSpec[];
   let childSpecs: TaxonSpec[];
+  let selectedAncestorUniques: Record<string, boolean> = {};
+  let allChildrenSelected = false;
 
   async function load() {
     let res = await $client.post('api/taxa/get_list', { taxonUniques: [parentUnique] });
@@ -37,6 +40,18 @@
     childSpecs = res.data.taxonSpecs;
     containingSpecs = createTaxonSpecs(parentSpec);
     containingSpecs.push(parentSpec);
+
+    selectedAncestorUniques = {};
+    allChildrenSelected = false;
+    for (const containingSpec of containingSpecs) {
+      if (
+        allChildrenSelected ||
+        $selectedTaxa?.nodesByTaxonUnique[containingSpec.unique]
+      ) {
+        selectedAncestorUniques[containingSpec.unique] = true;
+        allChildrenSelected = true;
+      }
+    }
   }
 
   const loadTypedTaxon = () => {
@@ -46,6 +61,17 @@
   const gotoTaxon = async (taxonUnique: string) => {
     parentUnique = taxonUnique;
     await load();
+  };
+
+  const addSelection = (spec: TaxonSpec) => {
+    $selectedTaxa!.addSelection(spec);
+    childSpecs = childSpecs; // redraw children
+  };
+
+  const removeSelection = (spec: TaxonSpec) => {
+    $selectedTaxa!.removeTaxon(spec);
+    allChildrenSelected = false;
+    childSpecs = childSpecs; // redraw children
   };
 </script>
 
@@ -70,8 +96,14 @@
           {#each containingSpecs as spec, i}
             <div class="row mt-1">
               <div class="col" style="margin-left: {1.5 * i}em">
+                <span class="ancestor_icon">
+                  {@html selectedAncestorUniques[spec.unique]
+                    ? checkmarkIcon
+                    : '&bullet;'}
+                </span>
                 <TaxonText
                   {spec}
+                  class={selectedAncestorUniques[spec.unique] ? 'selection' : ''}
                   clickable={spec.childCount === null}
                   onClick={() => gotoTaxon(spec.unique)}
                 />
@@ -82,13 +114,26 @@
       </div>
       {#each childSpecs as spec}
         {@const taxonNode = $selectedTaxa?.nodesByTaxonUnique[spec.unique]}
-        {@const isSelection = taxonNode && taxonNode.children === null}
-        <div class="row mt-1">
+        {@const isSelection =
+          allChildrenSelected || (taxonNode && taxonNode.children === null)}
+        <div class="row mt-1 gx-3">
           <div class="col-auto">
             {#if isSelection}
-              <div class="addRemoveIcon">{@html checkmarkIcon}</div>
+              <CircleIconButton
+                class="taxon_selector"
+                on:click={() => removeSelection(spec)}
+                label="Remove from selections"
+              >
+                {checkmarkIcon}
+              </CircleIconButton>
             {:else}
-              <div class="addRemoveIcon">{@html plusIcon}</div>
+              <CircleIconButton
+                class="taxon_selector"
+                on:click={() => addSelection(spec)}
+                label="Add to selections"
+              >
+                {plusIcon}
+              </CircleIconButton>
             {/if}
           </div>
           <div class="col">
@@ -134,6 +179,19 @@
     margin-top: -0.1rem;
     width: 1.5rem;
     height: 1.5rem;
+  }
+
+  .ancestor_icon {
+    margin-right: 0.4rem;
+  }
+
+  :global(.taxon_selector) {
+    width: 1.4rem;
+    height: 1.4rem;
+    font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter',
+      monospace;
+    font-weight: bold;
+    font-size: 0.9rem;
   }
 
   :global(.selection .taxon-name) {

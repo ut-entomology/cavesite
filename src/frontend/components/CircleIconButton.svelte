@@ -4,7 +4,9 @@
   export let label: string;
 </script>
 
-<div class="icon_button {classes}" on:click aria-label={label}><slot /></div>
+<div class="icon_button {classes}" on:click title={label} aria-label={label}>
+  <slot />
+</div>
 
 <style lang="scss">
   @import '../variables.scss';
