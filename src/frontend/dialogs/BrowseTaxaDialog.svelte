@@ -46,6 +46,11 @@
   const closeDialog = () => {
     $currentDialog = null;
   };
+
+  const gotoTaxon = async (taxonUnique: string) => {
+    parentUnique = taxonUnique;
+    await load();
+  };
 </script>
 
 {#await load() then}
@@ -68,17 +73,22 @@
       </div>
       <div class="row mt-3 mb-3 ancestors-row">
         <div class="col">
-          {#each containingSpecs as containingSpec, i}
+          {#each containingSpecs as spec, i}
             <div class="row mt-1">
+              <!-- TODO: ancestors are never clickable. -->
               <div class="col" style="margin-left: {1.5 * i}em">
-                <TaxonText spec={containingSpec} />
+                <TaxonText
+                  {spec}
+                  clickable={spec.unique != parentSpec.unique && !!spec.childCount}
+                  onClick={() => gotoTaxon(spec.unique)}
+                />
               </div>
             </div>
           {/each}
         </div>
       </div>
-      {#each childSpecs as childSpec}
-        {@const taxonNode = $selectedTaxa?.nodesByTaxonUnique[childSpec.unique]}
+      {#each childSpecs as spec}
+        {@const taxonNode = $selectedTaxa?.nodesByTaxonUnique[spec.unique]}
         {@const isSelection = taxonNode && taxonNode.children === null}
         <div class="row mt-1">
           <div class="col-auto">
@@ -89,7 +99,12 @@
             {/if}
           </div>
           <div class="col">
-            <TaxonText class={isSelection ? 'selection' : ''} spec={childSpec} />
+            <TaxonText
+              class={isSelection ? 'selection' : ''}
+              {spec}
+              clickable={!!spec.childCount}
+              onClick={() => gotoTaxon(spec.unique)}
+            />
           </div>
         </div>
       {/each}
