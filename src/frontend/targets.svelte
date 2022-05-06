@@ -6,15 +6,15 @@
   import ChangePasswordDialog from './dialogs/ChangePasswordDialog.svelte';
   import ResetRequestDialog from './dialogs/ResetRequestDialog.svelte';
   import ResetPasswordDialog from './dialogs/ResetPasswordDialog.svelte';
-  import EditUserDialog from './dialogs/EditUserDialog.svelte';
+
+  // Restrict to just those dialogs that can be brought up on any page.
 
   const targetMap: Record<string, typeof SvelteComponent> = {
     LoginDialog,
     LoginInfoDialog,
     ChangePasswordDialog,
     ResetRequestDialog,
-    ResetPasswordDialog,
-    EditUserDialog
+    ResetPasswordDialog
   };
 
   export function toSvelteTarget(targetName: string): typeof SvelteComponent {

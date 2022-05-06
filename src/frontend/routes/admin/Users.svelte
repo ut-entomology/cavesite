@@ -1,15 +1,18 @@
 <script lang="ts">
-  import { Permission, type AdminUserInfo } from '../../../shared/user_auth';
+  import {
+    Permission,
+    type AdminUserInfo,
+    type NewUserInfo
+  } from '../../../shared/user_auth';
   import AdminTabRoute from '../../components/AdminTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
   import ServerError from '../../components/ServerError.svelte';
   import ConfirmationRequest, {
     ConfirmationDetails
   } from '../../common/ConfirmationRequest.svelte';
+  import EditUserDialog from '../../dialogs/EditUserDialog.svelte';
   import { flashMessage } from '../../common/VariableFlash.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
-  import { DialogSpec } from '../../common/VariableDialog.svelte';
-  import { currentDialog } from '../../stores/currentDialog.svelte';
   import { client, errorReason } from '../../stores/client';
 
   const EXPANDED_SYMBOL = '&#9660';
@@ -29,6 +32,10 @@
   let expandedUser: AdminUserInfo | null = null;
 
   let confirmationDetails: ConfirmationDetails | null = null;
+  let dialogParams: {
+    userInfo: NewUserInfo | null;
+    onSuccess: (user: AdminUserInfo) => void;
+  } | null = null;
 
   async function loadUsers() {
     const res = await $client.post('/api/user/get_all');
@@ -46,16 +53,14 @@
   }
 
   const addUser = () => {
-    currentDialog.set(
-      new DialogSpec('EditUserDialog', {
-        userInfo: null,
-        onSuccess: (user: AdminUserInfo) => {
-          users.push(user);
-          sortUsers();
-          users = users; // update rendering
-        }
-      })
-    );
+    dialogParams = {
+      userInfo: null,
+      onSuccess: (user: AdminUserInfo) => {
+        users.push(user);
+        sortUsers();
+        users = users; // update rendering
+      }
+    };
   };
 
   const dropUser = (user: AdminUserInfo) => {
@@ -86,20 +91,18 @@
   };
 
   const editUser = (user: AdminUserInfo) => {
-    currentDialog.set(
-      new DialogSpec('EditUserDialog', {
-        userInfo: user,
-        onSuccess: (edits: AdminUserInfo) => {
-          user.firstName = edits.firstName;
-          user.lastName = edits.lastName;
-          user.affiliation = edits.affiliation;
-          user.email = edits.email;
-          user.permissions = edits.permissions;
-          sortUsers();
-          users = users; // update rendering
-        }
-      })
-    );
+    dialogParams = {
+      userInfo: user,
+      onSuccess: (edits: AdminUserInfo) => {
+        user.firstName = edits.firstName;
+        user.lastName = edits.lastName;
+        user.affiliation = edits.affiliation;
+        user.email = edits.email;
+        user.permissions = edits.permissions;
+        sortUsers();
+        users = users; // update rendering
+      }
+    };
   };
 
   const resetPassword = (_user: AdminUserInfo) => {
@@ -223,6 +226,10 @@
     <ServerError error={err.response} />
   {/await}
 </AdminTabRoute>
+
+{#if dialogParams}
+  <EditUserDialog {...dialogParams} onClose={() => (dialogParams = null)} />
+{/if}
 
 <style lang="scss">
   .user > .row {

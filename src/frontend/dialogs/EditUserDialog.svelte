@@ -1,7 +1,6 @@
 <script lang="ts">
   import * as yup from 'yup';
   import { createForm, ContextForm, Input, Select } from '../common/forms';
-  import { currentDialog } from '../stores/currentDialog.svelte';
   import ModalDialog from '../common/ModalDialog.svelte';
   import { Permission, AdminUserInfo, NewUserInfo } from '../../shared/user_auth';
   import { client, errorReason } from '../stores/client';
@@ -17,6 +16,7 @@
 
   export let userInfo: NewUserInfo | null;
   export let onSuccess: (user: AdminUserInfo) => void = () => {};
+  export let onClose: () => void;
 
   let creatingUser = false;
   let title = 'Edit User';
@@ -81,7 +81,7 @@
 
   async function createUser(userInfo: NewUserInfo) {
     try {
-      closeDialog();
+      onClose();
       const res = await $client.post('/api/user/add', userInfo);
       await flashMessage('Created user<br/>Emailed credentials', 'warning', 1750);
       onSuccess(res.data);
@@ -96,7 +96,7 @@
 
   async function updateUser(userInfo: NewUserInfo) {
     try {
-      closeDialog();
+      onClose();
       const res = await $client.post('/api/user/update', userInfo);
       await flashMessage('Updated user');
       onSuccess(res.data);
@@ -109,10 +109,6 @@
       });
     }
   }
-
-  const closeDialog = () => {
-    $currentDialog = null;
-  };
 </script>
 
 <ModalDialog {title} contentClasses="user-form-content">
@@ -164,9 +160,7 @@
     </div>
     <div class="row g-2">
       <div class="col-12 text-center">
-        <button class="btn btn-minor" type="button" on:click={closeDialog}
-          >Cancel</button
-        >
+        <button class="btn btn-minor" type="button" on:click={onClose}>Cancel</button>
         <button class="btn btn-major" type="submit">{submitLabel}</button>
       </div>
     </div>
