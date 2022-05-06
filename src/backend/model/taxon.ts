@@ -193,7 +193,7 @@ export class Taxon {
 
   static async matchName(db: DB, partialName: string): Promise<Taxon[]> {
     const result = await db.query(
-      `select *, ${childCountSql} from taxa x where unique_name like $1 and committed=true
+      `select * from taxa where unique_name like $1 and committed=true
         order by taxon_name`,
       [`%${partialName}%`]
     );

@@ -340,7 +340,7 @@ test('sequentially dependent taxa tests', async () => {
     matches = await Taxon.matchName(db, 'Arachnida');
     expect(matches.length).toEqual(1);
     expect(matches[0].taxonName).toEqual('Arachnida');
-    expect(matches[0].childCount).toEqual(1);
+    expect(matches[0].childCount).toEqual(null);
   }
 
   // test reading taxa by exact unique names
@@ -358,6 +358,7 @@ test('sequentially dependent taxa tests', async () => {
     let readTaxa = await Taxon.getByUniqueNames(db, taxaNames);
     findTaxonNames(readTaxa, taxaNames);
     expect(readTaxa.find((t) => t.uniqueName == 'Araneae')?.childCount).toEqual(2);
+    expect(readTaxa.find((t) => t.uniqueName == 'Mecaphesa')?.childCount).toEqual(1);
     expect(
       readTaxa.find((t) => t.uniqueName == 'Eurycea rathbuni')?.childCount
     ).toEqual(0);
@@ -387,7 +388,6 @@ test('sequentially dependent taxa tests', async () => {
       'Plethodontidae',
       'Thomisidae'
     ]);
-    expect(matches.find((t) => t.uniqueName == 'Thomisidae')?.childCount).toEqual(1);
   }
 
   // test getting children of parent by parent name
@@ -425,7 +425,6 @@ test('sequentially dependent taxa tests', async () => {
       scientificName: 'Philodromus rufus jenningsi New Author'
     });
     let matches = await Taxon.matchName(db, 'jenningsi');
-    expect(matches.length).toEqual(1);
     expect(matches[0].author).toEqual('Author');
 
     await Taxon.getOrCreate(db, {
