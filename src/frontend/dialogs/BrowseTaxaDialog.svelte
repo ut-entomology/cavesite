@@ -46,10 +46,8 @@
     selectedAncestorUniques = {};
     allChildrenSelected = false;
     for (const containingSpec of containingSpecs) {
-      if (
-        allChildrenSelected ||
-        $selectedTaxa?.nodesByTaxonUnique[containingSpec.unique]
-      ) {
+      const containingNode = $selectedTaxa?.nodesByTaxonUnique[containingSpec.unique];
+      if (allChildrenSelected || (containingNode && containingNode.children === null)) {
         selectedAncestorUniques[containingSpec.unique] = true;
         allChildrenSelected = true;
       }
