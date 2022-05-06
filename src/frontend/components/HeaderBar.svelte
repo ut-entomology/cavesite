@@ -1,6 +1,7 @@
 <script lang="ts">
   import page from 'page';
 
+  import CircleIconButton from './CircleIconButton.svelte';
   import { Permission } from '../../shared/user_auth';
   import { DialogSpec } from '../common/VariableDialog.svelte';
   import { flashMessage } from '../common/VariableFlash.svelte';
@@ -38,18 +39,13 @@
             {#if $userInfo.permissions & Permission.Admin}
               <TabSetSelector />
             {/if}
-            <div
+            <CircleIconButton
               class="login_info"
               on:click={showLoginInfo}
-              aria-label="Login information"
+              label="Login information"
             >
               i
-            </div>
-            <!-- <button
-            class="btn btn-minor login_info"
-            aria-label="Login information"
-            on:click={showLoginInfo}>i</button
-          > -->
+            </CircleIconButton>
             <button class="btn btn-major" on:click={logout}>Logout</button>
           {:else}
             <button class="btn btn-major" on:click={login}>Login</button>
@@ -91,34 +87,14 @@
   .user_menu :global(.btn-group) {
     margin-right: 0.4rem;
   }
-  // button.login_info {
-  //   margin-right: 0.4rem;
-  //   padding: 0 0.5rem;
-  //   font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter',
-  //     monospace;
-  //   font-weight: bold;
-  //   font-size: 1.2rem;
-  //   line-height: 1.7rem;
-  // }
 
-  .login_info {
-    display: inline-block;
+  :global(.login_info) {
     width: 1.8rem;
     height: 1.8rem;
     margin-right: 0.4rem;
-    border: 1px solid $blueLinkBackColor;
-    border-radius: 0.9rem;
-    color: $blueLinkBackColor;
     font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter',
       monospace;
     font-weight: bold;
     font-size: 1.2rem;
-    text-align: center;
-    vertical-align: middle;
-    cursor: pointer;
-  }
-  .login_info:hover {
-    color: $backgroundColor;
-    background-color: $blueLinkBackColor;
   }
 </style>
