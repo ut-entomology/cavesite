@@ -2,7 +2,10 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
   import InputGroupButton from '../components/InputGroupButton.svelte';
-  import SelectableTaxon from '../components/SelectableTaxon.svelte';
+  import SelectableTaxon, {
+    checkmarkIcon,
+    plusIcon
+  } from '../components/SelectableTaxon.svelte';
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
@@ -22,8 +25,6 @@
 		C89.719,0,0,89.719,0,200c0,110.281,89.719,200,200,200c37.762,0,72.984-10.711,103.148-28.973l126.914,126.91
 		C439.438,507.313,451.719,512,464,512c12.281,0,24.563-4.688,33.938-14.063C516.688,479.195,516.688,448.805,497.938,430.063z
 		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
-  const checkmarkIcon = '&#10003;';
-  const plusIcon = '+';
 
   let typedTaxon = '';
   let parentSpec: TaxonSpec;

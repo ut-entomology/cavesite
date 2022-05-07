@@ -1,11 +1,13 @@
+<script lang="ts" context="module">
+  export const checkmarkIcon = '&#10003;';
+  export const plusIcon = '+';
+</script>
+
 <script lang="ts">
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import type { TaxonSpec } from '../../shared/taxa';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
-
-  export const checkmarkIcon = '&#10003;';
-  export const plusIcon = '+';
 
   export let isSelection: boolean;
   export let spec: TaxonSpec;
