@@ -6,7 +6,6 @@
     checkmarkIcon,
     plusIcon
   } from '../components/SelectableTaxon.svelte';
-  import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   //  import { flashMessage } from '../common/VariableFlash.svelte';
