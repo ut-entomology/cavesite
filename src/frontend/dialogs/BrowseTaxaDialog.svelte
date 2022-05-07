@@ -2,6 +2,7 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
   import InputGroupButton from '../components/InputGroupButton.svelte';
+  import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
@@ -47,7 +48,10 @@
     allChildrenSelected = false;
     for (const containingSpec of containingSpecs) {
       const containingNode = $selectedTaxa?.nodesByTaxonUnique[containingSpec.unique];
-      if (allChildrenSelected || (containingNode && containingNode.children === null)) {
+      if (
+        allChildrenSelected ||
+        (containingNode && containingNode.children.length == 0)
+      ) {
         selectedAncestorUniques[containingSpec.unique] = true;
         allChildrenSelected = true;
       }
@@ -63,13 +67,11 @@
     await load();
   };
 
-  const addSelection = (spec: TaxonSpec) => {
-    $selectedTaxa!.addSelection(spec);
+  const addedSelection = () => {
     childSpecs = childSpecs; // redraw children
   };
 
-  const removeSelection = (spec: TaxonSpec) => {
-    $selectedTaxa!.removeTaxon(spec);
+  const removedSelection = () => {
     allChildrenSelected = false;
     childSpecs = childSpecs; // redraw children
   };
@@ -91,7 +93,7 @@
           <button class="btn btn-major" type="button" on:click={onClose}>Close</button>
         </div>
       </div>
-      <div class="row mt-3 mb-3 ancestors-row">
+      <div class="row mt-3 gx-2 mb-3 ancestors-row">
         <div class="col">
           {#each containingSpecs as spec, i}
             <div class="row mt-1">
@@ -114,36 +116,15 @@
       </div>
       {#each childSpecs as spec}
         {@const taxonNode = $selectedTaxa?.nodesByTaxonUnique[spec.unique]}
-        {@const isSelection =
-          allChildrenSelected || (taxonNode && taxonNode.children === null)}
         <div class="row mt-1 gx-3">
-          <div class="col-auto">
-            {#if isSelection}
-              <CircleIconButton
-                class="selection taxon_selector"
-                on:click={() => removeSelection(spec)}
-                label="Remove from selections"
-              >
-                <div>{@html checkmarkIcon}</div>
-              </CircleIconButton>
-            {:else}
-              <CircleIconButton
-                class="taxon_selector"
-                on:click={() => addSelection(spec)}
-                label="Add to selections"
-              >
-                <div>{@html plusIcon}</div>
-              </CircleIconButton>
-            {/if}
-          </div>
-          <div class="col">
-            <TaxonText
-              class={isSelection ? 'selection' : ''}
-              {spec}
-              clickable={!!spec.childCount}
-              onClick={() => gotoTaxon(spec.unique)}
-            />
-          </div>
+          <SelectableTaxon
+            isSelection={allChildrenSelected ||
+              (taxonNode && taxonNode.children.length == 0)}
+            {spec}
+            {gotoTaxon}
+            {addedSelection}
+            {removedSelection}
+          />
         </div>
       {/each}
       <div class="row info-row">
@@ -182,7 +163,7 @@
   }
 
   .ancestor_icon {
-    margin-right: 0.4rem;
+    margin-right: 0.7rem;
   }
 
   :global(.taxon_selector) {

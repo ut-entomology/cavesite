@@ -1,24 +1,13 @@
 <script lang="ts" context="module">
-  // External to this module, the taxa that this module ultimately selects are
-  // called "selected" taxa. Internal to the module, these are called "included"
-  // taxa, because "selected" taxa are those with checked checkboxes.
-
   import type { AxiosInstance } from 'axios';
 
   import { createSessionStore } from '../util/session_store';
-  import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
-  import {
-    InteractiveTreeFlags,
-    InteractiveTreeNode
-  } from '../components/InteractiveTree.svelte';
+  import { TaxonSpec, createTaxonSpecs, ROOT_TAXON } from '../../shared/taxa';
   import { client } from './client';
 
-  export const CONTAINS_INCLUDED_TAXA_FLAG = 1 << 15;
-  export const COLLECTED_LEAF_FLAG = 1 << 31;
-
-  export interface TaxonNode extends InteractiveTreeNode {
+  export interface TaxonNode {
     taxonSpec: TaxonSpec;
-    children: TaxonNode[] | null; // redefines children
+    children: TaxonNode[];
   }
 
   let currentClient: AxiosInstance;
@@ -39,7 +28,7 @@
       this.selectedUniques = selectedUniques;
     }
 
-    async load(): Promise<void> {
+    async init(): Promise<void> {
       if (this.rootNode == null && this.selectedUniques.length > 0) {
         const res = await currentClient.post('api/taxa/get_list', {
           taxonUniques: this.selectedUniques
@@ -55,32 +44,21 @@
 
       if (!this.rootNode) {
         const rootSpec = specs.shift()!;
-        this.rootNode = this._toDefaultNode(rootSpec);
+        this.rootNode = { taxonSpec: rootSpec, children: [] };
       }
       let node = this.rootNode;
       for (const spec of specs) {
         let nextNode = this.nodesByTaxonUnique[spec.unique];
         if (!nextNode) {
-          nextNode = this._toDefaultNode(spec);
-          if (node.children === null) {
-            node.children = [];
-            node.nodeFlags |= InteractiveTreeFlags.Expanded;
-          }
+          nextNode = { taxonSpec: spec, children: [] };
           node.children.push(nextNode);
           node = nextNode;
         } else if (nextNode.taxonSpec.unique == forSpec.unique) {
-          nextNode.children = null;
+          nextNode.children = [];
           break; // this is redundant but clarifies behavior
         }
       }
       this.save();
-    }
-
-    dropCheckedTaxa() {
-      if (this.rootNode) {
-        this._dropCheckedTaxa(this.rootNode);
-        this.save();
-      }
     }
 
     removeTaxon(spec: TaxonSpec): void {
@@ -91,10 +69,10 @@
       if (containingSpecs.length > 0) {
         const parentSpec = containingSpecs.pop()!;
         const parentNode = this.nodesByTaxonUnique[parentSpec.unique]!;
-        const childIndex = parentNode.children!.indexOf(node);
-        parentNode.children!.splice(childIndex, 1);
-        if (parentNode.children!.length == 0) {
-          parentNode.children = null;
+        const childIndex = parentNode.children.indexOf(node);
+        parentNode.children.splice(childIndex, 1);
+        if (parentNode.children.length == 0) {
+          parentNode.children = [];
         }
         this.save();
       }
@@ -112,42 +90,19 @@
 
     private _tallyNode(node: TaxonNode): void {
       const taxonUnique = node.taxonSpec.unique;
-      if (node.children === null) {
+      if (node.children.length == 0) {
         this.selectedUniques.push(taxonUnique);
       } else {
         node.children.forEach((child) => this._tallyNode(child));
       }
       this.nodesByTaxonUnique[taxonUnique] = node;
     }
-
-    private _toDefaultNode(spec: TaxonSpec): TaxonNode {
-      return {
-        taxonSpec: spec,
-        nodeFlags:
-          InteractiveTreeFlags.Selectable | InteractiveTreeFlags.IncludesDescendants,
-        children: null
-      };
-    }
-
-    private _dropCheckedTaxa(fromNode: TaxonNode) {
-      if (!fromNode.children) return;
-      let i = 0;
-      while (i < fromNode.children.length) {
-        const child = fromNode.children[i];
-        if (child.nodeFlags & InteractiveTreeFlags.Selected) {
-          fromNode.children.splice(i, 1);
-        } else {
-          this._dropCheckedTaxa(child);
-          ++i;
-        }
-      }
-    }
   }
 
-  export const selectedTaxa = createSessionStore<SelectedTaxa | null, string[]>(
+  export const selectedTaxa = createSessionStore<SelectedTaxa, string[]>(
     'selected_taxa',
-    null,
+    new SelectedTaxa([ROOT_TAXON]),
     (data) => new SelectedTaxa(data),
-    (value) => (value ? value.selectedUniques : [])
+    (value) => value.selectedUniques
   );
 </script>

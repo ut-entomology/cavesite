@@ -4,86 +4,18 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
-  import TaxonText from '../components/TaxonText.svelte';
+  import TaxonTree from '../components/TaxonTree.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
-  import { TaxonNode, SelectedTaxa, selectedTaxa } from '../stores/selectedTaxa.svelte';
-  import InteractiveTree, {
-    InteractiveTreeFlags
-  } from '../components/InteractiveTree.svelte';
-  import { showNotice } from '../common/VariableNotice.svelte';
+  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
   import { ROOT_TAXON } from '../../shared/taxa';
 
-  export let treeRoot: TaxonNode | null;
-  $: treeRoot = $selectedTaxa ? $selectedTaxa.rootNode : null;
+  const ITEM_LEFT_MARGIN = 1.5; // em
 
-  let rootChildrenComponents: SvelteComponent[] = [];
   let browseTaxonUnique: string | null = null;
-
-  onMount(async () => {
-    if ($selectedTaxa === null) {
-      $selectedTaxa = new SelectedTaxa([ROOT_TAXON]);
-    }
-    await $selectedTaxa!.load();
-  });
 
   const openTaxonBrowser = (taxonUnique: string) => {
     browseTaxonUnique = taxonUnique;
   };
-
-  function treeIncludesSelections(node: TaxonNode): boolean {
-    if (node.nodeFlags & InteractiveTreeFlags.Selected) return true;
-    if (node.children) {
-      for (const child of node.children) {
-        if (treeIncludesSelections(child)) return true;
-      }
-    }
-    return false;
-  }
-
-  function collapseAll() {
-    if (treeRoot && treeRoot.children) {
-      for (const treeRootChildComponent of rootChildrenComponents) {
-        treeRootChildComponent.setExpansion(() => false);
-      }
-    }
-  }
-
-  function deselectAll() {
-    if (treeRoot && treeRoot.children) {
-      for (const treeRootChildComponent of rootChildrenComponents) {
-        treeRootChildComponent.deselectAll();
-      }
-    }
-  }
-
-  function expandAll() {
-    if (treeRoot && treeRoot.children) {
-      for (const treeRootChildComponent of rootChildrenComponents) {
-        treeRootChildComponent.setExpansion(() => true);
-      }
-    }
-  }
-
-  function removeCheckedTaxa() {
-    if (
-      $selectedTaxa &&
-      $selectedTaxa.rootNode &&
-      treeIncludesSelections($selectedTaxa.rootNode)
-    ) {
-      $selectedTaxa.dropCheckedTaxa();
-      $selectedTaxa.save();
-    } else {
-      showNotice({ message: 'No taxa selected.', header: 'FAILED', alert: 'warning' });
-    }
-  }
-
-  function selectAll() {
-    if (treeRoot && treeRoot.children) {
-      for (const treeRootChildComponent of rootChildrenComponents) {
-        treeRootChildComponent.setSelection(true);
-      }
-    }
-  }
 </script>
 
 <DataTabRoute activeTab="Taxa">
@@ -99,38 +31,21 @@
           on:click={() => openTaxonBrowser(ROOT_TAXON)}>Browse Taxa</button
         >
       </span>
-      <span slot="work-buttons">
-        <div class="col-auto">
-          <button class="btn btn-minor compact" type="button" on:click={expandAll}
-            >Expand All</button
-          >
-          <button class="btn btn-minor compact" type="button" on:click={collapseAll}
-            >Collapse All</button
-          >
-          <button class="btn btn-minor compact" type="button" on:click={selectAll}
-            >Check All</button
-          >
-          <button class="btn btn-minor compact" type="button" on:click={deselectAll}
-            >Uncheck All</button
-          >
-          <button
-            class="btn btn-minor compact"
-            type="button"
-            on:click={removeCheckedTaxa}>Remove Checked Taxa</button
-          >
-        </div>
-      </span>
     </TabHeader>
 
     <div class="tree_area">
-      {#if !treeRoot || !treeRoot.children}
-        <EmptyTab message="No taxa selected" />
+      {#if !$selectedTaxa || !$selectedTaxa.rootNode}
+        <EmptyTab message="Loading..." />
       {:else}
-        {#each treeRoot.children as child, i}
-          <InteractiveTree bind:this={rootChildrenComponents[i]} tree={child} let:tree>
-            <TaxonText spec={tree.taxonSpec} />
-          </InteractiveTree>
-        {/each}
+        <div class="container gx-1">
+          <TaxonTree
+            indent={ITEM_LEFT_MARGIN}
+            node={$selectedTaxa.rootNode}
+            gotoTaxon={async (unique) => openTaxonBrowser(unique)}
+            addedSelection={() => {}}
+            removedSelection={() => {}}
+          />
+        </div>
       {/if}
     </div>
   </div>
@@ -171,5 +86,9 @@
   }
   :global(.tree_area) :global(span) {
     font-weight: bold;
+  }
+
+  :global(.tree_area .taxon_level) {
+    margin-top: 0.5rem;
   }
 </style>

@@ -6,6 +6,7 @@
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
   import { globalDialog } from './stores/globalDialog.svelte';
+  import { selectedTaxa } from './stores/selectedTaxa.svelte';
   import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
@@ -21,6 +22,8 @@
   import { DialogSpec } from './common/VariableDialog.svelte';
   import { showNotice } from './common/VariableNotice.svelte';
   import { logoutUser } from './util/user_util';
+
+  // TODO: Move async init to #await, showing errors
 
   // Initialize session refresh.
 
@@ -55,6 +58,10 @@
       window.location.href = '/';
     }
   });
+
+  // Initialize stores.
+
+  $selectedTaxa.init();
 
   // Initialize client-side routes.
 
