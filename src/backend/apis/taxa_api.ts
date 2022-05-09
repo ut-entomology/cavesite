@@ -8,7 +8,7 @@ import { TaxonSpec } from '../../shared/taxa';
 export const router = Router();
 
 router.post('/get_children', async (req: Request, res) => {
-  const parentUniques = req.body.parentUnique;
+  const parentUniques = req.body.parentUniques;
   if (!Array.isArray(parentUniques) || parentUniques.length > 10) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
