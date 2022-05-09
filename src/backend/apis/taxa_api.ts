@@ -8,14 +8,19 @@ import { TaxonSpec } from '../../shared/taxa';
 export const router = Router();
 
 router.post('/get_children', async (req: Request, res) => {
-  const parentUnique = req.body.parentUnique;
-  if (typeof parentUnique != 'string' || parentUnique.length > 100) {
+  const parentUniques = req.body.parentUnique;
+  if (!Array.isArray(parentUniques) || parentUniques.length > 10) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  const taxa = await Taxon.getChildrenOf(getDB(), parentUnique);
+  for (const parentUnique of parentUniques) {
+    if (typeof parentUnique != 'string' || parentUnique.length > 100) {
+      return res.status(StatusCodes.BAD_REQUEST).send();
+    }
+  }
+  const taxa = await Taxon.getChildrenOf(getDB(), parentUniques);
   return res
     .status(StatusCodes.OK)
-    .send({ taxonSpecs: taxa.map((t) => _toTaxonInfo(t)) });
+    .send({ taxonSpecs: taxa.map((ts) => ts.map((t) => _toTaxonInfo(t))) });
 });
 
 router.post('/get_list', async (req: Request, res) => {
