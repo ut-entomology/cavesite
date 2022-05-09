@@ -393,21 +393,31 @@ test('sequentially dependent taxa tests', async () => {
   // test getting children of parent by parent name
 
   {
-    let readTaxa = await Taxon.getChildrenOf(db, 'Animalia');
-    findTaxonNames(readTaxa, ['Arthropoda', 'Chordata']);
-    readTaxa.forEach((t) => expect(t.childCount).toEqual(1));
+    let readTaxa = await Taxon.getChildrenOf(db, ['Animalia']);
+    expect(readTaxa.length).toEqual(1);
+    findTaxonNames(readTaxa[0], ['Arthropoda', 'Chordata']);
+    readTaxa[0].forEach((t) => expect(t.childCount).toEqual(1));
 
-    readTaxa = await Taxon.getChildrenOf(db, 'Arachnida');
-    findTaxonNames(readTaxa, ['Araneae']);
-    readTaxa.forEach((t) => expect(t.childCount).toEqual(2));
+    readTaxa = await Taxon.getChildrenOf(db, ['Arachnida']);
+    expect(readTaxa.length).toEqual(1);
+    findTaxonNames(readTaxa[0], ['Araneae']);
+    readTaxa[0].forEach((t) => expect(t.childCount).toEqual(2));
 
-    const taxaNames = ['Thomisidae', 'Philodromidae'];
-    readTaxa = await Taxon.getChildrenOf(db, 'Araneae');
-    findTaxonNames(readTaxa, taxaNames);
-    readTaxa.forEach((t) => expect(t.childCount).toEqual(1));
+    readTaxa = await Taxon.getChildrenOf(db, ['Araneae']);
+    expect(readTaxa.length).toEqual(1);
+    findTaxonNames(readTaxa[0], ['Thomisidae', 'Philodromidae']);
+    readTaxa[0].forEach((t) => expect(t.childCount).toEqual(1));
 
-    readTaxa = await Taxon.getChildrenOf(db, 'not there');
-    findTaxonNames(readTaxa, []);
+    readTaxa = await Taxon.getChildrenOf(db, ['Animalia', 'Araneae']);
+    expect(readTaxa.length).toEqual(2);
+    findTaxonNames(readTaxa[0], ['Arthropoda', 'Chordata']);
+    readTaxa[0].forEach((t) => expect(t.childCount).toEqual(1));
+    findTaxonNames(readTaxa[1], ['Thomisidae', 'Philodromidae']);
+    readTaxa[1].forEach((t) => expect(t.childCount).toEqual(1));
+
+    readTaxa = await Taxon.getChildrenOf(db, ['not there']);
+    expect(readTaxa.length).toEqual(1);
+    expect(readTaxa[0].length).toEqual(0);
   }
 
   // test replacing existing records

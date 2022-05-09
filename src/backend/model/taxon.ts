@@ -143,13 +143,17 @@ export class Taxon {
     return result.rows.map((row) => new Taxon(toCamelRow(row)));
   }
 
-  static async getChildrenOf(db: DB, parentUniqueName: string): Promise<Taxon[]> {
-    const result = await db.query(
-      `select x.*, ${childCountSql} from taxa x join taxa p on x.parent_id = p.taxon_id and
-         p.unique_name=$1 and p.committed=true`,
-      [parentUniqueName]
-    );
-    return result.rows.map((row) => new Taxon(toCamelRow(row)));
+  static async getChildrenOf(db: DB, parentUniqueNames: string[]): Promise<Taxon[][]> {
+    const childrenPerParent: Taxon[][] = [];
+    for (const uniqueName of parentUniqueNames) {
+      const result = await db.query(
+        `select x.*, ${childCountSql} from taxa x join taxa p on x.parent_id = p.taxon_id and
+          p.unique_name=$1 and p.committed=true`,
+        [uniqueName]
+      );
+      childrenPerParent.push(result.rows.map((row) => new Taxon(toCamelRow(row))));
+    }
+    return childrenPerParent;
   }
 
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
