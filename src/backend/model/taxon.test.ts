@@ -415,6 +415,10 @@ test('sequentially dependent taxa tests', async () => {
     findTaxonNames(readTaxa[1], ['Thomisidae', 'Philodromidae']);
     readTaxa[1].forEach((t) => expect(t.childCount).toEqual(1));
 
+    readTaxa = await Taxon.getChildrenOf(db, ['Eurycea rathbuni']);
+    expect(readTaxa.length).toEqual(1);
+    expect(readTaxa[0].length).toEqual(0);
+
     readTaxa = await Taxon.getChildrenOf(db, ['not there']);
     expect(readTaxa.length).toEqual(1);
     expect(readTaxa[0].length).toEqual(0);
