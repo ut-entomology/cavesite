@@ -29,7 +29,7 @@ export interface TaxonSpec {
   unique: string;
   author: string | null;
   containingNames: string;
-  childCount: number | null; // null => count unknown
+  hasChildren: boolean | null; // null => count unknown
 }
 
 export function createTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
@@ -50,7 +50,7 @@ export function createTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
       unique: uniqueName,
       author: null,
       containingNames,
-      childCount: null
+      hasChildren: true
     });
     if (containingNames == '') {
       containingNames = containingName; // necessarily kingdom

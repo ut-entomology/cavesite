@@ -48,7 +48,7 @@
   <TaxonText
     class={isSelection ? 'selection' : ''}
     {spec}
-    clickable={!!spec.childCount}
+    clickable={spec.hasChildren || false}
     onClick={() => gotoTaxon(spec.unique)}
   />
 </div>

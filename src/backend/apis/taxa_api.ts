@@ -46,6 +46,6 @@ function _toTaxonInfo(taxon: Taxon): TaxonSpec {
     unique: taxon.uniqueName,
     author: taxon.author,
     containingNames: taxon.containingNames,
-    childCount: taxon.childCount
+    hasChildren: taxon.hasChildren
   };
 }

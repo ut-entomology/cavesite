@@ -40,7 +40,7 @@ export class Taxon {
   parentID: number | null;
   containingIDs: string;
   containingNames: string;
-  childCount: number | null; // null => count not known
+  hasChildren: boolean | null; // null => unknown
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -53,7 +53,7 @@ export class Taxon {
     this.parentID = data.parentID;
     this.containingIDs = data.containingIDs;
     this.containingNames = data.containingNames;
-    this.childCount = data.childCount ? parseInt(data.childCount as any) : null;
+    this.hasChildren = data.hasChildren;
   }
 
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
@@ -129,7 +129,7 @@ export class Taxon {
 
   static async getByID(db: DB, taxonID: number): Promise<Taxon | null> {
     const result = await db.query(`select * from taxa where taxon_id=$1`, [taxonID]);
-    return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
+    return result.rows.length > 0 ? new Taxon(_toTaxonData(result.rows[0])) : null;
   }
 
   static async getByUniqueNames(db: DB, names: string[]): Promise<Taxon[]> {
@@ -140,7 +140,7 @@ export class Taxon {
         names
       ]
     );
-    return result.rows.map((row) => new Taxon(toCamelRow(row)));
+    return result.rows.map((row) => new Taxon(_toTaxonData(row)));
   }
 
   static async getChildrenOf(db: DB, parentUniqueNames: string[]): Promise<Taxon[][]> {
@@ -151,7 +151,7 @@ export class Taxon {
           p.unique_name=$1 and p.committed=true`,
         [uniqueName]
       );
-      childrenPerParent.push(result.rows.map((row) => new Taxon(toCamelRow(row))));
+      childrenPerParent.push(result.rows.map((row) => new Taxon(_toTaxonData(row))));
     }
     return childrenPerParent;
   }
@@ -177,7 +177,7 @@ export class Taxon {
       return taxon;
     }
 
-    // Ccreate specs for all containing taxa and the taxon itself.
+    // Create specs for all containing taxa and the taxon itself.
 
     const spec: TaxonSpec = {
       rank: taxonRank,
@@ -185,7 +185,7 @@ export class Taxon {
       unique: '',
       author: Taxon._extractAuthor(source.scientificName),
       containingNames,
-      childCount: null
+      hasChildren: null
     };
     const specs = createTaxonSpecs(spec);
     specs.push(spec);
@@ -201,7 +201,7 @@ export class Taxon {
         order by taxon_name`,
       [`%${partialName}%`]
     );
-    return result.rows.map((row) => new Taxon(toCamelRow(row)));
+    return result.rows.map((row) => new Taxon(_toTaxonData(row)));
   }
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
@@ -228,7 +228,7 @@ export class Taxon {
         uniqueName: spec.unique,
         author: spec.author,
         parentID: taxon?.taxonID || null,
-        childCount: spec.childCount || null
+        hasChildren: spec.hasChildren || null
       });
     }
     return taxon!;
@@ -244,7 +244,7 @@ export class Taxon {
         and committed=false`,
       [containingNames, taxonName]
     );
-    return result.rows.length > 0 ? new Taxon(toCamelRow(result.rows[0])) : null;
+    return result.rows.length > 0 ? new Taxon(_toTaxonData(result.rows[0])) : null;
   }
 
   private static async _getClosestTaxon(
@@ -318,4 +318,12 @@ export class Taxon {
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     return [taxonNames, taxonRank];
   }
+}
+
+function _toTaxonData(row: any): TaxonData {
+  const childCount: number | null = row.child_count;
+  if (childCount) delete row['child_count'];
+  const data: any = toCamelRow(row);
+  data.hasChildren = childCount ? childCount > 0 : null;
+  return data;
 }
