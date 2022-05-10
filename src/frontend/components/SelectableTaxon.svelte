@@ -7,10 +7,11 @@
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import type { TaxonSpec } from '../../shared/taxa';
-  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import { ContainingTaxon, selectedTaxa } from '../stores/selectedTaxa.svelte';
 
   export let isSelection: boolean;
   export let spec: TaxonSpec;
+  export let containingTaxa: ContainingTaxon[] | null = null;
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
   export let addedSelection: () => void;
   export let removedSelection: () => void;
@@ -21,7 +22,7 @@
   };
 
   const removeSelection = (spec: TaxonSpec) => {
-    $selectedTaxa!.removeTaxon(spec);
+    $selectedTaxa!.removeSelection(spec, containingTaxa);
     removedSelection();
   };
 </script>

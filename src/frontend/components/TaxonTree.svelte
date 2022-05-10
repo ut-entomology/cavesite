@@ -2,7 +2,6 @@
   import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import type { TaxonNode } from '../stores/selectedTaxa.svelte';
 
-  export let indent: number; // em to indent children
   export let node: TaxonNode;
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
   export let addedSelection: () => void;
@@ -20,14 +19,18 @@
     {removedSelection}
   />
   {#each node.children as childNode}
-    <div class="taxon-level" style="left-margin: {indent}em">
-      <svelte:self
-        {indent}
-        node={childNode}
-        {gotoTaxon}
-        {addedSelection}
-        {removedSelection}
-      />
+    <div class="taxon-level">
+      <svelte:self node={childNode} {gotoTaxon} {addedSelection} {removedSelection} />
     </div>
   {/each}
 </div>
+
+<style>
+  .taxon-level .taxon-level {
+    margin-left: 1rem;
+  }
+
+  :global(.taxon-level .taxon-row) {
+    margin-top: 0.25rem;
+  }
+</style>

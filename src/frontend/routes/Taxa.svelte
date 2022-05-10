@@ -9,8 +9,6 @@
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
   import { ROOT_TAXON } from '../../shared/taxa';
 
-  const ITEM_LEFT_MARGIN = 1.5; // em
-
   let browseTaxonUnique: string | null = null;
 
   const openTaxonBrowser = (taxonUnique: string) => {
@@ -35,11 +33,10 @@
 
     <div class="tree_area">
       {#if !$selectedTaxa || !$selectedTaxa.rootNode}
-        <EmptyTab message="Loading..." />
+        <EmptyTab message="No taxa selected" />
       {:else}
-        <div class="container gx-1">
+        <div class="container-fluid gx-1">
           <TaxonTree
-            indent={ITEM_LEFT_MARGIN}
             node={$selectedTaxa.rootNode}
             gotoTaxon={async (unique) => openTaxonBrowser(unique)}
             addedSelection={() => {}}
@@ -64,31 +61,5 @@
 <style>
   :global(.tree_area) {
     margin-top: 1.5rem;
-    margin-left: -1.3em;
-  }
-  :global(.tree_area) :global(.tree_node) {
-    margin: 0.3em 0 0 1.5em;
-  }
-  :global(.tree_area) :global(.bullet) {
-    width: 1em;
-    padding-left: 0.1em;
-    opacity: 0.6;
-  }
-  :global(.tree_area) :global(.bullet.selectable) {
-    padding-left: 0;
-    opacity: 1;
-  }
-  :global(.tree_area) :global(input) {
-    margin-right: 0.3em;
-  }
-  :global(.tree_area) :global(.checkbox) {
-    vertical-align: middle;
-  }
-  :global(.tree_area) :global(span) {
-    font-weight: bold;
-  }
-
-  :global(.tree_area .taxon_level) {
-    margin-top: 0.5rem;
   }
 </style>

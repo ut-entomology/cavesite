@@ -2,7 +2,7 @@
   import router from 'page';
   import { type SvelteComponent, onMount } from 'svelte';
 
-  import { client } from './stores/client';
+  import { client, errorReason } from './stores/client';
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
   import { globalDialog } from './stores/globalDialog.svelte';
@@ -19,49 +19,10 @@
   import Logs from './routes/admin/Logs.svelte';
   import Schedule from './routes/admin/Schedule.svelte';
   import NotFound from './routes/NotFound.svelte';
+  import Notice from './common/Notice.svelte';
   import { DialogSpec } from './common/VariableDialog.svelte';
   import { showNotice } from './common/VariableNotice.svelte';
   import { logoutUser } from './util/user_util';
-
-  // TODO: Move async init to #await, showing errors
-
-  // Initialize session refresh.
-
-  initRefresher({
-    refreshMillis: 5 * 60 * 1000 /* 5 minutes */,
-    onRefresh: async () => {
-      try {
-        const res = await $client.post('/api/auth/refresh');
-        return res.data.expiration;
-      } catch (err: any) {
-        return 0;
-      }
-    },
-    onWarning: () => {
-      showNotice({
-        message: 'Your login session is about to expire.',
-        header: 'WARNING',
-        alert: 'warning',
-        button: 'Continue',
-        onClose: async () => {
-          try {
-            const res = await $client.post('/api/auth/refresh');
-            setExpiration(res.data.expiration);
-          } catch (err: any) {
-            // ignore
-          }
-        }
-      });
-    },
-    onExpiration: async () => {
-      logoutUser(false);
-      window.location.href = '/';
-    }
-  });
-
-  // Initialize stores.
-
-  $selectedTaxa.init();
 
   // Initialize client-side routes.
 
@@ -94,7 +55,7 @@
   }
   router.start();
 
-  async function connect() {
+  async function prepare() {
     // Get app information and re-establish any prior login.
 
     const res = await $client.post('/api/auth/connect');
@@ -117,6 +78,44 @@
       await logoutUser(true);
       router('/' + toResetQueryStr(resetParams.email, resetParams.resetCode));
     }
+
+    // Initialize session refresh.
+
+    initRefresher({
+      refreshMillis: 5 * 60 * 1000 /* 5 minutes */,
+      onRefresh: async () => {
+        try {
+          const res = await $client.post('/api/auth/refresh');
+          return res.data.expiration;
+        } catch (err: any) {
+          return 0;
+        }
+      },
+      onWarning: () => {
+        showNotice({
+          message: 'Your login session is about to expire.',
+          header: 'WARNING',
+          alert: 'warning',
+          button: 'Continue',
+          onClose: async () => {
+            try {
+              const res = await $client.post('/api/auth/refresh');
+              setExpiration(res.data.expiration);
+            } catch (err: any) {
+              // ignore
+            }
+          }
+        });
+      },
+      onExpiration: async () => {
+        logoutUser(false);
+        window.location.href = '/';
+      }
+    });
+
+    // Initialize stores.
+
+    await $selectedTaxa.init();
   }
 
   onMount(() => {
@@ -141,7 +140,7 @@
   }
 </script>
 
-{#await connect() then}
+{#await prepare() then}
   {#if pageComponent !== NotFound}
     <Layout>
       {#if params.length > 0}
@@ -154,8 +153,8 @@
     <svelte:component this={pageComponent} />
   {/if}
 {:catch err}
-  Unable to connect to server.
-  <br />{err}
+  {@const message = err.response ? errorReason(err.response) : err.message}
+  <Notice header="ERROR" alert="danger" {message} on:close={() => {}} />
 {/await}
 
 <style lang="scss" global>
