@@ -142,7 +142,7 @@
                 <TaxonText
                   {spec}
                   class={selectedAncestorUniques[spec.unique] ? 'selection' : ''}
-                  clickable={spec.hasChildren || false}
+                  clickable={spec.unique != parentUnique && (spec.hasChildren || false)}
                   onClick={() => gotoTaxon(spec.unique)}
                 />
               </div>

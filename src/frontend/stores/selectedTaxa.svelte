@@ -49,7 +49,7 @@
       specs.push(forSpec); // specs won't be empty
 
       const rootSpec = specs.shift()!;
-      if (!this.rootNode) {
+      if (!this.rootNode || specs.length == 0) {
         this.rootNode = { taxonSpec: rootSpec, children: [] };
       }
       let node = this.rootNode;
@@ -118,12 +118,12 @@
           }
           ++i;
         }
+      }
 
-        // If no taxa remain selected, select the root taxon.
+      // If no taxa remain selected, select the root taxon.
 
-        if (selectedSpecs.length == 0) {
-          selectedSpecs.push(containingTaxa[0].spec);
-        }
+      if (selectedSpecs.length == 0) {
+        selectedSpecs.push(this.rootNode!.taxonSpec);
       }
 
       // Regerate the tree of selected taxa and persist the newly selected taxa.

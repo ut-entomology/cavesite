@@ -18,7 +18,7 @@
     {addedSelection}
     {removedSelection}
   />
-  {#each node.children as childNode}
+  {#each node.children as childNode (childNode.taxonSpec.unique)}
     <div class="taxon-level">
       <svelte:self node={childNode} {gotoTaxon} {addedSelection} {removedSelection} />
     </div>
