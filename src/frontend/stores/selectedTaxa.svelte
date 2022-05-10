@@ -151,6 +151,9 @@
         this.selectedUniques.push(taxonUnique);
         this.selectedSpecByUnique[taxonUnique] = node.taxonSpec;
       } else {
+        node.children.sort((c1, c2) =>
+          c1.taxonSpec.unique < c2.taxonSpec.unique ? -1 : 1
+        );
         node.children.forEach((child) => this._tallyNode(child));
       }
     }
