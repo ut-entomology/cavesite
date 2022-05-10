@@ -82,15 +82,7 @@
 
     // Determine which ancestor taxa have been selected, if any.
 
-    selectedAncestorUniques = {};
-    allChildrenSelected = false;
-    for (const containingTaxon of containingTaxa) {
-      const spec = containingTaxon.spec;
-      if (allChildrenSelected || $selectedTaxa.selectedSpecByUnique[spec.unique]) {
-        selectedAncestorUniques[spec.unique] = true;
-        allChildrenSelected = true;
-      }
-    }
+    _determineAncestorSelections();
   }
 
   const loadTypedTaxon = () => {
@@ -108,8 +100,21 @@
 
   const removedSelection = () => {
     allChildrenSelected = false;
+    _determineAncestorSelections();
     childSpecs = childSpecs; // redraw children
   };
+
+  function _determineAncestorSelections() {
+    selectedAncestorUniques = {};
+    allChildrenSelected = false;
+    for (const containingTaxon of containingTaxa) {
+      const spec = containingTaxon.spec;
+      if (allChildrenSelected || $selectedTaxa.selectedSpecByUnique[spec.unique]) {
+        selectedAncestorUniques[spec.unique] = true;
+        allChildrenSelected = true;
+      }
+    }
+  }
 </script>
 
 {#await prepare() then}
@@ -150,7 +155,7 @@
           {/each}
         </div>
       </div>
-      {#each childSpecs as spec}
+      {#each childSpecs as spec (spec.unique)}
         <div class="row mt-1 gx-3">
           <SelectableTaxon
             isSelection={allChildrenSelected ||
