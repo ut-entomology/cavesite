@@ -7,7 +7,7 @@
   export let clickable = false;
   export let onClick: (() => Promise<void>) | null = null;
 
-  let italic = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(
+  const italic = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(
     spec.rank
   );
 </script>
@@ -20,7 +20,7 @@
     <span class="taxon-name clickable" class:italic on:click={onClick}>{spec.name}</span
     >
   {:else}
-    <span class="taxon-name" class:italic>{spec.name}</span>
+    <span class="taxon-name" class:italic>{spec.unique}</span>
   {/if}
   {#if spec.author}
     <span class="taxon-author">{spec.author}</span>
