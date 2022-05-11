@@ -21,18 +21,19 @@ export interface TreeNode<S extends Spec> {
 
 export abstract class SelectionsTree<S extends Spec> {
   private _rootNode: TreeNode<S> | null = null;
-  private _selectionsByUnique: Record<string, boolean> = {};
   private _selectedUniques: string[] | null = null;
+  private _selectionsByUnique: Record<string, boolean> = {};
 
   constructor(selectedSpecs: S[]) {
     selectedSpecs.forEach((spec) => this.addSelection(spec, false));
     if (this._rootNode) this._sortChildNodes(this._rootNode);
+    this._setDerivedValues();
   }
 
-  abstract createContainingSpecs(forSpec: S): S[];
+  abstract getContainingSpecs(forSpec: S): S[];
 
-  addSelection(forSpec: S, resort: boolean): void {
-    const specs = this.createContainingSpecs(forSpec);
+  addSelection(forSpec: S, resort: boolean = true): void {
+    const specs = this.getContainingSpecs(forSpec).slice();
     specs.push(forSpec); // now specs won't be empty
 
     const rootSpec = specs.shift()!;
@@ -47,13 +48,12 @@ export abstract class SelectionsTree<S extends Spec> {
         node.children.push(nextNode);
         if (resort) node.children.sort(this._nodeSorter);
       } else if (nextNode.spec.unique == forSpec.unique) {
-        nextNode.children.forEach((child) => this._removeSelections(child));
         nextNode.children = []; // childless nodes are the selections
         break; // this is redundant but clarifies behavior
       }
       node = nextNode;
     }
-    this._selectionsByUnique[forSpec.unique] = true;
+
     this._selectedUniques = null; // invalidate cached selections
   }
 
@@ -62,19 +62,19 @@ export abstract class SelectionsTree<S extends Spec> {
   }
 
   getSelections(): string[] {
-    if (this._selectedUniques === null) {
-      this._selectedUniques = Object.keys(this._selectionsByUnique);
-    }
-    return this._selectedUniques;
+    this._setDerivedValues();
+    return this._selectedUniques!;
   }
 
   isSelected(unique: string): boolean {
+    this._setDerivedValues();
     return this._selectionsByUnique[unique] || false;
   }
 
   removeSelection(pathToSpec: PathEntry<S>[]): void {
     // Walk the selection tree as close to the to-be-removed entity as possible.
 
+    let parentNode: TreeNode<S> | null = null;
     let node = this._rootNode; // deepest matching node
     if (!node) throw Error('Attempted to remove from an empty set of selections');
     let nextNode: TreeNode<S> | null = node; // next node whose children are to be examined
@@ -88,6 +88,7 @@ export abstract class SelectionsTree<S extends Spec> {
         const nextUnique = pathToSpec[pathIndex].spec.unique;
         nextNode =
           node.children.find((child) => child.spec.unique == nextUnique) || null;
+        parentNode = node;
       }
     }
     if (node.children.length > 0) {
@@ -97,10 +98,11 @@ export abstract class SelectionsTree<S extends Spec> {
     // If we walked the entire path, remove the entity for the last node of the path.
 
     if (pathIndex == pathToSpec.length) {
-      delete this._selectionsByUnique[node.spec.unique];
-      if (pathIndex == 1) {
+      if (parentNode === null) {
         this._rootNode = null;
-        this._selectionsByUnique = {};
+      } else {
+        const nodeIndex = parentNode.children.indexOf(node);
+        parentNode.children.splice(nodeIndex, 1);
       }
     }
 
@@ -117,8 +119,6 @@ export abstract class SelectionsTree<S extends Spec> {
           node.children.push(childNode);
           if (child.unique == nextDeeperUnique) {
             nextNode = childNode;
-          } else {
-            this._selectionsByUnique[child.unique] = true;
           }
         }
         node.children.sort(this._nodeSorter);
@@ -133,13 +133,28 @@ export abstract class SelectionsTree<S extends Spec> {
     return n1.spec.unique < n2.spec.unique ? -1 : 1;
   }
 
-  private _removeSelections(node: TreeNode<S>): void {
-    delete this._selectionsByUnique[node.spec.unique];
-    node.children.forEach((child) => this._removeSelections(child));
+  private _setDerivedValues() {
+    if (this._selectedUniques === null) {
+      this._selectedUniques = [];
+      this._selectionsByUnique = {};
+      if (this._rootNode) {
+        this._tallyNode(this._rootNode);
+      }
+    }
   }
 
   private _sortChildNodes(node: TreeNode<S>): void {
     node.children.sort(this._nodeSorter);
     node.children.forEach((child) => this._sortChildNodes(child));
+  }
+
+  private _tallyNode(node: TreeNode<S>): void {
+    if (node.children.length == 0) {
+      const unique = node.spec.unique;
+      this._selectedUniques!.push(unique);
+      this._selectionsByUnique[unique] = true;
+    } else {
+      node.children.forEach((child) => this._tallyNode(child));
+    }
   }
 }
