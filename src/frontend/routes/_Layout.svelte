@@ -18,6 +18,10 @@
 <style lang="scss" global>
   @import '../variables.scss';
 
+  :global(body) {
+    background-color: $backgroundColor;
+  }
+
   .page {
     height: 100vh;
     display: flex;
@@ -25,6 +29,5 @@
     padding: 0.2rem 1.5rem 0 1.5rem;
     margin: 0 auto;
     max-width: 1024px;
-    background-color: $backgroundColor;
   }
 </style>
