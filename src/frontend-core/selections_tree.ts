@@ -77,7 +77,7 @@ export abstract class SelectionsTree<S extends Spec> {
     if (containingSpecs.length == 0) {
       this._rootNode = null;
     } else {
-      this._removeFromNode(this._rootNode, containingSpecs, spec);
+      this._removeFromNode(this._rootNode, containingSpecs, spec, false);
       if (this._rootNode.children.length == 0) {
         this._rootNode = null;
       }
@@ -85,29 +85,37 @@ export abstract class SelectionsTree<S extends Spec> {
     this._selectedUniques = null; // invalidate cached selections
   }
 
+  private _addImpliedChildren(
+    fromNode: TreeNode<S>,
+    parentSpec: SpecEntry<S>,
+    childSpec: S
+  ) {
+    const childUnique = childSpec.unique;
+    for (const childSpec of parentSpec.children) {
+      if (childSpec.unique != childUnique) {
+        fromNode.children.push({ spec: childSpec, children: [] });
+      }
+    }
+    fromNode.children.sort();
+  }
+
   private _nodeSorter(n1: TreeNode<S>, n2: TreeNode<S>) {
     return n1.spec.unique < n2.spec.unique ? -1 : 1;
   }
 
-  private _removeChild(fromNode: TreeNode<S>, parentSpec: SpecEntry<S>, childSpec: S) {
+  private _removeChild(fromNode: TreeNode<S>, childSpec: S) {
     const childUnique = childSpec.unique;
     const childIndex = fromNode.children.findIndex((c) => c.spec.unique == childUnique);
     if (childIndex >= 0) {
       fromNode.children.splice(childIndex, 1);
-    } else {
-      for (const childSpec of parentSpec.children) {
-        if (childSpec.unique != childUnique) {
-          fromNode.children.push({ spec: childSpec, children: [] });
-        }
-      }
-      fromNode.children.sort();
     }
   }
 
   private _removeFromNode(
     containingNode: TreeNode<S>,
     containingSpecs: SpecEntry<S>[],
-    specToRemove: S
+    specToRemove: S,
+    impliedChildren: boolean
   ): void {
     const containingSpec = containingSpecs.shift()!;
 
@@ -119,12 +127,23 @@ export abstract class SelectionsTree<S extends Spec> {
         childNode = { spec: childSpec, children: [] };
         containingNode.children.push(childNode);
       }
-      this._removeFromNode(childNode, containingSpecs, specToRemove);
+      this._removeFromNode(
+        childNode,
+        containingSpecs,
+        specToRemove,
+        childNode.children.length == 0
+      );
       if (childNode.children.length == 0) {
-        this._removeChild(containingNode, containingSpec, childSpec);
+        this._removeChild(containingNode, childSpec);
+      }
+      if (impliedChildren) {
+        this._addImpliedChildren(containingNode, containingSpec, childSpec);
       }
     } else {
-      this._removeChild(containingNode, containingSpec, specToRemove);
+      this._removeChild(containingNode, specToRemove);
+      if (impliedChildren) {
+        this._addImpliedChildren(containingNode, containingSpec, specToRemove);
+      }
     }
   }
 
