@@ -7,22 +7,27 @@
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import type { TaxonSpec } from '../../shared/taxa';
-  import { ContainingTaxon, selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import type { SpecEntry } from '../../frontend-core/selections_tree';
+  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
+  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
   export let isSelection: boolean;
   export let spec: TaxonSpec;
-  export let containingTaxa: ContainingTaxon[] | null = null;
+  export let containingTaxa: SpecEntry<TaxonSpec>[];
+  export let selectionsTree: TaxonSelectionsTree;
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
   export let addedSelection: () => void;
   export let removedSelection: () => void;
 
   const addSelection = (spec: TaxonSpec) => {
-    $selectedTaxa!.addSelection(spec);
+    selectionsTree.addSelection(spec, true);
+    selectedTaxa.set(selectionsTree.getSelectionSpecs());
     addedSelection();
   };
 
   const removeSelection = (spec: TaxonSpec) => {
-    $selectedTaxa!.removeSelection(spec, containingTaxa);
+    selectionsTree.removeSelection(containingTaxa, spec);
+    selectedTaxa.set(selectionsTree.getSelectionSpecs());
     removedSelection();
   };
 </script>

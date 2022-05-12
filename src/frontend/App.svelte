@@ -112,10 +112,6 @@
         window.location.href = '/';
       }
     });
-
-    // Initialize stores.
-
-    await $selectedTaxa.init();
   }
 
   onMount(() => {

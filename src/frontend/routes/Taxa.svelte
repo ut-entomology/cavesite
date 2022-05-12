@@ -1,15 +1,22 @@
 <script lang="ts">
-  import { type SvelteComponent, onMount } from 'svelte';
-
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
   import TaxonTree from '../components/TaxonTree.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
+  import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
+  import type { TaxonSpec } from '../../shared/taxa';
+  import type { TreeNode } from '../../frontend-core/selections_tree';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
   import { ROOT_TAXON } from '../../shared/taxa';
 
   let browseTaxonUnique: string | null = null;
+  let rootNode: TreeNode<TaxonSpec> | null = null;
+
+  const selectionsTree = new TaxonSelectionsTree(
+    $selectedTaxa ? Object.values($selectedTaxa) : []
+  );
+  $: $selectedTaxa, (rootNode = selectionsTree.getRootNode());
 
   const openTaxonBrowser = (taxonUnique: string) => {
     browseTaxonUnique = taxonUnique;
@@ -32,12 +39,13 @@
     </TabHeader>
 
     <div class="tree_area">
-      {#if !$selectedTaxa || !$selectedTaxa.rootNode}
+      {#if !rootNode}
         <EmptyTab message="No taxa selected" />
       {:else}
         <div class="container-fluid gx-1">
           <TaxonTree
-            node={$selectedTaxa.rootNode}
+            node={rootNode}
+            {selectionsTree}
             gotoTaxon={async (unique) => openTaxonBrowser(unique)}
             addedSelection={() => {}}
             removedSelection={() => {}}
@@ -52,6 +60,7 @@
   <BrowseTaxaDialog
     title="Browse and Select Taxa"
     parentUnique={browseTaxonUnique}
+    {selectionsTree}
     onClose={() => {
       browseTaxonUnique = null;
     }}
@@ -60,6 +69,6 @@
 
 <style>
   :global(.tree_area) {
-    margin-top: 1.5rem;
+    margin: 1.5rem 0;
   }
 </style>

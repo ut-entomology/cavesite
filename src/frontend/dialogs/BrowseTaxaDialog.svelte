@@ -9,10 +9,12 @@
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
-  import { ContainingTaxon, selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import type { SpecEntry } from '../../frontend-core/selections_tree';
+  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
   export let title: string;
   export let parentUnique: string;
+  export let selectionsTree: TaxonSelectionsTree;
   export let onClose: () => void;
 
   const ANCESTOR_ITEM_LEFT_MARGIN = 1.3; // em
@@ -25,7 +27,7 @@
 
   let typedTaxon = '';
   let parentSpec: TaxonSpec;
-  let containingTaxa: ContainingTaxon[] = [];
+  let containingTaxa: SpecEntry<TaxonSpec>[] = [];
   let childSpecs: TaxonSpec[];
   let selectedAncestorUniques: Record<string, boolean> = {};
   let allChildrenSelected = false;
@@ -50,35 +52,34 @@
     // the code simpler than it would otherwise be. API calls are
     // necessary, regardless.
 
-    if (!found) {
-      // Load specs for the parent taxon and its ancestors.
+    // if (!found) {
+    // Load specs for the parent taxon and its ancestors.
 
-      let res = await $client.post('api/taxa/get_list', {
-        taxonUniques: [parentUnique]
-      });
-      const taxonSpecs: TaxonSpec[] = res.data.taxonSpecs;
-      if (taxonSpecs.length == 0) {
-        throw Error(`Failed to load taxon '${parentUnique}'`);
-      }
-      parentSpec = taxonSpecs[0];
-      const containingSpecs = createTaxonSpecs(parentSpec);
-      containingSpecs.push(parentSpec);
-
-      // Load specs for the children of the parent taxon and each ancestor.
-
-      res = await $client.post('api/taxa/get_children', {
-        parentUniques: containingSpecs.map((spec) => spec.unique)
-      });
-      const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
-      containingTaxa = [];
-      for (const containingSpec of containingSpecs) {
-        containingTaxa.push({
-          spec: containingSpec,
-          children: ancestorChildSpecs.shift()!
-        });
-      }
-      childSpecs = containingTaxa[containingTaxa.length - 1].children;
+    let res = await $client.post('api/taxa/get_list', {
+      taxonUniques: [parentUnique]
+    });
+    const taxonSpecs: TaxonSpec[] = res.data.taxonSpecs;
+    if (taxonSpecs.length == 0) {
+      throw Error(`Failed to load taxon '${parentUnique}'`);
     }
+    parentSpec = taxonSpecs[0];
+    const containingSpecs = createTaxonSpecs(parentSpec);
+    containingSpecs.push(parentSpec);
+
+    // Load specs for the children of the parent taxon and each ancestor.
+
+    res = await $client.post('api/taxa/get_children', {
+      parentUniques: containingSpecs.map((spec) => spec.unique)
+    });
+    const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
+    containingTaxa = [];
+    for (const containingSpec of containingSpecs) {
+      containingTaxa.push({
+        spec: containingSpec,
+        children: ancestorChildSpecs.shift()!
+      });
+    }
+    childSpecs = containingTaxa[containingTaxa.length - 1].children;
 
     // Determine which ancestor taxa have been selected, if any.
 
@@ -109,7 +110,7 @@
     allChildrenSelected = false;
     for (const containingTaxon of containingTaxa) {
       const spec = containingTaxon.spec;
-      if (allChildrenSelected || $selectedTaxa.selectedSpecByUnique[spec.unique]) {
+      if (allChildrenSelected || selectionsTree.isSelected(spec.unique)) {
         selectedAncestorUniques[spec.unique] = true;
         allChildrenSelected = true;
       }
@@ -158,10 +159,10 @@
       {#each childSpecs as spec (spec.unique)}
         <div class="row mt-1 gx-3">
           <SelectableTaxon
-            isSelection={allChildrenSelected ||
-              !!$selectedTaxa.selectedSpecByUnique[spec.unique]}
+            isSelection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
             {spec}
             {containingTaxa}
+            {selectionsTree}
             {gotoTaxon}
             {addedSelection}
             {removedSelection}
