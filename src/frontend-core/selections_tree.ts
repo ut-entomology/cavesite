@@ -81,7 +81,7 @@ export abstract class SelectionsTree<S extends Spec> {
     if (containingSpecs.length == 0) {
       this._rootNode = null;
     } else {
-      this._removeFromNode(this._rootNode, containingSpecs, spec);
+      this._removeFromNode(this._rootNode, containingSpecs.slice(), spec);
       if (this._rootNode.children.length == 0) {
         this._rootNode = null;
       }
