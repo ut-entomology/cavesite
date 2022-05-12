@@ -3,6 +3,7 @@
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
   import TaxonTree from '../components/TaxonTree.svelte';
+  import { plusIcon, checkmarkIcon } from '../components/SelectableTaxon.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import type { TaxonSpec } from '../../shared/taxa';
@@ -27,7 +28,7 @@
   <div class="container-fluid">
     <TabHeader
       title="Selected Taxa"
-      instructions="Other tabs optionally restrict taxa to the selections shown here in <b>bold</b>."
+      instructions="This tab shows the taxa that you have selected for use in other tabs. Your selections are <b>{checkmarkIcon} checked and bold</b>. You may click on the {plusIcon} or {checkmarkIcon} to toggle selections, but this view is mainly useful for removing selections by clicking on the {checkmarkIcon}. Click on a blue taxon or on [Browse Taxa] to browse and add taxa."
     >
       <span slot="main-buttons">
         <button
@@ -40,7 +41,9 @@
 
     <div class="tree_area">
       {#if !rootNode}
-        <EmptyTab message="No taxa selected" />
+        <EmptyTab
+          message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
+        />
       {:else}
         <div class="container-fluid gx-1">
           <TaxonTree
@@ -69,6 +72,6 @@
 
 <style>
   :global(.tree_area) {
-    margin: 1.5rem 0;
+    margin-bottom: 1.5rem;
   }
 </style>
