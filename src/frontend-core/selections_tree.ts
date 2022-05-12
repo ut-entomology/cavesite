@@ -21,8 +21,7 @@ export interface TreeNode<S extends Spec> {
 
 export abstract class SelectionsTree<S extends Spec> {
   private _rootNode: TreeNode<S> | null = null;
-  private _selectedUniques: string[] | null = null;
-  private _selectionsByUnique: Record<string, boolean> = {};
+  private _selectionSpecsByUnique: Record<string, S> | null = null;
 
   constructor(selectedSpecs: S[]) {
     selectedSpecs.forEach((spec) => this.addSelection(spec, false));
@@ -54,7 +53,7 @@ export abstract class SelectionsTree<S extends Spec> {
       node = nextNode;
     }
 
-    this._selectedUniques = null; // invalidate cached selections
+    this._selectionSpecsByUnique = null; // invalidate cached selections
   }
 
   getRootNode(): TreeNode<S> | null {
@@ -63,12 +62,17 @@ export abstract class SelectionsTree<S extends Spec> {
 
   getSelections(): string[] {
     this._setDerivedValues();
-    return this._selectedUniques!;
+    return Object.keys(this._selectionSpecsByUnique!);
+  }
+
+  getSelectionSpecs(): Record<string, S> {
+    this._setDerivedValues();
+    return this._selectionSpecsByUnique!;
   }
 
   isSelected(unique: string): boolean {
     this._setDerivedValues();
-    return this._selectionsByUnique[unique] || false;
+    return this._selectionSpecsByUnique![unique] !== undefined;
   }
 
   removeSelection(containingSpecs: SpecEntry<S>[], spec: S): void {
@@ -82,7 +86,7 @@ export abstract class SelectionsTree<S extends Spec> {
         this._rootNode = null;
       }
     }
-    this._selectedUniques = null; // invalidate cached selections
+    this._selectionSpecsByUnique = null; // invalidate cached selections
   }
 
   private _nodeSorter(n1: TreeNode<S>, n2: TreeNode<S>) {
@@ -135,9 +139,8 @@ export abstract class SelectionsTree<S extends Spec> {
   }
 
   private _setDerivedValues() {
-    if (this._selectedUniques === null) {
-      this._selectedUniques = [];
-      this._selectionsByUnique = {};
+    if (this._selectionSpecsByUnique === null) {
+      this._selectionSpecsByUnique = {};
       if (this._rootNode) {
         this._tallyNode(this._rootNode);
       }
@@ -152,8 +155,7 @@ export abstract class SelectionsTree<S extends Spec> {
   private _tallyNode(node: TreeNode<S>): void {
     if (node.children.length == 0) {
       const unique = node.spec.unique;
-      this._selectedUniques!.push(unique);
-      this._selectionsByUnique[unique] = true;
+      this._selectionSpecsByUnique![unique] = node.spec;
     } else {
       node.children.forEach((child) => this._tallyNode(child));
     }
