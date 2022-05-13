@@ -8,6 +8,7 @@
   } from '../components/SelectableTaxon.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
+  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
   import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
   import type { SpecEntry } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
@@ -99,6 +100,22 @@
     childSpecs = childSpecs; // redraw children
   };
 
+  const deselectAll = () => {
+    for (const childSpec of childSpecs) {
+      selectionsTree.removeSelection(containingTaxa, childSpec);
+    }
+    removedSelection();
+    selectedTaxa.set(selectionsTree.getSelectionSpecs());
+  };
+
+  const selectAll = () => {
+    for (const childSpec of childSpecs) {
+      selectionsTree.addSelection(childSpec);
+    }
+    addedSelection();
+    selectedTaxa.set(selectionsTree.getSelectionSpecs());
+  };
+
   const removedSelection = () => {
     allChildrenSelected = false;
     _determineAncestorSelections();
@@ -134,7 +151,7 @@
           <button class="btn btn-major" type="button" on:click={onClose}>Close</button>
         </div>
       </div>
-      <div class="row mt-3 gx-2 mb-3 ancestors-row">
+      <div class="row mt-3 gx-2 ancestors-row">
         <div class="col">
           {#each containingTaxa as containingTaxon, i}
             {@const spec = containingTaxon.spec}
@@ -154,6 +171,18 @@
               </div>
             </div>
           {/each}
+        </div>
+      </div>
+      <div class="row mt-2 mb-2 justify-content-end gx-2">
+        <div class="col-auto">
+          <button class="btn btn-minor" type="button" on:click={selectAll}
+            >Select All</button
+          >
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-minor" type="button" on:click={deselectAll}
+            >Deselect All</button
+          >
         </div>
       </div>
       {#each childSpecs as spec (spec.unique)}
