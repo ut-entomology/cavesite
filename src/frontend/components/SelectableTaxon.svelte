@@ -29,15 +29,18 @@
 
   let prefix: string | null = null;
   let toggle: (() => void) | null = null;
+  let toggleLabel: string;
 
   $: if (prefixed) {
     if (expandable) {
       if (expanded) {
         prefix = EXPANDED_SYMBOL;
         toggle = () => toggledExpansion(false);
+        toggleLabel = 'Collapse taxon';
       } else {
         prefix = COLLAPSED_SYMBOL;
         toggle = () => toggledExpansion(true);
+        toggleLabel = 'Expand taxon';
       }
     } else {
       prefix = UNEXPANDABLE_SYMBOL;
@@ -59,7 +62,9 @@
 
 <div class="taxon-row">
   {#if prefix}
-    <div class="expander" class:expandable on:click={toggle}>{@html prefix}</div>
+    <div class="expander" class:expandable title={toggleLabel} on:click={toggle}>
+      {@html prefix}
+    </div>
   {/if}
   {#if selection}
     <CircleIconButton
