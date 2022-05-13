@@ -17,6 +17,7 @@ export interface SpecEntry<S extends Spec> {
 export interface TreeNode<S extends Spec> {
   spec: S;
   children: TreeNode<S>[];
+  expanded: boolean;
 }
 
 export abstract class SelectionsTree<S extends Spec> {
@@ -37,13 +38,13 @@ export abstract class SelectionsTree<S extends Spec> {
 
     const rootSpec = specs.shift()!;
     if (!this._rootNode || specs.length == 0) {
-      this._rootNode = { spec: rootSpec, children: [] };
+      this._rootNode = { spec: rootSpec, children: [], expanded: true };
     }
     let node = this._rootNode;
     for (const spec of specs) {
       let nextNode = node.children.find((child) => child.spec.unique == spec.unique);
       if (!nextNode) {
-        nextNode = { spec: spec, children: [] };
+        nextNode = { spec: spec, children: [], expanded: true };
         node.children.push(nextNode);
         if (resort) node.children.sort(this._nodeSorter);
       } else if (nextNode.spec.unique == forSpec.unique) {
@@ -119,7 +120,7 @@ export abstract class SelectionsTree<S extends Spec> {
         (c) => c.spec.unique == removedChildUnique
       );
       if (!childNode) {
-        childNode = { spec: nextChildSpec, children: [] };
+        childNode = { spec: nextChildSpec, children: [], expanded: true };
         containingNode.children.push(childNode);
       }
       this._removeFromNode(childNode, containingSpecs, leafSpecToRemove);
@@ -131,7 +132,11 @@ export abstract class SelectionsTree<S extends Spec> {
       const removedChildUnique = nextChildSpec.unique;
       for (const childSpec of containingSpec.children) {
         if (childSpec.unique != removedChildUnique) {
-          containingNode.children.push({ spec: childSpec, children: [] });
+          containingNode.children.push({
+            spec: childSpec,
+            children: [],
+            expanded: true
+          });
         }
       }
       containingNode.children.sort();

@@ -1,4 +1,12 @@
 <script lang="ts" context="module">
+  export enum TreeFlags {
+    NoPrefix = 0,
+    Prefixed = 1,
+    Expandable = 2,
+    Expanded = 4,
+    Selected = 8
+  }
+
   export const checkmarkIcon = '&#10003;';
   export const plusIcon = '+';
 </script>
@@ -11,13 +19,36 @@
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
-  export let isSelection: boolean;
+  export let flags: TreeFlags;
   export let spec: TaxonSpec;
   export let containingTaxa: SpecEntry<TaxonSpec>[];
   export let selectionsTree: TaxonSelectionsTree;
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
   export let addedSelection: () => void;
   export let removedSelection: () => void;
+  export let toggledExpansion: (expanded: boolean) => void = () => {};
+
+  const EXPANDED_SYMBOL = '&#9660';
+  const COLLAPSED_SYMBOL = '&#9654;';
+  const NONEXPANDABLE_SYMBOL = '&#x2981;';
+
+  let prefix: string | null = null;
+  let expandable = flags & TreeFlags.Expandable;
+  let toggle: (() => void) | null = null;
+
+  $: if (flags & TreeFlags.Prefixed) {
+    if (flags & TreeFlags.Expandable) {
+      if (flags & TreeFlags.Expanded) {
+        prefix = EXPANDED_SYMBOL;
+        toggle = () => toggledExpansion(false);
+      } else {
+        prefix = COLLAPSED_SYMBOL;
+        toggle = () => toggledExpansion(true);
+      }
+    } else {
+      prefix = NONEXPANDABLE_SYMBOL;
+    }
+  }
 
   const addSelection = (spec: TaxonSpec) => {
     selectionsTree.addSelection(spec, true);
@@ -33,7 +64,10 @@
 </script>
 
 <div class="taxon-row">
-  {#if isSelection}
+  {#if prefix}
+    <div class="expander" class:expandable on:click={toggle}>{@html prefix}</div>
+  {/if}
+  {#if flags & TreeFlags.Selected}
     <CircleIconButton
       class="selection taxon_selector"
       on:click={() => removeSelection(spec)}
@@ -51,7 +85,7 @@
     </CircleIconButton>
   {/if}
   <TaxonText
-    class={isSelection ? 'selection' : ''}
+    class={flags & TreeFlags.Selected ? 'selection' : ''}
     {spec}
     clickable={spec.hasChildren || false}
     onClick={() => gotoTaxon(spec.unique)}
@@ -60,6 +94,21 @@
 
 <style lang="scss">
   @import '../variables.scss';
+
+  .expander {
+    display: inline-block;
+    color: #aaa;
+    padding: 0 0.1rem;
+    font-size: 0.9rem;
+    width: 0.5rem;
+  }
+
+  .expandable {
+    color: $blueLinkForeColor;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+  }
 
   :global(.taxon_selector) {
     display: inline-block;
