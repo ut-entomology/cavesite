@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { SvelteComponent } from 'svelte';
 
+  import ConfirmationRequest from '../common/ConfirmationRequest.svelte';
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
@@ -16,6 +17,7 @@
   let browseTaxonUnique: string | null = null;
   let rootTree: SvelteComponent;
   let rootNode: TreeNode<TaxonSpec> | null = null;
+  let requestClearConfirmation = false;
 
   const selectionsTree = new TaxonSelectionsTree(
     $selectedTaxa ? Object.values($selectedTaxa) : []
@@ -24,13 +26,21 @@
 
   const expandTree = () => rootTree.expandAll();
 
-  const clearSelections = () => {
-    //
-  };
+  const clearSelections = () => (requestClearConfirmation = true);
 
   const openTaxonBrowser = (taxonUnique: string) => {
     browseTaxonUnique = taxonUnique;
   };
+
+  const confirmClear = () => {
+    requestClearConfirmation = false;
+    if (rootNode) {
+      selectionsTree.removeSelection([], rootNode.spec);
+      selectedTaxa.set(selectionsTree.getSelectionSpecs());
+    }
+  };
+
+  const cancelClear = () => (requestClearConfirmation = false);
 </script>
 
 <DataTabRoute activeTab="Taxa">
@@ -76,6 +86,15 @@
     </div>
   </div>
 </DataTabRoute>
+
+{#if requestClearConfirmation}
+  <ConfirmationRequest
+    message="Clear these taxon selections?"
+    okayButton="Clear"
+    onOkay={confirmClear}
+    onCancel={cancelClear}
+  />
+{/if}
 
 {#if browseTaxonUnique !== null}
   <BrowseTaxaDialog
