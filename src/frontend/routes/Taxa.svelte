@@ -89,7 +89,7 @@
 
 {#if requestClearConfirmation}
   <ConfirmationRequest
-    message="Clear these taxon selections?"
+    message="Clear these taxa selections?"
     okayButton="Clear"
     onOkay={confirmClear}
     onCancel={cancelClear}
