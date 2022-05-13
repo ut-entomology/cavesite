@@ -43,7 +43,7 @@ test('creating and using an empty tree', () => {
 test('adding and removing a root element', () => {
   const tree = new TestTree([]);
   tree.addSelection(specA);
-  expect(tree.getRootNode()).toEqual({ spec: specA, children: [] });
+  expect(tree.getRootNode()).toEqual({ spec: specA, children: [], expanded: true });
   expect(tree.getSelections()).toEqual(['A']);
   expect(tree.getSelectionSpecs()).toEqual({ A: specA });
   expect(tree.isSelected('A')).toBe(true);
@@ -62,7 +62,8 @@ test('adding and removing 2-deep nested elements', () => {
   tree.addSelection(specAA);
   expect(tree.getRootNode()).toEqual({
     spec: specA,
-    children: [{ spec: specAA, children: [] }]
+    children: [{ spec: specAA, children: [], expanded: true }],
+    expanded: true
   });
   expect(tree.getSelections()).toEqual(['AA']);
   expect(tree.getSelectionSpecs()).toEqual({ AA: specAA });
@@ -73,9 +74,10 @@ test('adding and removing 2-deep nested elements', () => {
   expect(tree.getRootNode()).toEqual({
     spec: specA,
     children: [
-      { spec: specAA, children: [] },
-      { spec: specAB, children: [] }
-    ]
+      { spec: specAA, children: [], expanded: true },
+      { spec: specAB, children: [], expanded: true }
+    ],
+    expanded: true
   });
   expect(tree.getSelections()).toEqual(['AA', 'AB']);
   expect(tree.getSelectionSpecs()).toEqual({ AA: specAA, AB: specAB });
@@ -111,12 +113,18 @@ test('adding and removing 3-deep nested elements', () => {
       {
         spec: specAA,
         children: [
-          { spec: specAAA, children: [] },
-          { spec: specAAB, children: [] }
-        ]
+          { spec: specAAA, children: [], expanded: true },
+          { spec: specAAB, children: [], expanded: true }
+        ],
+        expanded: true
       },
-      { spec: specAB, children: [{ spec: specABA, children: [] }] }
-    ]
+      {
+        spec: specAB,
+        children: [{ spec: specABA, children: [], expanded: true }],
+        expanded: true
+      }
+    ],
+    expanded: true
   });
 
   expect(tree.getSelections().sort()).toEqual(['AAA', 'AAB', 'ABA']);
@@ -186,12 +194,22 @@ test('initializing from constructor and adding ancestors of selections', () => {
       {
         spec: specAA,
         children: [
-          { spec: specAAA, children: [] },
-          { spec: specAAB, children: [{ spec: specAABA, children: [] }] }
-        ]
+          { spec: specAAA, children: [], expanded: true },
+          {
+            spec: specAAB,
+            children: [{ spec: specAABA, children: [], expanded: true }],
+            expanded: true
+          }
+        ],
+        expanded: true
       },
-      { spec: specAB, children: [{ spec: specABA, children: [] }] }
-    ]
+      {
+        spec: specAB,
+        children: [{ spec: specABA, children: [], expanded: true }],
+        expanded: true
+      }
+    ],
+    expanded: true
   });
 
   tree.addSelection(specAB, true);
@@ -259,4 +277,29 @@ test('Removing implied selections two levels down', () => {
   );
   expect(tree.getSelections().sort()).toEqual(['ABAA', 'ABB']);
   expect(tree.getSelectionSpecs()).toEqual({ ABAA: specABAA, ABB: specABB });
+});
+
+test('Removing selections without implied children', () => {
+  const tree = new TestTree([specAAB, specABAB]);
+
+  tree.removeSelection(
+    [
+      { spec: specA, children: [] },
+      { spec: specAB, children: [] },
+      { spec: specABA, children: [] }
+    ],
+    specABAB
+  );
+  expect(tree.getSelections().sort()).toEqual(['AAB']);
+  expect(tree.getSelectionSpecs()).toEqual({ AAB: specAAB });
+
+  tree.removeSelection(
+    [
+      { spec: specA, children: [] },
+      { spec: specAA, children: [] }
+    ],
+    specAAB
+  );
+  expect(tree.getSelections().sort()).toEqual([]);
+  expect(tree.getSelectionSpecs()).toEqual({});
 });
