@@ -97,6 +97,7 @@
   };
 
   const addedSelection = () => {
+    _determineAncestorSelections();
     childSpecs = childSpecs; // redraw children
   };
 
@@ -161,16 +162,16 @@
             {@const spec = containingTaxon.spec}
             <div class="row mt-1">
               <div class="col" style="margin-left: {ANCESTOR_ITEM_LEFT_MARGIN * i}em">
-                <span class="ancestor_icon">
-                  {@html selectedAncestorUniques[spec.unique]
-                    ? checkmarkIcon
-                    : '&bullet;'}
-                </span>
-                <TaxonText
+                <SelectableTaxon
+                  prefixed={false}
+                  selection={selectedAncestorUniques[spec.unique]}
                   {spec}
-                  class={selectedAncestorUniques[spec.unique] ? 'selection' : ''}
-                  clickable={spec.unique != parentUnique && (spec.hasChildren || false)}
-                  onClick={() => gotoTaxon(spec.unique)}
+                  containingTaxa={containingTaxa.slice(0, i)}
+                  {selectionsTree}
+                  clickable={!!spec.hasChildren && spec.unique != parentUnique}
+                  {gotoTaxon}
+                  {addedSelection}
+                  {removedSelection}
                 />
               </div>
             </div>
@@ -238,10 +239,6 @@
     margin-top: -0.1rem;
     width: 1.5rem;
     height: 1.5rem;
-  }
-
-  .ancestor_icon {
-    margin-right: 0.7rem;
   }
 
   .ancestors-row {

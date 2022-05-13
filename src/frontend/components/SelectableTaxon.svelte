@@ -16,6 +16,7 @@
   export let expanded = false;
   export let selection: boolean;
   export let spec: TaxonSpec;
+  export let clickable = spec.hasChildren || false;
   export let containingTaxa: SpecEntry<TaxonSpec>[];
   export let selectionsTree: TaxonSelectionsTree;
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
@@ -74,7 +75,7 @@
     >
       <div />
     </CircleIconButton>
-  {:else}
+  {:else if containingTaxa.length > 0}
     <CircleIconButton
       class="taxon_selector"
       on:click={() => addSelection(spec)}
@@ -82,11 +83,13 @@
     >
       <div>{@html plusIcon}</div>
     </CircleIconButton>
+  {:else}
+    <span class="root-icon">&bullet;</span>
   {/if}
   <TaxonText
     class={selection ? 'selection' : ''}
     {spec}
-    clickable={spec.hasChildren || false}
+    {clickable}
     onClick={() => gotoTaxon(spec.unique)}
   />
 </div>
@@ -136,5 +139,9 @@
 
   :global(.taxon_selector div) {
     margin-top: 0.05rem;
+  }
+
+  .root-icon {
+    margin: 0 0.7rem 0 0.3rem;
   }
 </style>
