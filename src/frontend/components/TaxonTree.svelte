@@ -1,7 +1,9 @@
 <script lang="ts">
-  import SelectableTaxon, { TreeFlags } from '../components/SelectableTaxon.svelte';
+  import type { SvelteComponent } from 'svelte';
+
   import type { TaxonSpec } from '../../shared/taxa';
   import type { TreeNode } from '../../frontend-core/selections_tree';
+  import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import type { SpecEntry } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
@@ -13,33 +15,36 @@
   export let removedSelection: () => void;
 
   let parentSpec = node.spec;
+  let expanded = node.expanded;
+  let selection = node.children.length == 0;
+  let childComponents: SvelteComponent[] = [];
 
-  let flags = TreeFlags.Prefixed;
-
-  function setFlags() {
-    if (node.children.length == 0) {
-      flags |= TreeFlags.Selected;
-    } else {
-      flags |= TreeFlags.Expandable;
-      if (node.expanded) {
-        flags |= TreeFlags.Expanded;
-      }
-    }
-  }
-  setFlags();
-
-  const toggledExpansion = (expanded: boolean) => {
+  export function expandAll() {
     if (expanded) {
-      flags |= TreeFlags.Expanded;
+      childComponents.forEach((child) => child.expandAll());
     } else {
-      flags &= ~TreeFlags.Expanded;
+      _expandNode(node);
     }
+    node.expanded = true;
+    expanded = true;
+  }
+
+  function _expandNode(node: TreeNode<TaxonSpec>) {
+    node.children.forEach((child) => _expandNode(child));
+    node.expanded = true;
+  }
+
+  const toggledExpansion = (_expanded: boolean) => {
+    expanded = _expanded;
+    node.expanded = _expanded;
   };
 </script>
 
 <div class="taxon-level">
   <SelectableTaxon
-    {flags}
+    expandable={!selection}
+    {expanded}
+    {selection}
     spec={parentSpec}
     {selectionsTree}
     {containingTaxa}
@@ -48,10 +53,11 @@
     {removedSelection}
     {toggledExpansion}
   />
-  {#if flags & TreeFlags.Expanded}
+  {#if expanded}
     <div class="children">
-      {#each node.children as childNode (childNode.spec.unique)}
+      {#each node.children as childNode, i (childNode.spec.unique)}
         <svelte:self
+          bind:this={childComponents[i]}
           node={childNode}
           containingTaxa={[...containingTaxa, { spec: parentSpec, children: [] }]}
           {selectionsTree}

@@ -3,12 +3,12 @@
   export let instructions: string | null = null;
 </script>
 
-<div class="row mt-2 mb-2 justify-content-between">
+<div class="row mt-3 mb-3 justify-content-between">
   <div class="col-auto title">
     {@html title}
     <slot name="title-button" />
   </div>
-  <div class="col-auto">
+  <div class="col-auto main-buttons">
     <slot name="main-buttons" />
   </div>
 </div>
@@ -32,5 +32,8 @@
   }
   .tab-instructions {
     margin-bottom: 1rem;
+  }
+  .main-buttons :global(button) {
+    margin-left: 0.4rem;
   }
 </style>

@@ -1,12 +1,4 @@
 <script lang="ts" context="module">
-  export enum TreeFlags {
-    NoPrefix = 0,
-    Prefixed = 1,
-    Expandable = 2,
-    Expanded = 4,
-    Selected = 8
-  }
-
   export const checkmarkIcon = '&#10003;';
   export const plusIcon = '+';
 </script>
@@ -19,7 +11,10 @@
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
 
-  export let flags: TreeFlags;
+  export let prefixed = true;
+  export let expandable = true;
+  export let expanded = false;
+  export let selection: boolean;
   export let spec: TaxonSpec;
   export let containingTaxa: SpecEntry<TaxonSpec>[];
   export let selectionsTree: TaxonSelectionsTree;
@@ -30,15 +25,14 @@
 
   const EXPANDED_SYMBOL = '&#9660';
   const COLLAPSED_SYMBOL = '&#9654;';
-  const NONEXPANDABLE_SYMBOL = '&#x2981;';
+  const UNEXPANDABLE_SYMBOL = '&#x2981;';
 
   let prefix: string | null = null;
-  let expandable = flags & TreeFlags.Expandable;
   let toggle: (() => void) | null = null;
 
-  $: if (flags & TreeFlags.Prefixed) {
-    if (flags & TreeFlags.Expandable) {
-      if (flags & TreeFlags.Expanded) {
+  $: if (prefixed) {
+    if (expandable) {
+      if (expanded) {
         prefix = EXPANDED_SYMBOL;
         toggle = () => toggledExpansion(false);
       } else {
@@ -46,7 +40,7 @@
         toggle = () => toggledExpansion(true);
       }
     } else {
-      prefix = NONEXPANDABLE_SYMBOL;
+      prefix = UNEXPANDABLE_SYMBOL;
     }
   }
 
@@ -67,7 +61,7 @@
   {#if prefix}
     <div class="expander" class:expandable on:click={toggle}>{@html prefix}</div>
   {/if}
-  {#if flags & TreeFlags.Selected}
+  {#if selection}
     <CircleIconButton
       class="selection taxon_selector"
       on:click={() => removeSelection(spec)}
@@ -85,7 +79,7 @@
     </CircleIconButton>
   {/if}
   <TaxonText
-    class={flags & TreeFlags.Selected ? 'selection' : ''}
+    class={selection ? 'selection' : ''}
     {spec}
     clickable={spec.hasChildren || false}
     onClick={() => gotoTaxon(spec.unique)}

@@ -3,7 +3,6 @@
   import Notice from '../common/Notice.svelte';
   import InputGroupButton from '../components/InputGroupButton.svelte';
   import SelectableTaxon, {
-    TreeFlags,
     checkmarkIcon,
     plusIcon
   } from '../components/SelectableTaxon.svelte';
@@ -160,9 +159,8 @@
       {#each childSpecs as spec (spec.unique)}
         <div class="row mt-1 gx-3">
           <SelectableTaxon
-            flags={allChildrenSelected || selectionsTree.isSelected(spec.unique)
-              ? TreeFlags.Selected
-              : TreeFlags.NoPrefix}
+            prefixed={false}
+            selection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
             {spec}
             {containingTaxa}
             {selectionsTree}
