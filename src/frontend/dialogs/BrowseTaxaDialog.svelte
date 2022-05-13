@@ -102,7 +102,9 @@
 
   const deselectAll = () => {
     for (const childSpec of childSpecs) {
-      selectionsTree.removeSelection(containingTaxa, childSpec);
+      if (allChildrenSelected || selectionsTree.isSelected(childSpec.unique)) {
+        selectionsTree.removeSelection(containingTaxa, childSpec);
+      }
     }
     removedSelection();
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
@@ -110,7 +112,9 @@
 
   const selectAll = () => {
     for (const childSpec of childSpecs) {
-      selectionsTree.addSelection(childSpec);
+      if (!selectionsTree.isSelected(childSpec.unique)) {
+        selectionsTree.addSelection(childSpec);
+      }
     }
     addedSelection();
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
