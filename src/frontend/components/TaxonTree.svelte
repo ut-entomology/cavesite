@@ -8,6 +8,7 @@
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
   export let node: TreeNode<TaxonSpec>;
+  export let showRoot = true;
   export let selectionsTree: TaxonSelectionsTree;
   export let containingTaxa: SpecEntry<TaxonSpec>[] = [];
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
@@ -40,19 +41,21 @@
   };
 </script>
 
-<div class="taxon-level">
-  <SelectableTaxon
-    expandable={!selection}
-    {expanded}
-    {selection}
-    spec={parentSpec}
-    {selectionsTree}
-    {containingTaxa}
-    {gotoTaxon}
-    {addedSelection}
-    {removedSelection}
-    {toggledExpansion}
-  />
+<div class:taxon-level={showRoot}>
+  {#if showRoot}
+    <SelectableTaxon
+      expandable={!selection}
+      {expanded}
+      {selection}
+      spec={parentSpec}
+      {selectionsTree}
+      {containingTaxa}
+      {gotoTaxon}
+      {addedSelection}
+      {removedSelection}
+      {toggledExpansion}
+    />
+  {/if}
   {#if expanded}
     <div class="children">
       {#each node.children as childNode, i (childNode.spec.unique)}
@@ -79,7 +82,7 @@
     margin-top: 0.25rem;
   }
 
-  .children {
+  :global(.taxon-level) .children {
     margin-left: 0.35rem;
     border-left: 1px solid #ddd;
   }

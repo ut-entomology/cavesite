@@ -76,6 +76,7 @@
           <TaxonTree
             bind:this={rootTree}
             node={rootNode}
+            showRoot={false}
             {selectionsTree}
             gotoTaxon={async (unique) => openTaxonBrowser(unique)}
             addedSelection={() => {}}
