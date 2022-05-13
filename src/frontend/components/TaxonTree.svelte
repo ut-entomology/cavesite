@@ -16,7 +16,7 @@
 
   let parentSpec = node.spec;
   let expanded = node.expanded;
-  let selection = node.children.length == 0;
+  $: selection = node.children.length == 0;
   let childComponents: SvelteComponent[] = [];
 
   export function expandAll() {
