@@ -98,9 +98,10 @@
   .expander {
     display: inline-block;
     color: #aaa;
-    padding: 0 0.1rem;
-    font-size: 0.9rem;
-    width: 0.5rem;
+    padding-left: 0.2rem;
+    font-size: 0.6rem;
+    vertical-align: text-bottom;
+    width: 0.75rem;
   }
 
   .expandable {
@@ -108,6 +109,7 @@
     cursor: pointer;
     padding: 0;
     font-size: 1rem;
+    vertical-align: baseline;
   }
 
   :global(.taxon_selector) {

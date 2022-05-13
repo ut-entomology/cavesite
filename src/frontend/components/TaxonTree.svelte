@@ -29,7 +29,6 @@
   setFlags();
 
   const toggledExpansion = (expanded: boolean) => {
-    console.log('**** expanding', expanded);
     if (expanded) {
       flags |= TreeFlags.Expanded;
     } else {
@@ -50,8 +49,8 @@
     {toggledExpansion}
   />
   {#if flags & TreeFlags.Expanded}
-    {#each node.children as childNode (childNode.spec.unique)}
-      <div class="taxon-level">
+    <div class="children">
+      {#each node.children as childNode (childNode.spec.unique)}
         <svelte:self
           node={childNode}
           containingTaxa={[...containingTaxa, { spec: parentSpec, children: [] }]}
@@ -60,17 +59,22 @@
           {addedSelection}
           {removedSelection}
         />
-      </div>
-    {/each}
+      {/each}
+    </div>
   {/if}
 </div>
 
 <style>
-  .taxon-level .taxon-level {
-    margin-left: 0.5rem;
+  :global(.taxon-level .taxon-level) {
+    margin-left: 0.9rem;
   }
 
-  :global(.taxon-level .taxon-row) {
+  :global(.taxon-row) {
     margin-top: 0.25rem;
+  }
+
+  .children {
+    margin-left: 0.35rem;
+    border-left: 1px solid #ddd;
   }
 </style>

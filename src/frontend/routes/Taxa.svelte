@@ -74,4 +74,8 @@
   :global(.tree_area) {
     margin-bottom: 1.5rem;
   }
+
+  :global(.tree_area .taxon_selector) {
+    margin-right: 0;
+  }
 </style>
