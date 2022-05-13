@@ -67,7 +67,7 @@
       on:click={() => removeSelection(spec)}
       label="Remove from selections"
     >
-      <div>{@html checkmarkIcon}</div>
+      <div />
     </CircleIconButton>
   {:else}
     <CircleIconButton
@@ -115,6 +115,14 @@
     line-height: 1.1rem;
     font-size: 1.2rem;
     font-weight: bold;
+  }
+
+  :global(.selection.icon_button.taxon_selector div:after) {
+    content: '\2713';
+  }
+
+  :global(.selection.icon_button.taxon_selector:hover div:after) {
+    content: '-';
   }
 
   :global(.selection .taxon-name) {
