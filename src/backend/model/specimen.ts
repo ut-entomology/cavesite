@@ -29,8 +29,6 @@ sortColumnMap[SortColumn.Species] = 'species_name';
 sortColumnMap[SortColumn.Subspecies] = 'taxon_name';
 sortColumnMap[SortColumn.County] = 'county_name';
 sortColumnMap[SortColumn.Locality] = 'locality_name';
-sortColumnMap[SortColumn.Latitude] = 'l.public_latitude';
-sortColumnMap[SortColumn.Longitude] = 'l.public_longitude';
 sortColumnMap[SortColumn.StartDate] = 'collection_start_date';
 sortColumnMap[SortColumn.EndDate] = 'collection_end_date';
 sortColumnMap[SortColumn.TypeStatus] = 'type_status';
@@ -111,6 +109,8 @@ export class Specimen {
   countyName: string | null;
   countyID: number | null;
   localityName: string | null;
+  publicLatitude: number | null;
+  publicLongitude: number | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -148,6 +148,8 @@ export class Specimen {
     this.countyName = data.countyName;
     this.countyID = data.countyID;
     this.localityName = data.localityName;
+    this.publicLatitude = data.publicLatitude;
+    this.publicLongitude = data.publicLongitude;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -299,7 +301,9 @@ export class Specimen {
       taxonAuthor: taxon.author,
       countyName: getRankedName(locationNames, 3, location.locationName),
       countyID: getRankedID(locationIDs, 3, location.locationID),
-      localityName: location.locationName
+      localityName: location.locationName,
+      publicLatitude: location.publicLatitude,
+      publicLongitude: location.publicLongitude
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -314,10 +318,10 @@ export class Specimen {
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, species_name, species_id,
           subspecies_name, subspecies_id, taxon_author,
-          county_name, county_id, locality_name
+          county_name, county_id, locality_name, public_latitude, public_longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
           $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-          $29, $30, $31, $32, $33)`,
+          $29, $30, $31, $32, $33, $34, $35)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -351,7 +355,9 @@ export class Specimen {
         specimen.taxonAuthor,
         specimen.countyName,
         specimen.countyID,
-        specimen.localityName
+        specimen.localityName,
+        specimen.publicLatitude,
+        specimen.publicLongitude
       ]
     );
 

@@ -133,8 +133,6 @@ export enum SortColumn {
   Subspecies,
   County,
   Locality,
-  Latitude,
-  Longitude,
   StartDate,
   EndDate,
   TypeStatus,

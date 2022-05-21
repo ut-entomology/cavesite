@@ -118,7 +118,9 @@ test('creating a fully-specified specimen', async () => {
       taxonAuthor: 'Lucas, 1833',
       countyName: 'Travis County',
       countyID: 4,
-      localityName: 'My backyard'
+      localityName: 'My backyard',
+      publicLatitude: 23.45,
+      publicLongitude: -93.21
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -193,7 +195,9 @@ test('creating a fully-specified specimen', async () => {
       taxonAuthor: null,
       countyName: null,
       countyID: null,
-      localityName: 'Their backyard'
+      localityName: 'Their backyard',
+      publicLatitude: null,
+      publicLongitude: null
     });
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
     expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');

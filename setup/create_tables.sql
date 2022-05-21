@@ -160,7 +160,9 @@ create table specimens (
 
     county_name text,
     county_id integer references locations,
-    locality_name text
+    locality_name text,
+    public_latitude float8,
+    public_longitude float8
 );
 create index on specimens(catalog_number);
 create index on specimens(phylum_name);
@@ -180,7 +182,6 @@ create index on specimens(subspecies_id);
 create index on specimens(county_name);
 create index on specimens(county_id);
 create index on specimens(locality_name);
-create index on specimens(locality_id);
 
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF
