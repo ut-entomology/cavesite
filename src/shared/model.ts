@@ -120,7 +120,7 @@ export function createContainingLocationSpecs(fromSpec: LocationSpec): LocationS
   return containingSpecs;
 }
 
-//// Specimen /////////////////////////////////////////////////////////////////
+//// Records /////////////////////////////////////////////////////////////////
 
 export enum SortColumn {
   CatalogNumber,
@@ -144,29 +144,67 @@ export interface ColumnSort {
   ascending: boolean;
 }
 
-export interface SpecimenSpec {
-  catalogNumber: string;
-  occurrenceGuid: string; // GBIF occurrenceID (specify co.GUID)
-  taxonRank: TaxonRank;
-  taxonUnique: string;
-  taxonAuthor: string | null;
-  phylumName: string | null;
-  className: string | null;
-  orderName: string | null;
-  familyName: string | null;
-  genusName: string | null;
-  speciesName: string | null;
-  countyName: string | null;
-  localityName: string;
-  collectionStartDate: Date | null;
-  collectionEndDate: Date | null;
-  collectors: string | null; // |-delimited names, last name last
-  determinationYear: number | null;
-  determiners: string | null; // |-delimited names, last name last
-  collectionRemarks: string | null;
-  occurrenceRemarks: string | null;
-  determinationRemarks: string | null;
-  typeStatus: string | null;
-  specimenCount: number | null;
-  problems: string | null;
+/**
+ * Records are query results, which are subsets of the specimens table.
+ * All columns are optional, but columns that must occur in groups are
+ * grouped together in the list below. This allows queries to return the
+ * distinct sets without repeating entries, providing query flexibility.
+ */
+export interface ResultRecord {
+  catalogNumber?: string;
+  occurrenceGuid?: string;
+
+  collectionStartDate?: Date | null;
+
+  collectionEndDate?: Date | null;
+
+  collectors?: string | null; // |-delimited names, last name last
+
+  determinationYear?: number | null;
+
+  determiners?: string | null; // |-delimited names, last name last
+
+  collectionRemarks?: string | null;
+
+  occurrenceRemarks?: string | null;
+
+  determinationRemarks?: string | null;
+
+  typeStatus?: string | null;
+
+  specimenCount?: number | null;
+
+  problems?: string | null;
+
+  phylumName?: string | null;
+  phylumID?: number | null;
+
+  className?: string | null;
+  classID?: number | null;
+
+  orderName?: string | null;
+  orderID?: number | null;
+
+  familyName?: string | null;
+  familyID?: number | null;
+
+  genusName?: string | null;
+  genusID?: number | null;
+
+  speciesName?: string | null;
+  speciesID?: number | null;
+
+  subspeciesName?: string | null;
+  subspeciesID?: number | null;
+
+  taxonAuthor?: string | null; // occurs when any taxon rank occurs
+
+  countyName?: string | null;
+  countyID?: number | null;
+
+  localityName?: string | null;
+  localityID?: number | null;
+
+  publicLatitude?: number | null;
+  publicLongitude?: number | null;
 }
