@@ -115,6 +115,7 @@ test('creating a fully-specified specimen', async () => {
       speciesID: 7,
       subspeciesName: null,
       subspeciesID: null,
+      taxonAuthor: 'Lucas, 1833',
       countyName: 'Travis County',
       countyID: 4,
       localityName: 'My backyard'
@@ -189,6 +190,7 @@ test('creating a fully-specified specimen', async () => {
       speciesID: null,
       subspeciesName: null,
       subspeciesID: null,
+      taxonAuthor: null,
       countyName: null,
       countyID: null,
       localityName: 'Their backyard'

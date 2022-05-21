@@ -154,6 +154,7 @@ create table specimens (
     species_id integer references taxa,
     subspecies_name text,
     subspecies_id integer references taxa,
+    taxon_author text, -- author of most-specific taxon
 
     -- values cached from locations table
 
