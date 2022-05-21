@@ -103,7 +103,6 @@ test('creating a fully-specified specimen', async () => {
       stateProvinceID: 3,
       countyID: 4,
       localityID: 5,
-      preciseLocationID: 5,
 
       collectionStartDate: startDate,
       collectionEndDate: endDate,
@@ -175,7 +174,6 @@ test('creating a fully-specified specimen', async () => {
       stateProvinceID: 3,
       countyID: null,
       localityID: 6,
-      preciseLocationID: 6,
 
       collectionStartDate: startDate,
       collectionEndDate: null,

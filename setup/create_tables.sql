@@ -131,8 +131,6 @@ create table specimens (
     state_province_id integer references locations,
     county_id integer references locations,
     locality_id integer references locations,
-    -- most specific location ID available
-    precise_location_id integer not null references locations,
 
     -- GBIF eventDate/year/month/day (specify ce.StartDate)
     collection_start_date timestamptz,

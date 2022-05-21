@@ -89,7 +89,6 @@ export class Specimen {
   stateProvinceID: number | null;
   countyID: number | null;
   localityID: number | null;
-  preciseLocationID: number; // ID of most specific location
 
   collectionStartDate: Date | null;
   collectionEndDate: Date | null;
@@ -124,7 +123,6 @@ export class Specimen {
     this.stateProvinceID = data.stateProvinceID;
     this.countyID = data.countyID;
     this.localityID = data.localityID;
-    this.preciseLocationID = data.preciseLocationID; // ID of most specific location
 
     this.collectionStartDate = data.collectionStartDate;
     this.collectionEndDate = data.collectionEndDate;
@@ -265,7 +263,6 @@ export class Specimen {
       stateProvinceID: getTreeNodeID(locationIDs, 2, location.locationID),
       countyID: getTreeNodeID(locationIDs, 3, location.locationID),
       localityID: getTreeNodeID(locationIDs, 4, location.locationID),
-      preciseLocationID: location.locationID,
 
       collectionStartDate: startDate,
       collectionEndDate: endDate,
@@ -287,14 +284,13 @@ export class Specimen {
           catalog_number, occurrence_guid,
           kingdom_id, phylum_id, class_id, order_id, family_id,
           genus_id, species_id, subspecies_id, precise_taxon_id,
-          continent_id, country_id, state_province_id,
-          county_id, locality_id, precise_location_id,
+          continent_id, country_id, state_province_id, county_id, locality_id,
           collection_start_date, collection_end_date,
           collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
           type_status, specimen_count, problems
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
+            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -312,7 +308,6 @@ export class Specimen {
         specimen.stateProvinceID,
         specimen.countyID,
         specimen.localityID,
-        specimen.preciseLocationID,
         specimen.collectionStartDate?.toISOString() || null,
         specimen.collectionEndDate?.toISOString() || null,
         specimen.collectors,
