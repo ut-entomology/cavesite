@@ -6,10 +6,10 @@ import pgFormat from 'pg-format';
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Taxon } from './taxon';
-import { Location, MISSING_LOCATION_ID } from './location';
+import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
-import { TaxonFilter, SortColumn, ColumnSort } from '../../shared/model';
+import { TaxonFilter, SortColumn, ColumnSort, locationRanks } from '../../shared/model';
 import { BadDataError } from '../util/error_util';
 
 type SpecimenData = DataOf<Specimen>;
@@ -19,22 +19,22 @@ const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
 
 const sortColumnMap: Record<number, string> = {};
-sortColumnMap[SortColumn.CatalogNumber] = 's.catalog_number';
-sortColumnMap[SortColumn.Phylum] = 't.phylum_name';
-sortColumnMap[SortColumn.Class] = 't.class_name';
-sortColumnMap[SortColumn.Order] = 't.order_name';
-sortColumnMap[SortColumn.Family] = 't.family_name';
-sortColumnMap[SortColumn.Genus] = 't.genus_name';
-sortColumnMap[SortColumn.Species] = 't.species_name';
-sortColumnMap[SortColumn.Subspecies] = 't.taxon_name';
-sortColumnMap[SortColumn.County] = 'l.county_name';
-sortColumnMap[SortColumn.Locality] = 'l.locality_name';
+sortColumnMap[SortColumn.CatalogNumber] = 'catalog_number';
+sortColumnMap[SortColumn.Phylum] = 'phylum_name';
+sortColumnMap[SortColumn.Class] = 'class_name';
+sortColumnMap[SortColumn.Order] = 'order_name';
+sortColumnMap[SortColumn.Family] = 'family_name';
+sortColumnMap[SortColumn.Genus] = 'genus_name';
+sortColumnMap[SortColumn.Species] = 'species_name';
+sortColumnMap[SortColumn.Subspecies] = 'taxon_name';
+sortColumnMap[SortColumn.County] = 'county_name';
+sortColumnMap[SortColumn.Locality] = 'locality_name';
 sortColumnMap[SortColumn.Latitude] = 'l.public_latitude';
 sortColumnMap[SortColumn.Longitude] = 'l.public_longitude';
-sortColumnMap[SortColumn.StartDate] = 's.collection_start_date';
-sortColumnMap[SortColumn.EndDate] = 's.collection_end_date';
-sortColumnMap[SortColumn.TypeStatus] = 's.type_status';
-sortColumnMap[SortColumn.SpecimenCount] = 's.specimen_count';
+sortColumnMap[SortColumn.StartDate] = 'collection_start_date';
+sortColumnMap[SortColumn.EndDate] = 'collection_end_date';
+sortColumnMap[SortColumn.TypeStatus] = 'type_status';
+sortColumnMap[SortColumn.SpecimenCount] = 'specimen_count';
 
 export interface SpecimenSource {
   // GBIF field names
@@ -90,17 +90,26 @@ export class Specimen {
 
   // values cached from the taxa table
 
+  phylumName: string | null;
   phylumID: number | null;
+  className: string | null;
   classID: number | null;
+  orderName: string | null;
   orderID: number | null;
+  familyName: string | null;
   familyID: number | null;
+  genusName: string | null;
   genusID: number | null;
+  speciesName: string | null;
   speciesID: number | null;
+  subspeciesName: string | null;
   subspeciesID: number | null;
 
   // values cached from the locations table
 
+  countyName: string | null;
   countyID: number | null;
+  localityName: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -120,14 +129,23 @@ export class Specimen {
     this.typeStatus = data.typeStatus;
     this.specimenCount = data.specimenCount;
     this.problems = data.problems;
+    this.phylumName = data.phylumName;
     this.phylumID = data.phylumID;
+    this.className = data.className;
     this.classID = data.classID;
+    this.orderName = data.orderName;
     this.orderID = data.orderID;
+    this.familyName = data.familyName;
     this.familyID = data.familyID;
+    this.genusName = data.genusName;
     this.genusID = data.genusID;
+    this.speciesName = data.speciesName;
     this.speciesID = data.speciesID;
+    this.subspeciesName = data.subspeciesName;
     this.subspeciesID = data.subspeciesID;
+    this.countyName = data.countyName;
     this.countyID = data.countyID;
+    this.localityName = data.localityName;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -142,9 +160,11 @@ export class Specimen {
   static async create(db: DB, source: SpecimenSource): Promise<Specimen | null> {
     const problemList: string[] = [];
     let taxon: Taxon;
+    let taxonNames: string[] = [];
     let taxonIDs: string[] = [];
     let location: Location;
-    let locationIDs: string[];
+    let locationNames: (string | null)[];
+    let locationIDs: (string | null)[];
     let specimen: Specimen;
 
     // Perform crucial initial actions that might prevent the import on error.
@@ -169,10 +189,17 @@ export class Specimen {
       taxon = await Taxon.getOrCreate(db, source);
       if (taxon.parentIDPath != '') {
         taxonIDs = taxon.parentIDPath.split(',');
+        taxonNames = taxon.parentNamePath.split('|');
       }
 
       location = await Location.getOrCreate(db, source);
       locationIDs = location.parentIDPath.split(',');
+      locationNames = location.parentNamePath.split('|');
+      // Location always has locality but may be missing intermediates.
+      while (locationIDs.length < locationRanks.length - 1) {
+        locationIDs.push(null);
+        locationNames.push(null);
+      }
     } catch (err: any) {
       // Fail the import on error.
 
@@ -253,14 +280,23 @@ export class Specimen {
       typeStatus: source.typeStatus || null,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
       problems: problemList.length > 0 ? problemList.join('|') : null,
+      phylumName: getRankedName(taxonNames, 1, taxon.taxonName),
       phylumID: getRankedID(taxonIDs, 1, taxon.taxonID),
+      className: getRankedName(taxonNames, 2, taxon.taxonName),
       classID: getRankedID(taxonIDs, 2, taxon.taxonID),
+      orderName: getRankedName(taxonNames, 3, taxon.taxonName),
       orderID: getRankedID(taxonIDs, 3, taxon.taxonID),
+      familyName: getRankedName(taxonNames, 4, taxon.taxonName),
       familyID: getRankedID(taxonIDs, 4, taxon.taxonID),
+      genusName: getRankedName(taxonNames, 5, taxon.taxonName),
       genusID: getRankedID(taxonIDs, 5, taxon.taxonID),
+      speciesName: getRankedName(taxonNames, 6, taxon.taxonName),
       speciesID: getRankedID(taxonIDs, 6, taxon.taxonID),
+      subspeciesName: getRankedName(taxonNames, 7, taxon.taxonName),
       subspeciesID: getRankedID(taxonIDs, 7, taxon.taxonID),
-      countyID: getRankedID(locationIDs, 3, location.locationID)
+      countyName: getRankedName(locationNames, 3, location.locationName),
+      countyID: getRankedID(locationIDs, 3, location.locationID),
+      localityName: location.locationName
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -272,10 +308,12 @@ export class Specimen {
           collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
           type_status, specimen_count, problems,
-          phylum_id, class_id, order_id, family_id,
-          genus_id, species_id, subspecies_id, county_id
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
+          phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
+          family_name, family_id, genus_name, genus_id, species_name, species_id,
+          subspecies_name, subspecies_id, county_name, county_id, locality_name
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+          $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
+          $29, $30, $31, $32)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -292,14 +330,23 @@ export class Specimen {
         specimen.typeStatus,
         specimen.specimenCount,
         specimen.problems,
+        specimen.phylumName,
         specimen.phylumID,
+        specimen.className,
         specimen.classID,
+        specimen.orderName,
         specimen.orderID,
+        specimen.familyName,
         specimen.familyID,
+        specimen.genusName,
         specimen.genusID,
+        specimen.speciesName,
         specimen.speciesID,
+        specimen.subspeciesName,
         specimen.subspeciesID,
-        specimen.countyID
+        specimen.countyName,
+        specimen.countyID,
+        specimen.localityName
       ]
     );
 
@@ -380,7 +427,7 @@ export class Specimen {
 }
 
 function getRankedID(
-  containingIDs: string[],
+  containingIDs: (string | null)[],
   index: number,
   leafID: number
 ): number | null {
@@ -390,26 +437,23 @@ function getRankedID(
   if (index == containingIDs.length) {
     return leafID;
   }
-  const containingID = containingIDs[index];
-  if (containingID == MISSING_LOCATION_ID) {
-    return null;
-  }
-  return parseInt(containingID);
+  const containingIDStr = containingIDs[index];
+  return containingIDStr ? parseInt(containingIDStr) : null;
 }
 
-// function getRankedName(
-//   containingNames: string[],
-//   index: number,
-//   leafName: string
-// ): string | null {
-//   if (index > containingNames.length) {
-//     return null;
-//   }
-//   if (index == containingNames.length) {
-//     return leafName;
-//   }
-//   return containingNames[index];
-// }
+function getRankedName(
+  containingNames: (string | null)[],
+  index: number,
+  leafName: string
+): string | null {
+  if (index > containingNames.length) {
+    return null;
+  }
+  if (index == containingNames.length) {
+    return leafName;
+  }
+  return containingNames[index];
+}
 
 async function logImportProblem(
   db: DB,

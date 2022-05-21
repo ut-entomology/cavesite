@@ -140,27 +140,45 @@ create table specimens (
 
     -- values cached from taxa table
 
+    phylum_name text,
     phylum_id integer references taxa,
+    class_name text,
     class_id integer references taxa,
+    order_name text,
     order_id integer references taxa,
+    family_name text,
     family_id integer references taxa,
+    genus_name text,
     genus_id integer references taxa,
+    species_name text,
     species_id integer references taxa,
+    subspecies_name text,
     subspecies_id integer references taxa,
 
     -- values cached from locations table
 
-    county_id integer references locations
+    county_name text,
+    county_id integer references locations,
+    locality_name text
 );
 create index on specimens(catalog_number);
+create index on specimens(phylum_name);
 create index on specimens(phylum_id);
+create index on specimens(class_name);
 create index on specimens(class_id);
+create index on specimens(order_name);
 create index on specimens(order_id);
+create index on specimens(family_name);
 create index on specimens(family_id);
+create index on specimens(genus_name);
 create index on specimens(genus_id);
+create index on specimens(species_name);
 create index on specimens(species_id);
+create index on specimens(subspecies_name);
 create index on specimens(subspecies_id);
+create index on specimens(county_name);
 create index on specimens(county_id);
+create index on specimens(locality_name);
 create index on specimens(locality_id);
 
 create table private_coordinates (

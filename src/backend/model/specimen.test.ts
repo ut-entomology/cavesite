@@ -101,14 +101,23 @@ test('creating a fully-specified specimen', async () => {
       typeStatus: baseSource.typeStatus,
       specimenCount: 1,
       problems: null,
+      phylumName: 'Arthropoda',
       phylumID: 2,
+      className: 'Arachnida',
       classID: 3,
+      orderName: 'Araneae',
       orderID: 4,
+      familyName: 'Araneidae',
       familyID: 5,
+      genusName: 'Argiope',
       genusID: 6,
+      speciesName: 'aurantia',
       speciesID: 7,
+      subspeciesName: null,
       subspeciesID: null,
-      countyID: 4
+      countyName: 'Travis County',
+      countyID: 4,
+      localityName: 'My backyard'
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -166,14 +175,23 @@ test('creating a fully-specified specimen', async () => {
       typeStatus: null,
       specimenCount: null,
       problems: null,
+      phylumName: 'Arthropoda',
       phylumID: 2,
+      className: 'Arachnida',
       classID: 3,
+      orderName: 'Araneae',
       orderID: 4,
+      familyName: 'Thomisidae',
       familyID: 8,
+      genusName: null,
       genusID: null,
+      speciesName: null,
       speciesID: null,
+      subspeciesName: null,
       subspeciesID: null,
-      countyID: null
+      countyName: null,
+      countyID: null,
+      localityName: 'Their backyard'
     });
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
     expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');
