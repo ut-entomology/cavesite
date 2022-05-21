@@ -106,6 +106,7 @@ export function toCamelRow<T>(snakeRow: Record<string, any>): T {
           .slice(1)
           .map((word) => {
             if (word == 'id') return 'ID';
+            if (word == 'ids') return 'IDs';
             if (word == 'ip') return 'IP';
             return word[0].toUpperCase() + word.substring(1);
           })

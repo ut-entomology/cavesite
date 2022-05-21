@@ -396,7 +396,7 @@ export class Specimen {
       limit,
       skip
     ]);
-    return result.rows.map((row) => toCamelRow(row));
+    return result.rows.map((row) => new Specimen(toCamelRow(row)));
   }
 
   static async generalQuery(

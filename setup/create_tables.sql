@@ -210,13 +210,20 @@ create table visits (
     is_cave boolean not null,
     start_epoch_day integer not null, -- days since 1/1/1970
     end_epoch_day integer, -- days since 1/1/1970
-    collectors text,
-    phyla text,
-    classes text,
-    orders text,
-    families text,
-    genera text,
-    species text,
-    subspecies text,
-    primary key (location_id, start_epoch_day, collectors)
+    normalized_collectors text,
+    phylum_names text,
+    phylum_ids text,
+    class_names text,
+    class_ids text,
+    order_names text,
+    order_ids text,
+    family_names text,
+    family_ids text,
+    genus_names text,
+    genus_ids text,
+    species_names text,
+    species_ids text,
+    subspecies_names text,
+    subspecies_ids text,
+    primary key (location_id, start_epoch_day, normalized_collectors)
 );
