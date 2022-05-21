@@ -13,12 +13,9 @@ import { type DB, toCamelRow } from '../integrations/postgres';
 import { ImportFailure } from './import_failure';
 import {
   LocationRank,
-  locationRanks,
   LocationSpec,
   createContainingLocationSpecs
 } from '../../shared/model';
-
-export const MISSING_LOCATION_ID = '-'; // ID of missing intermediate location
 
 export interface LocationSource {
   // GBIF field names
@@ -232,9 +229,6 @@ export class Location {
       if (location) {
         if (parentIDPath != '') parentIDPath += ',';
         parentIDPath += location.locationID.toString();
-        for (let i = locationIndex; locationRanks[i] != spec.rank; ++i) {
-          parentIDPath += ',' + MISSING_LOCATION_ID;
-        }
       }
       location = await Location.create(db, spec.parentNamePath, parentIDPath, {
         locationRank: spec.rank,

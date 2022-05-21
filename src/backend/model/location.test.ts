@@ -79,7 +79,7 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        parentIDPath: '1,2,-,-',
+        parentIDPath: '1,2',
         parentNamePath: 'North America|United States'
       });
       expect(createdLocation).toEqual(readLocation);
@@ -127,7 +127,7 @@ describe('without location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDPath: '1,2,4,-',
+        parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation).toEqual(readLocation);
@@ -388,7 +388,7 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        parentIDPath: '1,2,-,-',
+        parentIDPath: '1,2',
         parentNamePath: 'North America|United States'
       });
       expect(createdLocation).toEqual(readLocation);
@@ -438,7 +438,7 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDPath: '1,2,4,-',
+        parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation).toEqual(readLocation);
@@ -465,7 +465,7 @@ describe('with location GUIDs', () => {
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        parentIDPath: '1,2,4,-',
+        parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation).toEqual(readLocation);
@@ -504,7 +504,7 @@ describe('with location GUIDs', () => {
         publicLatitude: 23.89,
         publicLongitude: -97.78,
         parentID: 4,
-        parentIDPath: '1,2,4,-',
+        parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation1).toEqual(readLocation);
@@ -520,7 +520,7 @@ describe('with location GUIDs', () => {
         publicLatitude: 23.0,
         publicLongitude: -97.0,
         parentID: 4,
-        parentIDPath: '1,2,4,-',
+        parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation2).toEqual(readLocation);
