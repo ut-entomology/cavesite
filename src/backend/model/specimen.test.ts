@@ -88,22 +88,8 @@ test('creating a fully-specified specimen', async () => {
     expect(specimen).toEqual({
       catalogNumber: baseSource.catalogNumber,
       occurrenceGuid: baseSource.occurrenceID,
-      kingdomID: 1,
-      phylumID: 2,
-      classID: 3,
-      orderID: 4,
-      familyID: 5,
-      genusID: 6,
-      speciesID: 7,
-      subspeciesID: null,
       taxonID: 7,
-
-      continentID: 1,
-      countryID: 2,
-      stateProvinceID: 3,
-      countyID: 4,
       localityID: 5,
-
       collectionStartDate: startDate,
       collectionEndDate: endDate,
       collectors: 'Person A|Person B',
@@ -114,7 +100,15 @@ test('creating a fully-specified specimen', async () => {
       determinationRemarks: baseSource.determinationRemarks,
       typeStatus: baseSource.typeStatus,
       specimenCount: 1,
-      problems: null
+      problems: null,
+      phylumID: 2,
+      classID: 3,
+      orderID: 4,
+      familyID: 5,
+      genusID: 6,
+      speciesID: 7,
+      subspeciesID: null,
+      countyID: 4
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -159,22 +153,8 @@ test('creating a fully-specified specimen', async () => {
     expect(specimen).toEqual({
       catalogNumber: source.catalogNumber,
       occurrenceGuid: source.occurrenceID,
-      kingdomID: 1,
-      phylumID: 2,
-      classID: 3,
-      orderID: 4,
-      familyID: 8,
-      genusID: null,
-      speciesID: null,
-      subspeciesID: null,
       taxonID: 8,
-
-      continentID: 1,
-      countryID: 2,
-      stateProvinceID: 3,
-      countyID: null,
       localityID: 6,
-
       collectionStartDate: startDate,
       collectionEndDate: null,
       collectors: 'Person A',
@@ -185,7 +165,15 @@ test('creating a fully-specified specimen', async () => {
       determinationRemarks: null,
       typeStatus: null,
       specimenCount: null,
-      problems: null
+      problems: null,
+      phylumID: 2,
+      classID: 3,
+      orderID: 4,
+      familyID: 8,
+      genusID: null,
+      speciesID: null,
+      subspeciesID: null,
+      countyID: null
     });
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
     expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');

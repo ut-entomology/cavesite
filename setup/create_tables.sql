@@ -112,26 +112,10 @@ create table specimens (
     catalog_number text not null, -- can't enforce uniqueness due to import
     -- GBIF occurrenceID (specify co.GUID)
     occurrence_guid text, -- can't enforce uniqueness due to import
-
-    -- all taxon and location IDs are locally generated...
-
-    kingdom_id integer not null references taxa,
-    phylum_id integer references taxa,
-    class_id integer references taxa,
-    order_id integer references taxa,
-    family_id integer references taxa,
-    genus_id integer references taxa,
-    species_id integer references taxa,
-    subspecies_id integer references taxa,
-    -- most specific taxon ID available
-    taxon_id integer not null references taxa, 
-
-    continent_id integer not null references locations,
-    country_id integer references locations,
-    state_province_id integer references locations,
-    county_id integer references locations,
+    -- most specific taxon ID available, locally generated
+    taxon_id integer not null references taxa,
+    -- locally generated; non-null because all specimens have locality names
     locality_id integer not null references locations,
-
     -- GBIF eventDate/year/month/day (specify ce.StartDate)
     collection_start_date timestamptz,
     collection_end_date timestamptz, -- not in GBIF
@@ -151,12 +135,24 @@ create table specimens (
     type_status text,
     -- GBIF organismQuantity
     specimen_count integer,
-
     -- generated at import
-    problems text
+    problems text,
+
+    -- values cached from taxa table
+
+    phylum_id integer references taxa,
+    class_id integer references taxa,
+    order_id integer references taxa,
+    family_id integer references taxa,
+    genus_id integer references taxa,
+    species_id integer references taxa,
+    subspecies_id integer references taxa,
+
+    -- values cached from locations table
+
+    county_id integer references locations
 );
 create index on specimens(catalog_number);
-create index on specimens(kingdom_id);
 create index on specimens(phylum_id);
 create index on specimens(class_id);
 create index on specimens(order_id);
@@ -164,9 +160,6 @@ create index on specimens(family_id);
 create index on specimens(genus_id);
 create index on specimens(species_id);
 create index on specimens(subspecies_id);
-create index on specimens(continent_id);
-create index on specimens(country_id);
-create index on specimens(state_province_id);
 create index on specimens(county_id);
 create index on specimens(locality_id);
 

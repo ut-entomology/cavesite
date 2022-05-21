@@ -74,22 +74,8 @@ export interface SpecimenSource {
 export class Specimen {
   catalogNumber: string;
   occurrenceGuid: string; // GBIF occurrenceID (specify co.GUID)
-  kingdomID: number;
-  phylumID: number | null;
-  classID: number | null;
-  orderID: number | null;
-  familyID: number | null;
-  genusID: number | null;
-  speciesID: number | null;
-  subspeciesID: number | null;
   taxonID: number; // ID of most specific taxon
-
-  continentID: number;
-  countryID: number | null;
-  stateProvinceID: number | null;
-  countyID: number | null;
   localityID: number | null;
-
   collectionStartDate: Date | null;
   collectionEndDate: Date | null;
   collectors: string | null; // |-delimited names, last name last
@@ -102,28 +88,27 @@ export class Specimen {
   specimenCount: number | null;
   problems: string | null;
 
+  // values cached from the taxa table
+
+  phylumID: number | null;
+  classID: number | null;
+  orderID: number | null;
+  familyID: number | null;
+  genusID: number | null;
+  speciesID: number | null;
+  subspeciesID: number | null;
+
+  // values cached from the locations table
+
+  countyID: number | null;
+
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
   private constructor(data: SpecimenData) {
     this.catalogNumber = data.catalogNumber;
     this.occurrenceGuid = data.occurrenceGuid; // GBIF occurrenceID (Specify co.GUID)
-
-    this.kingdomID = data.kingdomID;
-    this.phylumID = data.phylumID;
-    this.classID = data.classID;
-    this.orderID = data.orderID;
-    this.familyID = data.familyID;
-    this.genusID = data.genusID;
-    this.speciesID = data.speciesID;
-    this.subspeciesID = data.subspeciesID;
     this.taxonID = data.taxonID; // ID of most specific taxon
-
-    this.continentID = data.continentID;
-    this.countryID = data.countryID;
-    this.stateProvinceID = data.stateProvinceID;
-    this.countyID = data.countyID;
     this.localityID = data.localityID;
-
     this.collectionStartDate = data.collectionStartDate;
     this.collectionEndDate = data.collectionEndDate;
     this.collectors = data.collectors; // |-delimited names, last name last
@@ -135,6 +120,14 @@ export class Specimen {
     this.typeStatus = data.typeStatus;
     this.specimenCount = data.specimenCount;
     this.problems = data.problems;
+    this.phylumID = data.phylumID;
+    this.classID = data.classID;
+    this.orderID = data.orderID;
+    this.familyID = data.familyID;
+    this.genusID = data.genusID;
+    this.speciesID = data.speciesID;
+    this.subspeciesID = data.subspeciesID;
+    this.countyID = data.countyID;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -247,23 +240,8 @@ export class Specimen {
     specimen = new Specimen({
       catalogNumber: source.catalogNumber,
       occurrenceGuid: source.occurrenceID,
-
-      kingdomID: getTreeNodeID(taxonIDs, 0, taxon.taxonID)!,
-      phylumID: getTreeNodeID(taxonIDs, 1, taxon.taxonID),
-      classID: getTreeNodeID(taxonIDs, 2, taxon.taxonID),
-      orderID: getTreeNodeID(taxonIDs, 3, taxon.taxonID),
-      familyID: getTreeNodeID(taxonIDs, 4, taxon.taxonID),
-      genusID: getTreeNodeID(taxonIDs, 5, taxon.taxonID),
-      speciesID: getTreeNodeID(taxonIDs, 6, taxon.taxonID),
-      subspeciesID: getTreeNodeID(taxonIDs, 7, taxon.taxonID),
       taxonID: taxon.taxonID,
-
-      continentID: getTreeNodeID(locationIDs, 0, location.locationID)!,
-      countryID: getTreeNodeID(locationIDs, 1, location.locationID),
-      stateProvinceID: getTreeNodeID(locationIDs, 2, location.locationID),
-      countyID: getTreeNodeID(locationIDs, 3, location.locationID),
-      localityID: getTreeNodeID(locationIDs, 4, location.locationID),
-
+      localityID: location.locationID,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
       collectors: source.collectors?.replace(/ ?[|] ?/g, '|') || null,
@@ -274,39 +252,34 @@ export class Specimen {
       determinationRemarks: source.determinationRemarks || null,
       typeStatus: source.typeStatus || null,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
-      problems: problemList.length > 0 ? problemList.join('|') : null
+      problems: problemList.length > 0 ? problemList.join('|') : null,
+      phylumID: getRankedID(taxonIDs, 1, taxon.taxonID),
+      classID: getRankedID(taxonIDs, 2, taxon.taxonID),
+      orderID: getRankedID(taxonIDs, 3, taxon.taxonID),
+      familyID: getRankedID(taxonIDs, 4, taxon.taxonID),
+      genusID: getRankedID(taxonIDs, 5, taxon.taxonID),
+      speciesID: getRankedID(taxonIDs, 6, taxon.taxonID),
+      subspeciesID: getRankedID(taxonIDs, 7, taxon.taxonID),
+      countyID: getRankedID(locationIDs, 3, location.locationID)
     });
 
     // Add the specimen to the database. Specimens are read-only.
 
     await db.query(
       `insert into specimens(
-          catalog_number, occurrence_guid,
-          kingdom_id, phylum_id, class_id, order_id, family_id,
-          genus_id, species_id, subspecies_id, taxon_id,
-          continent_id, country_id, state_province_id, county_id, locality_id,
+          catalog_number, occurrence_guid, taxon_id, locality_id,
           collection_start_date, collection_end_date,
           collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
-          type_status, specimen_count, problems
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
+          type_status, specimen_count, problems,
+          phylum_id, class_id, order_id, family_id,
+          genus_id, species_id, subspecies_id, county_id
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
-        specimen.kingdomID,
-        specimen.phylumID,
-        specimen.classID,
-        specimen.orderID,
-        specimen.familyID,
-        specimen.genusID,
-        specimen.speciesID,
-        specimen.subspeciesID,
         specimen.taxonID,
-        specimen.continentID,
-        specimen.countryID,
-        specimen.stateProvinceID,
-        specimen.countyID,
         specimen.localityID,
         specimen.collectionStartDate?.toISOString() || null,
         specimen.collectionEndDate?.toISOString() || null,
@@ -318,7 +291,15 @@ export class Specimen {
         specimen.determinationRemarks,
         specimen.typeStatus,
         specimen.specimenCount,
-        specimen.problems
+        specimen.problems,
+        specimen.phylumID,
+        specimen.classID,
+        specimen.orderID,
+        specimen.familyID,
+        specimen.genusID,
+        specimen.speciesID,
+        specimen.subspeciesID,
+        specimen.countyID
       ]
     );
 
@@ -398,16 +379,16 @@ export class Specimen {
   }
 }
 
-function getTreeNodeID(
+function getRankedID(
   containingIDs: string[],
   index: number,
   leafID: number
 ): number | null {
-  if (index == containingIDs.length) {
-    return leafID;
-  }
   if (index > containingIDs.length) {
     return null;
+  }
+  if (index == containingIDs.length) {
+    return leafID;
   }
   const containingID = containingIDs[index];
   if (containingID == MISSING_LOCATION_ID) {
@@ -415,6 +396,20 @@ function getTreeNodeID(
   }
   return parseInt(containingID);
 }
+
+// function getRankedName(
+//   containingNames: string[],
+//   index: number,
+//   leafName: string
+// ): string | null {
+//   if (index > containingNames.length) {
+//     return null;
+//   }
+//   if (index == containingNames.length) {
+//     return leafName;
+//   }
+//   return containingNames[index];
+// }
 
 async function logImportProblem(
   db: DB,
