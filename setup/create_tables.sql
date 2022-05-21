@@ -121,6 +121,8 @@ create table specimens (
     collection_end_date timestamptz, -- not in GBIF
     -- GBIF recordedBy (|-delimited names, last name last)
     collectors text,
+    -- |-delimited lowercase last names, alphabetically sorted
+    normalized_collectors text,
     -- from GBIF dateIdentified
     determination_year integer,
     -- GBIF identifiedBy (|-delimited names, last name last)
@@ -202,3 +204,19 @@ create table logs (
     line text not null
 );
 create index on logs(timestamp);
+
+create table visits (
+    location_id integer not null references locations,
+    is_cave boolean not null,
+    start_epoch_day integer not null, -- days since 1/1/1970
+    end_epoch_day integer, -- days since 1/1/1970
+    collectors text,
+    phyla text,
+    classes text,
+    orders text,
+    families text,
+    genera text,
+    species text,
+    subspecies text,
+    primary key (location_id, start_epoch_day, collectors)
+);

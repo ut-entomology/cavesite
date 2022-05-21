@@ -34,9 +34,9 @@ const baseSource = {
   decimalLongitude: '-93.21',
 
   startDate: startDate.toISOString(),
-  collectors: 'Person A | Person B',
+  collectors: 'Some One | Another P. Someone, II | Foo | Baz, Jr.',
   determinationDate: detDate.toISOString(),
-  determiners: 'Person C | Person D',
+  determiners: 'Person A | Person B',
   collectionRemarks:
     'meadow; *end date ' + endDateISO.substring(0, endDateISO.indexOf('T')),
   occurrenceRemarks: 'occurrence remark',
@@ -92,9 +92,10 @@ test('creating a fully-specified specimen', async () => {
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
-      collectors: 'Person A|Person B',
+      collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
+      normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
-      determiners: 'Person C|Person D',
+      determiners: 'Person A|Person B',
       collectionRemarks: 'meadow',
       occurrenceRemarks: baseSource.occurrenceRemarks,
       determinationRemarks: baseSource.determinationRemarks,
@@ -158,7 +159,7 @@ test('creating a fully-specified specimen', async () => {
       locality: 'Their backyard',
 
       startDate: startDate.toISOString(),
-      collectors: 'Person A',
+      collectors: 'Any Body',
       determiners: 'Person C'
     };
     const specimen = await Specimen.create(db, source);
@@ -169,7 +170,8 @@ test('creating a fully-specified specimen', async () => {
       localityID: 6,
       collectionStartDate: startDate,
       collectionEndDate: null,
-      collectors: 'Person A',
+      collectors: 'Any Body',
+      normalizedCollectors: 'body',
       determinationYear: null,
       determiners: 'Person C',
       collectionRemarks: null,

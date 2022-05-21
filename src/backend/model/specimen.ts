@@ -12,11 +12,12 @@ import { Logs, LogType } from './logs';
 import { TaxonFilter, SortColumn, ColumnSort, locationRanks } from '../../shared/model';
 import { BadDataError } from '../util/error_util';
 
-type SpecimenData = DataOf<Specimen>;
+type SpecimenData = Omit<DataOf<Specimen>, 'normalizedCollectors'>;
 
 const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
+const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 
 const sortColumnMap: Record<number, string> = {};
 sortColumnMap[SortColumn.CatalogNumber] = 'catalog_number';
@@ -77,6 +78,8 @@ export class Specimen {
   collectionStartDate: Date | null;
   collectionEndDate: Date | null;
   collectors: string | null; // |-delimited names, last name last
+  // |-delimited lowercase last names, alphabetically sorted
+  normalizedCollectors: string | null;
   determinationYear: number | null;
   determiners: string | null; // |-delimited names, last name last
   collectionRemarks: string | null;
@@ -150,6 +153,17 @@ export class Specimen {
     this.localityName = data.localityName;
     this.publicLatitude = data.publicLatitude;
     this.publicLongitude = data.publicLongitude;
+
+    // set derived values
+
+    this.normalizedCollectors = null;
+    if (this.collectors !== null) {
+      const matches = this.collectors.toLowerCase().matchAll(LAST_NAMES_REGEX);
+      this.normalizedCollectors = Array.from(matches)
+        .map((match) => match[1])
+        .sort()
+        .join('|');
+    }
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 -- Drops tables in reverse order of creation.
 
+drop table if exists visits;
 drop table if exists logs;
 drop table if exists private_coordinates;
 drop table if exists specimens;

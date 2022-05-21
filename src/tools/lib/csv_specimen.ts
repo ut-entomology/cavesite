@@ -121,15 +121,17 @@ function addPersonName(
   name: string,
   isFirst: boolean
 ) {
-  if (names.length <= index) {
-    names.length = index + 1;
-  }
-  if (names[index] === undefined) {
-    names[index] = {};
-  }
-  if (isFirst) {
-    names[index].firstName = name;
-  } else {
-    names[index].lastName = name;
+  if (name != '') {
+    if (names.length <= index) {
+      names.length = index + 1;
+    }
+    if (names[index] === undefined) {
+      names[index] = {};
+    }
+    if (isFirst) {
+      names[index].firstName = name;
+    } else {
+      names[index].lastName = name;
+    }
   }
 }
