@@ -82,7 +82,7 @@ export class Specimen {
   genusID: number | null;
   speciesID: number | null;
   subspeciesID: number | null;
-  preciseTaxonID: number; // ID of most specific taxon
+  taxonID: number; // ID of most specific taxon
 
   continentID: number;
   countryID: number | null;
@@ -116,7 +116,7 @@ export class Specimen {
     this.genusID = data.genusID;
     this.speciesID = data.speciesID;
     this.subspeciesID = data.subspeciesID;
-    this.preciseTaxonID = data.preciseTaxonID; // ID of most specific taxon
+    this.taxonID = data.taxonID; // ID of most specific taxon
 
     this.continentID = data.continentID;
     this.countryID = data.countryID;
@@ -256,7 +256,7 @@ export class Specimen {
       genusID: getTreeNodeID(taxonIDs, 5, taxon.taxonID),
       speciesID: getTreeNodeID(taxonIDs, 6, taxon.taxonID),
       subspeciesID: getTreeNodeID(taxonIDs, 7, taxon.taxonID),
-      preciseTaxonID: taxon.taxonID,
+      taxonID: taxon.taxonID,
 
       continentID: getTreeNodeID(locationIDs, 0, location.locationID)!,
       countryID: getTreeNodeID(locationIDs, 1, location.locationID),
@@ -283,7 +283,7 @@ export class Specimen {
       `insert into specimens(
           catalog_number, occurrence_guid,
           kingdom_id, phylum_id, class_id, order_id, family_id,
-          genus_id, species_id, subspecies_id, precise_taxon_id,
+          genus_id, species_id, subspecies_id, taxon_id,
           continent_id, country_id, state_province_id, county_id, locality_id,
           collection_start_date, collection_end_date,
           collectors, determination_year, determiners,
@@ -302,7 +302,7 @@ export class Specimen {
         specimen.genusID,
         specimen.speciesID,
         specimen.subspeciesID,
-        specimen.preciseTaxonID,
+        specimen.taxonID,
         specimen.continentID,
         specimen.countryID,
         specimen.stateProvinceID,

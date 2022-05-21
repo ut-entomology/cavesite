@@ -96,7 +96,7 @@ test('creating a fully-specified specimen', async () => {
       genusID: 6,
       speciesID: 7,
       subspeciesID: null,
-      preciseTaxonID: 7,
+      taxonID: 7,
 
       continentID: 1,
       countryID: 2,
@@ -167,7 +167,7 @@ test('creating a fully-specified specimen', async () => {
       genusID: null,
       speciesID: null,
       subspeciesID: null,
-      preciseTaxonID: 8,
+      taxonID: 8,
 
       continentID: 1,
       countryID: 2,

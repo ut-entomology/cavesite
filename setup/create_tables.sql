@@ -124,7 +124,7 @@ create table specimens (
     species_id integer references taxa,
     subspecies_id integer references taxa,
     -- most specific taxon ID available
-    precise_taxon_id integer not null references taxa, 
+    taxon_id integer not null references taxa, 
 
     continent_id integer not null references locations,
     country_id integer references locations,
