@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { SvelteComponent } from 'svelte';
 
-  import type { TaxonSpec } from '../../shared/taxa';
+  import type { TaxonSpec } from '../../shared/model';
   import type { TreeNode } from '../../frontend-core/selections_tree';
   import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import type { SpecEntry } from '../../frontend-core/selections_tree';

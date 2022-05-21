@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { Taxon } from '../model/taxon';
-import { TaxonSpec } from '../../shared/taxa';
+import { TaxonSpec } from '../../shared/model';
 
 export const router = Router();
 
@@ -41,11 +41,12 @@ router.post('/get_list', async (req: Request, res) => {
 
 function _toTaxonInfo(taxon: Taxon): TaxonSpec {
   return {
+    taxonID: taxon.taxonID,
     rank: taxon.taxonRank,
     name: taxon.taxonName,
     unique: taxon.uniqueName,
     author: taxon.author,
-    containingNames: taxon.containingNames,
+    parentNamePath: taxon.parentNamePath,
     hasChildren: taxon.hasChildren
   };
 }

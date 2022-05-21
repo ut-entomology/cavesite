@@ -3,8 +3,8 @@
  * wrapped within a handle that exposes convenience methods.
  */
 
-import type { ClientConfig } from 'pg';
-import { Client } from 'pg';
+import { type ClientConfig, Client } from 'pg';
+import pgFormat from 'pg-format';
 
 //// TYPES AND CLASSES ///////////////////////////////////////////////////////
 
@@ -106,7 +106,6 @@ export function toCamelRow<T>(snakeRow: Record<string, any>): T {
           .slice(1)
           .map((word) => {
             if (word == 'id') return 'ID';
-            if (word == 'ids') return 'IDs';
             if (word == 'ip') return 'IP';
             return word[0].toUpperCase() + word.substring(1);
           })
@@ -124,4 +123,20 @@ const snakeToCamelMap: Record<string, string> = {};
  */
 export function toLocalDate(date: Date): Date {
   return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+}
+
+/**
+ * Returns conjunction of 'where' conditions with possible null values.
+ */
+export function wherePossiblyNull(nameValueMap: Record<string, any>): string {
+  const conditions: string[] = [];
+  for (const name of Object.keys(nameValueMap)) {
+    const value = nameValueMap[name];
+    if (value === null) {
+      conditions.push(name + ' is null');
+    } else {
+      conditions.push(pgFormat('%I=%L', name, value));
+    }
+  }
+  return conditions.join(' and ');
 }

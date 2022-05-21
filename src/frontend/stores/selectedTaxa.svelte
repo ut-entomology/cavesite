@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
-  import type { TaxonSpec } from '../../shared/taxa';
+  import type { TaxonSpec } from '../../shared/model';
 
   export type SelectedTaxa = Record<string, TaxonSpec>;
 

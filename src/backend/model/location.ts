@@ -11,22 +11,14 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { ImportFailure } from './import_failure';
+import {
+  LocationRank,
+  locationRanks,
+  LocationSpec,
+  createContainingLocationSpecs
+} from '../../shared/model';
 
-export enum LocationType {
-  Continent = 'continent',
-  Country = 'country',
-  StateProvince = 'stateProvince',
-  County = 'county',
-  Locality = 'locality'
-}
-
-export const locationTypes = [
-  LocationType.Continent,
-  LocationType.Country,
-  LocationType.StateProvince,
-  LocationType.County,
-  LocationType.Locality
-];
+export const MISSING_LOCATION_ID = '-'; // ID of missing intermediate location
 
 export interface LocationSource {
   // GBIF field names
@@ -40,40 +32,31 @@ export interface LocationSource {
   decimalLongitude?: string;
 }
 
-interface LocationSpec {
-  locationType: LocationType;
-  locationName: string;
-  locationGuid: string | null;
-  publicLatitude: number | null;
-  publicLongitude: number | null;
-  containingNames: string;
-}
-
 type LocationData = DataOf<Location>;
 
 export class Location {
   locationID = 0;
-  locationType: LocationType;
+  locationRank: LocationRank;
   locationName: string;
   locationGuid: string | null;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentID: number | null;
-  containingIDs: string;
-  containingNames: string;
+  parentIDPath: string;
+  parentNamePath: string;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
   private constructor(data: LocationData) {
     this.locationID = data.locationID;
-    this.locationType = data.locationType;
+    this.locationRank = data.locationRank;
     this.locationName = data.locationName;
     this.locationGuid = data.locationGuid;
     this.publicLatitude = data.publicLatitude;
     this.publicLongitude = data.publicLongitude;
     this.parentID = data.parentID;
-    this.containingIDs = data.containingIDs;
-    this.containingNames = data.containingNames;
+    this.parentIDPath = data.parentIDPath;
+    this.parentNamePath = data.parentNamePath;
   }
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
@@ -82,39 +65,39 @@ export class Location {
     if (this.locationID === 0) {
       const result = await db.query(
         `insert into locations(
-						location_type, location_name, location_guid,
+						location_rank, location_name, location_guid,
             public_latitude, public_longitude,
-						parent_id, containing_ids, containing_names
+						parent_id, parent_id_path, parent_name_path
 					) values ($1, $2, $3, $4, $5, $6, $7, $8)
 					returning location_id`,
         [
-          this.locationType,
+          this.locationRank,
           this.locationName,
           this.locationGuid,
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
-          this.containingIDs,
-          this.containingNames
+          this.parentIDPath,
+          this.parentNamePath
         ]
       );
       this.locationID = result.rows[0].location_id;
     } else {
       const result = await db.query(
         `update locations set 
-						location_type=$1, location_name=$2, location_guid=$3,
+						location_rank=$1, location_name=$2, location_guid=$3,
             public_latitude=$4, public_longitude=$5,
-						parent_id=$6, containing_ids=$7, containing_names=$8
+						parent_id=$6, parent_id_path=$7, parent_name_path=$8
 					where location_id=$9`,
         [
-          this.locationType,
+          this.locationRank,
           this.locationName,
           this.locationGuid,
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
-          this.containingIDs,
-          this.containingNames,
+          this.parentIDPath,
+          this.parentNamePath,
           this.locationID
         ]
       );
@@ -134,16 +117,16 @@ export class Location {
 
   static async create(
     db: DB,
-    containingNames: string,
-    containingIDs: string,
-    data: Omit<LocationData, 'locationID' | 'containingIDs' | 'containingNames'>
+    parentNamePath: string,
+    parentIDPath: string,
+    data: Omit<LocationData, 'locationID' | 'parentIDPath' | 'parentNamePath'>
   ): Promise<Location> {
     const location = new Location(
       Object.assign(
         {
           locationID: 0 /* DB will assign a value */,
-          containingIDs,
-          containingNames
+          parentIDPath,
+          parentNamePath
         },
         data
       )
@@ -182,39 +165,13 @@ export class Location {
       const location = await Location.getByGUID(db, source.locationID, false);
       if (location) return location;
     }
-    const [containingNamesList, locationName] = Location._parseLocationSpec(source);
+    const containingNames = Location._extractLocations(source);
+    const locationName = containingNames.pop()!;
+    const parentNamePath = containingNames.join('|');
+
     if (!source.locationID) {
-      let location = await Location._getByNameSeries(
-        db,
-        containingNamesList.join('|'),
-        locationName
-      );
+      let location = await Location._getByNamePath(db, parentNamePath, locationName);
       if (location) return location;
-    }
-
-    // If the location doesn't exist yet, create specs for all its
-    // containing locations.
-
-    const specs: LocationSpec[] = [];
-    let containingNames = '';
-    for (let i = 0; i < containingNamesList.length; ++i) {
-      const containingName = containingNamesList[i];
-      if (containingName) {
-        specs.push({
-          locationType: locationTypes[i],
-          locationName: containingName,
-          locationGuid: null, // not needed above locality
-          publicLatitude: null,
-          publicLongitude: null,
-          containingNames
-        });
-      }
-      if (containingNames == '') {
-        containingNames = containingName!; // necessarily continent
-      } else {
-        // Name for a missing containing Name is represented as '-'
-        containingNames += '|' + (containingName ? containingName : '-');
-      }
     }
 
     // Parse the coordinates.
@@ -230,16 +187,19 @@ export class Location {
       if (isNaN(longitude)) throw new ImportFailure('Invalid longitude');
     }
 
-    // Create a spec for the particular requested location.
+    // Create specs for the location and all of its containing locations.
 
-    specs.push({
-      locationType: locationTypes[containingNamesList.length],
-      locationName,
-      locationGuid: source.locationID || null,
+    const spec: LocationSpec = {
+      locationID: 0,
+      rank: LocationRank.Locality,
+      name: locationName,
+      guid: source.locationID || null,
       publicLatitude: latitude,
       publicLongitude: longitude,
-      containingNames
-    });
+      parentNamePath
+    };
+    const specs = createContainingLocationSpecs(spec);
+    specs.push(spec);
 
     // Create all implied locations.
 
@@ -266,23 +226,20 @@ export class Location {
       specs,
       specs.length - 1 // nearest to the last specified location
     );
-    let containingIDs = location?.containingIDs || '';
+    let parentIDPath = location?.parentIDPath || '';
     while (++locationIndex < specs.length) {
       const spec = specs[locationIndex];
       if (location) {
-        if (containingIDs == '') {
-          containingIDs = location.locationID.toString(); // necessarily continent
-        } else {
-          containingIDs += ',' + location.locationID.toString();
-          for (let i = locationIndex; locationTypes[i] != spec.locationType; ++i) {
-            containingIDs += ',-'; // '-' for ID of missing intermediate location
-          }
+        if (parentIDPath != '') parentIDPath += ',';
+        parentIDPath += location.locationID.toString();
+        for (let i = locationIndex; locationRanks[i] != spec.rank; ++i) {
+          parentIDPath += ',' + MISSING_LOCATION_ID;
         }
       }
-      location = await Location.create(db, spec.containingNames, containingIDs, {
-        locationType: spec.locationType,
-        locationName: spec.locationName,
-        locationGuid: spec.locationGuid,
+      location = await Location.create(db, spec.parentNamePath, parentIDPath, {
+        locationRank: spec.rank,
+        locationName: spec.name,
+        locationGuid: spec.guid,
         publicLatitude: spec.publicLatitude,
         publicLongitude: spec.publicLongitude,
         parentID: location?.locationID || null
@@ -291,15 +248,15 @@ export class Location {
     return location!;
   }
 
-  private static async _getByNameSeries(
+  private static async _getByNamePath(
     db: DB,
-    containingNames: string,
+    parentNamePath: string,
     locationName: string
   ): Promise<Location | null> {
     const result = await db.query(
-      `select * from locations where containing_names=$1 and location_name=$2
+      `select * from locations where parent_name_path=$1 and location_name=$2
         and committed=false`,
-      [containingNames, locationName]
+      [parentNamePath, locationName]
     );
     return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
   }
@@ -309,16 +266,12 @@ export class Location {
     specs: LocationSpec[],
     specIndex: number
   ): Promise<[Location | null, number]> {
-    const spec = specs[specIndex];
+    const spec = specs[specIndex]!;
     let location: Location | null;
-    if (spec.locationGuid) {
-      location = await Location.getByGUID(db, spec.locationGuid, false);
+    if (spec.guid) {
+      location = await Location.getByGUID(db, spec.guid, false);
     } else {
-      location = await Location._getByNameSeries(
-        db,
-        spec.containingNames,
-        spec.locationName
-      );
+      location = await Location._getByNamePath(db, spec.parentNamePath, spec.name);
     }
     if (location) {
       return [location, specIndex];
@@ -329,25 +282,35 @@ export class Location {
     return Location._getClosestLocation(db, specs, specIndex - 1);
   }
 
-  private static _parseLocationSpec(
-    source: LocationSource
-  ): [(string | null)[], string] {
+  private static _extractLocations(source: LocationSource): string[] {
     if (!source.continent) throw new ImportFailure('Continent not given');
-    const containingNamesList: (string | null)[] = [source.continent];
-    containingNamesList.push(source.country || null);
-    if (source.stateProvince && !source.country)
-      throw new ImportFailure('State/province given without country');
-    containingNamesList.push(source.stateProvince || null);
-    if (source.county && !source.stateProvince)
-      throw new ImportFailure('County given without state/province');
-    containingNamesList.push(source.county || null);
+
+    const locationNames: string[] = [source.continent];
+
+    if (source.country) {
+      locationNames.push(source.country);
+    }
+
+    if (source.stateProvince) {
+      if (!source.country)
+        throw new ImportFailure('State/province given without country');
+      locationNames.push(source.stateProvince);
+    }
+
+    if (source.county) {
+      if (!source.stateProvince)
+        throw new ImportFailure('County given without state/province');
+      locationNames.push(source.county);
+    }
+
     if (!source.locality) throw new ImportFailure('Locality name not given');
+    locationNames.push(source.locality);
 
     if (source.decimalLatitude && !source.decimalLongitude)
       throw new ImportFailure('Latitude given without longitude');
     if (source.decimalLongitude && !source.decimalLatitude)
       throw new ImportFailure('Longitude given without latitude');
 
-    return [containingNamesList, source.locality];
+    return locationNames;
   }
 }

@@ -10,7 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
+import { TaxonRank, TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
 import { ImportFailure } from './import_failure';
 
 const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
@@ -38,9 +38,9 @@ export class Taxon {
   uniqueName: string;
   author: string | null; // null => not retrieved from GBIF
   parentID: number | null;
-  containingIDs: string;
-  containingNames: string;
-  hasChildren: boolean | null; // null => unknown
+  parentIDPath: string;
+  parentNamePath: string;
+  hasChildren: boolean | null; // null => unknown; not a DB column
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -51,8 +51,8 @@ export class Taxon {
     this.uniqueName = data.uniqueName;
     this.author = data.author;
     this.parentID = data.parentID;
-    this.containingIDs = data.containingIDs;
-    this.containingNames = data.containingNames;
+    this.parentIDPath = data.parentIDPath;
+    this.parentNamePath = data.parentNamePath;
     this.hasChildren = data.hasChildren;
   }
 
@@ -63,7 +63,7 @@ export class Taxon {
       const result = await db.query(
         `insert into taxa(
             taxon_rank, taxon_name, unique_name, author,
-            parent_id, containing_ids, containing_names
+            parent_id, parent_id_path, parent_name_path
           ) values ($1, $2, $3, $4, $5, $6, $7) returning taxon_id`,
         [
           this.taxonRank,
@@ -71,8 +71,8 @@ export class Taxon {
           this.uniqueName,
           this.author,
           this.parentID,
-          this.containingIDs,
-          this.containingNames
+          this.parentIDPath,
+          this.parentNamePath
         ]
       );
       this.taxonID = result.rows[0].taxon_id;
@@ -80,7 +80,7 @@ export class Taxon {
       const result = await db.query(
         `update taxa set
             taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4,
-            parent_id=$5, containing_ids=$6, containing_names=$7
+            parent_id=$5, parent_id_path=$6, parent_name_path=$7
           where taxon_id=$8`,
         [
           this.taxonRank,
@@ -88,8 +88,8 @@ export class Taxon {
           this.uniqueName,
           this.author,
           this.parentID,
-          this.containingIDs,
-          this.containingNames,
+          this.parentIDPath,
+          this.parentNamePath,
           this.taxonID
         ]
       );
@@ -109,16 +109,16 @@ export class Taxon {
 
   static async create(
     db: DB,
-    containingNames: string,
-    containingIDs: string,
-    data: Omit<TaxonData, 'taxonID' | 'containingIDs' | 'containingNames'>
+    parentNamePath: string,
+    parentIDPath: string,
+    data: Omit<TaxonData, 'taxonID' | 'parentIDPath' | 'parentNamePath'>
   ): Promise<Taxon> {
     const taxon = new Taxon(
       Object.assign(
         {
           taxonID: 0 /* DB will assign a value */,
-          containingNames,
-          containingIDs
+          parentNamePath,
+          parentIDPath
         },
         data
       )
@@ -157,13 +157,13 @@ export class Taxon {
   }
 
   static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
+    const [containingNames, taxonRank] = Taxon._extractTaxa(source);
+    const taxonName = containingNames.pop()!;
+    const parentNamePath = containingNames.join('|');
+
     // Return the taxon if it already exists.
 
-    const [taxonNames, taxonRank] = Taxon._extractTaxa(source);
-    const taxonName = taxonNames.pop()!;
-    const containingNames = taxonNames.join('|');
-
-    let taxon = await Taxon._getByNameSeries(db, containingNames, taxonName);
+    let taxon = await Taxon._getByNamePath(db, parentNamePath, taxonName);
     if (taxon) {
       // If the taxon was previously created by virtue of being implied,
       // it won't have been assign an author, so assign it now.
@@ -177,17 +177,18 @@ export class Taxon {
       return taxon;
     }
 
-    // Create specs for all containing taxa and the taxon itself.
+    // Create specs for the taxon and all of its containing taxa.
 
     const spec: TaxonSpec = {
+      taxonID: 0,
       rank: taxonRank,
       name: taxonName,
       unique: '',
       author: Taxon._extractAuthor(source.scientificName),
-      containingNames,
+      parentNamePath,
       hasChildren: null
     };
-    const specs = createTaxonSpecs(spec);
+    const specs = createContainingTaxonSpecs(spec);
     specs.push(spec);
 
     // Create all implied taxa.
@@ -212,17 +213,14 @@ export class Taxon {
       specs,
       specs.length - 1 // nearest to the last specified taxon
     );
-    let containingIDs = taxon?.containingIDs || '';
+    let parentIDPath = taxon?.parentIDPath || '';
     while (++taxonIndex < specs.length) {
       if (taxon) {
-        if (containingIDs == '') {
-          containingIDs = taxon.taxonID.toString();
-        } else {
-          containingIDs += ',' + taxon.taxonID.toString();
-        }
+        if (parentIDPath != '') parentIDPath += ',';
+        parentIDPath += taxon.taxonID.toString();
       }
       const spec = specs[taxonIndex];
-      taxon = await Taxon.create(db, spec.containingNames, containingIDs, {
+      taxon = await Taxon.create(db, spec.parentNamePath, parentIDPath, {
         taxonRank: spec.rank,
         taxonName: spec.name,
         uniqueName: spec.unique,
@@ -234,15 +232,15 @@ export class Taxon {
     return taxon!;
   }
 
-  private static async _getByNameSeries(
+  private static async _getByNamePath(
     db: DB,
-    containingNames: string,
+    parentNamePath: string,
     taxonName: string
   ): Promise<Taxon | null> {
     const result = await db.query(
-      `select * from taxa where containing_names=$1 and taxon_name=$2
+      `select * from taxa where parent_name_path=$1 and taxon_name=$2
         and committed=false`,
-      [containingNames, taxonName]
+      [parentNamePath, taxonName]
     );
     return result.rows.length > 0 ? new Taxon(_toTaxonData(result.rows[0])) : null;
   }
@@ -253,7 +251,7 @@ export class Taxon {
     specIndex: number
   ): Promise<[Taxon | null, number]> {
     const spec = specs[specIndex];
-    const taxon = await Taxon._getByNameSeries(db, spec.containingNames, spec.name);
+    const taxon = await Taxon._getByNamePath(db, spec.parentNamePath, spec.name);
     if (taxon) {
       return [taxon, specIndex];
     }

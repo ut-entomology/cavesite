@@ -9,7 +9,7 @@
   import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
-  import { TaxonSpec, createTaxonSpecs } from '../../shared/taxa';
+  import { TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
   import type { SpecEntry } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
@@ -53,7 +53,6 @@
     // the code simpler than it would otherwise be. API calls are
     // necessary, regardless.
 
-    // if (!found) {
     // Load specs for the parent taxon and its ancestors.
 
     let res = await $client.post('api/taxa/get_list', {
@@ -64,7 +63,7 @@
       throw Error(`Failed to load taxon '${parentUnique}'`);
     }
     parentSpec = taxonSpecs[0];
-    const containingSpecs = createTaxonSpecs(parentSpec);
+    const containingSpecs = createContainingTaxonSpecs(parentSpec);
     containingSpecs.push(parentSpec);
 
     // Load specs for the children of the parent taxon and each ancestor.

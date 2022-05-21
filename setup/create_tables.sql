@@ -70,13 +70,13 @@ create table taxa (
     -- these allow for fast non-recursive taxon queries/autocompletion:
 
     -- comma-delimited series of taxon IDs, kingdom-to-parent
-    containing_ids text not null,
+    parent_id_path text not null,
     -- |-delimited series of taxon names for containing taxa
-    containing_names text not null
+    parent_name_path text not null
 );
 create index on taxa(taxon_name);
 create index on taxa(unique_name);
-create index on taxa(containing_names);
+create index on taxa(parent_name_path);
 
 create table locations (
     -- new data loads into the table prior to completely replacing old data
@@ -85,7 +85,7 @@ create table locations (
     location_id serial primary key, -- locally generated
     -- GBIF substring of georeferenceSources (Specify location.guid)
     location_guid text, -- can't enforce uniqueness due to import
-    location_type text not null, -- locally assigned
+    location_rank text not null, -- locally assigned
     -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
     location_name text not null,
     -- GBIF decimalLongitude
@@ -97,12 +97,12 @@ create table locations (
     -- these allow for fast non-recursive location queries/autocompletion:
 
     -- comma-delimited series of location IDs, continent-to-parent
-    containing_ids text not null,
+    parent_id_path text not null,
     -- |-delimited series of location names for containing locations
-    containing_names text not null 
+    parent_name_path text not null 
 );
 create index on locations(location_guid);
-create index on locations(containing_names);
+create index on locations(parent_name_path);
 
 create table specimens (
     -- new data loads into the table prior to completely replacing old data

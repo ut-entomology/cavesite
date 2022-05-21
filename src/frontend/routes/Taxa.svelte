@@ -9,10 +9,10 @@
   import { plusIcon, checkmarkIcon } from '../components/SelectableTaxon.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
-  import type { TaxonSpec } from '../../shared/taxa';
+  import type { TaxonSpec } from '../../shared/model';
   import type { TreeNode } from '../../frontend-core/selections_tree';
   import { selectedTaxa } from '../stores/selectedTaxa.svelte';
-  import { ROOT_TAXON } from '../../shared/taxa';
+  import { ROOT_TAXON } from '../../shared/model';
 
   let browseTaxonUnique: string | null = null;
   let rootTree: SvelteComponent;

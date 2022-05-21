@@ -1,5 +1,5 @@
 import { SelectionsTree } from './selections_tree';
-import { TaxonSpec, createTaxonSpecs } from '../shared/taxa';
+import { TaxonSpec, createContainingTaxonSpecs } from '../shared/model';
 
 export class TaxonSelectionsTree extends SelectionsTree<TaxonSpec> {
   constructor(specs: TaxonSpec[]) {
@@ -7,6 +7,6 @@ export class TaxonSelectionsTree extends SelectionsTree<TaxonSpec> {
   }
 
   getContainingSpecs(forSpec: TaxonSpec): TaxonSpec[] {
-    return createTaxonSpecs(forSpec);
+    return createContainingTaxonSpecs(forSpec);
   }
 }

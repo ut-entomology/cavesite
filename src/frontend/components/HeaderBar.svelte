@@ -40,7 +40,7 @@
               <TabSetSelector />
             {/if}
             <CircleIconButton
-              class="login_info"
+              class="login_info_button"
               on:click={showLoginInfo}
               bordered={true}
               label="Login information"
@@ -89,7 +89,7 @@
     margin-right: 0.4rem;
   }
 
-  :global(.login_info) {
+  :global(.login_info_button) {
     width: 1.8rem;
     height: 1.8rem;
     margin-right: 0.4rem;

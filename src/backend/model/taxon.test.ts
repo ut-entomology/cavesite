@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Taxon } from './taxon';
-import { TaxonRank } from '../../shared/taxa';
+import { TaxonRank } from '../../shared/model';
 import { ImportFailure } from './import_failure';
 
 const mutex = new DatabaseMutex();
@@ -29,8 +29,8 @@ test('sequentially dependent taxa tests', async () => {
     const expectedTaxon = Object.assign(
       {
         taxonID: 1,
-        containingIDs: '',
-        containingNames: ''
+        parentIDPath: '',
+        parentNamePath: ''
       },
       taxonInfo
     );
@@ -53,7 +53,7 @@ test('sequentially dependent taxa tests', async () => {
       hasChildren: null
     };
     const expectedTaxon = Object.assign(
-      { taxonID: 2, containingIDs: '1', containingNames: 'Animalia' },
+      { taxonID: 2, parentIDPath: '1', parentNamePath: 'Animalia' },
       taxonInfo
     );
     const createdTaxon = await Taxon.create(db, 'Animalia', '1', taxonInfo);
@@ -79,22 +79,21 @@ test('sequentially dependent taxa tests', async () => {
   // test auto-creating new taxon having no intermediates
 
   {
-    const taxonName = 'Arachnida';
     const createdTaxon = await Taxon.getOrCreate(db, {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
-      class: taxonName,
-      scientificName: taxonName
+      class: 'Arachnida',
+      scientificName: 'Arachnida'
     });
     expect(createdTaxon).toEqual({
       taxonID: 3,
       taxonRank: TaxonRank.Class,
-      taxonName,
-      uniqueName: taxonName,
+      taxonName: 'Arachnida',
+      uniqueName: 'Arachnida',
       author: null,
       parentID: 2,
-      containingIDs: '1,2',
-      containingNames: 'Animalia|Arthropoda',
+      parentIDPath: '1,2',
+      parentNamePath: 'Animalia|Arthropoda',
       hasChildren: null
     });
   }
@@ -119,8 +118,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Araneae',
       author: null,
       parentID: 3,
-      containingIDs: '1,2,3',
-      containingNames: 'Animalia|Arthropoda|Arachnida',
+      parentIDPath: '1,2,3',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 5)).toEqual({
@@ -130,8 +129,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Thomisidae',
       author: null,
       parentID: 4,
-      containingIDs: '1,2,3,4',
-      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae',
+      parentIDPath: '1,2,3,4',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 6)).toEqual({
@@ -141,8 +140,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Mecaphesa',
       author: null,
       parentID: 5,
-      containingIDs: '1,2,3,4,5',
-      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae',
+      parentIDPath: '1,2,3,4,5',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae',
       hasChildren: null
     });
     const readTaxon = await Taxon.getByID(db, 7);
@@ -153,8 +152,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Mecaphesa dubia',
       author: '(Keyserling, 1880)',
       parentID: 6,
-      containingIDs: '1,2,3,4,5,6',
-      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa',
+      parentIDPath: '1,2,3,4,5,6',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa',
       hasChildren: null
     });
     expect(createdTaxon).toEqual(readTaxon);
@@ -203,8 +202,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromidae',
       author: null,
       parentID: 4,
-      containingIDs: '1,2,3,4',
-      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae',
+      parentIDPath: '1,2,3,4',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 9)).toEqual({
@@ -214,8 +213,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromus',
       author: null,
       parentID: 8,
-      containingIDs: '1,2,3,4,8',
-      containingNames: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae',
+      parentIDPath: '1,2,3,4,8',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 10)).toEqual({
@@ -225,9 +224,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromus rufus',
       author: null,
       parentID: 9,
-      containingIDs: '1,2,3,4,8,9',
-      containingNames:
-        'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus',
+      parentIDPath: '1,2,3,4,8,9',
+      parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus',
       hasChildren: null
     });
     const readTaxon = await Taxon.getByID(db, 11);
@@ -238,8 +236,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Philodromus rufus jenningsi',
       author: 'Author',
       parentID: 10,
-      containingIDs: '1,2,3,4,8,9,10',
-      containingNames:
+      parentIDPath: '1,2,3,4,8,9,10',
+      parentNamePath:
         'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus|rufus',
       hasChildren: null
     });
@@ -266,8 +264,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Chordata',
       author: null,
       parentID: 1,
-      containingIDs: '1',
-      containingNames: 'Animalia',
+      parentIDPath: '1',
+      parentNamePath: 'Animalia',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 13)).toEqual({
@@ -277,8 +275,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Amphibia',
       author: null,
       parentID: 12,
-      containingIDs: '1,12',
-      containingNames: 'Animalia|Chordata',
+      parentIDPath: '1,12',
+      parentNamePath: 'Animalia|Chordata',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 14)).toEqual({
@@ -288,8 +286,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Urodela',
       author: null,
       parentID: 13,
-      containingIDs: '1,12,13',
-      containingNames: 'Animalia|Chordata|Amphibia',
+      parentIDPath: '1,12,13',
+      parentNamePath: 'Animalia|Chordata|Amphibia',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 15)).toEqual({
@@ -299,8 +297,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Plethodontidae',
       author: null,
       parentID: 14,
-      containingIDs: '1,12,13,14',
-      containingNames: 'Animalia|Chordata|Amphibia|Urodela',
+      parentIDPath: '1,12,13,14',
+      parentNamePath: 'Animalia|Chordata|Amphibia|Urodela',
       hasChildren: null
     });
     expect(await Taxon.getByID(db, 16)).toEqual({
@@ -310,8 +308,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Eurycea',
       author: null,
       parentID: 15,
-      containingIDs: '1,12,13,14,15',
-      containingNames: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae',
+      parentIDPath: '1,12,13,14,15',
+      parentNamePath: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae',
       hasChildren: null
     });
     const readTaxon = await Taxon.getByID(db, 17);
@@ -322,8 +320,8 @@ test('sequentially dependent taxa tests', async () => {
       uniqueName: 'Eurycea rathbuni',
       author: '(Stejneger, 1896)',
       parentID: 16,
-      containingIDs: '1,12,13,14,15,16',
-      containingNames: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea',
+      parentIDPath: '1,12,13,14,15,16',
+      parentNamePath: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea',
       hasChildren: null
     });
     expect(createdTaxon).toEqual(readTaxon);

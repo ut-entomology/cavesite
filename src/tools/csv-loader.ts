@@ -8,7 +8,7 @@ import { Taxon } from '../backend/model/taxon';
 import { Location } from '../backend/model/location';
 import { Specimen } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
-import { ROOT_TAXON } from '../shared/taxa';
+import { ROOT_TAXON } from '../shared/model';
 
 const CSV_FILEPATH = path.join(
   __dirname,

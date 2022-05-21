@@ -1,6 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
-import { Location, LocationType } from './location';
+import { Location } from './location';
+import { LocationRank } from '../../shared/model';
 import { ImportFailure } from './import_failure';
 
 describe('without location GUIDs', () => {
@@ -18,7 +19,7 @@ describe('without location GUIDs', () => {
 
     {
       const sourceLocation = {
-        locationType: LocationType.Continent,
+        locationRank: LocationRank.Continent,
         locationName: 'North America',
         locationGuid: null,
         publicLatitude: null,
@@ -26,7 +27,7 @@ describe('without location GUIDs', () => {
         parentID: null
       };
       const expectedLocation = Object.assign(
-        { locationID: 1, containingIDs: '', containingNames: '' },
+        { locationID: 1, parentIDPath: '', parentNamePath: '' },
         sourceLocation
       );
       const createdLocation = await Location.create(db, '', '', sourceLocation);
@@ -39,7 +40,7 @@ describe('without location GUIDs', () => {
 
     {
       const sourceLocation = {
-        locationType: LocationType.Country,
+        locationRank: LocationRank.Country,
         locationName: 'United States',
         locationGuid: null,
         publicLatitude: null,
@@ -47,7 +48,7 @@ describe('without location GUIDs', () => {
         parentID: 1
       };
       const expectedLocation = Object.assign(
-        { locationID: 2, containingIDs: '1', containingNames: 'North America' },
+        { locationID: 2, parentIDPath: '1', parentNamePath: 'North America' },
         sourceLocation
       );
       const createdLocation = await Location.create(
@@ -72,14 +73,14 @@ describe('without location GUIDs', () => {
       const readLocation = await Location.getByID(db, 3);
       expect(readLocation).toEqual({
         locationID: 3,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Someplace in U.S.',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        containingIDs: '1,2,-,-',
-        containingNames: 'North America|United States|-|-'
+        parentIDPath: '1,2,-,-',
+        parentNamePath: 'North America|United States'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -108,26 +109,26 @@ describe('without location GUIDs', () => {
       });
       expect(await Location.getByID(db, 4)).toEqual({
         locationID: 4,
-        locationType: LocationType.StateProvince,
+        locationRank: LocationRank.StateProvince,
         locationName: 'Texas',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        containingIDs: '1,2',
-        containingNames: 'North America|United States'
+        parentIDPath: '1,2',
+        parentNamePath: 'North America|United States'
       });
       const readLocation = await Location.getByID(db, 5);
       expect(readLocation).toEqual({
         locationID: 5,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Someplace in Texas',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        containingIDs: '1,2,4,-',
-        containingNames: 'North America|United States|Texas|-'
+        parentIDPath: '1,2,4,-',
+        parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -146,26 +147,26 @@ describe('without location GUIDs', () => {
       });
       expect(await Location.getByID(db, 6)).toEqual({
         locationID: 6,
-        locationType: LocationType.County,
+        locationRank: LocationRank.County,
         locationName: 'Travis County',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        containingIDs: '1,2,4',
-        containingNames: 'North America|United States|Texas'
+        parentIDPath: '1,2,4',
+        parentNamePath: 'North America|United States|Texas'
       });
       const readLocation = await Location.getByID(db, 7);
       expect(readLocation).toEqual({
         locationID: 7,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Missing Cave',
         locationGuid: null,
         publicLatitude: 28.12,
         publicLongitude: -97.34,
         parentID: 6,
-        containingIDs: '1,2,4,6',
-        containingNames: 'North America|United States|Texas|Travis County'
+        parentIDPath: '1,2,4,6',
+        parentNamePath: 'North America|United States|Texas|Travis County'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -184,48 +185,48 @@ describe('without location GUIDs', () => {
       });
       expect(await Location.getByID(db, 8)).toEqual({
         locationID: 8,
-        locationType: LocationType.Country,
+        locationRank: LocationRank.Country,
         locationName: 'Mexico',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 1,
-        containingIDs: '1',
-        containingNames: 'North America'
+        parentIDPath: '1',
+        parentNamePath: 'North America'
       });
       expect(await Location.getByID(db, 9)).toEqual({
         locationID: 9,
-        locationType: LocationType.StateProvince,
+        locationRank: LocationRank.StateProvince,
         locationName: 'Chihuahua',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 8,
-        containingIDs: '1,8',
-        containingNames: 'North America|Mexico'
+        parentIDPath: '1,8',
+        parentNamePath: 'North America|Mexico'
       });
       expect(await Location.getByID(db, 10)).toEqual({
         locationID: 10,
-        locationType: LocationType.County,
+        locationRank: LocationRank.County,
         locationName: 'Mun. Xyz',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 9,
-        containingIDs: '1,8,9',
-        containingNames: 'North America|Mexico|Chihuahua'
+        parentIDPath: '1,8,9',
+        parentNamePath: 'North America|Mexico|Chihuahua'
       });
       const readLocation = await Location.getByID(db, 11);
       expect(readLocation).toEqual({
         locationID: 11,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationGuid: null,
         locationName: 'Invisible Spring',
         publicLatitude: 21.12,
         publicLongitude: -96.34,
         parentID: 10,
-        containingIDs: '1,8,9,10',
-        containingNames: 'North America|Mexico|Chihuahua|Mun. Xyz'
+        parentIDPath: '1,8,9,10',
+        parentNamePath: 'North America|Mexico|Chihuahua|Mun. Xyz'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -322,7 +323,7 @@ describe('with location GUIDs', () => {
 
     {
       const sourceLocation = {
-        locationType: LocationType.Continent,
+        locationRank: LocationRank.Continent,
         locationName: 'North America',
         locationGuid: 'G1',
         publicLatitude: null,
@@ -330,7 +331,7 @@ describe('with location GUIDs', () => {
         parentID: null
       };
       const expectedLocation = Object.assign(
-        { locationID: 1, containingIDs: '', containingNames: '' },
+        { locationID: 1, parentIDPath: '', parentNamePath: '' },
         sourceLocation
       );
       const createdLocation = await Location.create(db, '', '', sourceLocation);
@@ -345,7 +346,7 @@ describe('with location GUIDs', () => {
 
     {
       const sourceLocation = {
-        locationType: LocationType.Country,
+        locationRank: LocationRank.Country,
         locationName: 'United States',
         locationGuid: 'G2',
         publicLatitude: null,
@@ -353,7 +354,7 @@ describe('with location GUIDs', () => {
         parentID: 1
       };
       const expectedLocation = Object.assign(
-        { locationID: 2, containingIDs: '1', containingNames: 'North America' },
+        { locationID: 2, parentIDPath: '1', parentNamePath: 'North America' },
         sourceLocation
       );
       const createdLocation = await Location.create(
@@ -381,14 +382,14 @@ describe('with location GUIDs', () => {
       const readLocation = await Location.getByID(db, 3);
       expect(readLocation).toEqual({
         locationID: 3,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Someplace in U.S.',
         locationGuid: 'G3',
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        containingIDs: '1,2,-,-',
-        containingNames: 'North America|United States|-|-'
+        parentIDPath: '1,2,-,-',
+        parentNamePath: 'North America|United States'
       });
       expect(createdLocation).toEqual(readLocation);
     }
@@ -419,26 +420,26 @@ describe('with location GUIDs', () => {
       });
       expect(await Location.getByID(db, 4)).toEqual({
         locationID: 4,
-        locationType: LocationType.StateProvince,
+        locationRank: LocationRank.StateProvince,
         locationName: 'Texas',
         locationGuid: null,
         publicLatitude: null,
         publicLongitude: null,
         parentID: 2,
-        containingIDs: '1,2',
-        containingNames: 'North America|United States'
+        parentIDPath: '1,2',
+        parentNamePath: 'North America|United States'
       });
       let readLocation = await Location.getByID(db, 5);
       expect(readLocation).toEqual({
         locationID: 5,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Someplace in Texas',
         locationGuid: 'G5',
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        containingIDs: '1,2,4,-',
-        containingNames: 'North America|United States|Texas|-'
+        parentIDPath: '1,2,4,-',
+        parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G5', false);
@@ -458,14 +459,14 @@ describe('with location GUIDs', () => {
       let readLocation = await Location.getByID(db, 6);
       expect(readLocation).toEqual({
         locationID: 6,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Another Place in Texas',
         locationGuid: 'G6',
         publicLatitude: null,
         publicLongitude: null,
         parentID: 4,
-        containingIDs: '1,2,4,-',
-        containingNames: 'North America|United States|Texas|-'
+        parentIDPath: '1,2,4,-',
+        parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G6', false);
@@ -497,14 +498,14 @@ describe('with location GUIDs', () => {
       let readLocation = await Location.getByID(db, 7);
       expect(readLocation).toEqual({
         locationID: 7,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Duplicate Cave',
         locationGuid: 'G7',
         publicLatitude: 23.89,
         publicLongitude: -97.78,
         parentID: 4,
-        containingIDs: '1,2,4,-',
-        containingNames: 'North America|United States|Texas|-'
+        parentIDPath: '1,2,4,-',
+        parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation1).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G7', false);
@@ -513,14 +514,14 @@ describe('with location GUIDs', () => {
       readLocation = await Location.getByID(db, 8);
       expect(readLocation).toEqual({
         locationID: 8,
-        locationType: LocationType.Locality,
+        locationRank: LocationRank.Locality,
         locationName: 'Duplicate Cave',
         locationGuid: 'G8',
         publicLatitude: 23.0,
         publicLongitude: -97.0,
         parentID: 4,
-        containingIDs: '1,2,4,-',
-        containingNames: 'North America|United States|Texas|-'
+        parentIDPath: '1,2,4,-',
+        parentNamePath: 'North America|United States|Texas'
       });
       expect(createdLocation2).toEqual(readLocation);
       readLocation = await Location.getByGUID(db, 'G8', false);

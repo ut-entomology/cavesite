@@ -1,18 +1,40 @@
 /**
  * Class representing a vial of specimens all of the same taxon.
  */
+import pgFormat from 'pg-format';
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Taxon } from './taxon';
-import { Location } from './location';
+import { Location, MISSING_LOCATION_ID } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
+import { TaxonFilter, SortColumn, ColumnSort } from '../../shared/model';
+import { BadDataError } from '../util/error_util';
 
 type SpecimenData = DataOf<Specimen>;
 
 const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
+const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
+
+const sortColumnMap: Record<number, string> = {};
+sortColumnMap[SortColumn.CatalogNumber] = 's.catalog_number';
+sortColumnMap[SortColumn.Phylum] = 't.phylum_name';
+sortColumnMap[SortColumn.Class] = 't.class_name';
+sortColumnMap[SortColumn.Order] = 't.order_name';
+sortColumnMap[SortColumn.Family] = 't.family_name';
+sortColumnMap[SortColumn.Genus] = 't.genus_name';
+sortColumnMap[SortColumn.Species] = 't.species_name';
+sortColumnMap[SortColumn.Subspecies] = 't.taxon_name';
+sortColumnMap[SortColumn.County] = 'l.county_name';
+sortColumnMap[SortColumn.Locality] = 'l.locality_name';
+sortColumnMap[SortColumn.Latitude] = 'l.public_latitude';
+sortColumnMap[SortColumn.Longitude] = 'l.public_longitude';
+sortColumnMap[SortColumn.StartDate] = 's.collection_start_date';
+sortColumnMap[SortColumn.EndDate] = 's.collection_end_date';
+sortColumnMap[SortColumn.TypeStatus] = 's.type_status';
+sortColumnMap[SortColumn.SpecimenCount] = 's.specimen_count';
 
 export interface SpecimenSource {
   // GBIF field names
@@ -129,7 +151,7 @@ export class Specimen {
   static async create(db: DB, source: SpecimenSource): Promise<Specimen | null> {
     const problemList: string[] = [];
     let taxon: Taxon;
-    let taxonIDs: string[];
+    let taxonIDs: string[] = [];
     let location: Location;
     let locationIDs: string[];
     let specimen: Specimen;
@@ -154,14 +176,12 @@ export class Specimen {
       // Create the associated taxa and locations, if they don't already exist.
 
       taxon = await Taxon.getOrCreate(db, source);
-      if (taxon.containingIDs == '') {
-        taxonIDs = [];
-      } else {
-        taxonIDs = taxon.containingIDs.split(',');
+      if (taxon.parentIDPath != '') {
+        taxonIDs = taxon.parentIDPath.split(',');
       }
 
       location = await Location.getOrCreate(db, source);
-      locationIDs = location.containingIDs.split(',');
+      locationIDs = location.parentIDPath.split(',');
     } catch (err: any) {
       // Fail the import on error.
 
@@ -315,6 +335,57 @@ export class Specimen {
     return specimen;
   }
 
+  static async batchQuery(
+    db: DB,
+    skip: number,
+    limit: number,
+    taxonFilter: TaxonFilter | null,
+    columnSorts: ColumnSort[]
+  ): Promise<Specimen[]> {
+    let query = `select s.catalog_number, s.occurrence_guid, t.taxon_rank,
+        t.unique_name as taxon_unique, t.author as taxon_author, t.phylum_name,
+        t.class_name, t.order_name, t.family_name, t.genus_name, t.species_name,
+        t.county_name, l.locality_name, s.collection_start_date,
+        s.collection_end_date, s.collectors, s.determination_year, s.determiners,
+        s.collection_remarks, s.occurrence_remarks, s.determination_remarks,
+        s.type_status, s.specimen_count, s.problems
+      from specimens s join taxa t on t.taxon_id = s.taxon_id %s
+        join locations l on l.location_id = s.locality_id %s
+        limit $1 offset $2`;
+
+    let taxaConstraints = '';
+    if (taxonFilter !== null) {
+      let taxaConditions: string[] = [];
+      const taxonIDs: number[] = [];
+      _collectOrInIntList(taxaConditions, 'phylum_id', taxonFilter.phylumIDs, taxonIDs);
+      _collectOrInIntList(taxaConditions, 'class_id', taxonFilter.classIDs, taxonIDs);
+      _collectOrInIntList(taxaConditions, 'order_id', taxonFilter.orderIDs, taxonIDs);
+      _collectOrInIntList(taxaConditions, 'family_id', taxonFilter.familyIDs, taxonIDs);
+      _collectOrInIntList(taxaConditions, 'genus_id', taxonFilter.genusIDs, taxonIDs);
+      _collectOrInIntList(
+        taxaConditions,
+        'species_id',
+        taxonFilter.speciesIDs,
+        taxonIDs
+      );
+      taxaConstraints = `taxon_unique in (${taxonIDs.join(',')})`;
+      if (taxaConditions.length > 0) {
+        taxaConstraints = `${taxaConstraints} or ${taxaConditions.join(' or ')}`;
+      }
+      taxaConstraints = `and (${taxaConstraints})`;
+    }
+
+    const orderBys =
+      'order by ' +
+      columnSorts
+        .map((sort) => sortColumnMap[sort.column] + (sort.ascending ? '' : ' desc'))
+        .join(',');
+
+    query = pgFormat(query, taxaConstraints, orderBys);
+    const result = await db.query(query, [limit, skip]);
+    return result.rows.map((row) => toCamelRow(row));
+  }
+
   static async getByCatNum(
     db: DB,
     catalogNumber: string,
@@ -333,21 +404,21 @@ export class Specimen {
 }
 
 function getTreeNodeID(
-  ancestorIDs: string[],
+  containingIDs: string[],
   index: number,
   leafID: number
 ): number | null {
-  if (index == ancestorIDs.length) {
+  if (index == containingIDs.length) {
     return leafID;
   }
-  if (index > ancestorIDs.length) {
+  if (index > containingIDs.length) {
     return null;
   }
-  const ancestorID = ancestorIDs[index];
-  if (ancestorID == '-') {
+  const containingID = containingIDs[index];
+  if (containingID == MISSING_LOCATION_ID) {
     return null;
   }
-  return parseInt(ancestorID);
+  return parseInt(containingID);
 }
 
 async function logImportProblem(
@@ -366,4 +437,20 @@ async function logImportProblem(
     ? source.catalogNumber
     : 'NO CATALOG NUMBER';
   await Logs.post(db, LogType.Import, catalogNumber, line);
+}
+
+function _collectOrInIntList(
+  conditionals: string[],
+  columnName: string,
+  inList: number[] | null,
+  taxonIDs: number[]
+): void {
+  if (inList) {
+    taxonIDs.push(...taxonIDs);
+    const inListStr = inList.join(',');
+    if (!INTEGER_LIST_CHARS_REGEX.test(inListStr)) {
+      throw new BadDataError('Invalid characters');
+    }
+    conditionals.push(`${columnName} in [${inListStr}]`);
+  }
 }

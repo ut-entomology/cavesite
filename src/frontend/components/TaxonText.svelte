@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { TaxonRank, TaxonSpec } from '../../shared/taxa';
+  import { TaxonRank, TaxonSpec } from '../../shared/model';
 
   let classes = '';
   export { classes as class };
