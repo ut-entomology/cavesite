@@ -74,7 +74,7 @@ export class Specimen {
   catalogNumber: string;
   occurrenceGuid: string; // GBIF occurrenceID (specify co.GUID)
   taxonID: number; // ID of most specific taxon
-  localityID: number | null;
+  localityID: number;
   collectionStartDate: Date | null;
   collectionEndDate: Date | null;
   collectors: string | null; // |-delimited names, last name last
@@ -111,7 +111,7 @@ export class Specimen {
 
   countyName: string | null;
   countyID: number | null;
-  localityName: string | null;
+  localityName: string;
   publicLatitude: number | null;
   publicLongitude: number | null;
 
