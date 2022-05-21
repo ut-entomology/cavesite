@@ -12,7 +12,7 @@ import { Logs, LogType } from './logs';
 import { TaxonFilter, SortColumn, ColumnSort, locationRanks } from '../../shared/model';
 import { BadDataError } from '../util/error_util';
 
-type SpecimenData = Omit<DataOf<Specimen>, 'normalizedCollectors'>;
+export type SpecimenData = DataOf<Specimen>;
 
 const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
@@ -125,6 +125,7 @@ export class Specimen {
     this.collectionStartDate = data.collectionStartDate;
     this.collectionEndDate = data.collectionEndDate;
     this.collectors = data.collectors; // |-delimited names, last name last
+    this.normalizedCollectors = data.normalizedCollectors;
     this.determinationYear = data.determinationYear;
     this.determiners = data.determiners; // |-delimited names, last name last
     this.collectionRemarks = data.collectionRemarks;
@@ -153,17 +154,6 @@ export class Specimen {
     this.localityName = data.localityName;
     this.publicLatitude = data.publicLatitude;
     this.publicLongitude = data.publicLongitude;
-
-    // set derived values
-
-    this.normalizedCollectors = null;
-    if (this.collectors !== null) {
-      const matches = this.collectors.toLowerCase().matchAll(LAST_NAMES_REGEX);
-      this.normalizedCollectors = Array.from(matches)
-        .map((match) => match[1])
-        .sort()
-        .join('|');
-    }
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -280,6 +270,18 @@ export class Specimen {
       }
     }
 
+    // Normalize the list of collectors.
+
+    const collectors = source.collectors?.replace(/ ?[|] ?/g, '|') || null;
+    let normalizedCollectors = null;
+    if (collectors !== null) {
+      const matches = collectors.toLowerCase().matchAll(LAST_NAMES_REGEX);
+      normalizedCollectors = Array.from(matches)
+        .map((match) => match[1])
+        .sort()
+        .join('|');
+    }
+
     // Assemble the specimen instance from the data.
 
     specimen = new Specimen({
@@ -289,7 +291,8 @@ export class Specimen {
       localityID: location.locationID,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
-      collectors: source.collectors?.replace(/ ?[|] ?/g, '|') || null,
+      collectors,
+      normalizedCollectors,
       determinationYear,
       determiners: source.determiners?.replace(/ ?[|] ?/g, '|') || null,
       collectionRemarks: collectionRemarks,
@@ -326,7 +329,7 @@ export class Specimen {
       `insert into specimens(
           catalog_number, occurrence_guid, taxon_id, locality_id,
           collection_start_date, collection_end_date,
-          collectors, determination_year, determiners,
+          collectors, normalized_collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
           type_status, specimen_count, problems,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
@@ -335,7 +338,7 @@ export class Specimen {
           county_name, county_id, locality_name, public_latitude, public_longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
           $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-          $29, $30, $31, $32, $33, $34, $35)`,
+          $29, $30, $31, $32, $33, $34, $35, $36)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -344,6 +347,7 @@ export class Specimen {
         specimen.collectionStartDate?.toISOString() || null,
         specimen.collectionEndDate?.toISOString() || null,
         specimen.collectors,
+        specimen.normalizedCollectors,
         specimen.determinationYear,
         specimen.determiners,
         specimen.collectionRemarks,
@@ -383,7 +387,19 @@ export class Specimen {
     return specimen;
   }
 
-  static async batchQuery(
+  static async getSamplingBatch(
+    db: DB,
+    skip: number,
+    limit: number
+  ): Promise<SpecimenData[]> {
+    const result = await db.query(`select * from specimens limit $1 offset $2`, [
+      limit,
+      skip
+    ]);
+    return result.rows.map((row) => toCamelRow(row));
+  }
+
+  static async generalQuery(
     db: DB,
     skip: number,
     limit: number,
