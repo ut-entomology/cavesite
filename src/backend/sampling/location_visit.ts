@@ -185,26 +185,47 @@ export class LocationVisit {
         subspeciesIDs: specimen.subspeciesID?.toString() || null
       });
     } else {
-      visit.phylumNames = this._addTaxonName(visit.phylumNames, specimen.phylumName);
-      visit.phylumIDs = this._addTaxonID(visit.phylumIDs, specimen.phylumID);
-      visit.classNames = this._addTaxonName(visit.classNames, specimen.className);
-      visit.classIDs = this._addTaxonID(visit.classIDs, specimen.classID);
-      visit.orderNames = this._addTaxonName(visit.orderNames, specimen.orderName);
-      visit.orderIDs = this._addTaxonID(visit.orderIDs, specimen.orderID);
-      visit.familyNames = this._addTaxonName(visit.familyNames, specimen.familyName);
-      visit.familyIDs = this._addTaxonID(visit.familyIDs, specimen.familyID);
-      visit.genusNames = this._addTaxonName(visit.genusNames, specimen.genusName);
-      visit.genusIDs = this._addTaxonID(visit.genusIDs, specimen.genusID);
-      visit.speciesNames = this._addTaxonName(visit.speciesNames, specimen.speciesName);
-      visit.speciesIDs = this._addTaxonID(visit.speciesIDs, specimen.speciesID);
-      visit.subspeciesNames = this._addTaxonName(
-        visit.subspeciesNames,
-        specimen.subspeciesName
-      );
-      visit.subspeciesIDs = this._addTaxonID(
-        visit.subspeciesIDs,
-        specimen.subspeciesID
-      );
+      let ids = this._addID(visit.phylumIDs, specimen.phylumID);
+      if (ids !== null) {
+        visit.phylumIDs = ids;
+        visit.phylumNames = this._appendName(visit.phylumNames, specimen.phylumName!);
+      }
+      ids = this._addID(visit.classIDs, specimen.classID);
+      if (ids !== null) {
+        visit.classIDs = ids;
+        visit.classNames = this._appendName(visit.classNames, specimen.className!);
+      }
+      ids = this._addID(visit.orderIDs, specimen.orderID);
+      if (ids !== null) {
+        visit.orderIDs = ids;
+        visit.orderNames = this._appendName(visit.orderNames, specimen.orderName!);
+      }
+      ids = this._addID(visit.familyIDs, specimen.familyID);
+      if (ids !== null) {
+        visit.familyIDs = ids;
+        visit.familyNames = this._appendName(visit.familyNames, specimen.familyName!);
+      }
+      ids = this._addID(visit.genusIDs, specimen.genusID);
+      if (ids !== null) {
+        visit.genusIDs = ids;
+        visit.genusNames = this._appendName(visit.genusNames, specimen.genusName!);
+      }
+      ids = this._addID(visit.speciesIDs, specimen.speciesID);
+      if (ids !== null) {
+        visit.speciesIDs = ids;
+        visit.speciesNames = this._appendName(
+          visit.speciesNames,
+          specimen.speciesName!
+        );
+      }
+      ids = this._addID(visit.subspeciesIDs, specimen.subspeciesID);
+      if (ids !== null) {
+        visit.subspeciesIDs = ids;
+        visit.subspeciesNames = this._appendName(
+          visit.subspeciesNames,
+          specimen.subspeciesName!
+        );
+      }
       await visit.save(db);
     }
   }
@@ -227,28 +248,21 @@ export class LocationVisit {
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
-  private static _addTaxonID(
-    idSeries: string | null,
-    id: number | null
-  ): string | null {
-    if (idSeries === null) return id?.toString() || null;
-    if (id === null) return idSeries;
+  // Returns new ID series if changed. Otherwise returns null.
+  private static _addID(idSeries: string | null, id: number | null): string | null {
+    if (idSeries === null) {
+      if (id === null) return null;
+      return id.toString();
+    }
+    if (id === null) return null;
     const ids = idSeries.split(',');
     const idString = id.toString();
-    if (ids.includes(idString)) return idSeries;
+    if (ids.includes(idString)) return null;
     ids.push(idString);
     return ids.join('|');
   }
 
-  private static _addTaxonName(
-    nameSeries: string | null,
-    name: string | null
-  ): string | null {
-    if (nameSeries === null) return name;
-    if (name === null) return nameSeries;
-    const names = nameSeries.split('|');
-    if (names.includes(name)) return nameSeries;
-    names.push(name);
-    return names.join('|');
+  private static _appendName(nameSeries: string | null, name: string): string {
+    return nameSeries === null ? name : `${nameSeries}|${name}`;
   }
 }
