@@ -21,11 +21,11 @@ type PartialSpecimenSource = Pick<
   | 'infraspecificEpithet'
 >;
 
+const locality1 = 'Cave 1';
 const date1 = _toISODate('2020-01-01');
-// const date2 = _toISODate('2020-01-02');
+const date2 = _toISODate('2020-01-02');
 // const date3 = _toISODate('2020-02-02');
 // const date4 = _toISODate('2021-02-02');
-const locality1 = 'Cave 1';
 const collectors1 = 'Somebody';
 const detDate = _toISODate('2022-05-01');
 
@@ -200,6 +200,135 @@ test('sequentially specifying a single subspecies', async () => {
     subspeciesCounts: '1'
   });
 });
+
+test('adding existing taxonomic groups', async () => {
+  const expectedVisitData = {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '0',
+    speciesNames: 'Mecaphesa celer',
+    speciesCounts: '0',
+    subspeciesNames: 'Mecaphesa celer xyz',
+    subspeciesCounts: '1'
+  };
+
+  let specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer',
+    infraspecificEpithet: 'xyz'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer',
+    infraspecificEpithet: 'xyz'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia'
+  });
+  await _checkVisitFor(specimen, expectedVisitData);
+});
+
+// TODO: test respect for components of key
 
 afterAll(async () => {
   await mutex.unlock();
