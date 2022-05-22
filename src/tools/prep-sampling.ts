@@ -3,6 +3,7 @@ import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres
 import { Specimen } from '../backend/model/specimen';
 import { LocationVisit } from '../backend/sampling/location_visit';
 
+const NOTICE_INTERVAL = 2000;
 const SPECIMEN_BATCH_SIZE = 500;
 
 async function loadVisits() {
@@ -16,10 +17,13 @@ async function loadVisits() {
         specimen.collectors !== null &&
         specimen.collectionEndDate === null
       ) {
-        LocationVisit.addSpecimen(db, specimen);
+        await LocationVisit.addSpecimen(db, specimen);
       }
     }
     skipCount += specimens.length;
+    if (skipCount % NOTICE_INTERVAL == 0) {
+      console.log(`processed ${skipCount} specimens...`);
+    }
     specimens = await Specimen.getSamplingBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
   }
 }
