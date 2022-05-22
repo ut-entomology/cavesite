@@ -17,6 +17,7 @@ export class LocationVisit {
   startEpochDay: number;
   endEpochDay: number | null;
   normalizedCollectors: string;
+  collectorCount: number;
   kingdomNames: string;
   kingdomCounts: string;
   phylumNames: string | null;
@@ -42,6 +43,7 @@ export class LocationVisit {
     this.startEpochDay = data.startEpochDay;
     this.endEpochDay = data.endEpochDay;
     this.normalizedCollectors = data.normalizedCollectors;
+    this.collectorCount = data.collectorCount;
     this.kingdomNames = data.kingdomNames;
     this.kingdomCounts = data.kingdomCounts;
     this.phylumNames = data.phylumNames;
@@ -70,9 +72,9 @@ export class LocationVisit {
             phylum_names, phylum_counts, class_names, class_counts,
             order_names, order_counts, family_names, family_counts,
             genus_names, genus_counts, species_names, species_counts,
-            subspecies_names, subspecies_counts
+            subspecies_names, subspecies_counts, collector_count
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-              $16, $17, $18, $19, $20, $21)
+              $16, $17, $18, $19, $20, $21, $22)
           on conflict (location_id, start_epoch_day, normalized_collectors)
           do update set 
             is_cave=excluded.is_cave, kingdom_names=excluded.kingdom_names,
@@ -108,7 +110,8 @@ export class LocationVisit {
         this.speciesNames,
         this.speciesCounts,
         this.subspeciesNames,
-        this.subspeciesCounts
+        this.subspeciesCounts,
+        this.collectorCount
       ]
     );
     if (result.rowCount != 1) {
@@ -117,12 +120,6 @@ export class LocationVisit {
           `day ${this.startEpochDay}, collectors ${this.normalizedCollectors}`
       );
     }
-    // do update set
-    // is_cave=$2, kingdom_names=$6, kingdom_counts=$7,
-    // phylum_names=$8, phylum_counts=$9, class_names=$10, class_counts=$11,
-    // order_names=$12, order_counts=$13, family_names=$14, family_counts=$15,
-    // genus_names=$16, genus_counts=$17, species_names=$18, species_counts=$19,
-    // subspecies_names=$20, subspecies_counts=$21`,
   }
 
   //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
@@ -216,6 +213,7 @@ export class LocationVisit {
         startEpochDay,
         endEpochDay: null,
         normalizedCollectors: specimen.normalizedCollectors,
+        collectorCount: specimen.normalizedCollectors.split('|').length,
         kingdomNames: specimen.kingdomName,
         kingdomCounts: _toInitialCount(specimen.kingdomName, specimen.phylumName)!,
         phylumNames: specimen.phylumName,

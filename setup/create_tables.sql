@@ -215,7 +215,8 @@ create table visits (
     is_cave boolean not null,
     start_epoch_day integer not null, -- days since 1/1/1970
     end_epoch_day integer, -- days since 1/1/1970
-    normalized_collectors text,
+    normalized_collectors text not null,
+    collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
     kingdom_counts text, -- /[01]+/ indicating count contributed by each taxon
     phylum_names text,

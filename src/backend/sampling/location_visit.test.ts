@@ -28,7 +28,7 @@ const date1 = _toISODate('2020-01-01');
 const date2 = _toISODate('2020-01-02');
 const date3 = _toISODate('2020-02-02');
 const collectors1 = 'Somebody';
-const collectors2 = 'Someone Else';
+const collectors2 = 'Someone Else|Yet Another';
 const detDate = _toISODate('2022-05-01');
 
 const mutex = new DatabaseMutex();
@@ -831,7 +831,8 @@ async function _checkVisitFor(
       isCave: specimen.localityName.toLowerCase().includes('cave'),
       startEpochDay: _toDaysEpoch(specimen.collectionStartDate!),
       endEpochDay: null,
-      normalizedCollectors: specimen.normalizedCollectors,
+      normalizedCollectors: specimen.normalizedCollectors!,
+      collectorCount: specimen.normalizedCollectors!.split('|').length,
       kingdomNames: 'Animalia',
       kingdomCounts: null,
       phylumNames: null,
