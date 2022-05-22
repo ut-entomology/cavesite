@@ -91,6 +91,8 @@ export class Specimen {
 
   // values cached from the taxa table
 
+  kingdomName: string;
+  kingdomID: number;
   phylumName: string | null;
   phylumID: number | null;
   className: string | null;
@@ -135,6 +137,8 @@ export class Specimen {
     this.typeStatus = data.typeStatus;
     this.specimenCount = data.specimenCount;
     this.problems = data.problems;
+    this.kingdomName = data.kingdomName;
+    this.kingdomID = data.kingdomID;
     this.phylumName = data.phylumName;
     this.phylumID = data.phylumID;
     this.className = data.className;
@@ -303,6 +307,8 @@ export class Specimen {
       typeStatus: source.typeStatus || null,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
       problems: problemList.length > 0 ? problemList.join('|') : null,
+      kingdomName: getRankedName(taxonNames, 0, taxon.taxonName)!,
+      kingdomID: getRankedID(taxonIDs, 0, taxon.taxonID)!,
       phylumName: getRankedName(taxonNames, 1, taxon.taxonName),
       phylumID: getRankedID(taxonIDs, 1, taxon.taxonID),
       className: getRankedName(taxonNames, 2, taxon.taxonName),
@@ -334,14 +340,14 @@ export class Specimen {
           collection_start_date, collection_end_date,
           collectors, normalized_collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
-          type_status, specimen_count, problems,
+          type_status, specimen_count, problems, kingdom_name, kingdom_id,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author,
           county_name, county_id, locality_name, public_latitude, public_longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
           $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-          $29, $30, $31, $32, $33, $34, $35, $36, $37)`,
+          $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -359,6 +365,8 @@ export class Specimen {
         specimen.typeStatus,
         specimen.specimenCount,
         specimen.problems,
+        specimen.kingdomName,
+        specimen.kingdomID,
         specimen.phylumName,
         specimen.phylumID,
         specimen.className,

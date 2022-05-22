@@ -142,6 +142,8 @@ create table specimens (
 
     -- values cached from taxa table
 
+    kingdom_name text not null,
+    kingdom_id integer not null references taxa,
     phylum_name text,
     phylum_id integer references taxa,
     class_name text,
@@ -168,6 +170,8 @@ create table specimens (
     public_longitude float8
 );
 create index on specimens(catalog_number);
+create index on specimens(kingdom_name);
+create index on specimens(kingdom_id);
 create index on specimens(phylum_name);
 create index on specimens(phylum_id);
 create index on specimens(class_name);
@@ -212,8 +216,10 @@ create table visits (
     start_epoch_day integer not null, -- days since 1/1/1970
     end_epoch_day integer, -- days since 1/1/1970
     normalized_collectors text,
-    phylum_names text, -- |-delimited taxon uniques collected on visit
-    phylum_counts text, -- /[01]+/ indicating count contributed by each taxon
+    kingdom_names text, -- |-delimited taxon uniques collected on visit
+    kingdom_counts text, -- /[01]+/ indicating count contributed by each taxon
+    phylum_names text,
+    phylum_counts text,
     class_names text,
     class_counts text,
     order_names text,
