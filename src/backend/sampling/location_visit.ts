@@ -235,6 +235,12 @@ export class LocationVisit {
       });
     } else {
       visit._updateTaxon(
+        specimen.kingdomName,
+        specimen.phylumName,
+        'kingdomNames',
+        'kingdomCounts'
+      );
+      visit._updateTaxon(
         specimen.phylumName,
         specimen.className,
         'phylumNames',

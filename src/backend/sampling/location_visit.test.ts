@@ -37,7 +37,7 @@ beforeAll(async () => {
   db = await mutex.lock();
 });
 
-test('sequentially specifying a single species', async () => {
+test('sequentially specifying a single subspecies', async () => {
   let specimen = await _addSpecimen({
     locality: locality1,
     startDate: date1,
@@ -45,6 +45,160 @@ test('sequentially specifying a single species', async () => {
     kingdom: 'Animalia'
   });
   await _checkVisitFor(specimen, { kingdomCounts: '1' });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '0',
+    speciesNames: 'Mecaphesa celer',
+    speciesCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer',
+    infraspecificEpithet: 'xyz'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '0',
+    speciesNames: 'Mecaphesa celer',
+    speciesCounts: '0',
+    subspeciesNames: 'Mecaphesa celer xyz',
+    subspeciesCounts: '1'
+  });
 });
 
 afterAll(async () => {
