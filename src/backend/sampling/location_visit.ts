@@ -16,7 +16,9 @@ export class LocationVisit {
   isCave: boolean;
   startEpochDay: number;
   endEpochDay: number | null;
-  normaliziedCollectors: string;
+  normalizedCollectors: string;
+  kingdomNames: string;
+  kingdomCounts: string;
   phylumNames: string | null;
   phylumCounts: string | null;
   classNames: string | null;
@@ -39,7 +41,9 @@ export class LocationVisit {
     this.isCave = data.isCave;
     this.startEpochDay = data.startEpochDay;
     this.endEpochDay = data.endEpochDay;
-    this.normaliziedCollectors = data.normaliziedCollectors;
+    this.normalizedCollectors = data.normalizedCollectors;
+    this.kingdomNames = data.kingdomNames;
+    this.kingdomCounts = data.kingdomCounts;
     this.phylumNames = data.phylumNames;
     this.phylumCounts = data.phylumCounts;
     this.classNames = data.classNames;
@@ -58,80 +62,67 @@ export class LocationVisit {
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
 
-  async save(db: DB): Promise<number> {
-    if (this.locationID === 0) {
-      const result = await db.query(
-        `insert into visits(
-            location_id, is_cave, start_date, end_date, normalized_collectors,
+  async save(db: DB): Promise<void> {
+    const result = await db.query(
+      `insert into visits(
+            location_id, is_cave, start_epoch_day, end_epoch_day,
+            normalized_collectors, kingdom_names, kingdom_counts,
             phylum_names, phylum_counts, class_names, class_counts,
             order_names, order_counts, family_names, family_counts,
             genus_names, genus_counts, species_names, species_counts,
             subspecies_names, subspecies_counts
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-              $16, $17, $18, $19)`,
-        [
-          this.locationID,
-          // @ts-ignore
-          this.isCave,
-          this.startEpochDay,
-          this.endEpochDay,
-          this.normaliziedCollectors,
-          this.phylumNames,
-          this.phylumCounts,
-          this.classNames,
-          this.classCounts,
-          this.orderNames,
-          this.orderCounts,
-          this.familyNames,
-          this.familyCounts,
-          this.genusNames,
-          this.genusCounts,
-          this.speciesNames,
-          this.speciesCounts,
-          this.subspeciesNames,
-          this.subspeciesCounts
-        ]
+              $16, $17, $18, $19, $20, $21)
+          on conflict (location_id, start_epoch_day, normalized_collectors)
+          do update set 
+            is_cave=excluded.is_cave, kingdom_names=excluded.kingdom_names,
+            kingdom_counts=excluded.kingdom_counts,
+            phylum_names=excluded.phylum_names, phylum_counts=excluded.phylum_counts,
+            class_names=excluded.class_names, class_counts=excluded.class_counts,
+            order_names=excluded.order_names, order_counts=excluded.order_counts,
+            family_names=excluded.family_names, family_counts=excluded.family_counts,
+            genus_names=excluded.genus_names, genus_counts=excluded.genus_counts,
+            species_names=excluded.species_names,
+            species_counts=excluded.species_counts,
+            subspecies_names=excluded.subspecies_names,
+            subspecies_counts=excluded.subspecies_counts`,
+      [
+        this.locationID,
+        // @ts-ignore
+        this.isCave,
+        this.startEpochDay,
+        this.endEpochDay,
+        this.normalizedCollectors,
+        this.kingdomNames,
+        this.kingdomCounts,
+        this.phylumNames,
+        this.phylumCounts,
+        this.classNames,
+        this.classCounts,
+        this.orderNames,
+        this.orderCounts,
+        this.familyNames,
+        this.familyCounts,
+        this.genusNames,
+        this.genusCounts,
+        this.speciesNames,
+        this.speciesCounts,
+        this.subspeciesNames,
+        this.subspeciesCounts
+      ]
+    );
+    if (result.rowCount != 1) {
+      throw Error(
+        `Failed to upsert visit location ID ${this.locationID}, ` +
+          `day ${this.startEpochDay}, collectors ${this.normalizedCollectors}`
       );
-      this.locationID = result.rows[0].location_id;
-    } else {
-      const result = await db.query(
-        `update locations set 
-            is_cave=$1, end_date=$2, phylum_names=$3, phylum_counts=$4,
-            class_names=$5, class_counts=$6, order_names=$7, order_counts=$8, family_names=$9, family_counts=$10, genus_names=$11, genus_counts=$12,
-            species_names=$13, species_counts=$14,
-            subspecies_names=$15, subspecies_counts=$16
-          where location_id=$17 and start_date=$18 and normalized_collectors=$19`,
-        [
-          // @ts-ignore
-          this.isCave,
-          this.endEpochDay,
-          this.phylumNames,
-          this.phylumCounts,
-          this.classNames,
-          this.classCounts,
-          this.orderNames,
-          this.orderCounts,
-          this.familyNames,
-          this.familyCounts,
-          this.genusNames,
-          this.genusCounts,
-          this.speciesNames,
-          this.speciesCounts,
-          this.subspeciesNames,
-          this.subspeciesCounts,
-          this.locationID,
-          this.startEpochDay,
-          this.normaliziedCollectors
-        ]
-      );
-      if (result.rowCount != 1) {
-        throw Error(
-          `Failed to update visit location ID ${this.locationID}, ` +
-            `day ${this.startEpochDay}, collectors ${this.normaliziedCollectors}`
-        );
-      }
     }
-    return this.locationID;
+    // do update set
+    // is_cave=$2, kingdom_names=$6, kingdom_counts=$7,
+    // phylum_names=$8, phylum_counts=$9, class_names=$10, class_counts=$11,
+    // order_names=$12, order_counts=$13, family_names=$14, family_counts=$15,
+    // genus_names=$16, genus_counts=$17, species_names=$18, species_counts=$19,
+    // subspecies_names=$20, subspecies_counts=$21`,
   }
 
   //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
@@ -224,21 +215,23 @@ export class LocationVisit {
         isCave: specimen.localityName.toLowerCase().includes('cave'),
         startEpochDay,
         endEpochDay: null,
-        normaliziedCollectors: specimen.normalizedCollectors,
+        normalizedCollectors: specimen.normalizedCollectors,
+        kingdomNames: specimen.kingdomName,
+        kingdomCounts: _toInitialCount(specimen.kingdomName, specimen.phylumName)!,
         phylumNames: specimen.phylumName,
-        phylumCounts: specimen.phylumName && !specimen.className ? '1' : '0',
+        phylumCounts: _toInitialCount(specimen.phylumName, specimen.className),
         classNames: specimen.className,
-        classCounts: specimen.className && !specimen.orderName ? '1' : '0',
+        classCounts: _toInitialCount(specimen.className, specimen.orderName),
         orderNames: specimen.orderName,
-        orderCounts: specimen.orderName && !specimen.familyName ? '1' : '0',
+        orderCounts: _toInitialCount(specimen.orderName, specimen.familyName),
         familyNames: specimen.familyName,
-        familyCounts: specimen.familyName && !specimen.genusName ? '1' : '0',
+        familyCounts: _toInitialCount(specimen.familyName, specimen.genusName),
         genusNames: specimen.genusName,
-        genusCounts: specimen.genusName && !speciesName ? '1' : '0',
+        genusCounts: _toInitialCount(specimen.genusName, specimen.speciesName),
         speciesNames: speciesName,
-        speciesCounts: speciesName && !subspeciesName ? '1' : '0',
+        speciesCounts: _toInitialCount(specimen.speciesName, specimen.subspeciesName),
         subspeciesNames: subspeciesName,
-        subspeciesCounts: subspeciesName ? '1' : '0'
+        subspeciesCounts: _toInitialCount(specimen.subspeciesName, null)
       });
     } else {
       visit._updateTaxon(
@@ -268,6 +261,7 @@ export class LocationVisit {
       visit._updateTaxon(specimen.genusName, speciesName, 'genusNames', 'genusCounts');
       visit._updateTaxon(speciesName, subspeciesName, 'speciesNames', 'speciesCounts');
       visit._updateTaxon(subspeciesName, null, 'subspeciesNames', 'subspeciesCounts');
+
       await visit.save(db);
     }
   }
@@ -279,7 +273,7 @@ export class LocationVisit {
     normalizedCollectors: string
   ): Promise<LocationVisit | null> {
     const result = await db.query(
-      `select * from locations where location_id=$1 and start_epoch_day=$2
+      `select * from visits where location_id=$1 and start_epoch_day=$2
         and normalized_collectors=$3`,
       [locationID, startEpochDay, normalizedCollectors]
     );
@@ -287,4 +281,12 @@ export class LocationVisit {
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;
   }
+}
+
+function _toInitialCount(
+  upperTaxon: string | null,
+  lowerTaxon: string | null
+): string | null {
+  if (!upperTaxon) return null;
+  return upperTaxon && !lowerTaxon ? '1' : '0';
 }
