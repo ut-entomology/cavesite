@@ -105,6 +105,7 @@ export class Specimen {
   speciesID: number | null;
   subspeciesName: string | null;
   subspeciesID: number | null;
+  taxonUnique: string;
   taxonAuthor: string | null;
 
   // values cached from the locations table
@@ -148,6 +149,7 @@ export class Specimen {
     this.speciesID = data.speciesID;
     this.subspeciesName = data.subspeciesName;
     this.subspeciesID = data.subspeciesID;
+    this.taxonUnique = data.taxonUnique;
     this.taxonAuthor = data.taxonAuthor;
     this.countyName = data.countyName;
     this.countyID = data.countyID;
@@ -315,6 +317,7 @@ export class Specimen {
       speciesID: getRankedID(taxonIDs, 6, taxon.taxonID),
       subspeciesName: getRankedName(taxonNames, 7, taxon.taxonName),
       subspeciesID: getRankedID(taxonIDs, 7, taxon.taxonID),
+      taxonUnique: taxon.uniqueName,
       taxonAuthor: taxon.author,
       countyName: getRankedName(locationNames, 3, location.locationName),
       countyID: getRankedID(locationIDs, 3, location.locationID),
@@ -334,11 +337,11 @@ export class Specimen {
           type_status, specimen_count, problems,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, species_name, species_id,
-          subspecies_name, subspecies_id, taxon_author,
+          subspecies_name, subspecies_id, taxon_unique, taxon_author,
           county_name, county_id, locality_name, public_latitude, public_longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
           $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-          $29, $30, $31, $32, $33, $34, $35, $36)`,
+          $29, $30, $31, $32, $33, $34, $35, $36, $37)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -370,6 +373,7 @@ export class Specimen {
         specimen.speciesID,
         specimen.subspeciesName,
         specimen.subspeciesID,
+        specimen.taxonUnique,
         specimen.taxonAuthor,
         specimen.countyName,
         specimen.countyID,
