@@ -212,19 +212,19 @@ create table visits (
     start_epoch_day integer not null, -- days since 1/1/1970
     end_epoch_day integer, -- days since 1/1/1970
     normalized_collectors text,
-    phylum_names text,
-    phylum_ids text,
+    phylum_names text, -- |-delimited taxon uniques collected on visit
+    phylum_counts text, -- /[01]+/ indicating count contributed by each taxon
     class_names text,
-    class_ids text,
+    class_counts text,
     order_names text,
-    order_ids text,
+    order_counts text,
     family_names text,
-    family_ids text,
+    family_counts text,
     genus_names text,
-    genus_ids text,
+    genus_counts text,
     species_names text,
-    species_ids text,
+    species_counts text,
     subspecies_names text,
-    subspecies_ids text,
+    subspecies_counts text,
     primary key (location_id, start_epoch_day, normalized_collectors)
 );

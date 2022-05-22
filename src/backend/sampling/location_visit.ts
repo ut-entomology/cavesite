@@ -18,19 +18,19 @@ export class LocationVisit {
   endEpochDay: number | null;
   normaliziedCollectors: string;
   phylumNames: string | null;
-  phylumIDs: string | null;
+  phylumCounts: string | null;
   classNames: string | null;
-  classIDs: string | null;
+  classCounts: string | null;
   orderNames: string | null;
-  orderIDs: string | null;
+  orderCounts: string | null;
   familyNames: string | null;
-  familyIDs: string | null;
+  familyCounts: string | null;
   genusNames: string | null;
-  genusIDs: string | null;
+  genusCounts: string | null;
   speciesNames: string | null;
-  speciesIDs: string | null;
+  speciesCounts: string | null;
   subspeciesNames: string | null;
-  subspeciesIDs: string | null;
+  subspeciesCounts: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -41,19 +41,19 @@ export class LocationVisit {
     this.endEpochDay = data.endEpochDay;
     this.normaliziedCollectors = data.normaliziedCollectors;
     this.phylumNames = data.phylumNames;
-    this.phylumIDs = data.phylumIDs;
+    this.phylumCounts = data.phylumCounts;
     this.classNames = data.classNames;
-    this.classIDs = data.classIDs;
+    this.classCounts = data.classCounts;
     this.orderNames = data.orderNames;
-    this.orderIDs = data.orderIDs;
+    this.orderCounts = data.orderCounts;
     this.familyNames = data.familyNames;
-    this.familyIDs = data.familyIDs;
+    this.familyCounts = data.familyCounts;
     this.genusNames = data.genusNames;
-    this.genusIDs = data.genusIDs;
+    this.genusCounts = data.genusCounts;
     this.speciesNames = data.speciesNames;
-    this.speciesIDs = data.speciesIDs;
+    this.speciesCounts = data.speciesCounts;
     this.subspeciesNames = data.subspeciesNames;
-    this.subspeciesIDs = data.subspeciesIDs;
+    this.subspeciesCounts = data.subspeciesCounts;
   }
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
@@ -63,9 +63,10 @@ export class LocationVisit {
       const result = await db.query(
         `insert into visits(
             location_id, is_cave, start_date, end_date, normalized_collectors,
-            phylum_names, phylum_ids, class_names, class_ids, order_names, order_ids,
-            family_names, family_ids, genus_names, genus_ids, species_names, species_ids,
-            subspecies_names, subspecies_ids
+            phylum_names, phylum_counts, class_names, class_counts,
+            order_names, order_counts, family_names, family_counts,
+            genus_names, genus_counts, species_names, species_counts,
+            subspecies_names, subspecies_counts
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
               $16, $17, $18, $19)`,
         [
@@ -76,48 +77,48 @@ export class LocationVisit {
           this.endEpochDay,
           this.normaliziedCollectors,
           this.phylumNames,
-          this.phylumIDs,
+          this.phylumCounts,
           this.classNames,
-          this.classIDs,
+          this.classCounts,
           this.orderNames,
-          this.orderIDs,
+          this.orderCounts,
           this.familyNames,
-          this.familyIDs,
+          this.familyCounts,
           this.genusNames,
-          this.genusIDs,
+          this.genusCounts,
           this.speciesNames,
-          this.speciesIDs,
+          this.speciesCounts,
           this.subspeciesNames,
-          this.subspeciesIDs
+          this.subspeciesCounts
         ]
       );
       this.locationID = result.rows[0].location_id;
     } else {
       const result = await db.query(
         `update locations set 
-            is_cave=$1, end_date=$2, phylum_names=$3, phylum_ids=$4, class_names=$5,
-            class_ids=$6, order_names=$7, order_ids=$8, family_names=$9, family_ids=$10,
-            genus_names=$11, genus_ids=$12, species_names=$13, species_ids=$14,
-            subspecies_names=$15, subspecies_ids=$16
+            is_cave=$1, end_date=$2, phylum_names=$3, phylum_counts=$4,
+            class_names=$5, class_counts=$6, order_names=$7, order_counts=$8, family_names=$9, family_counts=$10, genus_names=$11, genus_counts=$12,
+            species_names=$13, species_counts=$14,
+            subspecies_names=$15, subspecies_counts=$16
           where location_id=$17 and start_date=$18 and normalized_collectors=$19`,
         [
           // @ts-ignore
           this.isCave,
           this.endEpochDay,
           this.phylumNames,
-          this.phylumIDs,
+          this.phylumCounts,
           this.classNames,
-          this.classIDs,
+          this.classCounts,
           this.orderNames,
-          this.orderIDs,
+          this.orderCounts,
           this.familyNames,
-          this.familyIDs,
+          this.familyCounts,
           this.genusNames,
-          this.genusIDs,
+          this.genusCounts,
           this.speciesNames,
-          this.speciesIDs,
+          this.speciesCounts,
           this.subspeciesNames,
-          this.subspeciesIDs,
+          this.subspeciesCounts,
           this.locationID,
           this.startEpochDay,
           this.normaliziedCollectors
@@ -133,9 +134,57 @@ export class LocationVisit {
     return this.locationID;
   }
 
+  //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
+
+  private _updateTaxon(
+    upperTaxon: string | null,
+    lowerTaxon: string | null,
+    visitNamesField: keyof LocationVisit,
+    visitCountsField: keyof LocationVisit
+  ): void {
+    // If the taxon does not occur, there's nothing to update.
+
+    if (upperTaxon !== null) {
+      let taxonNameSeries = this[visitNamesField] as string | null;
+
+      // If no taxa of this rank are yet recorded for the visit, assign first;
+      // otherwise update the existing record.
+
+      if (taxonNameSeries === null) {
+        // @ts-ignore
+        this[visitNamesField] = upperTaxon;
+        // @ts-ignore
+        this[visitCountsField] = lowerTaxon === null ? '1' : '0';
+      } else {
+        const taxonNames = taxonNameSeries.split('|');
+        const taxonIndex = taxonNames.indexOf(upperTaxon);
+
+        // If the taxon was not previously recorded, append it; otherwise,
+        // drop the taxon count for this rank if it's not already 0 and
+        // a taxon exists below the rank that will re-up the count.
+
+        if (taxonIndex < 0) {
+          // @ts-ignore
+          this[visitNamesField] += '|' + upperTaxon;
+          // @ts-ignore
+          this[visitCountsField] += lowerTaxon === null ? '1' : '0';
+        } else if (lowerTaxon !== null) {
+          const taxonCounts = this[visitCountsField] as string;
+          if (taxonCounts[taxonIndex] == '1') {
+            // @ts-ignore
+            this[visitCountsField] = `${taxonCounts.substring(
+              0,
+              taxonIndex
+            )}0${taxonCounts.substring(taxonIndex + 1)}`;
+          }
+        }
+      }
+    }
+  }
+
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
-  static async create(db: DB, data: LocationVisitData): Promise<LocationVisit> {
+  private static async create(db: DB, data: LocationVisitData): Promise<LocationVisit> {
     const visit = new LocationVisit(data);
     await visit.save(db);
     return visit;
@@ -152,9 +201,16 @@ export class LocationVisit {
       throw Error("Can't add visits for a specimen with no collectors");
     }
 
+    const speciesName = specimen.speciesName
+      ? specimen.subspeciesName
+        ? specimen.taxonUnique.substring(0, specimen.taxonUnique.lastIndexOf(' '))
+        : specimen.taxonUnique
+      : null;
+    const subspeciesName = specimen.subspeciesName ? specimen.taxonUnique : null;
     const startEpochDay = Math.floor(
       specimen.collectionStartDate.getTime() / MILLIS_PER_DAY
     );
+
     const visit = await LocationVisit.getByKey(
       db,
       specimen.localityID,
@@ -170,62 +226,48 @@ export class LocationVisit {
         endEpochDay: null,
         normaliziedCollectors: specimen.normalizedCollectors,
         phylumNames: specimen.phylumName,
-        phylumIDs: specimen.phylumID?.toString() || null,
+        phylumCounts: specimen.phylumName && !specimen.className ? '1' : '0',
         classNames: specimen.className,
-        classIDs: specimen.classID?.toString() || null,
+        classCounts: specimen.className && !specimen.orderName ? '1' : '0',
         orderNames: specimen.orderName,
-        orderIDs: specimen.orderID?.toString() || null,
+        orderCounts: specimen.orderName && !specimen.familyName ? '1' : '0',
         familyNames: specimen.familyName,
-        familyIDs: specimen.familyID?.toString() || null,
+        familyCounts: specimen.familyName && !specimen.genusName ? '1' : '0',
         genusNames: specimen.genusName,
-        genusIDs: specimen.genusID?.toString() || null,
-        speciesNames: specimen.speciesName,
-        speciesIDs: specimen.speciesID?.toString() || null,
-        subspeciesNames: specimen.subspeciesName,
-        subspeciesIDs: specimen.subspeciesID?.toString() || null
+        genusCounts: specimen.genusName && !speciesName ? '1' : '0',
+        speciesNames: speciesName,
+        speciesCounts: speciesName && !subspeciesName ? '1' : '0',
+        subspeciesNames: subspeciesName,
+        subspeciesCounts: subspeciesName ? '1' : '0'
       });
     } else {
-      let ids = this._addID(visit.phylumIDs, specimen.phylumID);
-      if (ids !== null) {
-        visit.phylumIDs = ids;
-        visit.phylumNames = this._appendName(visit.phylumNames, specimen.phylumName!);
-      }
-      ids = this._addID(visit.classIDs, specimen.classID);
-      if (ids !== null) {
-        visit.classIDs = ids;
-        visit.classNames = this._appendName(visit.classNames, specimen.className!);
-      }
-      ids = this._addID(visit.orderIDs, specimen.orderID);
-      if (ids !== null) {
-        visit.orderIDs = ids;
-        visit.orderNames = this._appendName(visit.orderNames, specimen.orderName!);
-      }
-      ids = this._addID(visit.familyIDs, specimen.familyID);
-      if (ids !== null) {
-        visit.familyIDs = ids;
-        visit.familyNames = this._appendName(visit.familyNames, specimen.familyName!);
-      }
-      ids = this._addID(visit.genusIDs, specimen.genusID);
-      if (ids !== null) {
-        visit.genusIDs = ids;
-        visit.genusNames = this._appendName(visit.genusNames, specimen.genusName!);
-      }
-      ids = this._addID(visit.speciesIDs, specimen.speciesID);
-      if (ids !== null) {
-        visit.speciesIDs = ids;
-        visit.speciesNames = this._appendName(
-          visit.speciesNames,
-          specimen.speciesName!
-        );
-      }
-      ids = this._addID(visit.subspeciesIDs, specimen.subspeciesID);
-      if (ids !== null) {
-        visit.subspeciesIDs = ids;
-        visit.subspeciesNames = this._appendName(
-          visit.subspeciesNames,
-          specimen.subspeciesName!
-        );
-      }
+      visit._updateTaxon(
+        specimen.phylumName,
+        specimen.className,
+        'phylumNames',
+        'phylumCounts'
+      );
+      visit._updateTaxon(
+        specimen.className,
+        specimen.orderName,
+        'classNames',
+        'classCounts'
+      );
+      visit._updateTaxon(
+        specimen.orderName,
+        specimen.familyName,
+        'orderNames',
+        'orderCounts'
+      );
+      visit._updateTaxon(
+        specimen.familyName,
+        specimen.genusName,
+        'familyNames',
+        'familyCounts'
+      );
+      visit._updateTaxon(specimen.genusName, speciesName, 'genusNames', 'genusCounts');
+      visit._updateTaxon(speciesName, subspeciesName, 'speciesNames', 'speciesCounts');
+      visit._updateTaxon(subspeciesName, null, 'subspeciesNames', 'subspeciesCounts');
       await visit.save(db);
     }
   }
@@ -244,25 +286,5 @@ export class LocationVisit {
     return result.rows.length > 0
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;
-  }
-
-  //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
-
-  // Returns new ID series if changed. Otherwise returns null.
-  private static _addID(idSeries: string | null, id: number | null): string | null {
-    if (idSeries === null) {
-      if (id === null) return null;
-      return id.toString();
-    }
-    if (id === null) return null;
-    const ids = idSeries.split(',');
-    const idString = id.toString();
-    if (ids.includes(idString)) return null;
-    ids.push(idString);
-    return ids.join('|');
-  }
-
-  private static _appendName(nameSeries: string | null, name: string): string {
-    return nameSeries === null ? name : `${nameSeries}|${name}`;
   }
 }
