@@ -24,7 +24,7 @@ type PartialSpecimenSource = Pick<
 const locality1 = 'Cave 1';
 const date1 = _toISODate('2020-01-01');
 const date2 = _toISODate('2020-01-02');
-// const date3 = _toISODate('2020-02-02');
+const date3 = _toISODate('2020-02-02');
 // const date4 = _toISODate('2021-02-02');
 const collectors1 = 'Somebody';
 const detDate = _toISODate('2022-05-01');
@@ -326,6 +326,387 @@ test('adding existing taxonomic groups', async () => {
     kingdom: 'Animalia'
   });
   await _checkVisitFor(specimen, expectedVisitData);
+});
+
+test('adding multiple taxonomic groups', async () => {
+  let specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer',
+    infraspecificEpithet: 'xyz'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '0',
+    speciesNames: 'Mecaphesa celer',
+    speciesCounts: '0',
+    subspeciesNames: 'Mecaphesa celer xyz',
+    subspeciesCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'celer',
+    infraspecificEpithet: 'pdq'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '0',
+    speciesNames: 'Mecaphesa celer',
+    speciesCounts: '0',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    specificEpithet: 'dubia'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa',
+    genusCounts: '0',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia',
+    speciesCounts: '01',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Xysticus',
+    specificEpithet: 'funestus'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa|Xysticus',
+    genusCounts: '00',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus',
+    speciesCounts: '011',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Ozyptila'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila',
+    genusCounts: '001',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus',
+    speciesCounts: '011',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Bassaniana'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana',
+    genusCounts: '0011',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus',
+    speciesCounts: '011',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Ozyptila',
+    specificEpithet: 'distans'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae',
+    familyCounts: '0',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana',
+    genusCounts: '0001',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans',
+    speciesCounts: '0111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Theridiidae',
+    genus: 'Latrodectus'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae',
+    orderCounts: '0',
+    familyNames: 'Thomisidae|Theridiidae',
+    familyCounts: '00',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus',
+    genusCounts: '00011',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans',
+    speciesCounts: '0111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Opiliones'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '0',
+    orderNames: 'Araneae|Opiliones',
+    orderCounts: '01',
+    familyNames: 'Thomisidae|Theridiidae',
+    familyCounts: '00',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus',
+    genusCounts: '00011',
+    speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans',
+    speciesCounts: '0111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta',
+    order: 'Orthoptera',
+    family: 'Rhaphidophoridae',
+    genus: 'Diestrammena',
+    specificEpithet: 'asynamora'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida|Insecta',
+    classCounts: '00',
+    orderNames: 'Araneae|Opiliones|Orthoptera',
+    orderCounts: '010',
+    familyNames: 'Thomisidae|Theridiidae|Rhaphidophoridae',
+    familyCounts: '000',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus|Diestrammena',
+    genusCounts: '000110',
+    speciesNames:
+      'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
+    speciesCounts: '01111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Chilopoda'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida|Insecta|Chilopoda',
+    classCounts: '001',
+    orderNames: 'Araneae|Opiliones|Orthoptera',
+    orderCounts: '010',
+    familyNames: 'Thomisidae|Theridiidae|Rhaphidophoridae',
+    familyCounts: '000',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus|Diestrammena',
+    genusCounts: '000110',
+    speciesNames:
+      'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
+    speciesCounts: '01111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Chilopoda',
+    order: 'Scolopendromorpha',
+    family: 'Cryptopidae'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida|Insecta|Chilopoda',
+    classCounts: '000',
+    orderNames: 'Araneae|Opiliones|Orthoptera|Scolopendromorpha',
+    orderCounts: '0100',
+    familyNames: 'Thomisidae|Theridiidae|Rhaphidophoridae|Cryptopidae',
+    familyCounts: '0001',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus|Diestrammena',
+    genusCounts: '000110',
+    speciesNames:
+      'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
+    speciesCounts: '01111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality1,
+    startDate: date3,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Annelida'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda|Annelida',
+    phylumCounts: '01',
+    classNames: 'Arachnida|Insecta|Chilopoda',
+    classCounts: '000',
+    orderNames: 'Araneae|Opiliones|Orthoptera|Scolopendromorpha',
+    orderCounts: '0100',
+    familyNames: 'Thomisidae|Theridiidae|Rhaphidophoridae|Cryptopidae',
+    familyCounts: '0001',
+    genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus|Diestrammena',
+    genusCounts: '000110',
+    speciesNames:
+      'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
+    speciesCounts: '01111',
+    subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    subspeciesCounts: '11'
+  });
 });
 
 // TODO: test respect for components of key
