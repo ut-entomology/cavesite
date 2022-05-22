@@ -22,11 +22,13 @@ type PartialSpecimenSource = Pick<
 >;
 
 const locality1 = 'Cave 1';
+const locality2 = 'Cave 2';
+const locality3 = 'Cave 3';
 const date1 = _toISODate('2020-01-01');
 const date2 = _toISODate('2020-01-02');
 const date3 = _toISODate('2020-02-02');
-// const date4 = _toISODate('2021-02-02');
 const collectors1 = 'Somebody';
+const collectors2 = 'Someone Else';
 const detDate = _toISODate('2022-05-01');
 
 const mutex = new DatabaseMutex();
@@ -709,7 +711,65 @@ test('adding multiple taxonomic groups', async () => {
   });
 });
 
-// TODO: test respect for components of key
+test('respect for components of primary key', async () => {
+  let specimen = await _addSpecimen({
+    locality: locality2,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Arachnida',
+    classCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality2,
+    startDate: date1,
+    collectors: collectors2,
+    kingdom: 'Animalia',
+    phylum: 'Annelida'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Annelida',
+    phylumCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality2,
+    startDate: date2,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Annelida'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Annelida',
+    phylumCounts: '1'
+  });
+
+  specimen = await _addSpecimen({
+    locality: locality3,
+    startDate: date1,
+    collectors: collectors1,
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta'
+  });
+  await _checkVisitFor(specimen, {
+    kingdomCounts: '0',
+    phylumNames: 'Arthropoda',
+    phylumCounts: '0',
+    classNames: 'Insecta',
+    classCounts: '1'
+  });
+});
 
 afterAll(async () => {
   await mutex.unlock();
