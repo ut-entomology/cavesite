@@ -777,13 +777,13 @@ test('respect for components of primary key', async () => {
 test('tallying species counts per unit effort', async () => {
   await LocationVisit.dropAll(db);
 
-  // Make sure it starts with just [0,0].
+  // Make sure it starts empty.
 
   let tallies = await LocationVisit.tallyCavePoints(db);
   expect(tallies).toEqual({
-    speciesCounts: [0],
-    perVisitEffort: [0],
-    perPersonVisitEffort: [0]
+    speciesCounts: [],
+    perVisitEffort: [],
+    perPersonVisitEffort: []
   });
 
   // Sequentially add specimens to one location from different dates.
@@ -1091,7 +1091,7 @@ test('tallying species counts per unit effort', async () => {
     specificEpithet: 'regius'
   });
   tallies = await LocationVisit.tallyCavePoints(db);
-  points.push([1, 4]);
+  points.push([0, 0], [1, 4]);
   _checkPerVisitTallies(tallies, points);
   _checkPerPersonVisitTallies(tallies, points);
 

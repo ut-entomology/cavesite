@@ -3,6 +3,11 @@
  * group of people to a specific location on a single day.
  */
 
+// TODO: Generate one [0, 0] data point for each location.
+
+// TODO: The same data can convey the points for each cave. I could begin
+// each set for each cave with a negative locality_id.
+
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
@@ -309,9 +314,9 @@ export class LocationVisit implements TaxonTallies {
 
   static async tallyCavePoints(db: DB): Promise<EffortPoints> {
     const points: EffortPoints = {
-      speciesCounts: [0],
-      perVisitEffort: [0],
-      perPersonVisitEffort: [0]
+      speciesCounts: [],
+      perVisitEffort: [],
+      perPersonVisitEffort: []
     };
 
     let priorLocationID = 0;
@@ -320,36 +325,27 @@ export class LocationVisit implements TaxonTallies {
     let locationPerPersonVisitEffort = 0;
     let skipCount = 0;
 
-    //console.log('**** tallying');
     let visits = await this._getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
     while (visits.length > 0) {
       for (const visit of visits) {
         if (visit.locationID != priorLocationID) {
-          //console.log('**** resetting location');
           locationTaxonTallies = visit; // okay to overwrite the visit
           locationPerVisitEffort = 0;
           locationPerPersonVisitEffort = 0;
           priorLocationID = visit.locationID;
+          // Each cave begins with a [0, 0] point.
+          points.speciesCounts.push(0);
+          points.perVisitEffort.push(0);
+          points.perPersonVisitEffort.push(0);
         } else {
-          //console.log('**** merging');
           this._mergeVisit(locationTaxonTallies!, visit);
         }
 
-        // console.log('**** visit', visit!);
-        // console.log('**** locationTaxonTallies', locationTaxonTallies!);
         const totalSpecies = this._countSpecies(locationTaxonTallies!);
         points.speciesCounts.push(totalSpecies);
         points.perVisitEffort.push(++locationPerVisitEffort);
         locationPerPersonVisitEffort += visit.collectorCount;
         points.perPersonVisitEffort.push(locationPerPersonVisitEffort);
-        // console.log(
-        //   '**** locationPerVisitEffort',
-        //   locationPerVisitEffort,
-        //   'locationPerPersonVisitEffort',
-        //   locationPerPersonVisitEffort,
-        //   'totalSpecies',
-        //   totalSpecies
-        // );
       }
       skipCount += visits.length;
       visits = await this._getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
