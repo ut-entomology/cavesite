@@ -125,7 +125,7 @@
             y: {
               title: {
                 display: true,
-                text: 'species',
+                text: 'cumulative species',
                 font: { size: 16 }
               }
             }
