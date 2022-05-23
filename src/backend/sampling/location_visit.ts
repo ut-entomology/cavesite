@@ -6,12 +6,33 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
+import type { SpeciesEffort } from '../../shared/model';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+const VISIT_BATCH_SIZE = 200;
 
 type LocationVisitData = DataOf<LocationVisit>;
 
-export class LocationVisit {
+interface TaxonTallies {
+  kingdomNames: string;
+  kingdomCounts: string;
+  phylumNames: string | null;
+  phylumCounts: string | null;
+  classNames: string | null;
+  classCounts: string | null;
+  orderNames: string | null;
+  orderCounts: string | null;
+  familyNames: string | null;
+  familyCounts: string | null;
+  genusNames: string | null;
+  genusCounts: string | null;
+  speciesNames: string | null;
+  speciesCounts: string | null;
+  subspeciesNames: string | null;
+  subspeciesCounts: string | null;
+}
+
+export class LocationVisit implements TaxonTallies {
   locationID: number;
   isCave: boolean;
   startEpochDay: number;
@@ -122,13 +143,11 @@ export class LocationVisit {
     }
   }
 
-  //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
-
   private _updateTaxon(
     upperTaxon: string | null,
     lowerTaxon: string | null,
-    visitNamesField: keyof LocationVisit,
-    visitCountsField: keyof LocationVisit
+    visitNamesField: keyof TaxonTallies,
+    visitCountsField: keyof TaxonTallies
   ): void {
     // If the taxon does not occur, there's nothing to update.
 
@@ -160,10 +179,7 @@ export class LocationVisit {
           const taxonCounts = this[visitCountsField] as string;
           if (taxonCounts[taxonIndex] == '1') {
             // @ts-ignore
-            this[visitCountsField] = `${taxonCounts.substring(
-              0,
-              taxonIndex
-            )}0${taxonCounts.substring(taxonIndex + 1)}`;
+            this[visitCountsField] = _setTaxonCounts(taxonCounts, taxonIndex, '0');
           }
         }
       }
@@ -270,6 +286,11 @@ export class LocationVisit {
     }
   }
 
+  // for testing purposes...
+  static async dropAll(db: DB): Promise<void> {
+    await db.query(`delete from visits`);
+  }
+
   static async getByKey(
     db: DB,
     locationID: number,
@@ -285,6 +306,160 @@ export class LocationVisit {
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;
   }
+
+  static async tallyCavePoints(db: DB): Promise<SpeciesEffort> {
+    const points: SpeciesEffort = {
+      speciesCounts: [0],
+      perVisitEffort: [0],
+      perPersonVisitEffort: [0]
+    };
+
+    let priorLocationID = 0;
+    let locationTaxonTallies: TaxonTallies;
+    let locationPerVisitEffort = 0;
+    let locationPerPersonVisitEffort = 0;
+    let skipCount = 0;
+
+    //console.log('**** tallying');
+    let visits = await this._getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
+    while (visits.length > 0) {
+      for (const visit of visits) {
+        if (visit.locationID != priorLocationID) {
+          //console.log('**** resetting location');
+          locationTaxonTallies = visit; // okay to overwrite the visit
+          locationPerVisitEffort = 0;
+          locationPerPersonVisitEffort = 0;
+          priorLocationID = visit.locationID;
+        } else {
+          //console.log('**** merging');
+          this._mergeVisit(locationTaxonTallies!, visit);
+        }
+
+        // console.log('**** visit', visit!);
+        // console.log('**** locationTaxonTallies', locationTaxonTallies!);
+        const totalSpecies = this._countSpecies(locationTaxonTallies!);
+        points.speciesCounts.push(totalSpecies);
+        points.perVisitEffort.push(++locationPerVisitEffort);
+        locationPerPersonVisitEffort += visit.collectorCount;
+        points.perPersonVisitEffort.push(locationPerPersonVisitEffort);
+        // console.log(
+        //   '**** locationPerVisitEffort',
+        //   locationPerVisitEffort,
+        //   'locationPerPersonVisitEffort',
+        //   locationPerPersonVisitEffort,
+        //   'totalSpecies',
+        //   totalSpecies
+        // );
+      }
+      skipCount += visits.length;
+      visits = await this._getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
+    }
+
+    return points;
+  }
+
+  //// PRIVATE CLASS METHODS ///////////////////////////////////////////////
+
+  private static _countSpecies(tallies: TaxonTallies): number {
+    let count = _countOnes(tallies.kingdomCounts);
+    count += _countOnes(tallies.phylumCounts);
+    count += _countOnes(tallies.classCounts);
+    count += _countOnes(tallies.orderCounts);
+    count += _countOnes(tallies.familyCounts);
+    count += _countOnes(tallies.genusCounts);
+    count += _countOnes(tallies.speciesCounts);
+    count += _countOnes(tallies.subspeciesCounts);
+    return count;
+  }
+
+  private static async _getNextCaveBatch(
+    db: DB,
+    skip: number,
+    limit: number
+  ): Promise<LocationVisit[]> {
+    const result = await db.query(
+      `select * from visits where is_cave=true
+        order by location_id, start_epoch_day, normalized_collectors
+        limit $1 offset $2`,
+      [limit, skip]
+    );
+    return result.rows.map((row) => new LocationVisit(toCamelRow(row)));
+  }
+
+  private static _mergeTaxa(
+    tallies: TaxonTallies,
+    visit: LocationVisit,
+    namesField: keyof TaxonTallies,
+    countsField: keyof TaxonTallies
+  ): void {
+    // Only merge visit values when they exist for the taxon.
+
+    const visitTaxonSeries = visit[namesField];
+    if (visitTaxonSeries !== null) {
+      // If the tally doesn't currently represent the visit taxon, copy over
+      // the visit values for the taxon; otherwise, merge the visit values.
+
+      const tallyTaxonSeries = tallies[namesField];
+      if (tallyTaxonSeries === null) {
+        tallies[namesField] = visitTaxonSeries;
+        tallies[countsField] = visit[countsField]!;
+      } else {
+        const tallyTaxa = tallyTaxonSeries.split('|');
+        const tallyCounts = tallies[countsField]!;
+        const visitTaxa = visitTaxonSeries.split('|');
+        const visitCounts = visit[countsField]!;
+
+        // Separately merge each visit taxon.
+
+        for (let visitIndex = 0; visitIndex < visitTaxa.length; ++visitIndex) {
+          const visitTaxon = visitTaxa[visitIndex];
+          const tallyIndex = tallyTaxa.indexOf(visitTaxon);
+
+          if (visitCounts[visitIndex] == '0') {
+            // When the visit count is 0, a lower taxon provides more specificity,
+            // so the tally must indicate a 0 count for the taxon.
+
+            if (tallyIndex < 0) {
+              tallies[namesField] += '|' + visitTaxon;
+              tallies[countsField] += '0';
+            } else if (tallyCounts[tallyIndex] == '1') {
+              tallies[countsField] = _setTaxonCounts(tallyCounts, tallyIndex, '0');
+            }
+          } else {
+            // When the visit count is 1, the visit provides no more specificity,
+            // so the tally must indicate a 1 if a tally is not already present.
+
+            if (tallyIndex < 0) {
+              tallies[namesField] += '|' + visitTaxon;
+              tallies[countsField] += '1';
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private static _mergeVisit(tallies: TaxonTallies, visit: LocationVisit): void {
+    this._mergeTaxa(tallies, visit, 'kingdomNames', 'kingdomCounts');
+    this._mergeTaxa(tallies, visit, 'phylumNames', 'phylumCounts');
+    this._mergeTaxa(tallies, visit, 'classNames', 'classCounts');
+    this._mergeTaxa(tallies, visit, 'orderNames', 'orderCounts');
+    this._mergeTaxa(tallies, visit, 'familyNames', 'familyCounts');
+    this._mergeTaxa(tallies, visit, 'genusNames', 'genusCounts');
+    this._mergeTaxa(tallies, visit, 'speciesNames', 'speciesCounts');
+    this._mergeTaxa(tallies, visit, 'subspeciesNames', 'subspeciesCounts');
+  }
+}
+
+function _countOnes(s: string | null): number {
+  if (s === null) return 0;
+  return s.replaceAll('0', '').length;
+}
+
+function _setTaxonCounts(taxonCounts: string, offset: number, count: string): string {
+  return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
+    offset + 1
+  )}`;
 }
 
 function _toInitialCount(
