@@ -17,6 +17,10 @@
       route: '/locations'
     },
     {
+      label: 'Sampling',
+      route: '/sampling'
+    },
+    {
       label: 'Data',
       route: '/data'
     }

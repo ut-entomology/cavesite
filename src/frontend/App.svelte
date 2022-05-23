@@ -6,7 +6,7 @@
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
   import { globalDialog } from './stores/globalDialog.svelte';
-  import { selectedTaxa } from './stores/selectedTaxa.svelte';
+  import { selectedTaxa } from './stores/selectedTaxa';
   import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
@@ -14,6 +14,7 @@
   import Taxa from './routes/Taxa.svelte';
   import Locations from './routes/Locations.svelte';
   import Data from './routes/Data.svelte';
+  import Sampling from './routes/Sampling.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
   import Logs from './routes/admin/Logs.svelte';
@@ -31,6 +32,7 @@
     '/taxa': Taxa,
     '/locations': Locations,
     '/data': Data,
+    '/sampling': Sampling,
 
     '/admin/users': Users,
     '/admin/coords': Coords,
