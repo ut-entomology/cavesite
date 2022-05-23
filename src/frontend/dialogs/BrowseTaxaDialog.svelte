@@ -6,9 +6,8 @@
     checkmarkIcon,
     plusIcon
   } from '../components/SelectableTaxon.svelte';
-  import TaxonText from '../components/TaxonText.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
-  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import { selectedTaxa } from '../stores/selectedTaxa';
   import { TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
   import type { SpecEntry } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';

@@ -9,7 +9,7 @@
   import type { TaxonSpec } from '../../shared/model';
   import type { SpecEntry } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
-  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import { selectedTaxa } from '../stores/selectedTaxa';
 
   export let prefixed = true;
   export let expandable = true;

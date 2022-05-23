@@ -11,7 +11,7 @@
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import type { TaxonSpec } from '../../shared/model';
   import type { TreeNode } from '../../frontend-core/selections_tree';
-  import { selectedTaxa } from '../stores/selectedTaxa.svelte';
+  import { selectedTaxa } from '../stores/selectedTaxa';
   import { ROOT_TAXON } from '../../shared/model';
 
   let browseTaxonUnique: string | null = null;
