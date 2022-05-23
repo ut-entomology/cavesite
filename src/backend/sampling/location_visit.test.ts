@@ -3,7 +3,7 @@ import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Specimen, SpecimenSource } from '../model/specimen';
 import { LocationVisit } from './location_visit';
-import { SpeciesEffort, pointSorter, sortPointsXThenY } from '../../shared/model';
+import { EffortPoints, pointSorter, sortPointsXThenY } from '../../shared/model';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -1269,7 +1269,7 @@ async function _addSpecimen(data: PartialSpecimenSource): Promise<Specimen> {
 }
 
 function _checkPerPersonVisitTallies(
-  tallies: SpeciesEffort,
+  tallies: EffortPoints,
   expectedPoints: number[][]
 ): void {
   expectedPoints.sort(pointSorter);
@@ -1281,7 +1281,7 @@ function _checkPerPersonVisitTallies(
 }
 
 function _checkPerVisitTallies(
-  tallies: SpeciesEffort,
+  tallies: EffortPoints,
   expectedPoints: number[][]
 ): void {
   expectedPoints.sort(pointSorter);

@@ -211,7 +211,7 @@ export interface ResultRecord {
 
 //// Visits //////////////////////////////////////////////////////////////////
 
-export interface SpeciesEffort {
+export interface EffortPoints {
   speciesCounts: number[];
   perVisitEffort: number[]; // associated with same index of speciesCounts
   perPersonVisitEffort: number[]; // associated with same index of speciesCounts

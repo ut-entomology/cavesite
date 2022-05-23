@@ -6,7 +6,7 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
-import type { SpeciesEffort } from '../../shared/model';
+import type { EffortPoints } from '../../shared/model';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const VISIT_BATCH_SIZE = 200;
@@ -307,8 +307,8 @@ export class LocationVisit implements TaxonTallies {
       : null;
   }
 
-  static async tallyCavePoints(db: DB): Promise<SpeciesEffort> {
-    const points: SpeciesEffort = {
+  static async tallyCavePoints(db: DB): Promise<EffortPoints> {
+    const points: EffortPoints = {
       speciesCounts: [0],
       perVisitEffort: [0],
       perPersonVisitEffort: [0]
