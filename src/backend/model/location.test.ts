@@ -32,7 +32,7 @@ describe('without location GUIDs', () => {
       );
       const createdLocation = await Location.create(db, '', '', sourceLocation);
       expect(createdLocation).toEqual(expectedLocation);
-      const readLocation = await Location.getByID(db, createdLocation.locationID);
+      const readLocation = await _getByID(db, createdLocation.locationID);
       expect(readLocation).toEqual(expectedLocation);
     }
 
@@ -58,7 +58,7 @@ describe('without location GUIDs', () => {
         sourceLocation
       );
       expect(createdLocation).toEqual(expectedLocation);
-      const readLocation = await Location.getByID(db, createdLocation.locationID);
+      const readLocation = await _getByID(db, createdLocation.locationID);
       expect(readLocation).toEqual(expectedLocation);
     }
 
@@ -70,7 +70,7 @@ describe('without location GUIDs', () => {
         country: 'United States',
         locality: 'Someplace in U.S.'
       });
-      const readLocation = await Location.getByID(db, 3);
+      const readLocation = await _getByID(db, 3);
       expect(readLocation).toEqual({
         locationID: 3,
         locationRank: LocationRank.Locality,
@@ -88,7 +88,7 @@ describe('without location GUIDs', () => {
     // test getOrCreate() getting an existing location
 
     {
-      const expectedLocation = await Location.getByID(db, 3);
+      const expectedLocation = await _getByID(db, 3);
       expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
       const readLocation = await Location.getOrCreate(db, {
         continent: 'North America',
@@ -107,7 +107,7 @@ describe('without location GUIDs', () => {
         stateProvince: 'Texas',
         locality: 'Someplace in Texas'
       });
-      expect(await Location.getByID(db, 4)).toEqual({
+      expect(await _getByID(db, 4)).toEqual({
         locationID: 4,
         locationRank: LocationRank.StateProvince,
         locationName: 'Texas',
@@ -118,7 +118,7 @@ describe('without location GUIDs', () => {
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States'
       });
-      const readLocation = await Location.getByID(db, 5);
+      const readLocation = await _getByID(db, 5);
       expect(readLocation).toEqual({
         locationID: 5,
         locationRank: LocationRank.Locality,
@@ -145,7 +145,7 @@ describe('without location GUIDs', () => {
         decimalLatitude: '28.12',
         decimalLongitude: '-97.34'
       });
-      expect(await Location.getByID(db, 6)).toEqual({
+      expect(await _getByID(db, 6)).toEqual({
         locationID: 6,
         locationRank: LocationRank.County,
         locationName: 'Travis County',
@@ -156,7 +156,7 @@ describe('without location GUIDs', () => {
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas'
       });
-      const readLocation = await Location.getByID(db, 7);
+      const readLocation = await _getByID(db, 7);
       expect(readLocation).toEqual({
         locationID: 7,
         locationRank: LocationRank.Locality,
@@ -183,7 +183,7 @@ describe('without location GUIDs', () => {
         decimalLatitude: '21.12',
         decimalLongitude: '-96.34'
       });
-      expect(await Location.getByID(db, 8)).toEqual({
+      expect(await _getByID(db, 8)).toEqual({
         locationID: 8,
         locationRank: LocationRank.Country,
         locationName: 'Mexico',
@@ -194,7 +194,7 @@ describe('without location GUIDs', () => {
         parentIDPath: '1',
         parentNamePath: 'North America'
       });
-      expect(await Location.getByID(db, 9)).toEqual({
+      expect(await _getByID(db, 9)).toEqual({
         locationID: 9,
         locationRank: LocationRank.StateProvince,
         locationName: 'Chihuahua',
@@ -205,7 +205,7 @@ describe('without location GUIDs', () => {
         parentIDPath: '1,8',
         parentNamePath: 'North America|Mexico'
       });
-      expect(await Location.getByID(db, 10)).toEqual({
+      expect(await _getByID(db, 10)).toEqual({
         locationID: 10,
         locationRank: LocationRank.County,
         locationName: 'Mun. Xyz',
@@ -216,7 +216,7 @@ describe('without location GUIDs', () => {
         parentIDPath: '1,8,9',
         parentNamePath: 'North America|Mexico|Chihuahua'
       });
-      const readLocation = await Location.getByID(db, 11);
+      const readLocation = await _getByID(db, 11);
       expect(readLocation).toEqual({
         locationID: 11,
         locationRank: LocationRank.Locality,
@@ -229,17 +229,22 @@ describe('without location GUIDs', () => {
         parentNamePath: 'North America|Mexico|Chihuahua|Mun. Xyz'
       });
       expect(createdLocation).toEqual(readLocation);
+
+      const locations = await Location.getByIDs(db, [9, 10, 11]);
+      expect(locations[0].locationName).toEqual('Chihuahua');
+      expect(locations[1].locationName).toEqual('Mun. Xyz');
+      expect(locations[2].locationName).toEqual('Invisible Spring');
     }
 
     // test providing the public coordinates name of an existing location
 
     {
-      const expectedLocation = await Location.getByID(db, 4);
+      const expectedLocation = await _getByID(db, 4);
       expect(expectedLocation?.locationName).toEqual('Texas');
       expectedLocation!.publicLatitude = 23.5;
       expectedLocation!.publicLongitude = -97.5;
       await expectedLocation!.save(db);
-      const readLocation = await Location.getByID(db, 4);
+      const readLocation = await _getByID(db, 4);
       expect(readLocation).toEqual(expectedLocation);
     }
 
@@ -336,7 +341,7 @@ describe('with location GUIDs', () => {
       );
       const createdLocation = await Location.create(db, '', '', sourceLocation);
       expect(createdLocation).toEqual(expectedLocation);
-      let readLocation = await Location.getByID(db, createdLocation.locationID);
+      let readLocation = await _getByID(db, createdLocation.locationID);
       expect(readLocation).toEqual(expectedLocation);
       readLocation = await Location.getByGUID(db, sourceLocation.locationGuid!, false);
       expect(readLocation).toEqual(expectedLocation);
@@ -364,7 +369,7 @@ describe('with location GUIDs', () => {
         sourceLocation
       );
       expect(createdLocation).toEqual(expectedLocation);
-      let readLocation = await Location.getByID(db, createdLocation.locationID);
+      let readLocation = await _getByID(db, createdLocation.locationID);
       expect(readLocation).toEqual(expectedLocation);
       readLocation = await Location.getByGUID(db, sourceLocation.locationGuid!, false);
       expect(readLocation).toEqual(expectedLocation);
@@ -379,7 +384,7 @@ describe('with location GUIDs', () => {
         locality: 'Someplace in U.S.',
         locationID: 'G3'
       });
-      const readLocation = await Location.getByID(db, 3);
+      const readLocation = await _getByID(db, 3);
       expect(readLocation).toEqual({
         locationID: 3,
         locationRank: LocationRank.Locality,
@@ -418,7 +423,7 @@ describe('with location GUIDs', () => {
         locality: 'Someplace in Texas',
         locationID: 'G5'
       });
-      expect(await Location.getByID(db, 4)).toEqual({
+      expect(await _getByID(db, 4)).toEqual({
         locationID: 4,
         locationRank: LocationRank.StateProvince,
         locationName: 'Texas',
@@ -429,7 +434,7 @@ describe('with location GUIDs', () => {
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States'
       });
-      let readLocation = await Location.getByID(db, 5);
+      let readLocation = await _getByID(db, 5);
       expect(readLocation).toEqual({
         locationID: 5,
         locationRank: LocationRank.Locality,
@@ -456,7 +461,7 @@ describe('with location GUIDs', () => {
         locality: 'Another Place in Texas',
         locationID: 'G6'
       });
-      let readLocation = await Location.getByID(db, 6);
+      let readLocation = await _getByID(db, 6);
       expect(readLocation).toEqual({
         locationID: 6,
         locationRank: LocationRank.Locality,
@@ -495,7 +500,7 @@ describe('with location GUIDs', () => {
         decimalLongitude: '-97.0'
       });
 
-      let readLocation = await Location.getByID(db, 7);
+      let readLocation = await _getByID(db, 7);
       expect(readLocation).toEqual({
         locationID: 7,
         locationRank: LocationRank.Locality,
@@ -511,7 +516,7 @@ describe('with location GUIDs', () => {
       readLocation = await Location.getByGUID(db, 'G7', false);
       expect(readLocation).toEqual(createdLocation1);
 
-      readLocation = await Location.getByID(db, 8);
+      readLocation = await _getByID(db, 8);
       expect(readLocation).toEqual({
         locationID: 8,
         locationRank: LocationRank.Locality,
@@ -621,3 +626,8 @@ describe('import failures', () => {
     await mutex.unlock();
   });
 });
+
+async function _getByID(db: DB, locationID: number): Promise<Location | null> {
+  const locations = await Location.getByIDs(db, [locationID]);
+  return locations.length == 1 ? locations[0] : null;
+}

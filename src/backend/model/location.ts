@@ -148,11 +148,13 @@ export class Location {
     return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
   }
 
-  static async getByID(db: DB, locationID: number): Promise<Location | null> {
-    const result = await db.query(`select * from locations where location_id=$1`, [
-      locationID
-    ]);
-    return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
+  static async getByIDs(db: DB, locationIDs: number[]): Promise<Location[]> {
+    const result = await db.query(
+      `select * from locations where location_id=any ($1)`,
+      // @ts-ignore
+      [locationIDs]
+    );
+    return result.rows.map((row) => new Location(toCamelRow(row)));
   }
 
   static async getOrCreate(db: DB, source: LocationSource): Promise<Location> {
