@@ -1,0 +1,23 @@
+{
+    "svelte.plugin.svelte.format.config.printWidth": 88,
+    "jestrunner.debugOptions": {
+        "skipFiles": [
+            "${workspaceFolder}/node_modules/**",
+            "<node_internals>/**"
+        ],
+        "smartStep": true,
+        "configPath": "jest.debug-config.json"
+    },
+    "[css]": {
+        "editor.tabSize": 2
+    },
+    "[html]": {
+        "editor.tabSize": 2
+    },
+    "[svelte]": {
+        "editor.tabSize": 2
+    },
+    "[typescript]": {
+        "editor.tabSize": 2
+    },
+}

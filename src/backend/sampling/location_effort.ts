@@ -9,7 +9,7 @@ import { TaxonTallies, LocationVisit, setTaxonCounts } from './location_visit';
 
 const VISIT_BATCH_SIZE = 200;
 
-type EffortData = Pick<
+export type EffortData = Pick<
   DataOf<LocationEffort>,
   | 'startDate'
   | 'endDate'
