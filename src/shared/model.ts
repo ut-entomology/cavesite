@@ -240,3 +240,8 @@ export interface SeedSpec {
   minSpecies: number;
   maxSpecies: number;
 }
+
+export enum DistanceMeasure {
+  commonTaxa,
+  weightedCommonTaxa
+}
