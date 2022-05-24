@@ -65,10 +65,14 @@ export class LocationEffort {
 
   static async create(
     db: DB,
-    visit: LocationVisit,
+    locationID: number,
+    isCave: boolean,
+    visit: TaxonTallies,
     data: EffortData
   ): Promise<LocationEffort> {
-    const effort = new LocationEffort(Object.assign({}, visit, data));
+    const effort = new LocationEffort(
+      Object.assign({ locationID, isCave }, visit, data)
+    );
     const result = await db.query(
       `insert into effort (
             location_id, is_cave, start_date, end_date,
@@ -155,7 +159,7 @@ export class LocationEffort {
       for (const visit of visits) {
         if (visit.locationID != priorLocationID) {
           if (priorLocationID != 0) {
-            await this.create(db, tallies!, {
+            await this.create(db, tallies!.locationID, tallies!.isCave, tallies!, {
               startDate: startDate!,
               endDate: endDate!,
               totalVisits,
@@ -184,7 +188,7 @@ export class LocationEffort {
       }
 
       if (priorLocationID != 0) {
-        await this.create(db, tallies!, {
+        await this.create(db, tallies!.locationID, tallies!.isCave, tallies!, {
           // @ts-ignore
           startDate,
           endDate: endDate!,
