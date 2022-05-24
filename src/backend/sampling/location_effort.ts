@@ -67,11 +67,11 @@ export class LocationEffort {
     db: DB,
     locationID: number,
     isCave: boolean,
-    visit: TaxonTallies,
-    data: EffortData
+    data: EffortData,
+    tallies: TaxonTallies
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
-      Object.assign({ locationID, isCave }, visit, data)
+      Object.assign({ locationID, isCave }, tallies, data)
     );
     const result = await db.query(
       `insert into effort (
@@ -159,15 +159,21 @@ export class LocationEffort {
       for (const visit of visits) {
         if (visit.locationID != priorLocationID) {
           if (priorLocationID != 0) {
-            await this.create(db, tallies!.locationID, tallies!.isCave, tallies!, {
-              startDate: startDate!,
-              endDate: endDate!,
-              totalVisits,
-              totalPersonVisits,
-              totalSpecies,
-              perVisitPoints: JSON.stringify(perVisitPoints),
-              perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
-            });
+            await this.create(
+              db,
+              tallies!.locationID,
+              tallies!.isCave,
+              {
+                startDate: startDate!,
+                endDate: endDate!,
+                totalVisits,
+                totalPersonVisits,
+                totalSpecies,
+                perVisitPoints: JSON.stringify(perVisitPoints),
+                perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
+              },
+              tallies!
+            );
           }
           startDate = visit.startDate;
           tallies = visit; // okay to overwrite the visit
@@ -188,16 +194,22 @@ export class LocationEffort {
       }
 
       if (priorLocationID != 0) {
-        await this.create(db, tallies!.locationID, tallies!.isCave, tallies!, {
-          // @ts-ignore
-          startDate,
-          endDate: endDate!,
-          totalVisits,
-          totalPersonVisits,
-          totalSpecies,
-          perVisitPoints: JSON.stringify(perVisitPoints),
-          perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
-        });
+        await this.create(
+          db,
+          tallies!.locationID,
+          tallies!.isCave,
+          {
+            // @ts-ignore
+            startDate,
+            endDate: endDate!,
+            totalVisits,
+            totalPersonVisits,
+            totalSpecies,
+            perVisitPoints: JSON.stringify(perVisitPoints),
+            perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
+          },
+          tallies!
+        );
       }
 
       skipCount += visits.length;
