@@ -3,6 +3,11 @@ import { type Request } from 'express';
 import { Permission } from '../../shared/user_auth';
 
 /**
+ * Used for validating received JSON lists of integers.
+ */
+export const INTEGER_LIST_JSON_REGEX = /^[\d,\[\]]+$/;
+
+/**
  * Express middleware limiting access to logged in users with all of
  * the provided permissions.
  */

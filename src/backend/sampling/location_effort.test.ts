@@ -58,11 +58,12 @@ test('tallying species counts per unit effort', async () => {
     family: 'Thomisidae',
     genus: 'Mecaphesa'
   });
+  let locationID1 = specimen.localityID;
   let startDate = specimen.collectionStartDate;
   // prettier-ignore
   let points = [[1, 1]];
   await _retally();
-  let effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  let effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -98,7 +99,7 @@ test('tallying species counts per unit effort', async () => {
   // prettier-ignore
   points.push([2, 1]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -133,7 +134,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([3, 1]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -169,7 +170,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([4, 1]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -205,7 +206,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([5, 2]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -240,7 +241,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([6, 3]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -275,7 +276,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([7, 4]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -309,7 +310,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([8, 5]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -343,7 +344,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([9, 6]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -378,7 +379,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([10, 6]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -412,7 +413,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([11, 7]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -444,7 +445,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([12, 8]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -479,7 +480,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([13, 9]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -511,7 +512,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([14, 10]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -545,7 +546,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([15, 10]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -576,7 +577,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([16, 11]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -612,6 +613,7 @@ test('tallying species counts per unit effort', async () => {
     genus: 'Mecaphesa',
     specificEpithet: 'celer'
   });
+  let locationID2 = specimen.localityID;
   startDate = specimen.collectionStartDate;
   await _addSpecimen({
     locality: locality2,
@@ -646,7 +648,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points = [[1, 4]];
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -722,7 +724,7 @@ test('tallying species counts per unit effort', async () => {
   });
   points.push([2, 9]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -775,7 +777,7 @@ test('tallying species counts per unit effort', async () => {
   perVisitPoints.push([3, 10], [4, 11]);
   perPersonVisitPoints.push([4, 10], [6, 11]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -827,7 +829,7 @@ test('tallying species counts per unit effort', async () => {
   perVisitPoints.push([3, 10], [4, 12], [5, 13]);
   perPersonVisitPoints.push([4, 10], [5, 12], [7, 13]);
   await _retally();
-  effort = await LocationEffort.getByLocationID(db, specimen.localityID);
+  effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
     isCave: true,
@@ -848,6 +850,18 @@ test('tallying species counts per unit effort', async () => {
     perVisitPoints: _toJsonPoints(perVisitPoints),
     perPersonVisitPoints: _toJsonPoints(perPersonVisitPoints)
   });
+
+  // Retrieve multiple location efforts.
+
+  let efforts = await LocationEffort.getByLocationIDs(db, [locationID2]);
+  expect(efforts[0].locationID).toEqual(locationID2);
+  expect(efforts.length).toEqual(1);
+
+  efforts = await LocationEffort.getByLocationIDs(db, [locationID2, locationID1]);
+  expect(efforts.map((effort) => effort.locationID)).toEqual([
+    locationID1,
+    locationID2
+  ]);
 });
 
 afterAll(async () => {
@@ -898,83 +912,17 @@ async function _addSpecimen(data: PartialSpecimenSource): Promise<Specimen> {
   await LocationVisit.addSpecimen(db, specimen);
   return specimen;
 }
-/*
-function _checkPerPersonVisitTallies(
-  tallies: EffortPoints,
-  expectedPoints: number[][]
-): void {
-  expectedPoints.sort(pointSorter);
-  const actualPoints = sortPointsXThenY(
-    tallies.perPersonVisitEffort,
-    tallies.speciesCounts
-  );
-  expect(actualPoints).toEqual(expectedPoints);
+
+async function _getEffort(locationID: number): Promise<LocationEffort> {
+  const effort = await LocationEffort.getByLocationIDs(db, [locationID]);
+  return effort[0];
 }
 
-function _checkPerVisitTallies(
-  tallies: EffortPoints,
-  expectedPoints: number[][]
-): void {
-  expectedPoints.sort(pointSorter);
-  const actualPoints = sortPointsXThenY(tallies.perVisitEffort, tallies.speciesCounts);
-  expect(actualPoints).toEqual(expectedPoints);
-}
-
-async function _checkVisitFor(
-  specimen: Specimen,
-  data: Partial<LocationVisit>
-): Promise<void> {
-  const visit = await _getVisitFor(specimen);
-  const expectedVisit = Object.assign(
-    {
-      locationID: specimen.localityID,
-      isCave: specimen.localityName.toLowerCase().includes('cave'),
-      startEpochDay: _toDaysEpoch(specimen.collectionStartDate!),
-      endEpochDay: null,
-      normalizedCollectors: specimen.normalizedCollectors!,
-      collectorCount: specimen.normalizedCollectors!.split('|').length,
-      kingdomNames: 'Animalia',
-      kingdomCounts: null,
-      phylumNames: null,
-      phylumCounts: null,
-      classNames: null,
-      classCounts: null,
-      orderNames: null,
-      orderCounts: null,
-      familyNames: null,
-      familyCounts: null,
-      genusNames: null,
-      genusCounts: null,
-      speciesNames: null,
-      speciesCounts: null,
-      subspeciesNames: null,
-      subspeciesCounts: null
-    },
-    data
-  );
-  expect(visit).toEqual(expectedVisit);
-}
-
-async function _getVisitFor(specimen: Specimen): Promise<LocationVisit> {
-  const visit = await LocationVisit.getByKey(
-    db,
-    specimen.localityID,
-    _toDaysEpoch(specimen.collectionStartDate!),
-    specimen.normalizedCollectors!
-  );
-  return visit!;
-}
-*/
 async function _retally(): Promise<void> {
   await LocationEffort.dropAll(db);
   await LocationEffort.tallyEffort(db);
 }
-/*
-function _toDaysEpoch(date: Date | string): number {
-  if (typeof date == 'string') date = new Date(date);
-  return Math.floor(date.getTime() / MILLIS_PER_DAY);
-}
-*/
+
 function _toISODate(dateString: string): string {
   return toLocalDate(new Date(dateString)).toISOString();
 }

@@ -4,7 +4,11 @@
 import pgFormat from 'pg-format';
 
 import type { DataOf } from '../../shared/data_of';
-import { type DB, toCamelRow } from '../integrations/postgres';
+import {
+  type DB,
+  INTEGER_LIST_CHARS_REGEX,
+  toCamelRow
+} from '../integrations/postgres';
 import { Taxon } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
@@ -16,7 +20,6 @@ export type SpecimenData = DataOf<Specimen>;
 
 const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
-const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 
 const sortColumnMap: Record<number, string> = {};

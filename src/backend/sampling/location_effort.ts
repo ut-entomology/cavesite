@@ -112,16 +112,15 @@ export class LocationEffort {
     await db.query(`delete from effort`);
   }
 
-  static async getByLocationID(
+  static async getByLocationIDs(
     db: DB,
-    locationID: number
-  ): Promise<LocationEffort | null> {
-    const result = await db.query(`select * from effort where location_id=$1`, [
-      locationID
+    locationIDs: number[]
+  ): Promise<LocationEffort[]> {
+    const result = await db.query(`select * from effort where location_id=any ($1)`, [
+      // @ts-ignore
+      locationIDs
     ]);
-    return result.rows.length > 0
-      ? new LocationEffort(toCamelRow(result.rows[0]))
-      : null;
+    return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
   }
 
   static async tallyEffort(db: DB): Promise<void> {

@@ -209,7 +209,15 @@ export interface ResultRecord {
   publicLongitude?: number | null;
 }
 
-//// Visits //////////////////////////////////////////////////////////////////
+//// Effort //////////////////////////////////////////////////////////////////
+
+export interface EffortResult {
+  locationID: number;
+  startDate: Date;
+  endDate: Date;
+  perVisitPoints: string;
+  perPersonVisitPoints: string;
+}
 
 export function pointSorter(a: number[], b: number[]) {
   const [ax, bx] = [a[0], b[0]];
