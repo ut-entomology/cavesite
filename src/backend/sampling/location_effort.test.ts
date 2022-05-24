@@ -3,10 +3,7 @@ import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Specimen, SpecimenSource } from '../model/specimen';
 import { LocationVisit } from './location_visit';
-//import { pointSorter, sortPointsXThenY } from '../../shared/model';
 import { LocationEffort } from './location_effort';
-
-//const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
 type PartialSpecimenSource = Pick<
   SpecimenSource,
