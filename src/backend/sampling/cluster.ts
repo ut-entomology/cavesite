@@ -4,11 +4,15 @@ import { type SeedSpec } from '../../shared/model';
 
 const EFFORT_BATCH_SIZE = 50;
 
-type SimilarTaxa = Record<string, boolean>;
+type IncludedTaxa = Record<string, boolean>;
+
+// export async function getClusters(db: DB, seedIDs: number[]): Promise<number[][]> {
+//   //
+// }
 
 export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<number[]> {
   const seedIDs: number[] = [];
-  const similarTaxa: SimilarTaxa = {};
+  const includedTaxa: IncludedTaxa = {};
 
   // Find each seed location, up to the maximum seeds allowed.
 
@@ -30,7 +34,7 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
 
     if (seedIDs.length == 0) {
       seedIDs.push(efforts[0].locationID);
-      _addSimilarTaxa(similarTaxa, _collectEffortTaxa(efforts[0]));
+      _addSimilarTaxa(includedTaxa, _collectEffortTaxa(efforts[0]));
     }
 
     // Each subsequent seed location is the one with the largest number of
@@ -38,6 +42,7 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
 
     let maxDistinctTaxa = 0;
     let seedIDForMaxDistinctTaxa = 0;
+    let taxaForMaxDistinctTaxa: string[] = [];
     while (efforts.length > 0) {
       // Process efforts of the batch, looking for the next seed location
       // that is most differently diverse from prior seed locations.
@@ -53,11 +58,12 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
           const effortTaxa = _collectEffortTaxa(effort);
           let newTaxaCount = 0;
           for (const effortTaxon of effortTaxa) {
-            if (!similarTaxa[effortTaxon]) ++newTaxaCount;
+            if (!includedTaxa[effortTaxon]) ++newTaxaCount;
           }
           if (newTaxaCount > maxDistinctTaxa) {
             maxDistinctTaxa = newTaxaCount;
             seedIDForMaxDistinctTaxa = effort.locationID;
+            taxaForMaxDistinctTaxa = effortTaxa;
           }
         }
       }
@@ -79,10 +85,12 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
       }
     }
 
-    // If we found another seed location, add it to the list.
+    // If we found another seed location, add it to the list and update the
+    // set of all taxa against which to compare subsequent potential seeds.
 
     if (seedIDForMaxDistinctTaxa != 0) {
       seedIDs.push(seedIDForMaxDistinctTaxa);
+      _addSimilarTaxa(includedTaxa, taxaForMaxDistinctTaxa);
     } else {
       break; // no more seed locations found meeting the criteria
     }
@@ -91,21 +99,21 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
   return seedIDs;
 }
 
-function _addSimilarTaxa(similarTaxa: SimilarTaxa, taxa: string[]): void {
-  taxa.forEach((taxon) => (similarTaxa[taxon] = true));
+function _addSimilarTaxa(includedTaxa: IncludedTaxa, taxa: string[]): void {
+  taxa.forEach((taxon) => (includedTaxa[taxon] = true));
 }
 
 function _collectEffortTaxa(effort: LocationEffort): string[] {
-  const similarTaxa: string[] = [];
-  _collectRankTaxa(similarTaxa, effort.kingdomNames);
-  _collectRankTaxa(similarTaxa, effort.phylumNames);
-  _collectRankTaxa(similarTaxa, effort.classNames);
-  _collectRankTaxa(similarTaxa, effort.orderNames);
-  _collectRankTaxa(similarTaxa, effort.familyNames);
-  _collectRankTaxa(similarTaxa, effort.genusNames);
-  _collectRankTaxa(similarTaxa, effort.speciesNames);
-  _collectRankTaxa(similarTaxa, effort.subspeciesNames);
-  return similarTaxa;
+  const includedTaxa: string[] = [];
+  _collectRankTaxa(includedTaxa, effort.kingdomNames);
+  _collectRankTaxa(includedTaxa, effort.phylumNames);
+  _collectRankTaxa(includedTaxa, effort.classNames);
+  _collectRankTaxa(includedTaxa, effort.orderNames);
+  _collectRankTaxa(includedTaxa, effort.familyNames);
+  _collectRankTaxa(includedTaxa, effort.genusNames);
+  _collectRankTaxa(includedTaxa, effort.speciesNames);
+  _collectRankTaxa(includedTaxa, effort.subspeciesNames);
+  return includedTaxa;
 }
 
 function _collectRankTaxa(collectedTaxa: string[], taxaString: string | null): void {
