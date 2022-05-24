@@ -123,6 +123,21 @@ export class LocationEffort {
     return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
   }
 
+  static async getNextBatch(
+    db: DB,
+    minSpecies: number,
+    maxSpecies: number,
+    skip: number,
+    limit: number
+  ): Promise<LocationEffort[]> {
+    const result = await db.query(
+      `select * from effort where total_species between $1 and $2
+        order by total_species desc, location_id limit $3 offset $4`,
+      [minSpecies, maxSpecies, limit, skip]
+    );
+    return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
+  }
+
   static async tallyEffort(db: DB): Promise<void> {
     let priorLocationID = 0;
     let startDate: Date;

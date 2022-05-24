@@ -225,3 +225,18 @@ export function pointSorter(a: number[], b: number[]) {
   const [ay, by] = [a[1], b[1]];
   return ay == by ? 0 : ay - by;
 }
+
+//// Cluster /////////////////////////////////////////////////////////////////
+
+export enum SeedType {
+  random, // seed locations are randomly selected
+  sized, // seed locations are distributed in size
+  diverse // seed locations are maximally diverse
+}
+
+export interface SeedSpec {
+  seedType: SeedType;
+  maxClusters: number;
+  minSpecies: number;
+  maxSpecies: number;
+}

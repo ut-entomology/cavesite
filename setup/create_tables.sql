@@ -258,3 +258,4 @@ create table effort (
     per_person_visit_points text not null,
     primary key (location_id)
 );
+create index on effort(total_species);

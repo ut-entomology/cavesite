@@ -20,7 +20,7 @@ router.post('/get_children', async (req: Request, res) => {
   const taxa = await Taxon.getChildrenOf(getDB(), parentUniques);
   return res
     .status(StatusCodes.OK)
-    .send({ taxonSpecs: taxa.map((ts) => ts.map((t) => _toTaxonInfo(t))) });
+    .send({ taxonSpecs: taxa.map((ts) => ts.map((t) => _toTaxonSpec(t))) });
 });
 
 router.post('/get_list', async (req: Request, res) => {
@@ -36,10 +36,10 @@ router.post('/get_list', async (req: Request, res) => {
   const taxa = await Taxon.getByUniqueNames(getDB(), taxaNames);
   return res
     .status(StatusCodes.OK)
-    .send({ taxonSpecs: taxa.map((t) => _toTaxonInfo(t)) });
+    .send({ taxonSpecs: taxa.map((t) => _toTaxonSpec(t)) });
 });
 
-function _toTaxonInfo(taxon: Taxon): TaxonSpec {
+function _toTaxonSpec(taxon: Taxon): TaxonSpec {
   return {
     taxonID: taxon.taxonID,
     rank: taxon.taxonRank,
