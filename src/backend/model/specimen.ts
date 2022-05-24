@@ -402,7 +402,7 @@ export class Specimen {
     return specimen;
   }
 
-  static async getSamplingBatch(
+  static async getNextBatch(
     db: DB,
     skip: number,
     limit: number

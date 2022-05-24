@@ -2,14 +2,14 @@ import { loadAndCheckEnvVars } from '../backend/util/env_util';
 import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres';
 import { Specimen } from '../backend/model/specimen';
 import { LocationVisit } from '../backend/sampling/location_visit';
+import { LocationEffort } from '../backend/sampling/location_effort';
 
-const NOTICE_INTERVAL = 2000;
 const SPECIMEN_BATCH_SIZE = 500;
 
-async function loadVisits() {
+async function tallyVisits() {
   const db = getDB();
   let skipCount = 0;
-  let specimens = await Specimen.getSamplingBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
+  let specimens = await Specimen.getNextBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
   while (specimens.length > 0) {
     for (const specimen of specimens) {
       if (
@@ -21,10 +21,7 @@ async function loadVisits() {
       }
     }
     skipCount += specimens.length;
-    if (skipCount % NOTICE_INTERVAL == 0) {
-      console.log(`processed ${skipCount} specimens...`);
-    }
-    specimens = await Specimen.getSamplingBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
+    specimens = await Specimen.getNextBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
   }
 }
 
@@ -37,6 +34,7 @@ async function loadVisits() {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
-  await loadVisits();
+  await tallyVisits();
+  await LocationEffort.tallyEffort(getDB());
   await disconnectDB();
 })();
