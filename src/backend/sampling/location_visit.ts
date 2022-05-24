@@ -3,22 +3,15 @@
  * group of people to a specific location on a single day.
  */
 
-// TODO: Generate one [0, 0] data point for each location.
-
-// TODO: The same data can convey the points for each cave. I could begin
-// each set for each cave with a negative locality_id.
-
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
-import type { EffortPoints } from '../../shared/model';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
-const VISIT_BATCH_SIZE = 200;
 
 type LocationVisitData = DataOf<LocationVisit>;
 
-interface TaxonTallies {
+export interface TaxonTallies {
   kingdomNames: string;
   kingdomCounts: string;
   phylumNames: string | null;
@@ -40,7 +33,9 @@ interface TaxonTallies {
 export class LocationVisit implements TaxonTallies {
   locationID: number;
   isCave: boolean;
+  startDate: Date;
   startEpochDay: number;
+  endDate: Date | null;
   endEpochDay: number | null;
   normalizedCollectors: string;
   collectorCount: number;
@@ -66,7 +61,9 @@ export class LocationVisit implements TaxonTallies {
   private constructor(data: LocationVisitData) {
     this.locationID = data.locationID;
     this.isCave = data.isCave;
+    this.startDate = data.startDate;
     this.startEpochDay = data.startEpochDay;
+    this.endDate = data.endDate;
     this.endEpochDay = data.endEpochDay;
     this.normalizedCollectors = data.normalizedCollectors;
     this.collectorCount = data.collectorCount;
@@ -93,14 +90,14 @@ export class LocationVisit implements TaxonTallies {
   async save(db: DB): Promise<void> {
     const result = await db.query(
       `insert into visits(
-            location_id, is_cave, start_epoch_day, end_epoch_day,
+            location_id, is_cave, start_date, start_epoch_day, end_date, end_epoch_day,
             normalized_collectors, kingdom_names, kingdom_counts,
             phylum_names, phylum_counts, class_names, class_counts,
             order_names, order_counts, family_names, family_counts,
             genus_names, genus_counts, species_names, species_counts,
             subspecies_names, subspecies_counts, collector_count
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-              $16, $17, $18, $19, $20, $21, $22)
+              $16, $17, $18, $19, $20, $21, $22, $23, $24)
           on conflict (location_id, start_epoch_day, normalized_collectors)
           do update set 
             is_cave=excluded.is_cave, kingdom_names=excluded.kingdom_names,
@@ -118,7 +115,11 @@ export class LocationVisit implements TaxonTallies {
         this.locationID,
         // @ts-ignore
         this.isCave,
+        // @ts-ignore
+        this.startDate,
         this.startEpochDay,
+        // @ts-ignore
+        this.endDate,
         this.endEpochDay,
         this.normalizedCollectors,
         this.kingdomNames,
@@ -184,7 +185,7 @@ export class LocationVisit implements TaxonTallies {
           const taxonCounts = this[visitCountsField] as string;
           if (taxonCounts[taxonIndex] == '1') {
             // @ts-ignore
-            this[visitCountsField] = _setTaxonCounts(taxonCounts, taxonIndex, '0');
+            this[visitCountsField] = setTaxonCounts(taxonCounts, taxonIndex, '0');
           }
         }
       }
@@ -231,7 +232,9 @@ export class LocationVisit implements TaxonTallies {
       await this.create(db, {
         locationID: specimen.localityID,
         isCave: specimen.localityName.toLowerCase().includes('cave'),
+        startDate: specimen.collectionStartDate,
         startEpochDay,
+        endDate: specimen.collectionEndDate,
         endEpochDay: null,
         normalizedCollectors: specimen.normalizedCollectors,
         collectorCount: specimen.normalizedCollectors.split('|').length,
@@ -296,6 +299,20 @@ export class LocationVisit implements TaxonTallies {
     await db.query(`delete from visits`);
   }
 
+  static async getNextCaveBatch(
+    db: DB,
+    skip: number,
+    limit: number
+  ): Promise<LocationVisit[]> {
+    const result = await db.query(
+      `select * from visits where is_cave=true
+        order by location_id, start_epoch_day, normalized_collectors
+        limit $1 offset $2`,
+      [limit, skip]
+    );
+    return result.rows.map((row) => new LocationVisit(toCamelRow(row)));
+  }
+
   static async getByKey(
     db: DB,
     locationID: number,
@@ -311,148 +328,13 @@ export class LocationVisit implements TaxonTallies {
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;
   }
-
-  static async tallyCavePoints(db: DB): Promise<EffortPoints> {
-    const points: EffortPoints = {
-      speciesCounts: [],
-      perVisitEffort: [],
-      perPersonVisitEffort: []
-    };
-
-    let priorLocationID = 0;
-    let locationTaxonTallies: TaxonTallies;
-    let locationPerVisitEffort = 0;
-    let locationPerPersonVisitEffort = 0;
-    let skipCount = 0;
-
-    let visits = await this._getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
-    while (visits.length > 0) {
-      for (const visit of visits) {
-        if (visit.locationID != priorLocationID) {
-          locationTaxonTallies = visit; // okay to overwrite the visit
-          locationPerVisitEffort = 0;
-          locationPerPersonVisitEffort = 0;
-          priorLocationID = visit.locationID;
-          // Each cave begins with a [0, 0] point.
-          points.speciesCounts.push(0);
-          points.perVisitEffort.push(0);
-          points.perPersonVisitEffort.push(0);
-        } else {
-          this._mergeVisit(locationTaxonTallies!, visit);
-        }
-
-        const totalSpecies = this._countSpecies(locationTaxonTallies!);
-        points.speciesCounts.push(totalSpecies);
-        points.perVisitEffort.push(++locationPerVisitEffort);
-        locationPerPersonVisitEffort += visit.collectorCount;
-        points.perPersonVisitEffort.push(locationPerPersonVisitEffort);
-      }
-      skipCount += visits.length;
-      visits = await this._getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
-    }
-
-    return points;
-  }
-
-  //// PRIVATE CLASS METHODS ///////////////////////////////////////////////
-
-  private static _countSpecies(tallies: TaxonTallies): number {
-    let count = _countOnes(tallies.kingdomCounts);
-    count += _countOnes(tallies.phylumCounts);
-    count += _countOnes(tallies.classCounts);
-    count += _countOnes(tallies.orderCounts);
-    count += _countOnes(tallies.familyCounts);
-    count += _countOnes(tallies.genusCounts);
-    count += _countOnes(tallies.speciesCounts);
-    count += _countOnes(tallies.subspeciesCounts);
-    return count;
-  }
-
-  private static async _getNextCaveBatch(
-    db: DB,
-    skip: number,
-    limit: number
-  ): Promise<LocationVisit[]> {
-    const result = await db.query(
-      `select * from visits where is_cave=true
-        order by location_id, start_epoch_day, normalized_collectors
-        limit $1 offset $2`,
-      [limit, skip]
-    );
-    return result.rows.map((row) => new LocationVisit(toCamelRow(row)));
-  }
-
-  private static _mergeTaxa(
-    tallies: TaxonTallies,
-    visit: LocationVisit,
-    namesField: keyof TaxonTallies,
-    countsField: keyof TaxonTallies
-  ): void {
-    // Only merge visit values when they exist for the taxon.
-
-    const visitTaxonSeries = visit[namesField];
-    if (visitTaxonSeries !== null) {
-      // If the tally doesn't currently represent the visit taxon, copy over
-      // the visit values for the taxon; otherwise, merge the visit values.
-
-      const tallyTaxonSeries = tallies[namesField];
-      if (tallyTaxonSeries === null) {
-        tallies[namesField] = visitTaxonSeries;
-        tallies[countsField] = visit[countsField]!;
-      } else {
-        const tallyTaxa = tallyTaxonSeries.split('|');
-        const tallyCounts = tallies[countsField]!;
-        const visitTaxa = visitTaxonSeries.split('|');
-        const visitCounts = visit[countsField]!;
-
-        // Separately merge each visit taxon.
-
-        for (let visitIndex = 0; visitIndex < visitTaxa.length; ++visitIndex) {
-          const visitTaxon = visitTaxa[visitIndex];
-          const tallyIndex = tallyTaxa.indexOf(visitTaxon);
-
-          if (visitCounts[visitIndex] == '0') {
-            // When the visit count is 0, a lower taxon provides more specificity,
-            // so the tally must indicate a 0 count for the taxon.
-
-            if (tallyIndex < 0) {
-              tallies[namesField] += '|' + visitTaxon;
-              tallies[countsField] += '0';
-            } else if (tallyCounts[tallyIndex] == '1') {
-              tallies[countsField] = _setTaxonCounts(tallyCounts, tallyIndex, '0');
-            }
-          } else {
-            // When the visit count is 1, the visit provides no more specificity,
-            // so the tally must indicate a 1 if a tally is not already present.
-
-            if (tallyIndex < 0) {
-              tallies[namesField] += '|' + visitTaxon;
-              tallies[countsField] += '1';
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private static _mergeVisit(tallies: TaxonTallies, visit: LocationVisit): void {
-    this._mergeTaxa(tallies, visit, 'kingdomNames', 'kingdomCounts');
-    this._mergeTaxa(tallies, visit, 'phylumNames', 'phylumCounts');
-    this._mergeTaxa(tallies, visit, 'classNames', 'classCounts');
-    this._mergeTaxa(tallies, visit, 'orderNames', 'orderCounts');
-    this._mergeTaxa(tallies, visit, 'familyNames', 'familyCounts');
-    this._mergeTaxa(tallies, visit, 'genusNames', 'genusCounts');
-    this._mergeTaxa(tallies, visit, 'speciesNames', 'speciesCounts');
-    this._mergeTaxa(tallies, visit, 'subspeciesNames', 'subspeciesCounts');
-  }
 }
 
-function _countOnes(s: string | null): number {
-  if (s === null) return 0;
-  return s.replaceAll('0', '').length;
-}
-
-function _setTaxonCounts(taxonCounts: string, offset: number, count: string): string {
+export function setTaxonCounts(
+  taxonCounts: string,
+  offset: number,
+  count: string
+): string {
   return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
     offset + 1
   )}`;

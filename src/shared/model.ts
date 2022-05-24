@@ -211,22 +211,9 @@ export interface ResultRecord {
 
 //// Visits //////////////////////////////////////////////////////////////////
 
-export interface EffortPoints {
-  speciesCounts: number[];
-  perVisitEffort: number[]; // associated with same index of speciesCounts
-  perPersonVisitEffort: number[]; // associated with same index of speciesCounts
-}
-
 export function pointSorter(a: number[], b: number[]) {
   const [ax, bx] = [a[0], b[0]];
   if (ax != bx) return ax - bx;
   const [ay, by] = [a[1], b[1]];
   return ay == by ? 0 : ay - by;
-}
-
-export function sortPointsXThenY(xValues: number[], yValues: number[]): number[][] {
-  const points: number[][] = [];
-  xValues.forEach((x, i) => points.push([x, yValues[i]]));
-  points.sort(pointSorter);
-  return points;
 }
