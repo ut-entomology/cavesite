@@ -17,7 +17,7 @@
       route: '/locations'
     },
     {
-      label: 'Sampling',
+      label: 'Effort',
       route: '/sampling'
     },
     {

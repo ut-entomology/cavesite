@@ -312,7 +312,7 @@
   };
 </script>
 
-<DataTabRoute activeTab="Sampling">
+<DataTabRoute activeTab="Effort">
   <div class="container-fluid">
     <TabHeader title="Sampling Effort" instructions="Instructions TBD">
       <span slot="main-buttons">
