@@ -303,6 +303,12 @@
       perPersonVisitPercentChangeGraph
     };
   }
+
+  const clearData = () => {
+    clusterStore.set(null);
+    graphStore.set(null);
+    location.reload();
+  };
 </script>
 
 <DataTabRoute activeTab="Sampling">
@@ -310,6 +316,9 @@
     <TabHeader title="Sampling Effort" instructions="Instructions TBD">
       <span slot="main-buttons">
         {#if $graphStore != null}
+          <button class="btn btn-minor" type="button" on:click={clearData}
+            >Clear Data</button
+          >
           <div class="btn-group" role="group" aria-label="Switch datasets">
             <input
               type="radio"
