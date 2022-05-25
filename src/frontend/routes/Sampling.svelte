@@ -158,32 +158,32 @@
     let perVisitTotalsGraph: PerGraphData = {
       locationCount,
       graphTitle: `Cumulative species across visits (${locationCount} caves)`,
-      xAxisLabel: 'cumulative species',
-      yAxisLabel: 'visits',
+      yAxisLabel: 'cumulative species',
+      xAxisLabel: 'visits',
       pointCount: 0, // will update
       points: [] // will update
     };
     let perPersonVisitTotalsGraph: PerGraphData = {
       locationCount,
       graphTitle: `Cumulative species across person-visits (${locationCount} caves)`,
-      xAxisLabel: 'cumulative species',
-      yAxisLabel: 'person-visits',
+      yAxisLabel: 'cumulative species',
+      xAxisLabel: 'person-visits',
       pointCount: 0, // will update
       points: [] // will update
     };
     let perVisitDiffsGraph: PerGraphData = {
       locationCount,
       graphTitle: `Additional species across visits (${locationCount} caves)`,
-      xAxisLabel: 'additional species',
-      yAxisLabel: 'visits',
+      yAxisLabel: 'additional species',
+      xAxisLabel: 'visits',
       pointCount: 0, // will update
       points: [] // will update
     };
     let perPersonVisitDiffsGraph: PerGraphData = {
       locationCount,
       graphTitle: `Additional species across person-visits (${locationCount} caves)`,
-      xAxisLabel: 'cumulaadditionaltive species',
-      yAxisLabel: 'person-visits',
+      yAxisLabel: 'additional species',
+      xAxisLabel: 'person-visits',
       pointCount: 0, // will update
       points: [] // will update
     };
