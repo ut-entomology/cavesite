@@ -29,6 +29,8 @@
     perPersonVisitTotalsGraph: PerGraphData;
     perVisitDiffsGraph: PerGraphData;
     perPersonVisitDiffsGraph: PerGraphData;
+    perVisitPercentChangeGraph: PerGraphData;
+    perPersonVisitPercentChangeGraph: PerGraphData;
   }
 
   const clusterStore = createSessionStore<EffortData[][] | null>('cluster_data', null);
@@ -62,7 +64,8 @@
 
   enum BasisID {
     totals = 'basis-totals',
-    differences = 'basis-diffs'
+    diffs = 'basis-diffs',
+    percentChange = 'basis-percent-change'
   }
 
   let loadState = LoadState.idle;
@@ -70,7 +73,6 @@
   let basisID = BasisID.totals;
 
   $: showingPersonVisits = datasetID == DatasetID.personVisits;
-  $: showingSpeciesTotals = basisID == BasisID.totals;
 
   const pairToPoint = (pair: number[]) => {
     return { x: pair[0], y: pair[1] };
@@ -187,19 +189,41 @@
       pointCount: 0, // will update
       points: [] // will update
     };
+    let perVisitPercentChangeGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Percent species change from visit to visit (${locationCount} caves)`,
+      yAxisLabel: '% change in species',
+      xAxisLabel: 'visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
+    let perPersonVisitPercentChangeGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Percent species change from person-visit to person-visit (${locationCount} caves)`,
+      yAxisLabel: '% change in species',
+      xAxisLabel: 'person-visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
 
     for (const effortData of clusterEffortData) {
       let priorPerVisitSpeciesCount = 0;
       for (const point of effortData.perVisitPoints) {
         perVisitTotalsGraph.points.push(point);
         if (priorPerVisitSpeciesCount != 0) {
+          const speciesDiff = point.y - priorPerVisitSpeciesCount;
           perVisitDiffsGraph.points.push({
             x: point.x,
-            y: point.y - priorPerVisitSpeciesCount
+            y: speciesDiff
+          });
+          perVisitPercentChangeGraph.points.push({
+            x: point.x,
+            y: (100 * (point.y - priorPerVisitSpeciesCount)) / priorPerVisitSpeciesCount
           });
         }
         ++perVisitTotalsGraph.pointCount;
         ++perVisitDiffsGraph.pointCount;
+        ++perVisitPercentChangeGraph.pointCount;
         priorPerVisitSpeciesCount = point.y;
       }
 
@@ -207,13 +231,21 @@
       for (const point of effortData.perPersonVisitPoints) {
         perPersonVisitTotalsGraph.points.push(point);
         if (priorPerPersonVisitSpeciesCount != 0) {
+          const speciesDiff = point.y - priorPerPersonVisitSpeciesCount;
           perPersonVisitDiffsGraph.points.push({
             x: point.x,
-            y: point.y - priorPerPersonVisitSpeciesCount
+            y: speciesDiff
+          });
+          perPersonVisitPercentChangeGraph.points.push({
+            x: point.x,
+            y:
+              (100 * (point.y - priorPerPersonVisitSpeciesCount)) /
+              priorPerPersonVisitSpeciesCount
           });
         }
         ++perPersonVisitTotalsGraph.pointCount;
         ++perPersonVisitDiffsGraph.pointCount;
+        ++perPersonVisitPercentChangeGraph.pointCount;
         priorPerPersonVisitSpeciesCount = point.y;
       }
     }
@@ -223,7 +255,9 @@
       perVisitTotalsGraph,
       perPersonVisitTotalsGraph,
       perVisitDiffsGraph,
-      perPersonVisitDiffsGraph
+      perPersonVisitDiffsGraph,
+      perVisitPercentChangeGraph,
+      perPersonVisitPercentChangeGraph
     };
   }
 </script>
@@ -284,11 +318,20 @@
               class="btn-check"
               bind:group={basisID}
               name="dataset"
-              id={BasisID.differences}
-              value={BasisID.differences}
+              id={BasisID.diffs}
+              value={BasisID.diffs}
             />
-            <label class="btn btn-outline-primary" for={BasisID.differences}
-              >Diffs</label
+            <label class="btn btn-outline-primary" for={BasisID.diffs}>Diffs</label>
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={basisID}
+              name="dataset"
+              id={BasisID.percentChange}
+              value={BasisID.percentChange}
+            />
+            <label class="btn btn-outline-primary" for={BasisID.percentChange}
+              >% Change</label
             >
           </div>
         {/if}
@@ -301,51 +344,60 @@
       >
     {:else}
       {#each $graphStore as clusterGraphData, i}
-        {@const graphData = showingPersonVisits
-          ? showingSpeciesTotals
-            ? clusterGraphData.perPersonVisitTotalsGraph
-            : clusterGraphData.perPersonVisitDiffsGraph
-          : showingSpeciesTotals
-          ? clusterGraphData.perVisitTotalsGraph
-          : clusterGraphData.perVisitDiffsGraph}
-        <Scatter
-          data={{
-            datasets: [
-              {
-                label: graphData.pointCount + ' points',
-                data: graphData.points
-              }
-            ]
-          }}
-          options={{
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: graphData.xAxisLabel,
-                  font: { size: 16 }
+        {@const graphData =
+          basisID == BasisID.totals
+            ? showingPersonVisits
+              ? clusterGraphData.perPersonVisitTotalsGraph
+              : clusterGraphData.perVisitTotalsGraph
+            : basisID == BasisID.diffs
+            ? showingPersonVisits
+              ? clusterGraphData.perPersonVisitDiffsGraph
+              : clusterGraphData.perVisitDiffsGraph
+            : showingPersonVisits
+            ? clusterGraphData.perPersonVisitPercentChangeGraph
+            : clusterGraphData.perVisitPercentChangeGraph}
+        <div class="row mb-2">
+          <div class="col">
+            <Scatter
+              data={{
+                datasets: [
+                  {
+                    label: graphData.pointCount + ' points',
+                    data: graphData.points
+                  }
+                ]
+              }}
+              options={{
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: graphData.xAxisLabel,
+                      font: { size: 16 }
+                    }
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: graphData.yAxisLabel,
+                      font: { size: 16 }
+                    }
+                  }
+                },
+                plugins: {
+                  title: {
+                    display: true,
+                    text: `#${i + 1}: ` + graphData.graphTitle,
+                    font: { size: 17 }
+                  }
+                },
+                animation: {
+                  duration: 0
                 }
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: graphData.yAxisLabel,
-                  font: { size: 16 }
-                }
-              }
-            },
-            plugins: {
-              title: {
-                display: true,
-                text: `#${i + 1}: ` + graphData.graphTitle,
-                font: { size: 20 }
-              }
-            },
-            animation: {
-              duration: 0
-            }
-          }}
-        />
+              }}
+            />
+          </div>
+        </div>
       {/each}
     {/if}
   </div>
