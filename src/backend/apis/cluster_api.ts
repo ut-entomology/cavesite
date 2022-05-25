@@ -5,7 +5,7 @@ import { getDB } from '../integrations/postgres';
 import { Location } from '../model/location';
 import * as cluster from '../sampling/cluster';
 import { toLocationSpec } from './location_api';
-import { DistanceMeasure, SeedType, type SeedSpec } from '../../shared/model';
+import { SeedType, type SeedSpec } from '../../shared/model';
 
 export const router = Router();
 
@@ -34,9 +34,10 @@ router.post('/get_seeds', async (req: Request, res) => {
 
 router.post('/get_clusters', async (req: Request, res) => {
   const seedIDs = req.body.seedIDs;
+  const distanceMeasure = req.body.distanceMeasure;
   const clusters = await cluster.getClusteredLocationIDs(
     getDB(),
-    DistanceMeasure.weighted,
+    distanceMeasure,
     seedIDs
   );
   return res.status(StatusCodes.OK).send({ clusters });

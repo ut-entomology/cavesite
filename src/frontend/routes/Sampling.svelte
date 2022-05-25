@@ -49,7 +49,12 @@
   import BusyMessage from '../common/BusyMessage.svelte';
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
-  import { type EffortResult, SeedType, type LocationSpec } from '../../shared/model';
+  import {
+    type EffortResult,
+    SeedType,
+    type LocationSpec,
+    DistanceMeasure
+  } from '../../shared/model';
   import { client } from '../stores/client';
 
   enum LoadState {
@@ -87,7 +92,7 @@
       seedSpec: {
         seedType: SeedType.diverse,
         maxClusters: 16,
-        minSpecies: 0,
+        minSpecies: 20,
         maxSpecies: 10000
       }
     });
@@ -95,7 +100,8 @@
     if (!seeds) showNotice({ message: 'Failed to load seeds' });
 
     res = await $client.post('api/cluster/get_clusters', {
-      seedIDs: seeds.map((location) => location.locationID)
+      seedIDs: seeds.map((location) => location.locationID),
+      distanceMeasure: DistanceMeasure.unweighted
     });
     const clusters: number[][] = res.data.clusters;
     if (!clusters) showNotice({ message: 'Failed to load clusters' });
