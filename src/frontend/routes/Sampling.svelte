@@ -29,6 +29,8 @@
     perPersonVisitTotalsGraph: PerGraphData;
     perVisitDiffsGraph: PerGraphData;
     perPersonVisitDiffsGraph: PerGraphData;
+    perVisitAddedPercentGraph: PerGraphData;
+    perPersonVisitAddedPercentGraph: PerGraphData;
     perVisitPercentChangeGraph: PerGraphData;
     perPersonVisitPercentChangeGraph: PerGraphData;
   }
@@ -65,6 +67,7 @@
   enum BasisID {
     totals = 'basis-totals',
     diffs = 'basis-diffs',
+    addedPercent = 'basis-added-percent',
     percentChange = 'basis-percent-change'
   }
 
@@ -189,10 +192,26 @@
       pointCount: 0, // will update
       points: [] // will update
     };
+    let perVisitAddedPercentGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Percent species added across (${locationCount} caves)`,
+      yAxisLabel: 'Cumulative % species added',
+      xAxisLabel: 'visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
+    let perPersonVisitAddedPercentGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Percent species added across person-visits (${locationCount} caves)`,
+      yAxisLabel: 'Cumulative % species added',
+      xAxisLabel: 'person-visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
     let perVisitPercentChangeGraph: PerGraphData = {
       locationCount,
       graphTitle: `Percent species change from visit to visit (${locationCount} caves)`,
-      yAxisLabel: '% change in species',
+      yAxisLabel: '% increase in species',
       xAxisLabel: 'visits',
       pointCount: 0, // will update
       points: [] // will update
@@ -200,53 +219,69 @@
     let perPersonVisitPercentChangeGraph: PerGraphData = {
       locationCount,
       graphTitle: `Percent species change from person-visit to person-visit (${locationCount} caves)`,
-      yAxisLabel: '% change in species',
+      yAxisLabel: '% increase in species',
       xAxisLabel: 'person-visits',
       pointCount: 0, // will update
       points: [] // will update
     };
 
     for (const effortData of clusterEffortData) {
-      let priorPerVisitSpeciesCount = 0;
+      let priorSpeciesCount = 0;
+      let priorCumulativePercentChange = 0;
       for (const point of effortData.perVisitPoints) {
         perVisitTotalsGraph.points.push(point);
-        if (priorPerVisitSpeciesCount != 0) {
-          const speciesDiff = point.y - priorPerVisitSpeciesCount;
+        if (priorSpeciesCount != 0) {
+          const speciesDiff = point.y - priorSpeciesCount;
           perVisitDiffsGraph.points.push({
             x: point.x,
             y: speciesDiff
           });
+          const percentChange =
+            (100 * (point.y - priorSpeciesCount)) / priorSpeciesCount;
           perVisitPercentChangeGraph.points.push({
             x: point.x,
-            y: (100 * (point.y - priorPerVisitSpeciesCount)) / priorPerVisitSpeciesCount
+            y: percentChange
+          });
+          priorCumulativePercentChange += percentChange;
+          perVisitAddedPercentGraph.points.push({
+            x: point.x,
+            y: priorCumulativePercentChange
           });
         }
         ++perVisitTotalsGraph.pointCount;
         ++perVisitDiffsGraph.pointCount;
         ++perVisitPercentChangeGraph.pointCount;
-        priorPerVisitSpeciesCount = point.y;
+        ++perVisitAddedPercentGraph.pointCount;
+        priorSpeciesCount = point.y;
       }
 
-      let priorPerPersonVisitSpeciesCount = 0;
+      priorSpeciesCount = 0;
+      priorCumulativePercentChange = 0;
       for (const point of effortData.perPersonVisitPoints) {
         perPersonVisitTotalsGraph.points.push(point);
-        if (priorPerPersonVisitSpeciesCount != 0) {
-          const speciesDiff = point.y - priorPerPersonVisitSpeciesCount;
+        if (priorSpeciesCount != 0) {
+          const speciesDiff = point.y - priorSpeciesCount;
           perPersonVisitDiffsGraph.points.push({
             x: point.x,
             y: speciesDiff
           });
+          const percentChange =
+            (100 * (point.y - priorSpeciesCount)) / priorSpeciesCount;
           perPersonVisitPercentChangeGraph.points.push({
             x: point.x,
-            y:
-              (100 * (point.y - priorPerPersonVisitSpeciesCount)) /
-              priorPerPersonVisitSpeciesCount
+            y: percentChange
+          });
+          priorCumulativePercentChange += percentChange;
+          perPersonVisitAddedPercentGraph.points.push({
+            x: point.x,
+            y: priorCumulativePercentChange
           });
         }
         ++perPersonVisitTotalsGraph.pointCount;
         ++perPersonVisitDiffsGraph.pointCount;
         ++perPersonVisitPercentChangeGraph.pointCount;
-        priorPerPersonVisitSpeciesCount = point.y;
+        ++perPersonVisitAddedPercentGraph.pointCount;
+        priorSpeciesCount = point.y;
       }
     }
 
@@ -256,6 +291,8 @@
       perPersonVisitTotalsGraph,
       perVisitDiffsGraph,
       perPersonVisitDiffsGraph,
+      perVisitAddedPercentGraph,
+      perPersonVisitAddedPercentGraph,
       perVisitPercentChangeGraph,
       perPersonVisitPercentChangeGraph
     };
@@ -327,6 +364,17 @@
               class="btn-check"
               bind:group={basisID}
               name="dataset"
+              id={BasisID.addedPercent}
+              value={BasisID.addedPercent}
+            />
+            <label class="btn btn-outline-primary" for={BasisID.addedPercent}
+              >Added %</label
+            >
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={basisID}
+              name="dataset"
               id={BasisID.percentChange}
               value={BasisID.percentChange}
             />
@@ -353,6 +401,10 @@
             ? showingPersonVisits
               ? clusterGraphData.perPersonVisitDiffsGraph
               : clusterGraphData.perVisitDiffsGraph
+            : basisID == BasisID.addedPercent
+            ? showingPersonVisits
+              ? clusterGraphData.perPersonVisitAddedPercentGraph
+              : clusterGraphData.perVisitAddedPercentGraph
             : showingPersonVisits
             ? clusterGraphData.perPersonVisitPercentChangeGraph
             : clusterGraphData.perVisitPercentChangeGraph}
