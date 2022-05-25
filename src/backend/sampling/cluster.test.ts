@@ -190,12 +190,12 @@ function _checkClusters(
   actualClusters.sort((a, b) => a[0] - b[0]);
   expectedClusters.forEach((cluster) => cluster.sort());
   expectedClusters.sort((a, b) => a[0] - b[0]);
-  console.log(
-    '**** actual/expected clusters\n    ',
-    actualClusters,
-    '\n    ',
-    expectedClusters
-  );
+  // console.log(
+  //   '**** actual/expected clusters\n    ',
+  //   actualClusters,
+  //   '\n    ',
+  //   expectedClusters
+  // );
   expect(actualClusters).toEqual(expectedClusters);
 }
 

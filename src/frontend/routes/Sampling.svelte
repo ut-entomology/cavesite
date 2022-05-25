@@ -14,16 +14,29 @@
     perPersonVisitPoints: Point[];
   }
 
-  interface GraphData {
-    perVisitPoints: Point[];
-    perPersonVisitPoints: Point[];
-    perVisitDiffs: Point[];
-    perPersonVisitDiffs: Point[];
+  interface PerGraphData {
+    locationCount: number;
+    graphTitle: string;
+    xAxisLabel: string;
+    yAxisLabel: string;
+    pointCount: number;
+    points: Point[];
   }
 
-  const clusterData = createSessionStore<EffortData[][] | null>('cluster_data', null);
-  const graphData = createSessionStore<GraphData | null>('graph_data', null);
-  const clusterIndex = createSessionStore<number>('cluster_index', 0);
+  interface PerClusterGraphData {
+    locationCount: number;
+    perVisitTotalsGraph: PerGraphData;
+    perPersonVisitTotalsGraph: PerGraphData;
+    perVisitDiffsGraph: PerGraphData;
+    perPersonVisitDiffsGraph: PerGraphData;
+  }
+
+  const clusterStore = createSessionStore<EffortData[][] | null>('cluster_data', null);
+  const graphStore = createSessionStore<PerClusterGraphData[] | null>(
+    'graph_data',
+    null
+  );
+  //const clusterIndex = createSessionStore<number>('cluster_index', 0);
 </script>
 
 <script lang="ts">
@@ -55,39 +68,9 @@
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let basisID = BasisID.totals;
-  let graphTitle: string;
-  let xAxisLabel: string;
-  let yAxisLabel: string;
-  let pointCount: number;
 
   $: showingPersonVisits = datasetID == DatasetID.personVisits;
   $: showingSpeciesTotals = basisID == BasisID.totals;
-  $: {
-    if (showingSpeciesTotals) {
-      graphTitle = 'Cumulative Species across ';
-      yAxisLabel = 'cumulative species';
-      pointCount =
-        (showingPersonVisits
-          ? $graphData?.perPersonVisitPoints.length
-          : $graphData?.perVisitPoints.length) || 0;
-    } else {
-      graphTitle = 'Additional Species across ';
-      yAxisLabel = 'additional species';
-      pointCount =
-        (showingPersonVisits
-          ? $graphData?.perPersonVisitDiffs.length
-          : $graphData?.perVisitDiffs.length) || 0;
-    }
-    if (showingPersonVisits) {
-      xAxisLabel = 'person-visits';
-    } else {
-      xAxisLabel = 'visits';
-    }
-    graphTitle += xAxisLabel
-      .split('-')
-      .map((word) => word[0].toUpperCase() + word.substring(1))
-      .join('-');
-  }
 
   const pairToPoint = (pair: number[]) => {
     return { x: pair[0], y: pair[1] };
@@ -105,14 +88,12 @@
     });
     const seeds: LocationSpec[] = res.data.seeds;
     if (!seeds) showNotice({ message: 'Failed to load seeds' });
-    console.log('**** seed count', seeds.length);
 
     res = await $client.post('api/cluster/get_clusters', {
       seedIDs: seeds.map((location) => location.locationID)
     });
     const clusters: number[][] = res.data.clusters;
     if (!clusters) showNotice({ message: 'Failed to load clusters' });
-    console.log('**** cluster count', clusters.length);
 
     const workingClusterData: EffortData[][] = [];
     for (const cluster of clusters) {
@@ -126,19 +107,25 @@
           clusterData.push(_toEffortData(effortResult));
         }
         workingClusterData.push(clusterData);
-        console.log('****     clusterData size', clusterData.length);
       }
     }
-    console.log('**** workingClusterData count', workingClusterData.length);
 
-    workingClusterData.sort((a, b) => {
-      if (a.length == b.length) return 0;
-      return b.length - a.length; // sort most points first
+    clusterStore.set(workingClusterData);
+
+    loadState = LoadState.processing;
+    const clusterGraphData: PerClusterGraphData[] = [];
+    for (const clusterEffortData of $clusterStore!) {
+      clusterGraphData.push(_toClusterGraphData(clusterEffortData));
+    }
+    clusterGraphData.sort((a, b) => {
+      const aPointCount = a.perPersonVisitTotalsGraph.points.length;
+      const bPointCount = b.perPersonVisitTotalsGraph.points.length;
+      if (aPointCount == bPointCount) return 0;
+      return bPointCount - aPointCount; // sort most points first
     });
 
-    clusterData.set(workingClusterData);
-    loadState = LoadState.processing;
-    _setGraphData(0);
+    graphStore.set(clusterGraphData);
+
     loadState = LoadState.ready;
   };
 
@@ -166,46 +153,78 @@
     };
   }
 
-  function _setGraphData(clusterIndex: number): void {
-    if ($clusterData === null) throw Error("$clusterData shouldn't be null");
-    const clusterEffortData = $clusterData[clusterIndex];
-    const workingGraphData: GraphData = {
-      perVisitPoints: [],
-      perVisitDiffs: [],
-      perPersonVisitPoints: [],
-      perPersonVisitDiffs: []
+  function _toClusterGraphData(clusterEffortData: EffortData[]): PerClusterGraphData {
+    let locationCount = clusterEffortData.length;
+    let perVisitTotalsGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Cumulative species across visits (${locationCount} caves)`,
+      xAxisLabel: 'cumulative species',
+      yAxisLabel: 'visits',
+      pointCount: 0, // will update
+      points: [] // will update
     };
+    let perPersonVisitTotalsGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Cumulative species across person-visits (${locationCount} caves)`,
+      xAxisLabel: 'cumulative species',
+      yAxisLabel: 'person-visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
+    let perVisitDiffsGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Additional species across visits (${locationCount} caves)`,
+      xAxisLabel: 'additional species',
+      yAxisLabel: 'visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
+    let perPersonVisitDiffsGraph: PerGraphData = {
+      locationCount,
+      graphTitle: `Additional species across person-visits (${locationCount} caves)`,
+      xAxisLabel: 'cumulaadditionaltive species',
+      yAxisLabel: 'person-visits',
+      pointCount: 0, // will update
+      points: [] // will update
+    };
+
     for (const effortData of clusterEffortData) {
       let priorPerVisitSpeciesCount = 0;
       for (const point of effortData.perVisitPoints) {
-        workingGraphData.perVisitPoints.push(point);
+        perVisitTotalsGraph.points.push(point);
         if (priorPerVisitSpeciesCount != 0) {
-          workingGraphData.perVisitDiffs.push({
+          perVisitDiffsGraph.points.push({
             x: point.x,
             y: point.y - priorPerVisitSpeciesCount
           });
         }
+        ++perVisitTotalsGraph.pointCount;
+        ++perVisitDiffsGraph.pointCount;
         priorPerVisitSpeciesCount = point.y;
       }
 
       let priorPerPersonVisitSpeciesCount = 0;
       for (const point of effortData.perPersonVisitPoints) {
-        workingGraphData.perPersonVisitPoints.push(point);
+        perPersonVisitTotalsGraph.points.push(point);
         if (priorPerPersonVisitSpeciesCount != 0) {
-          workingGraphData.perPersonVisitDiffs.push({
+          perPersonVisitDiffsGraph.points.push({
             x: point.x,
             y: point.y - priorPerPersonVisitSpeciesCount
           });
         }
+        ++perPersonVisitTotalsGraph.pointCount;
+        ++perPersonVisitDiffsGraph.pointCount;
         priorPerPersonVisitSpeciesCount = point.y;
       }
     }
-    console.log(
-      '**** graph data lengths',
-      workingGraphData.perVisitPoints.length,
-      workingGraphData.perPersonVisitPoints.length
-    );
-    graphData.set(workingGraphData);
+
+    return {
+      locationCount,
+      perVisitTotalsGraph,
+      perPersonVisitTotalsGraph,
+      perVisitDiffsGraph,
+      perPersonVisitDiffsGraph
+    };
   }
 </script>
 
@@ -213,7 +232,7 @@
   <div class="container-fluid">
     <TabHeader title="Sampling Effort" instructions="Instructions TBD">
       <span slot="main-buttons">
-        {#if $graphData != null}
+        {#if $graphStore != null}
           <div class="btn-group" role="group" aria-label="Switch datasets">
             <input
               type="radio"
@@ -239,8 +258,8 @@
         {/if}
       </span>
       <span slot="work-buttons">
-        {#if $clusterData}
-          <select
+        {#if $graphStore}
+          <!-- <select
             bind:value={$clusterIndex}
             on:change={() => _setGraphData($clusterIndex)}
           >
@@ -249,7 +268,7 @@
                 [{i}]: {cluster.length} locations
               </option>
             {/each}
-          </select>
+          </select> -->
           <div class="btn-group" role="group" aria-label="Basis for model">
             <input
               type="radio"
@@ -276,60 +295,63 @@
       </span>
     </TabHeader>
 
-    {#if $graphData === null}
+    {#if $graphStore === null}
       <button class="btn btn-major" type="button" on:click={loadPoints}
         >Load Data</button
       >
     {:else}
-      <Scatter
-        data={{
-          datasets: [
-            {
-              label: pointCount + ' points',
-              data: showingPersonVisits
-                ? showingSpeciesTotals
-                  ? $graphData.perPersonVisitPoints
-                  : $graphData.perPersonVisitDiffs
-                : showingSpeciesTotals
-                ? $graphData.perVisitPoints
-                : $graphData.perVisitDiffs
-            }
-          ]
-        }}
-        options={{
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: xAxisLabel,
-                font: { size: 16 }
+      {#each $graphStore as clusterGraphData, i}
+        {@const graphData = showingPersonVisits
+          ? showingSpeciesTotals
+            ? clusterGraphData.perPersonVisitTotalsGraph
+            : clusterGraphData.perPersonVisitDiffsGraph
+          : showingSpeciesTotals
+          ? clusterGraphData.perVisitTotalsGraph
+          : clusterGraphData.perVisitDiffsGraph}
+        <Scatter
+          data={{
+            datasets: [
+              {
+                label: graphData.pointCount + ' points',
+                data: graphData.points
+              }
+            ]
+          }}
+          options={{
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: graphData.xAxisLabel,
+                  font: { size: 16 }
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: graphData.yAxisLabel,
+                  font: { size: 16 }
+                }
               }
             },
-            y: {
+            plugins: {
               title: {
                 display: true,
-                text: yAxisLabel,
-                font: { size: 16 }
+                text: `#${i + 1}: ` + graphData.graphTitle,
+                font: { size: 20 }
               }
+            },
+            animation: {
+              duration: 0
             }
-          },
-          plugins: {
-            title: {
-              display: true,
-              text: graphTitle + ` (${true})`,
-              font: { size: 20 }
-            }
-          },
-          animation: {
-            duration: 0
-          }
-        }}
-      />
+          }}
+        />
+      {/each}
     {/if}
   </div>
 </DataTabRoute>
 
-{#if $graphData === null}
+{#if $graphStore === null}
   {#if loadState == LoadState.loading}
     <BusyMessage message="Loading points..." />
   {:else if loadState == LoadState.processing}
