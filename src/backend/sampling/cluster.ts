@@ -2,12 +2,12 @@ import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../sampling/location_effort';
 import { DistanceMeasure, type SeedSpec } from '../../shared/model';
 
-const EFFORT_BATCH_SIZE = 50;
+const EFFORT_BATCH_SIZE = 100;
 const HARD_UPPER_BOUND_SPECIES_COUNT = 50000; // assumes no cave has more
 
 type IncludedTaxa = Record<string, number>;
 
-export async function getClusteredLocations(
+export async function getClusteredLocationIDs(
   db: DB,
   distanceMeasure: DistanceMeasure,
   seedIDs: number[]
@@ -38,7 +38,8 @@ export async function getClusteredLocations(
         const [nearestClusterIndex, effortTaxa] = _getNearestClusterIndex(
           distanceMeasure,
           includedTaxaByCluster,
-          effort
+          effort,
+          -1 // force assignment to a cluster
         );
         clusterByLocationID[effort.locationID] = nearestClusterIndex;
         Object.assign(nextIncludedTaxaByCluster[nearestClusterIndex], effortTaxa);
@@ -64,12 +65,14 @@ export async function getClusteredLocations(
     let efforts = await _getNextBatchToCluster(db, skipCount);
     while (efforts.length > 0) {
       for (const effort of efforts) {
+        const currentClusterIndex = clusterByLocationID[effort.locationID];
         const [nearestClusterIndex, effortTaxa] = _getNearestClusterIndex(
           distanceMeasure,
           includedTaxaByCluster,
-          effort
+          effort,
+          currentClusterIndex
         );
-        if (clusterByLocationID[effort.locationID] != nearestClusterIndex) {
+        if (nearestClusterIndex != currentClusterIndex) {
           clusterByLocationID[effort.locationID] = nearestClusterIndex;
           Object.assign(nextIncludedTaxaByCluster[nearestClusterIndex], effortTaxa);
           reassigned = true;
@@ -190,7 +193,8 @@ function _collectRankTaxa(
 function _getNearestClusterIndex(
   distanceMeasure: DistanceMeasure,
   includedTaxaByCluster: IncludedTaxa[],
-  effort: LocationEffort
+  effort: LocationEffort,
+  currentClusterIndex: number
 ): [number, IncludedTaxa] {
   const effortTaxa = _includeTaxa({}, effort);
   const taxa = Object.keys(effortTaxa);
@@ -220,13 +224,19 @@ function _getNearestClusterIndex(
 
   // Randomly assign the location assigned with the effort to one of the
   // clusters to which its taxa are equally similar. The assignment is
-  // random to ensure that no cluster is incidentally biased.
+  // random to ensure that no cluster is incidentally biased. If the location
+  // is already assigned to one of the possible clusters, keep it there to
+  // prevent the algorithm for forever randomly reassigning locations.
 
-  const clusterIndex =
-    indexesForMaxSimilarityCount.length == 1
-      ? indexesForMaxSimilarityCount[0] // small performance benefit
-      : Math.floor(Math.random() * indexesForMaxSimilarityCount.length);
-  return [clusterIndex, effortTaxa];
+  let nextClusterIndex: number;
+  if (indexesForMaxSimilarityCount.length == 1) {
+    nextClusterIndex = indexesForMaxSimilarityCount[0]; // small performance benefit
+  } else if (indexesForMaxSimilarityCount.includes(currentClusterIndex)) {
+    nextClusterIndex = currentClusterIndex;
+  } else {
+    nextClusterIndex = Math.floor(Math.random() * indexesForMaxSimilarityCount.length);
+  }
+  return [nextClusterIndex, effortTaxa];
 }
 
 async function _getNextBatchToCluster(

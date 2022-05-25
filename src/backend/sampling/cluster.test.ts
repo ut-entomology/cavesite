@@ -3,7 +3,12 @@ import { DatabaseMutex } from '../util/test_util';
 import { Location } from '../model/location';
 import { type TaxonTallies } from './location_visit';
 import { type EffortData, LocationEffort } from './location_effort';
-import { LocationRank, SeedType, type SeedSpec } from '../../shared/model';
+import {
+  LocationRank,
+  SeedType,
+  type SeedSpec,
+  DistanceMeasure
+} from '../../shared/model';
 import * as cluster from './cluster';
 
 jest.setTimeout(20 * 60 * 1000); // debuggin timeout
@@ -14,12 +19,12 @@ let db: DB;
 beforeAll(async () => {
   db = await mutex.lock();
   // Create dummy locations to satisfy referential integrity.
-  for (let i = 1; i < 12; ++i) {
+  for (let i = 1; i < 20; ++i) {
     await _createLocation(i);
   }
 });
 
-test('test diverse seed selection', async () => {
+test('selecting seed locations by taxon diversity', async () => {
   await LocationEffort.dropAll(db);
 
   // Select the most diverse seed location.
@@ -107,6 +112,43 @@ test('test diverse seed selection', async () => {
   expect(seedIDs).toEqual([7, 2, 5]);
 });
 
+test('clustering', async () => {
+  await LocationEffort.dropAll(db);
+
+  await _addEffort(1, 1, {
+    kingdomNames: 'k1',
+    phylumNames: 'p1'
+  });
+  await _addEffort(2, 2, {
+    kingdomNames: 'k1',
+    phylumNames: 'p1|p2'
+  });
+  await _addEffort(3, 3, {
+    kingdomNames: 'k1',
+    phylumNames: 'p1|p2|p3'
+  });
+  let clusters = await _getClusters(DistanceMeasure.commonTaxa, [1]);
+  _checkClusters(clusters, [[1, 2, 3]]);
+
+  await _addEffort(4, 1, {
+    kingdomNames: 'k1',
+    phylumNames: 'p4'
+  });
+  await _addEffort(5, 2, {
+    kingdomNames: 'k1',
+    phylumNames: 'p4|p5'
+  });
+  await _addEffort(6, 3, {
+    kingdomNames: 'k1',
+    phylumNames: 'p4|p5|p6'
+  });
+  clusters = await _getClusters(DistanceMeasure.commonTaxa, [1, 4]);
+  _checkClusters(clusters, [
+    [1, 2, 3],
+    [4, 5, 6]
+  ]);
+});
+
 afterAll(async () => {
   await mutex.unlock();
 });
@@ -125,6 +167,15 @@ async function _addEffort(
   );
 }
 
+function _checkClusters(
+  actualClusters: number[][],
+  expectedClusters: number[][]
+): void {
+  actualClusters.forEach((cluster) => cluster.sort());
+  expectedClusters.forEach((cluster) => cluster.sort());
+  expect(actualClusters).toEqual(expectedClusters);
+}
+
 async function _createLocation(locationID: number) {
   const sourceLocation = {
     locationRank: LocationRank.Continent,
@@ -135,6 +186,13 @@ async function _createLocation(locationID: number) {
     parentID: null
   };
   await Location.create(db, '', '', sourceLocation);
+}
+
+async function _getClusters(
+  distanceMeasure: DistanceMeasure,
+  seedLocationIDs: number[]
+): Promise<number[][]> {
+  return await cluster.getClusteredLocationIDs(db, distanceMeasure, seedLocationIDs);
 }
 
 function _toEffortData(data: Partial<EffortData>): EffortData {
