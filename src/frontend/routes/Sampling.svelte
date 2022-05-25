@@ -24,7 +24,6 @@
   const clusterData = createSessionStore<EffortData[][] | null>('cluster_data', null);
   const graphData = createSessionStore<GraphData | null>('graph_data', null);
   const clusterIndex = createSessionStore<number>('cluster_index', 0);
-  const differenced = createSessionStore<boolean>('differenced', false);
 </script>
 
 <script lang="ts">
@@ -56,8 +55,39 @@
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let basisID = BasisID.totals;
+  let graphTitle: string;
+  let xAxisLabel: string;
+  let yAxisLabel: string;
+  let pointCount: number;
+
   $: showingPersonVisits = datasetID == DatasetID.personVisits;
   $: showingSpeciesTotals = basisID == BasisID.totals;
+  $: {
+    if (showingSpeciesTotals) {
+      graphTitle = 'Cumulative Species across ';
+      yAxisLabel = 'cumulative species';
+      pointCount =
+        (showingPersonVisits
+          ? $graphData?.perPersonVisitPoints.length
+          : $graphData?.perVisitPoints.length) || 0;
+    } else {
+      graphTitle = 'Additional Species across ';
+      yAxisLabel = 'additional species';
+      pointCount =
+        (showingPersonVisits
+          ? $graphData?.perPersonVisitDiffs.length
+          : $graphData?.perVisitDiffs.length) || 0;
+    }
+    if (showingPersonVisits) {
+      xAxisLabel = 'person-visits';
+    } else {
+      xAxisLabel = 'visits';
+    }
+    graphTitle += xAxisLabel
+      .split('-')
+      .map((word) => word[0].toUpperCase() + word.substring(1))
+      .join('-');
+  }
 
   const pairToPoint = (pair: number[]) => {
     return { x: pair[0], y: pair[1] };
@@ -255,7 +285,7 @@
         data={{
           datasets: [
             {
-              label: 'data points',
+              label: pointCount + ' points',
               data: showingPersonVisits
                 ? showingSpeciesTotals
                   ? $graphData.perPersonVisitPoints
@@ -271,14 +301,14 @@
             x: {
               title: {
                 display: true,
-                text: showingPersonVisits ? 'person-visits' : 'visits',
+                text: xAxisLabel,
                 font: { size: 16 }
               }
             },
             y: {
               title: {
                 display: true,
-                text: 'cumulative species',
+                text: yAxisLabel,
                 font: { size: 16 }
               }
             }
@@ -286,9 +316,7 @@
           plugins: {
             title: {
               display: true,
-              text:
-                'Cumulative Species across ' +
-                (showingPersonVisits ? 'Person-Visits' : 'Visits'),
+              text: graphTitle + ` (${true})`,
               font: { size: 20 }
             }
           },
