@@ -17,10 +17,14 @@
   interface GraphData {
     perVisitPoints: Point[];
     perPersonVisitPoints: Point[];
+    perVisitDiffs: Point[];
+    perPersonVisitDiffs: Point[];
   }
 
   const clusterData = createSessionStore<EffortData[][] | null>('cluster_data', null);
   const graphData = createSessionStore<GraphData | null>('graph_data', null);
+  const clusterIndex = createSessionStore<number>('cluster_index', 0);
+  const differenced = createSessionStore<boolean>('differenced', false);
 </script>
 
 <script lang="ts">
@@ -44,10 +48,16 @@
     personVisits = 'per-person-visit-set'
   }
 
+  enum BasisID {
+    totals = 'basis-totals',
+    differences = 'basis-diffs'
+  }
+
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-  let clusterIndex = 0;
-  $: usePersonVisits = datasetID == DatasetID.personVisits;
+  let basisID = BasisID.totals;
+  $: showingPersonVisits = datasetID == DatasetID.personVisits;
+  $: showingSpeciesTotals = basisID == BasisID.totals;
 
   const pairToPoint = (pair: number[]) => {
     return { x: pair[0], y: pair[1] };
@@ -131,14 +141,33 @@
     const clusterEffortData = $clusterData[clusterIndex];
     const workingGraphData: GraphData = {
       perVisitPoints: [],
-      perPersonVisitPoints: []
+      perVisitDiffs: [],
+      perPersonVisitPoints: [],
+      perPersonVisitDiffs: []
     };
     for (const effortData of clusterEffortData) {
+      let priorPerVisitSpeciesCount = 0;
       for (const point of effortData.perVisitPoints) {
         workingGraphData.perVisitPoints.push(point);
+        if (priorPerVisitSpeciesCount != 0) {
+          workingGraphData.perVisitDiffs.push({
+            x: point.x,
+            y: point.y - priorPerVisitSpeciesCount
+          });
+        }
+        priorPerVisitSpeciesCount = point.y;
       }
+
+      let priorPerPersonVisitSpeciesCount = 0;
       for (const point of effortData.perPersonVisitPoints) {
         workingGraphData.perPersonVisitPoints.push(point);
+        if (priorPerPersonVisitSpeciesCount != 0) {
+          workingGraphData.perPersonVisitDiffs.push({
+            x: point.x,
+            y: point.y - priorPerPersonVisitSpeciesCount
+          });
+        }
+        priorPerPersonVisitSpeciesCount = point.y;
       }
     }
     console.log(
@@ -179,29 +208,61 @@
           </div>
         {/if}
       </span>
+      <span slot="work-buttons">
+        {#if $clusterData}
+          <select
+            bind:value={$clusterIndex}
+            on:change={() => _setGraphData($clusterIndex)}
+          >
+            {#each $clusterData as cluster, i}
+              <option value={i}>
+                [{i}]: {cluster.length} locations
+              </option>
+            {/each}
+          </select>
+          <div class="btn-group" role="group" aria-label="Basis for model">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={basisID}
+              name="dataset"
+              id={BasisID.totals}
+              value={BasisID.totals}
+            />
+            <label class="btn btn-outline-primary" for={BasisID.totals}>Totals</label>
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={basisID}
+              name="dataset"
+              id={BasisID.differences}
+              value={BasisID.differences}
+            />
+            <label class="btn btn-outline-primary" for={BasisID.differences}
+              >Diffs</label
+            >
+          </div>
+        {/if}
+      </span>
     </TabHeader>
 
     {#if $graphData === null}
       <button class="btn btn-major" type="button" on:click={loadPoints}
         >Load Data</button
       >
-    {:else if $clusterData}
-      <select bind:value={clusterIndex} on:change={() => _setGraphData(clusterIndex)}>
-        {#each $clusterData as cluster, i}
-          <option value={i}>
-            [{i}]: {cluster.length} locations
-          </option>
-        {/each}
-      </select>
-
+    {:else}
       <Scatter
         data={{
           datasets: [
             {
               label: 'data points',
-              data: usePersonVisits
-                ? $graphData.perPersonVisitPoints
-                : $graphData.perVisitPoints
+              data: showingPersonVisits
+                ? showingSpeciesTotals
+                  ? $graphData.perPersonVisitPoints
+                  : $graphData.perPersonVisitDiffs
+                : showingSpeciesTotals
+                ? $graphData.perVisitPoints
+                : $graphData.perVisitDiffs
             }
           ]
         }}
@@ -210,7 +271,7 @@
             x: {
               title: {
                 display: true,
-                text: usePersonVisits ? 'person-visits' : 'visits',
+                text: showingPersonVisits ? 'person-visits' : 'visits',
                 font: { size: 16 }
               }
             },
@@ -227,7 +288,7 @@
               display: true,
               text:
                 'Cumulative Species across ' +
-                (usePersonVisits ? 'Person-Visits' : 'Visits'),
+                (showingPersonVisits ? 'Person-Visits' : 'Visits'),
               font: { size: 20 }
             }
           },
