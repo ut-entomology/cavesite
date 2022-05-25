@@ -91,7 +91,7 @@
     let res = await $client.post('api/cluster/get_seeds', {
       seedSpec: {
         seedType: SeedType.diverse,
-        maxClusters: 16,
+        maxClusters: 10,
         minSpecies: 0,
         maxSpecies: 10000
       }
@@ -314,7 +314,7 @@
 
 <DataTabRoute activeTab="Effort">
   <div class="container-fluid">
-    <TabHeader title="Sampling Effort" instructions="Instructions TBD">
+    <TabHeader title="Collection Effort" instructions="Instructions TBD">
       <span slot="main-buttons">
         {#if $graphStore != null}
           <button class="btn btn-minor" type="button" on:click={clearData}

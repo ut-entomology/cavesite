@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import type { Location } from '../model/location';
-import { LocationEffort } from '../sampling/location_effort';
+import { LocationEffort } from '../effort/location_effort';
 import type { LocationSpec, EffortResult } from '../../shared/model';
 //import { INTEGER_LIST_JSON_REGEX } from '../util/http_util';
 

@@ -1,5 +1,5 @@
 import { type DB } from '../integrations/postgres';
-import { LocationEffort } from '../sampling/location_effort';
+import { LocationEffort } from '../effort/location_effort';
 import { DistanceMeasure, type SeedSpec } from '../../shared/model';
 
 const EFFORT_BATCH_SIZE = 100;

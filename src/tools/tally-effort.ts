@@ -1,8 +1,8 @@
 import { loadAndCheckEnvVars } from '../backend/util/env_util';
 import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres';
 import { Specimen } from '../backend/model/specimen';
-import { LocationVisit } from '../backend/sampling/location_visit';
-import { LocationEffort } from '../backend/sampling/location_effort';
+import { LocationVisit } from '../backend/effort/location_visit';
+import { LocationEffort } from '../backend/effort/location_effort';
 
 const SPECIMEN_BATCH_SIZE = 500;
 

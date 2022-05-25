@@ -18,7 +18,7 @@
     },
     {
       label: 'Effort',
-      route: '/sampling'
+      route: '/effort'
     },
     {
       label: 'Data',

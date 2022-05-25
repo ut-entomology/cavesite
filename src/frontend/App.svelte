@@ -14,7 +14,7 @@
   import Taxa from './routes/Taxa.svelte';
   import Locations from './routes/Locations.svelte';
   import Data from './routes/Data.svelte';
-  import Sampling from './routes/Sampling.svelte';
+  import Effort from './routes/Effort.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
   import Logs from './routes/admin/Logs.svelte';
@@ -32,7 +32,7 @@
     '/taxa': Taxa,
     '/locations': Locations,
     '/data': Data,
-    '/sampling': Sampling,
+    '/effort': Effort,
 
     '/admin/users': Users,
     '/admin/coords': Coords,

@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { Location } from '../model/location';
-import * as cluster from '../sampling/cluster';
+import * as cluster from '../effort/cluster';
 import { toLocationSpec } from './location_api';
 import { SeedType, type SeedSpec } from '../../shared/model';
 
