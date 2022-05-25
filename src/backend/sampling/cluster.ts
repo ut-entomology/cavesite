@@ -12,10 +12,13 @@ export async function getClusteredLocationIDs(
   distanceMeasure: DistanceMeasure,
   seedIDs: number[]
 ): Promise<number[][]> {
+  console.log(
+    '**** #### starting getClusteredLocationIDs ###################################'
+  );
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];
   let includedTaxaByCluster: IncludedTaxa[] = [];
-  const nextIncludedTaxaByCluster: IncludedTaxa[] = [];
+  let nextIncludedTaxaByCluster: IncludedTaxa[] = [];
 
   // Establish the initial clusters based on the seed locations.
 
@@ -31,7 +34,9 @@ export async function getClusteredLocationIDs(
 
   let skipCount = 0;
   let efforts = await _getNextBatchToCluster(db, skipCount);
-  includedTaxaByCluster.forEach((_) => nextIncludedTaxaByCluster.push({}));
+  for (const seedTaxa of includedTaxaByCluster) {
+    nextIncludedTaxaByCluster.push(Object.assign({}, seedTaxa));
+  }
   while (efforts.length > 0) {
     for (const effort of efforts) {
       if (!seedIDs.includes(effort.locationID)) {
@@ -48,6 +53,7 @@ export async function getClusteredLocationIDs(
     skipCount += efforts.length;
     efforts = await _getNextBatchToCluster(db, skipCount);
   }
+  console.log('**** initial clusters', clusterByLocationID);
 
   // Loop reassigning the clusters of locations until none are reassigned.
 
@@ -56,7 +62,9 @@ export async function getClusteredLocationIDs(
   while (reassigned || firstPass) {
     firstPass = false;
     includedTaxaByCluster = nextIncludedTaxaByCluster;
-    includedTaxaByCluster.forEach((_, i) => (nextIncludedTaxaByCluster[i] = {}));
+    nextIncludedTaxaByCluster = [];
+    includedTaxaByCluster.forEach((_) => nextIncludedTaxaByCluster.push({}));
+    console.log('**** initial cluster taxa', includedTaxaByCluster);
 
     // Examine every location for possible assignment to a different cluster, all
     // the while preparing nextIncludedTaxaByCluster for use in the next pass.
@@ -76,6 +84,12 @@ export async function getClusteredLocationIDs(
           clusterByLocationID[effort.locationID] = nearestClusterIndex;
           Object.assign(nextIncludedTaxaByCluster[nearestClusterIndex], effortTaxa);
           reassigned = true;
+          console.log(
+            '****',
+            effort.locationID,
+            'changed cluster',
+            clusterByLocationID
+          );
         }
       }
       skipCount += efforts.length;
@@ -197,6 +211,7 @@ function _getNearestClusterIndex(
   currentClusterIndex: number
 ): [number, IncludedTaxa] {
   const effortTaxa = _includeTaxa({}, effort);
+  console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
   const taxa = Object.keys(effortTaxa);
 
   // Collect into indexesForMaxSimilarityCount the indexes of all clusters
@@ -219,7 +234,18 @@ function _getNearestClusterIndex(
       indexesForMaxSimilarityCount.push(i);
     } else if (similarityCount > maxSimilarityCount) {
       indexesForMaxSimilarityCount = [i];
+      maxSimilarityCount = similarityCount;
     }
+    console.log(
+      '**** -- similarityCount',
+      similarityCount,
+      '\n        taxaInCluster',
+      taxaInCluster,
+      '\n        indexesForMaxSimilarityCount',
+      indexesForMaxSimilarityCount,
+      '\n        maxSimilarityCount',
+      maxSimilarityCount
+    );
   }
 
   // Randomly assign the location assigned with the effort to one of the

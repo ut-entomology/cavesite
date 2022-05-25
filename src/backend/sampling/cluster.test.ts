@@ -142,7 +142,22 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p4|p5|p6'
   });
+  clusters = await _getClusters(DistanceMeasure.commonTaxa, [3, 6]);
+  _checkClusters(clusters, [
+    [1, 2, 3],
+    [4, 5, 6]
+  ]);
   clusters = await _getClusters(DistanceMeasure.commonTaxa, [1, 4]);
+  _checkClusters(clusters, [
+    [1, 2, 3],
+    [4, 5, 6]
+  ]);
+  clusters = await _getClusters(DistanceMeasure.commonTaxa, [1, 2]);
+  _checkClusters(clusters, [
+    [1, 2, 3],
+    [4, 5, 6]
+  ]);
+  clusters = await _getClusters(DistanceMeasure.commonTaxa, [5, 6]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
