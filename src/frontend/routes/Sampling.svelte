@@ -46,6 +46,7 @@
 
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
+  let clusterIndex = 0;
   $: usePersonVisits = datasetID == DatasetID.personVisits;
 
   const pairToPoint = (pair: number[]) => {
@@ -184,7 +185,15 @@
       <button class="btn btn-major" type="button" on:click={loadPoints}
         >Load Data</button
       >
-    {:else}
+    {:else if $clusterData}
+      <select bind:value={clusterIndex} on:change={() => _setGraphData(clusterIndex)}>
+        {#each $clusterData as cluster, i}
+          <option value={i}>
+            [{i}]: {cluster.length} locations
+          </option>
+        {/each}
+      </select>
+
       <Scatter
         data={{
           datasets: [
