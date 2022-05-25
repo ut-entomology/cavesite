@@ -34,6 +34,8 @@ async function tallyVisits() {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
+  await LocationEffort.dropAll(getDB());
+  await LocationVisit.dropAll(getDB());
   await tallyVisits();
   await LocationEffort.tallyEffort(getDB());
   await disconnectDB();

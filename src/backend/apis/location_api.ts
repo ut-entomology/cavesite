@@ -5,19 +5,17 @@ import { getDB } from '../integrations/postgres';
 import type { Location } from '../model/location';
 import { LocationEffort } from '../sampling/location_effort';
 import type { LocationSpec, EffortResult } from '../../shared/model';
-import { INTEGER_LIST_JSON_REGEX } from '../util/http_util';
+//import { INTEGER_LIST_JSON_REGEX } from '../util/http_util';
 
 export const router = Router();
 
 router.post('/get_effort', async (req: Request, res) => {
-  const locationIDsString = req.body.locationIDs;
-  if (!INTEGER_LIST_JSON_REGEX.test(locationIDsString)) {
-    return res.status(StatusCodes.BAD_REQUEST).send();
-  }
-  const efforts = await LocationEffort.getByLocationIDs(
-    getDB(),
-    JSON.parse(locationIDsString)
-  );
+  const locationIDs: number[] = req.body.locationIDs;
+  // TODO: revisit validation
+  // if (!INTEGER_LIST_JSON_REGEX.test(locationIDsString)) {
+  //   return res.status(StatusCodes.BAD_REQUEST).send();
+  // }
+  const efforts = await LocationEffort.getByLocationIDs(getDB(), locationIDs);
   return res
     .status(StatusCodes.OK)
     .send({ efforts: efforts.map((effort) => _toEffortResult(effort)) });

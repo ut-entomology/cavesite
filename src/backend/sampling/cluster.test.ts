@@ -127,7 +127,7 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p1|p2|p3'
   });
-  let clusters = await _getClusters(DistanceMeasure.commonTaxa, [1]);
+  let clusters = await _getClusters(DistanceMeasure.unweighted, [1]);
   _checkClusters(clusters, [[1, 2, 3]]);
 
   await _addEffort(4, 1, {
@@ -142,22 +142,22 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p4|p5|p6'
   });
-  clusters = await _getClusters(DistanceMeasure.commonTaxa, [3, 6]);
+  clusters = await _getClusters(DistanceMeasure.unweighted, [3, 6]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
   ]);
-  clusters = await _getClusters(DistanceMeasure.commonTaxa, [1, 4]);
+  clusters = await _getClusters(DistanceMeasure.unweighted, [1, 4]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
   ]);
-  clusters = await _getClusters(DistanceMeasure.commonTaxa, [1, 2]);
+  clusters = await _getClusters(DistanceMeasure.weighted, [1, 2]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
   ]);
-  clusters = await _getClusters(DistanceMeasure.commonTaxa, [5, 6]);
+  clusters = await _getClusters(DistanceMeasure.unweighted, [5, 6]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
@@ -187,7 +187,15 @@ function _checkClusters(
   expectedClusters: number[][]
 ): void {
   actualClusters.forEach((cluster) => cluster.sort());
+  actualClusters.sort((a, b) => a[0] - b[0]);
   expectedClusters.forEach((cluster) => cluster.sort());
+  expectedClusters.sort((a, b) => a[0] - b[0]);
+  console.log(
+    '**** actual/expected clusters\n    ',
+    actualClusters,
+    '\n    ',
+    expectedClusters
+  );
   expect(actualClusters).toEqual(expectedClusters);
 }
 

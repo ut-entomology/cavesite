@@ -5,20 +5,24 @@ import { DistanceMeasure, type SeedSpec } from '../../shared/model';
 const EFFORT_BATCH_SIZE = 100;
 const HARD_UPPER_BOUND_SPECIES_COUNT = 50000; // assumes no cave has more
 
-type IncludedTaxa = Record<string, number>;
+type TaxonTallies = Record<string, number>; // accumulated weight for taxa
 
 export async function getClusteredLocationIDs(
   db: DB,
   distanceMeasure: DistanceMeasure,
   seedIDs: number[]
 ): Promise<number[][]> {
-  console.log(
-    '**** #### starting getClusteredLocationIDs ###################################'
-  );
+  // console.log(
+  //   '**** #### starting getClusteredLocationIDs ###################################'
+  // );
+  const toTaxonWeights =
+    distanceMeasure == DistanceMeasure.weighted
+      ? _toWeightedValues
+      : _toUnweightedValues;
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];
-  let includedTaxaByCluster: IncludedTaxa[] = [];
-  let nextIncludedTaxaByCluster: IncludedTaxa[] = [];
+  let taxaTalliesByCluster: TaxonTallies[] = [];
+  let nextTaxonTalliesByCluster: TaxonTallies[] = [];
 
   // Establish the initial clusters based on the seed locations.
 
@@ -26,34 +30,37 @@ export async function getClusteredLocationIDs(
   for (let i = 0; i < seedIDs.length; ++i) {
     const seedEffort = seedEfforts[i];
     clusterByLocationID[seedEffort.locationID] = i;
-    includedTaxaByCluster.push(_includeTaxa({}, seedEffort));
+    taxaTalliesByCluster.push(toTaxonWeights(seedEffort));
   }
 
   // Provide an initial assignment of each location to its nearest cluster,
-  // all the while preparing nextIncludedTaxaByCluster for use in reassignment.
+  // all the while preparing nextTaxonTalliesByCluster for use in reassignment.
 
   let skipCount = 0;
   let efforts = await _getNextBatchToCluster(db, skipCount);
-  for (const seedTaxa of includedTaxaByCluster) {
-    nextIncludedTaxaByCluster.push(Object.assign({}, seedTaxa));
+  for (const seedTaxa of taxaTalliesByCluster) {
+    nextTaxonTalliesByCluster.push(Object.assign({}, seedTaxa)); // copy
   }
   while (efforts.length > 0) {
     for (const effort of efforts) {
       if (!seedIDs.includes(effort.locationID)) {
-        const [nearestClusterIndex, effortTaxa] = _getNearestClusterIndex(
-          distanceMeasure,
-          includedTaxaByCluster,
-          effort,
+        const effortWeights = toTaxonWeights(effort);
+        const nearestClusterIndex = _getNearestClusterIndex(
+          taxaTalliesByCluster,
+          effortWeights,
           -1 // force assignment to a cluster
         );
         clusterByLocationID[effort.locationID] = nearestClusterIndex;
-        Object.assign(nextIncludedTaxaByCluster[nearestClusterIndex], effortTaxa);
+        _updateTaxonTallies(
+          nextTaxonTalliesByCluster[nearestClusterIndex],
+          effortWeights
+        );
       }
     }
     skipCount += efforts.length;
     efforts = await _getNextBatchToCluster(db, skipCount);
   }
-  console.log('**** initial clusters', clusterByLocationID);
+  //console.log('**** initial clusters', clusterByLocationID);
 
   // Loop reassigning the clusters of locations until none are reassigned.
 
@@ -61,36 +68,41 @@ export async function getClusteredLocationIDs(
   let reassigned = false;
   while (reassigned || firstPass) {
     firstPass = false;
-    includedTaxaByCluster = nextIncludedTaxaByCluster;
-    nextIncludedTaxaByCluster = [];
-    includedTaxaByCluster.forEach((_) => nextIncludedTaxaByCluster.push({}));
-    console.log('**** initial cluster taxa', includedTaxaByCluster);
+    reassigned = false;
+    taxaTalliesByCluster = nextTaxonTalliesByCluster;
+    nextTaxonTalliesByCluster = [];
+    taxaTalliesByCluster.forEach((_) => nextTaxonTalliesByCluster.push({}));
+    //console.log('**** initial cluster taxa', taxaTalliesByCluster);
 
     // Examine every location for possible assignment to a different cluster, all
-    // the while preparing nextIncludedTaxaByCluster for use in the next pass.
+    // the while preparing nextTaxonTalliesByCluster for use in the next pass.
 
     let skipCount = 0;
     let efforts = await _getNextBatchToCluster(db, skipCount);
     while (efforts.length > 0) {
       for (const effort of efforts) {
+        const effortWeights = toTaxonWeights(effort);
         const currentClusterIndex = clusterByLocationID[effort.locationID];
-        const [nearestClusterIndex, effortTaxa] = _getNearestClusterIndex(
-          distanceMeasure,
-          includedTaxaByCluster,
-          effort,
+        const nearestClusterIndex = _getNearestClusterIndex(
+          taxaTalliesByCluster,
+          effortWeights,
           currentClusterIndex
         );
         if (nearestClusterIndex != currentClusterIndex) {
           clusterByLocationID[effort.locationID] = nearestClusterIndex;
-          Object.assign(nextIncludedTaxaByCluster[nearestClusterIndex], effortTaxa);
+
           reassigned = true;
-          console.log(
-            '****',
-            effort.locationID,
-            'changed cluster',
-            clusterByLocationID
-          );
+          // console.log(
+          //   '****',
+          //   effort.locationID,
+          //   'changed cluster',
+          //   clusterByLocationID
+          // );
         }
+        _updateTaxonTallies(
+          nextTaxonTalliesByCluster[nearestClusterIndex],
+          effortWeights
+        );
       }
       skipCount += efforts.length;
       efforts = await _getNextBatchToCluster(db, skipCount);
@@ -99,7 +111,7 @@ export async function getClusteredLocationIDs(
 
   // Convert sparse array to arrays of location IDs indexed by cluster index.
 
-  const locationIDsByCluster: number[][] = includedTaxaByCluster.map((_) => []);
+  const locationIDsByCluster: number[][] = taxaTalliesByCluster.map((_) => []);
   for (const [locationID, clusterIndex] of Object.entries(clusterByLocationID)) {
     locationIDsByCluster[clusterIndex].push(parseInt(locationID));
   }
@@ -108,7 +120,7 @@ export async function getClusteredLocationIDs(
 
 export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<number[]> {
   const seedIDs: number[] = [];
-  const includedTaxa: IncludedTaxa = {};
+  const taxonTallies: TaxonTallies = {};
 
   // Find each seed location, up to the maximum seeds allowed.
 
@@ -130,7 +142,7 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
 
     if (seedIDs.length == 0) {
       seedIDs.push(efforts[0].locationID);
-      _includeTaxa(includedTaxa, efforts[0]);
+      _updateTaxonTallies(taxonTallies, _toUnweightedValues(efforts[0]));
     }
 
     // Each subsequent seed location is the one with the largest number of
@@ -151,10 +163,10 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
           break;
         }
         if (!seedIDs.includes(effort.locationID)) {
-          const effortTaxa = _includeTaxa({}, effort);
+          const effortTaxa = _toUnweightedValues(effort);
           let newTaxaCount = 0;
           for (const effortTaxon of Object.keys(effortTaxa)) {
-            if (includedTaxa[effortTaxon] === undefined) ++newTaxaCount;
+            if (taxonTallies[effortTaxon] === undefined) ++newTaxaCount;
           }
           if (newTaxaCount > maxDistinctTaxa) {
             maxDistinctTaxa = newTaxaCount;
@@ -186,7 +198,7 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
 
     if (seedIDForMaxDistinctTaxa != 0) {
       seedIDs.push(seedIDForMaxDistinctTaxa);
-      _includeTaxa(includedTaxa, effortForMaxDistinctTaxa!);
+      _updateTaxonTallies(taxonTallies, _toUnweightedValues(effortForMaxDistinctTaxa!));
     } else {
       break; // no more seed locations found meeting the criteria
     }
@@ -195,24 +207,28 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
   return seedIDs;
 }
 
-function _collectRankTaxa(
-  includedTaxa: IncludedTaxa,
+function _addTaxonRank(
+  tallies: TaxonTallies,
   rankValue: number,
   taxaString: string | null
 ): void {
   if (taxaString === null) return;
-  taxaString.split('|').forEach((taxon) => (includedTaxa[taxon] = rankValue));
+  for (const taxon of taxaString.split('|')) {
+    if (tallies[taxon] === undefined) {
+      tallies[taxon] = rankValue;
+    } else {
+      tallies[taxon] += rankValue;
+    }
+  }
 }
 
 function _getNearestClusterIndex(
-  distanceMeasure: DistanceMeasure,
-  includedTaxaByCluster: IncludedTaxa[],
-  effort: LocationEffort,
+  taxaTalliesByCluster: TaxonTallies[],
+  effortWeights: TaxonTallies,
   currentClusterIndex: number
-): [number, IncludedTaxa] {
-  const effortTaxa = _includeTaxa({}, effort);
-  console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
-  const taxa = Object.keys(effortTaxa);
+): number {
+  //console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
+  const effortTaxa = Object.keys(effortWeights);
 
   // Collect into indexesForMaxSimilarityCount the indexes of all clusters
   // having the greatest similarity to the taxa of the provided effort,
@@ -220,14 +236,14 @@ function _getNearestClusterIndex(
 
   let maxSimilarityCount = 0;
   let indexesForMaxSimilarityCount: number[] = [];
-  for (let i = 0; i < includedTaxaByCluster.length; ++i) {
-    const taxaInCluster = includedTaxaByCluster[i];
+  for (let i = 0; i < taxaTalliesByCluster.length; ++i) {
+    const taxaInCluster = taxaTalliesByCluster[i];
     let similarityCount = 0;
-    for (const taxon of taxa) {
-      const weight = taxaInCluster[taxon];
-      if (weight !== undefined) {
-        similarityCount +=
-          distanceMeasure == DistanceMeasure.weightedCommonTaxa ? weight : 1;
+    for (const taxon of effortTaxa) {
+      if (taxaInCluster[taxon] === undefined) {
+        similarityCount -= effortWeights[taxon];
+      } else {
+        similarityCount += effortWeights[taxon];
       }
     }
     if (similarityCount == maxSimilarityCount) {
@@ -236,16 +252,16 @@ function _getNearestClusterIndex(
       indexesForMaxSimilarityCount = [i];
       maxSimilarityCount = similarityCount;
     }
-    console.log(
-      '**** -- similarityCount',
-      similarityCount,
-      '\n        taxaInCluster',
-      taxaInCluster,
-      '\n        indexesForMaxSimilarityCount',
-      indexesForMaxSimilarityCount,
-      '\n        maxSimilarityCount',
-      maxSimilarityCount
-    );
+    // console.log(
+    //   '**** -- similarityCount',
+    //   similarityCount,
+    //   '\n        taxaInCluster',
+    //   taxaInCluster,
+    //   '\n        indexesForMaxSimilarityCount',
+    //   indexesForMaxSimilarityCount,
+    //   '\n        maxSimilarityCount',
+    //   maxSimilarityCount
+    // );
   }
 
   // Randomly assign the location assigned with the effort to one of the
@@ -262,7 +278,7 @@ function _getNearestClusterIndex(
   } else {
     nextClusterIndex = Math.floor(Math.random() * indexesForMaxSimilarityCount.length);
   }
-  return [nextClusterIndex, effortTaxa];
+  return nextClusterIndex;
 }
 
 async function _getNextBatchToCluster(
@@ -278,17 +294,42 @@ async function _getNextBatchToCluster(
   );
 }
 
-function _includeTaxa(
-  includedTaxa: IncludedTaxa,
-  effort: LocationEffort
-): IncludedTaxa {
-  _collectRankTaxa(includedTaxa, 0, effort.kingdomNames);
-  _collectRankTaxa(includedTaxa, 1, effort.phylumNames);
-  _collectRankTaxa(includedTaxa, 2, effort.classNames);
-  _collectRankTaxa(includedTaxa, 3, effort.orderNames);
-  _collectRankTaxa(includedTaxa, 4, effort.familyNames);
-  _collectRankTaxa(includedTaxa, 5, effort.genusNames);
-  _collectRankTaxa(includedTaxa, 6, effort.speciesNames);
-  _collectRankTaxa(includedTaxa, 7, effort.subspeciesNames);
-  return includedTaxa;
+function _toWeightedValues(effort: LocationEffort): TaxonTallies {
+  const tallies: TaxonTallies = {};
+  _addTaxonRank(tallies, 0, effort.kingdomNames);
+  _addTaxonRank(tallies, 1, effort.phylumNames);
+  _addTaxonRank(tallies, 2, effort.classNames);
+  _addTaxonRank(tallies, 3, effort.orderNames);
+  _addTaxonRank(tallies, 4, effort.familyNames);
+  _addTaxonRank(tallies, 5, effort.genusNames);
+  _addTaxonRank(tallies, 6, effort.speciesNames);
+  _addTaxonRank(tallies, 7, effort.subspeciesNames);
+  return tallies;
+}
+
+function _toUnweightedValues(effort: LocationEffort): TaxonTallies {
+  const tallies: TaxonTallies = {};
+  _addTaxonRank(tallies, 1, effort.kingdomNames);
+  _addTaxonRank(tallies, 1, effort.phylumNames);
+  _addTaxonRank(tallies, 1, effort.classNames);
+  _addTaxonRank(tallies, 1, effort.orderNames);
+  _addTaxonRank(tallies, 1, effort.familyNames);
+  _addTaxonRank(tallies, 1, effort.genusNames);
+  _addTaxonRank(tallies, 1, effort.speciesNames);
+  _addTaxonRank(tallies, 1, effort.subspeciesNames);
+  return tallies;
+}
+
+function _updateTaxonTallies(
+  tallies: TaxonTallies,
+  fromWeights: TaxonTallies
+): TaxonTallies {
+  for (const taxon of Object.keys(fromWeights)) {
+    if (tallies[taxon] === undefined) {
+      tallies[taxon] = 1;
+    } else {
+      tallies[taxon] += 1;
+    }
+  }
+  return tallies;
 }

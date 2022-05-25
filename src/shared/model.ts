@@ -242,6 +242,6 @@ export interface SeedSpec {
 }
 
 export enum DistanceMeasure {
-  commonTaxa,
-  weightedCommonTaxa
+  weighted,
+  unweighted
 }

@@ -130,9 +130,9 @@ test('creating a fully-specified specimen', async () => {
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
     expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
     expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aurantia');
-    expect((await Location.getByID(db, 1))?.locationName).toEqual('North America');
-    expect((await Location.getByID(db, 3))?.locationName).toEqual('Texas');
-    expect((await Location.getByID(db, 5))?.locationName).toEqual('My backyard');
+    expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
+    expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
+    expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
 
     const readSpecimen = await Specimen.getByCatNum(
       db,
@@ -208,7 +208,7 @@ test('creating a fully-specified specimen', async () => {
       publicLongitude: null
     });
     expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
-    expect((await Location.getByID(db, 6))?.locationName).toEqual('Their backyard');
+    expect((await _getLocationByID(db, 6))?.locationName).toEqual('Their backyard');
   }
 
   // test committing specimens
@@ -454,4 +454,9 @@ async function containsLog(
     }
   }
   return false;
+}
+
+async function _getLocationByID(db: DB, locationID: number): Promise<Location | null> {
+  const locations = await Location.getByIDs(db, [locationID]);
+  return locations.length > 0 ? locations[0] : null;
 }

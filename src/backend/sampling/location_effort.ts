@@ -193,27 +193,27 @@ export class LocationEffort {
         endDate = visit.startDate;
       }
 
-      if (priorLocationID != 0) {
-        await this.create(
-          db,
-          tallies!.locationID,
-          tallies!.isCave,
-          {
-            // @ts-ignore
-            startDate,
-            endDate: endDate!,
-            totalVisits,
-            totalPersonVisits,
-            totalSpecies,
-            perVisitPoints: JSON.stringify(perVisitPoints),
-            perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
-          },
-          tallies!
-        );
-      }
-
       skipCount += visits.length;
       visits = await LocationVisit.getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
+    }
+
+    if (priorLocationID != 0) {
+      await this.create(
+        db,
+        tallies!.locationID,
+        tallies!.isCave,
+        {
+          // @ts-ignore
+          startDate,
+          endDate: endDate!,
+          totalVisits,
+          totalPersonVisits,
+          totalSpecies,
+          perVisitPoints: JSON.stringify(perVisitPoints),
+          perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
+        },
+        tallies!
+      );
     }
   }
 
