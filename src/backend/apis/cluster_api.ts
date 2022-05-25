@@ -35,10 +35,12 @@ router.post('/get_seeds', async (req: Request, res) => {
 router.post('/get_clusters', async (req: Request, res) => {
   const seedIDs = req.body.seedIDs;
   const distanceMeasure = req.body.distanceMeasure;
+  const minSpecies = req.body.minSpecies;
   const clusters = await cluster.getClusteredLocationIDs(
     getDB(),
     distanceMeasure,
-    seedIDs
+    seedIDs,
+    minSpecies
   );
   return res.status(StatusCodes.OK).send({ clusters });
 });

@@ -10,7 +10,8 @@ type TaxonTallies = Record<string, number>; // accumulated weight for taxa
 export async function getClusteredLocationIDs(
   db: DB,
   distanceMeasure: DistanceMeasure,
-  seedIDs: number[]
+  seedIDs: number[],
+  minSpecies: number
 ): Promise<number[][]> {
   // console.log(
   //   '**** #### starting getClusteredLocationIDs ###################################'
@@ -37,7 +38,7 @@ export async function getClusteredLocationIDs(
   // all the while preparing nextTaxonTalliesByCluster for use in reassignment.
 
   let skipCount = 0;
-  let efforts = await _getNextBatchToCluster(db, skipCount);
+  let efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
   for (const seedTaxa of taxaTalliesByCluster) {
     nextTaxonTalliesByCluster.push(Object.assign({}, seedTaxa)); // copy
   }
@@ -58,7 +59,7 @@ export async function getClusteredLocationIDs(
       }
     }
     skipCount += efforts.length;
-    efforts = await _getNextBatchToCluster(db, skipCount);
+    efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
   }
   //console.log('**** initial clusters', clusterByLocationID);
 
@@ -78,7 +79,7 @@ export async function getClusteredLocationIDs(
     // the while preparing nextTaxonTalliesByCluster for use in the next pass.
 
     let skipCount = 0;
-    let efforts = await _getNextBatchToCluster(db, skipCount);
+    let efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
     while (efforts.length > 0) {
       for (const effort of efforts) {
         const effortWeights = toTaxonWeights(effort);
@@ -105,7 +106,7 @@ export async function getClusteredLocationIDs(
         );
       }
       skipCount += efforts.length;
-      efforts = await _getNextBatchToCluster(db, skipCount);
+      efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
     }
   }
 
@@ -283,11 +284,12 @@ function _getNearestClusterIndex(
 
 async function _getNextBatchToCluster(
   db: DB,
+  minSpecies: number,
   skipCount: number
 ): Promise<LocationEffort[]> {
   return await LocationEffort.getNextBatch(
     db,
-    0, // don't restrict by species count
+    minSpecies,
     HARD_UPPER_BOUND_SPECIES_COUNT,
     skipCount,
     EFFORT_BATCH_SIZE

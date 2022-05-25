@@ -92,7 +92,7 @@
       seedSpec: {
         seedType: SeedType.diverse,
         maxClusters: 16,
-        minSpecies: 20,
+        minSpecies: 0,
         maxSpecies: 10000
       }
     });
@@ -101,7 +101,8 @@
 
     res = await $client.post('api/cluster/get_clusters', {
       seedIDs: seeds.map((location) => location.locationID),
-      distanceMeasure: DistanceMeasure.unweighted
+      distanceMeasure: DistanceMeasure.weighted,
+      minSpecies: 0
     });
     const clusters: number[][] = res.data.clusters;
     if (!clusters) showNotice({ message: 'Failed to load clusters' });

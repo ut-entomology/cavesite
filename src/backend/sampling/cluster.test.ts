@@ -215,7 +215,7 @@ async function _getClusters(
   distanceMeasure: DistanceMeasure,
   seedLocationIDs: number[]
 ): Promise<number[][]> {
-  return await cluster.getClusteredLocationIDs(db, distanceMeasure, seedLocationIDs);
+  return await cluster.getClusteredLocationIDs(db, distanceMeasure, seedLocationIDs, 0);
 }
 
 function _toEffortData(data: Partial<EffortData>): EffortData {
