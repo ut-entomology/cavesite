@@ -29,10 +29,6 @@
     perPersonVisitTotalsGraph: PerGraphData;
     perVisitDiffsGraph: PerGraphData;
     perPersonVisitDiffsGraph: PerGraphData;
-    perVisitAddedPercentGraph: PerGraphData;
-    perPersonVisitAddedPercentGraph: PerGraphData;
-    perVisitPercentChangeGraph: PerGraphData;
-    perPersonVisitPercentChangeGraph: PerGraphData;
   }
 
   const clusterStore = createSessionStore<EffortData[][] | null>('cluster_data', null);
@@ -71,9 +67,7 @@
 
   enum BasisID {
     totals = 'basis-totals',
-    diffs = 'basis-diffs',
-    addedPercent = 'basis-added-percent',
-    percentChange = 'basis-percent-change'
+    diffs = 'basis-diffs'
   }
 
   let loadState = LoadState.idle;
@@ -91,7 +85,7 @@
     let res = await $client.post('api/cluster/get_seeds', {
       seedSpec: {
         seedType: SeedType.diverse,
-        maxClusters: 10,
+        maxClusters: 1,
         minSpecies: 0,
         maxSpecies: 10000
       }
@@ -199,38 +193,6 @@
       pointCount: 0, // will update
       points: [] // will update
     };
-    let perVisitAddedPercentGraph: PerGraphData = {
-      locationCount,
-      graphTitle: `Percent species added across (${locationCount} caves)`,
-      yAxisLabel: 'Cumulative % species added',
-      xAxisLabel: 'visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
-    let perPersonVisitAddedPercentGraph: PerGraphData = {
-      locationCount,
-      graphTitle: `Percent species added across person-visits (${locationCount} caves)`,
-      yAxisLabel: 'Cumulative % species added',
-      xAxisLabel: 'person-visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
-    let perVisitPercentChangeGraph: PerGraphData = {
-      locationCount,
-      graphTitle: `Percent species change from visit to visit (${locationCount} caves)`,
-      yAxisLabel: '% increase in species',
-      xAxisLabel: 'visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
-    let perPersonVisitPercentChangeGraph: PerGraphData = {
-      locationCount,
-      graphTitle: `Percent species change from person-visit to person-visit (${locationCount} caves)`,
-      yAxisLabel: '% increase in species',
-      xAxisLabel: 'person-visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
 
     for (const effortData of clusterEffortData) {
       let priorSpeciesCount = 0;
@@ -243,22 +205,9 @@
             x: point.x,
             y: speciesDiff
           });
-          const percentChange =
-            (100 * (point.y - priorSpeciesCount)) / priorSpeciesCount;
-          perVisitPercentChangeGraph.points.push({
-            x: point.x,
-            y: percentChange
-          });
-          priorCumulativePercentChange += percentChange;
-          perVisitAddedPercentGraph.points.push({
-            x: point.x,
-            y: priorCumulativePercentChange
-          });
         }
         ++perVisitTotalsGraph.pointCount;
         ++perVisitDiffsGraph.pointCount;
-        ++perVisitPercentChangeGraph.pointCount;
-        ++perVisitAddedPercentGraph.pointCount;
         priorSpeciesCount = point.y;
       }
 
@@ -272,22 +221,9 @@
             x: point.x,
             y: speciesDiff
           });
-          const percentChange =
-            (100 * (point.y - priorSpeciesCount)) / priorSpeciesCount;
-          perPersonVisitPercentChangeGraph.points.push({
-            x: point.x,
-            y: percentChange
-          });
-          priorCumulativePercentChange += percentChange;
-          perPersonVisitAddedPercentGraph.points.push({
-            x: point.x,
-            y: priorCumulativePercentChange
-          });
         }
         ++perPersonVisitTotalsGraph.pointCount;
         ++perPersonVisitDiffsGraph.pointCount;
-        ++perPersonVisitPercentChangeGraph.pointCount;
-        ++perPersonVisitAddedPercentGraph.pointCount;
         priorSpeciesCount = point.y;
       }
     }
@@ -297,11 +233,7 @@
       perVisitTotalsGraph,
       perPersonVisitTotalsGraph,
       perVisitDiffsGraph,
-      perPersonVisitDiffsGraph,
-      perVisitAddedPercentGraph,
-      perPersonVisitAddedPercentGraph,
-      perVisitPercentChangeGraph,
-      perPersonVisitPercentChangeGraph
+      perPersonVisitDiffsGraph
     };
   }
 
@@ -375,28 +307,6 @@
               value={BasisID.diffs}
             />
             <label class="btn btn-outline-primary" for={BasisID.diffs}>Diffs</label>
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={basisID}
-              name="dataset"
-              id={BasisID.addedPercent}
-              value={BasisID.addedPercent}
-            />
-            <label class="btn btn-outline-primary" for={BasisID.addedPercent}
-              >Added %</label
-            >
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={basisID}
-              name="dataset"
-              id={BasisID.percentChange}
-              value={BasisID.percentChange}
-            />
-            <label class="btn btn-outline-primary" for={BasisID.percentChange}
-              >% Change</label
-            >
           </div>
         {/if}
       </span>
@@ -413,17 +323,9 @@
             ? showingPersonVisits
               ? clusterGraphData.perPersonVisitTotalsGraph
               : clusterGraphData.perVisitTotalsGraph
-            : basisID == BasisID.diffs
-            ? showingPersonVisits
-              ? clusterGraphData.perPersonVisitDiffsGraph
-              : clusterGraphData.perVisitDiffsGraph
-            : basisID == BasisID.addedPercent
-            ? showingPersonVisits
-              ? clusterGraphData.perPersonVisitAddedPercentGraph
-              : clusterGraphData.perVisitAddedPercentGraph
             : showingPersonVisits
-            ? clusterGraphData.perPersonVisitPercentChangeGraph
-            : clusterGraphData.perVisitPercentChangeGraph}
+            ? clusterGraphData.perPersonVisitDiffsGraph
+            : clusterGraphData.perVisitDiffsGraph}
         <div class="row mb-2">
           <div class="col">
             <Scatter
