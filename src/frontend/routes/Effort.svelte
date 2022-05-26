@@ -252,6 +252,20 @@
           <button class="btn btn-minor" type="button" on:click={clearData}
             >Clear Data</button
           >
+        {/if}
+      </span>
+      <span slot="work-buttons">
+        {#if $graphStore}
+          <!-- <select
+            bind:value={$clusterIndex}
+            on:change={() => _setGraphData($clusterIndex)}
+          >
+            {#each $clusterData as cluster, i}
+              <option value={i}>
+                [{i}]: {cluster.length} locations
+              </option>
+            {/each}
+          </select> -->
           <div class="btn-group" role="group" aria-label="Switch datasets">
             <input
               type="radio"
@@ -274,21 +288,7 @@
               >Person-Visits</label
             >
           </div>
-        {/if}
-      </span>
-      <span slot="work-buttons">
-        {#if $graphStore}
-          <!-- <select
-            bind:value={$clusterIndex}
-            on:change={() => _setGraphData($clusterIndex)}
-          >
-            {#each $clusterData as cluster, i}
-              <option value={i}>
-                [{i}]: {cluster.length} locations
-              </option>
-            {/each}
-          </select> -->
-          <div class="btn-group" role="group" aria-label="Basis for model">
+          <div class="btn-group mx-2" role="group" aria-label="Basis for model">
             <input
               type="radio"
               class="btn-check"
