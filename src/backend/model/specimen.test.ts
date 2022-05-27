@@ -12,6 +12,11 @@ const endDate = toLocalDate(new Date('2020-01-04'));
 const endDateISO = endDate.toISOString();
 const detDate = toLocalDate(new Date('2020-06-10'));
 
+const startDate1 = toLocalDate(new Date('2021-01-01'));
+const endDate1 = toLocalDate(new Date('2021-01-02'));
+const startDate2 = toLocalDate(new Date('2021-01-04'));
+const detDate2 = toLocalDate(new Date('2022-01-01'));
+
 const baseSource = {
   catalogNumber: 'C1',
   occurrenceID: 'X1',
@@ -437,53 +442,10 @@ describe('basic specimen methods', () => {
 });
 
 describe('general specimen query', () => {
-  test('querying for single columns', async () => {
+  test('querying for specified columns', async () => {
     await Specimen.dropAll(db);
-
-    let startDate1 = toLocalDate(new Date('2021-01-01'));
-    let endDate1 = toLocalDate(new Date('2021-01-02'));
-    let endDate1ISO = endDate1.toISOString();
-    let source: SpecimenSource = Object.assign({}, baseSource);
-    source.catalogNumber = 'Q1';
-    source.occurrenceID = 'GQ1';
-    source.startDate = startDate1.toISOString();
-    source.collectionRemarks =
-      'cave; *end date ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
-    let specimen1 = await Specimen.create(db, source);
-
-    let startDate2 = toLocalDate(new Date('2021-01-04'));
-    let detDate2 = toLocalDate(new Date('2022-01-01'));
-    let source2 = {
-      catalogNumber: 'Q2',
-      occurrenceID: 'GQ2',
-
-      kingdom: 'Animalia',
-      phylum: 'Chordata',
-      class: 'Amphibia',
-      order: 'Urodela',
-      family: 'Plethodontidae',
-      genus: 'Eurycea',
-      specificEpithet: 'rathbuni',
-      infraspecificEpithet: 'madeup',
-      scientificName: 'Eurycea rathbuni madeup, 2000',
-
-      continent: 'North America',
-      country: 'United States',
-      stateProvince: 'Texas',
-      county: 'Bastrop County',
-      locality: 'Bastrop State Park',
-      decimalLatitude: '24.00',
-      decimalLongitude: '-92.00',
-
-      startDate: startDate2.toISOString(),
-      collectors: 'Person X',
-      determinationDate: detDate2.toISOString(),
-      collectionRemarks: '*end date foo',
-      determiners: 'Person Y',
-      typeStatus: 'paratype',
-      organismQuantity: '2'
-    };
-    let specimen2 = await Specimen.create(db, source2);
+    const specimen1 = await _createSpecimen1(db);
+    const specimen2 = await _createSpecimen2(db);
 
     let dateSpec = _toColumnSpec(QueryColumnID.CollectionStartDate, true);
 
@@ -572,8 +534,8 @@ describe('general specimen query', () => {
     records = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.TypeStatus)], null, 0, 10);
     expect(records).toEqual([
-      { collectionStartDate: startDate1, typeStatus: baseSource.typeStatus },
-      { collectionStartDate: startDate2, typeStatus: source2.typeStatus }
+      { collectionStartDate: startDate1, typeStatus: specimen1!.typeStatus },
+      { collectionStartDate: startDate2, typeStatus: specimen2!.typeStatus }
     ]);
 
     // prettier-ignore
@@ -644,6 +606,90 @@ describe('general specimen query', () => {
       { collectionStartDate: startDate2, longitude: specimen2!.publicLongitude }
     ]);
   });
+
+  test('query result order', async () => {
+    await Specimen.dropAll(db);
+    const specimen1 = await _createSpecimen1(db);
+    const specimen2 = await _createSpecimen2(db);
+
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, false)], null, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CollectionEndDate, false)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionEndDate: null },
+      { collectionEndDate: endDate1 }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.TypeStatus, false)], null, 0, 10);
+    expect(records).toEqual([{ typeStatus: 'paratype' }, { typeStatus: 'normal' }]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.SpecimenCount, false)], null, 0, 10);
+    expect(records).toEqual([{ specimenCount: 2 }, { specimenCount: 1 }]);
+
+    const checkColumns = async (
+      columnID: QueryColumnID,
+      ascending: boolean,
+      nameColumn: keyof Specimen,
+      idColumn: keyof Specimen
+    ) => {
+      // prettier-ignore
+      let records = await Specimen.generalQuery(
+        db, [_toColumnSpec(columnID, ascending)], null, 0, 10);
+      const spec1Result = {
+        [nameColumn]: specimen1![nameColumn],
+        [idColumn]: specimen1![idColumn]
+      };
+      const spec2Result = {
+        [nameColumn]: specimen2![nameColumn],
+        [idColumn]: specimen2![idColumn]
+      };
+      expect(records).toEqual([spec2Result, spec1Result]);
+    };
+
+    await checkColumns(QueryColumnID.Phylum, false, 'phylumName', 'phylumID');
+    await checkColumns(QueryColumnID.Class, true, 'className', 'classID');
+    await checkColumns(QueryColumnID.Order, false, 'orderName', 'orderID');
+    await checkColumns(QueryColumnID.Family, false, 'familyName', 'familyID');
+    await checkColumns(QueryColumnID.Genus, false, 'genusName', 'genusID');
+    await checkColumns(QueryColumnID.Species, false, 'speciesName', 'speciesID');
+    await checkColumns(
+      QueryColumnID.Subspecies,
+      true,
+      'subspeciesName',
+      'subspeciesID'
+    );
+
+    await checkColumns(QueryColumnID.County, true, 'countyName', 'countyID');
+    await checkColumns(QueryColumnID.Locality, true, 'localityName', 'localityID');
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.Latitude, false)], null, 0, 10);
+    expect(records).toEqual([
+      { latitude: specimen2!.publicLatitude },
+      { latitude: specimen1!.publicLatitude }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.Longitude, true)], null, 0, 10);
+    expect(records).toEqual([
+      { longitude: specimen1!.publicLongitude },
+      { longitude: specimen2!.publicLongitude }
+    ]);
+  });
 });
 
 afterAll(async () => {
@@ -672,6 +718,51 @@ async function containsLog(
     }
   }
   return false;
+}
+
+async function _createSpecimen1(db: DB): Promise<Specimen | null> {
+  let endDate1ISO = endDate1.toISOString();
+  let source: SpecimenSource = Object.assign({}, baseSource);
+  source.catalogNumber = 'Q1';
+  source.occurrenceID = 'GQ1';
+  source.startDate = startDate1.toISOString();
+  source.collectionRemarks =
+    'cave; *end date ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
+  return await Specimen.create(db, source);
+}
+
+async function _createSpecimen2(db: DB): Promise<Specimen | null> {
+  let source2 = {
+    catalogNumber: 'Q2',
+    occurrenceID: 'GQ2',
+
+    kingdom: 'Animalia',
+    phylum: 'Chordata',
+    class: 'Amphibia',
+    order: 'Urodela',
+    family: 'Plethodontidae',
+    genus: 'Eurycea',
+    specificEpithet: 'rathbuni',
+    infraspecificEpithet: 'madeup',
+    scientificName: 'Eurycea rathbuni madeup, 2000',
+
+    continent: 'North America',
+    country: 'United States',
+    stateProvince: 'Texas',
+    county: 'Bastrop County',
+    locality: 'Bastrop State Park',
+    decimalLatitude: '24.00',
+    decimalLongitude: '-92.00',
+
+    startDate: startDate2.toISOString(),
+    collectors: 'Person X',
+    determinationDate: detDate2.toISOString(),
+    collectionRemarks: '*end date foo',
+    determiners: 'Person Y',
+    typeStatus: 'paratype',
+    organismQuantity: '2'
+  };
+  return await Specimen.create(db, source2);
 }
 
 async function _getLocationByID(db: DB, locationID: number): Promise<Location | null> {
