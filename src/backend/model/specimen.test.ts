@@ -894,6 +894,37 @@ describe('general specimen query', () => {
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 1, 1);
     expect(records).toEqual([{ catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }]);
   });
+
+  test('combined criteria query', async () => {
+    await Specimen.dropAll(db);
+    await _createSpecimen1(db);
+    await _createSpecimen1(db);
+    const specimen2 = await _createSpecimen2(db);
+    const specimen3 = await _createSpecimen3(db);
+
+    let taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: [specimen2!.orderID!],
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: [specimen3!.speciesID!],
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [
+        _toColumnSpec(QueryColumnID.CatalogNumber, true),
+        _toColumnSpec(QueryColumnID.CollectionRemarks, null, false)
+      ], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      {
+        catalogNumber: 'Q3',
+        occurrenceGuid: 'GQ3',
+        collectionRemarks: specimen3?.collectionRemarks
+      }
+    ]);
+  });
 });
 
 afterAll(async () => {
@@ -994,6 +1025,7 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
 
     startDate: startDate.toISOString(),
     collectors: 'Some One',
+    collectionRemarks: 'had fun!',
     determinationDate: detDate.toISOString(),
     determiners: 'Person A',
     typeStatus: 'normal',
