@@ -21,8 +21,8 @@
       route: '/effort'
     },
     {
-      label: 'Data',
-      route: '/data'
+      label: 'Query',
+      route: '/query'
     }
   ];
 </script>

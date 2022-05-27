@@ -13,7 +13,7 @@
   import Welcome from './routes/Welcome.svelte';
   import Taxa from './routes/Taxa.svelte';
   import Locations from './routes/Locations.svelte';
-  import Data from './routes/Data.svelte';
+  import Query from './routes/Query.svelte';
   import Effort from './routes/Effort.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
@@ -31,7 +31,7 @@
     '/': Welcome,
     '/taxa': Taxa,
     '/locations': Locations,
-    '/data': Data,
+    '/query': Query,
     '/effort': Effort,
 
     '/admin/users': Users,
