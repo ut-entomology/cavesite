@@ -165,7 +165,7 @@ create table specimens (
 
     county_name text,
     county_id integer references locations,
-    locality_name text,
+    locality_name text not null,
     public_latitude float8,
     public_longitude float8
 );
