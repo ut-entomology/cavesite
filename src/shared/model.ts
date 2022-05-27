@@ -25,15 +25,6 @@ export interface TaxonSpec {
   hasChildren: boolean | null; // null => count unknown
 }
 
-export interface TaxonFilter {
-  phylumIDs: number[] | null;
-  classIDs: number[] | null;
-  orderIDs: number[] | null;
-  familyIDs: number[] | null;
-  genusIDs: number[] | null;
-  speciesIDs: number[] | null;
-}
-
 export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
   const containingSpecs: TaxonSpec[] = [];
   let containingNames: string[] = [];

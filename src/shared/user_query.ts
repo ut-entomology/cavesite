@@ -98,3 +98,13 @@ export interface QueryRecord {
   publicLatitude?: number | null;
   publicLongitude?: number | null;
 }
+
+export interface QueryTaxonFilter {
+  phylumIDs: number[] | null;
+  classIDs: number[] | null;
+  orderIDs: number[] | null;
+  familyIDs: number[] | null;
+  genusIDs: number[] | null;
+  speciesIDs: number[] | null;
+  subspeciesIDs: number[] | null;
+}

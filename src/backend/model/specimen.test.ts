@@ -2,7 +2,11 @@ import type { DB } from '../integrations/postgres';
 import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { type SpecimenSource, Specimen } from './specimen';
-import { type QueryColumnSpec, QueryColumnID } from '../../shared/user_query';
+import {
+  type QueryColumnSpec,
+  QueryColumnID,
+  QueryTaxonFilter
+} from '../../shared/user_query';
 import { Location } from './location';
 import { Taxon } from './taxon';
 import { Logs, LogType } from './logs';
@@ -727,6 +731,144 @@ describe('general specimen query', () => {
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 }
     ]);
   });
+
+  test('query with taxa constraints', async () => {
+    await Specimen.dropAll(db);
+    const specimen1 = await _createSpecimen1(db);
+    const specimen2 = await _createSpecimen2(db);
+    const specimen3 = await _createSpecimen3(db);
+
+    let taxonFilter: QueryTaxonFilter = {
+      phylumIDs: [specimen2!.phylumID!],
+      classIDs: null,
+      orderIDs: null,
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: null,
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: [specimen1!.classID!],
+      orderIDs: null,
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: null,
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
+      { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
+    ]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: [specimen1!.orderID!, specimen2!.orderID!],
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: null,
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
+      { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
+    ]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: null,
+      familyIDs: [specimen1!.familyID!],
+      genusIDs: null,
+      speciesIDs: null,
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
+      { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
+    ]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: null,
+      familyIDs: null,
+      genusIDs: [specimen1!.genusID!, specimen2!.genusID!],
+      speciesIDs: null,
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }
+    ]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: null,
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: [specimen2!.speciesID!, specimen3!.speciesID!],
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
+      { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
+    ]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: null,
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: null,
+      subspeciesIDs: [specimen2!.subspeciesID!]
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+
+    taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: [specimen2!.orderID!],
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: [specimen3!.speciesID!],
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
+      { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
+    ]);
+  });
 });
 
 afterAll(async () => {
@@ -758,8 +900,8 @@ async function containsLog(
 }
 
 async function _createSpecimen1(db: DB): Promise<Specimen | null> {
-  let endDate1ISO = endDate1.toISOString();
-  let source: SpecimenSource = Object.assign({}, baseSource);
+  const endDate1ISO = endDate1.toISOString();
+  const source: SpecimenSource = Object.assign({}, baseSource);
   source.catalogNumber = 'Q1';
   source.occurrenceID = 'GQ1';
   source.startDate = startDate1.toISOString();
@@ -769,7 +911,7 @@ async function _createSpecimen1(db: DB): Promise<Specimen | null> {
 }
 
 async function _createSpecimen2(db: DB): Promise<Specimen | null> {
-  let source2 = {
+  const source2 = {
     catalogNumber: 'Q2',
     occurrenceID: 'GQ2',
 
@@ -800,6 +942,39 @@ async function _createSpecimen2(db: DB): Promise<Specimen | null> {
     organismQuantity: '2'
   };
   return await Specimen.create(db, source2);
+}
+
+async function _createSpecimen3(db: DB): Promise<Specimen | null> {
+  const source3 = {
+    catalogNumber: 'Q3',
+    occurrenceID: 'GQ3',
+
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Araneidae',
+    genus: 'Gea',
+    specificEpithet: 'heptagon',
+    // no infraspecificEpithet
+    scientificName: 'Gea heptagon (Hentz 1850)',
+
+    continent: 'North America',
+    country: 'United States',
+    stateProvince: 'Texas',
+    county: 'Travis County',
+    locality: 'Wildflower Center',
+    decimalLatitude: '20.2',
+    decimalLongitude: '-90.9',
+
+    startDate: startDate.toISOString(),
+    collectors: 'Some One',
+    determinationDate: detDate.toISOString(),
+    determiners: 'Person A',
+    typeStatus: 'normal',
+    organismQuantity: '3'
+  };
+  return await Specimen.create(db, source3);
 }
 
 async function _getLocationByID(db: DB, locationID: number): Promise<Location | null> {

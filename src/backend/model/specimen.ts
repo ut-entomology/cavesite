@@ -12,11 +12,12 @@ import { Taxon } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
-import { TaxonFilter, locationRanks } from '../../shared/model';
+import { locationRanks } from '../../shared/model';
 import { BadDataError } from '../util/error_util';
 import {
   QueryColumnID,
   type QueryColumnSpec,
+  type QueryTaxonFilter,
   type QueryRecord
 } from '../../shared/user_query';
 
@@ -524,7 +525,7 @@ export class Specimen {
   static async generalQuery(
     db: DB,
     columnSpecs: QueryColumnSpec[],
-    taxonFilter: TaxonFilter | null,
+    taxonFilter: QueryTaxonFilter | null,
     skip: number,
     limit: number
   ): Promise<QueryRecord[]> {
@@ -560,6 +561,7 @@ export class Specimen {
       }
     }
 
+    let taxaConditionsPrefix = '';
     let taxaConditions: string[] = [];
     if (taxonFilter !== null) {
       _collectInIntegerList(taxaConditions, 'phylum_id', taxonFilter.phylumIDs);
@@ -568,12 +570,16 @@ export class Specimen {
       _collectInIntegerList(taxaConditions, 'family_id', taxonFilter.familyIDs);
       _collectInIntegerList(taxaConditions, 'genus_id', taxonFilter.genusIDs);
       _collectInIntegerList(taxaConditions, 'species_id', taxonFilter.speciesIDs);
+      _collectInIntegerList(taxaConditions, 'subspecies_id', taxonFilter.subspeciesIDs);
+      if (nullChecks.length > 0) taxaConditionsPrefix = ' and ';
     }
 
     let whereClause = '';
     if (nullChecks.length > 0 || taxaConditions.length > 0) {
       whereClause = `where ${nullChecks.join(' and ')}${
-        taxaConditions.length == 0 ? '' : ' and ' + taxaConditions.join(' or ')
+        taxaConditions.length == 0
+          ? ''
+          : taxaConditionsPrefix + taxaConditions.join(' or ')
       }`;
     }
 
@@ -664,6 +670,6 @@ function _collectInIntegerList(
     if (!INTEGER_LIST_CHARS_REGEX.test(integerListStr)) {
       throw new BadDataError('Invalid integer characters');
     }
-    conditionals.push(`${columnName} in [${integerListStr}]`);
+    conditionals.push(`${columnName} in (${integerListStr})`);
   }
 }
