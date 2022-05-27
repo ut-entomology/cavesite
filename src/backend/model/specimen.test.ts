@@ -869,6 +869,31 @@ describe('general specimen query', () => {
       { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
     ]);
   });
+
+  test('batch queries of filtered results', async () => {
+    await Specimen.dropAll(db);
+    await _createSpecimen1(db);
+    const specimen2 = await _createSpecimen2(db);
+    const specimen3 = await _createSpecimen3(db);
+
+    let taxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: [specimen2!.orderID!],
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: [specimen3!.speciesID!],
+      subspeciesIDs: null
+    };
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 1);
+    expect(records).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 1, 1);
+    expect(records).toEqual([{ catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }]);
+  });
 });
 
 afterAll(async () => {
