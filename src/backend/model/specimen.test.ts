@@ -690,6 +690,43 @@ describe('general specimen query', () => {
       { longitude: specimen2!.publicLongitude }
     ]);
   });
+
+  test('query based on whether columns are blank', async () => {
+    await Specimen.dropAll(db);
+    await _createSpecimen1(db);
+    await _createSpecimen2(db);
+
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [
+        _toColumnSpec(QueryColumnID.CatalogNumber),
+        _toColumnSpec(QueryColumnID.CollectionEndDate, true)
+      ], null, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 },
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [
+        _toColumnSpec(QueryColumnID.CatalogNumber),
+        _toColumnSpec(QueryColumnID.CollectionEndDate, null, true)
+      ], null, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [
+        _toColumnSpec(QueryColumnID.CatalogNumber),
+        _toColumnSpec(QueryColumnID.CollectionEndDate, null, false)
+      ], null, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 }
+    ]);
+  });
 });
 
 afterAll(async () => {
