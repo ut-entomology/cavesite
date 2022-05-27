@@ -1,7 +1,8 @@
 import type { DB } from '../integrations/postgres';
 import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
-import { Specimen } from './specimen';
+import { type SpecimenSource, Specimen } from './specimen';
+import { type QueryColumnSpec, QueryColumnID } from '../../shared/user_query';
 import { Location } from './location';
 import { Taxon } from './taxon';
 import { Logs, LogType } from './logs';
@@ -52,380 +53,597 @@ beforeAll(async () => {
   db = await mutex.lock();
 });
 
-test('missing catalog number', async () => {
-  {
-    const source = Object.assign({}, baseSource);
-    source.catalogNumber = '';
-    expect(await Specimen.create(db, source)).toBeNull();
-    let found = await containsLog(
-      db,
-      'NO CATALOG NUMBER',
-      'Missing catalog number',
-      true
-    );
-    expect(found).toEqual(true);
-  }
-  {
+describe('basic specimen methods', () => {
+  test('missing catalog number', async () => {
+    {
+      const source = Object.assign({}, baseSource);
+      source.catalogNumber = '';
+      expect(await Specimen.create(db, source)).toBeNull();
+      let found = await containsLog(
+        db,
+        'NO CATALOG NUMBER',
+        'Missing catalog number',
+        true
+      );
+      expect(found).toEqual(true);
+    }
+    {
+      const source = Object.assign({}, baseSource);
+      // @ts-ignore
+      source.catalogNumber = undefined;
+      expect(await Specimen.create(db, source)).toBeNull();
+      let found = await containsLog(
+        db,
+        'NO CATALOG NUMBER',
+        'Missing catalog number',
+        true
+      );
+      expect(found).toEqual(true);
+    }
+  });
+
+  test('creating a fully-specified specimen', async () => {
+    // test creating a fully-specified specimen
+
+    {
+      const specimen = await Specimen.create(db, baseSource);
+      expect(specimen).toEqual({
+        catalogNumber: baseSource.catalogNumber,
+        occurrenceGuid: baseSource.occurrenceID,
+        taxonID: 7,
+        localityID: 5,
+        collectionStartDate: startDate,
+        collectionEndDate: endDate,
+        collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
+        normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
+        determinationYear: detDate.getUTCFullYear(),
+        determiners: 'Person A|Person B',
+        collectionRemarks: 'meadow',
+        occurrenceRemarks: baseSource.occurrenceRemarks,
+        determinationRemarks: baseSource.determinationRemarks,
+        typeStatus: baseSource.typeStatus,
+        specimenCount: 1,
+        problems: null,
+        kingdomName: 'Animalia',
+        kingdomID: 1,
+        phylumName: 'Arthropoda',
+        phylumID: 2,
+        className: 'Arachnida',
+        classID: 3,
+        orderName: 'Araneae',
+        orderID: 4,
+        familyName: 'Araneidae',
+        familyID: 5,
+        genusName: 'Argiope',
+        genusID: 6,
+        speciesName: 'aurantia',
+        speciesID: 7,
+        subspeciesName: null,
+        subspeciesID: null,
+        taxonUnique: 'Argiope aurantia',
+        taxonAuthor: 'Lucas, 1833',
+        countyName: 'Travis County',
+        countyID: 4,
+        localityName: 'My backyard',
+        publicLatitude: 23.45,
+        publicLongitude: -93.21
+      });
+      expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
+      expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
+      expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
+      expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aurantia');
+      expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
+      expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
+      expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
+
+      const readSpecimen = await Specimen.getByCatNum(
+        db,
+        baseSource.catalogNumber,
+        false
+      );
+      expect(readSpecimen).toEqual(specimen);
+    }
+
+    // test creating a partially-specified specimen in existing hierarchy
+
+    {
+      const source = {
+        catalogNumber: 'C2',
+        occurrenceID: 'X2',
+
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        order: 'Araneae',
+        family: 'Thomisidae',
+        scientificName: 'Thomisidae',
+
+        continent: 'North America',
+        country: 'United States',
+        stateProvince: 'Texas',
+        locality: 'Their backyard',
+
+        startDate: startDate.toISOString(),
+        collectors: 'Any Body',
+        determiners: 'Person C'
+      };
+      const specimen = await Specimen.create(db, source);
+      expect(specimen).toEqual({
+        catalogNumber: source.catalogNumber,
+        occurrenceGuid: source.occurrenceID,
+        taxonID: 8,
+        localityID: 6,
+        collectionStartDate: startDate,
+        collectionEndDate: null,
+        collectors: 'Any Body',
+        normalizedCollectors: 'body',
+        determinationYear: null,
+        determiners: 'Person C',
+        collectionRemarks: null,
+        occurrenceRemarks: null,
+        determinationRemarks: null,
+        typeStatus: null,
+        specimenCount: null,
+        problems: null,
+        kingdomName: 'Animalia',
+        kingdomID: 1,
+        phylumName: 'Arthropoda',
+        phylumID: 2,
+        className: 'Arachnida',
+        classID: 3,
+        orderName: 'Araneae',
+        orderID: 4,
+        familyName: 'Thomisidae',
+        familyID: 8,
+        genusName: null,
+        genusID: null,
+        speciesName: null,
+        speciesID: null,
+        subspeciesName: null,
+        subspeciesID: null,
+        taxonUnique: 'Thomisidae',
+        taxonAuthor: null,
+        countyName: null,
+        countyID: null,
+        localityName: 'Their backyard',
+        publicLatitude: null,
+        publicLongitude: null
+      });
+      expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
+      expect((await _getLocationByID(db, 6))?.locationName).toEqual('Their backyard');
+    }
+
+    // test committing specimens
+
+    {
+      let specimen = await Specimen.getByCatNum(db, 'C1', true);
+      expect(specimen).toBeNull();
+
+      await Specimen.commit(db);
+
+      specimen = await Specimen.getByCatNum(db, 'C1', true);
+      expect(specimen?.catalogNumber).toEqual('C1');
+    }
+
+    // test replacing existing records
+
+    {
+      let source = Object.assign({}, baseSource);
+      source.organismQuantity = '50';
+      await Specimen.create(db, source);
+      let specimen = await Specimen.getByCatNum(db, 'C1', true);
+      expect(specimen?.specimenCount).not.toEqual(50);
+
+      source = Object.assign({}, baseSource);
+      source.catalogNumber = 'C100';
+      source.occurrenceID = 'X100';
+      await Specimen.create(db, source);
+      specimen = await Specimen.getByCatNum(db, 'C100', true);
+      expect(specimen).toBeNull();
+
+      await Specimen.commit(db);
+
+      specimen = await Specimen.getByCatNum(db, 'C1', true);
+      expect(specimen?.specimenCount).toEqual(50);
+      specimen = await Specimen.getByCatNum(db, 'C100', true);
+      expect(specimen?.occurrenceGuid).toEqual('X100');
+      specimen = await Specimen.getByCatNum(db, 'C2', true);
+      expect(specimen).toBeNull();
+    }
+
+    // Test specimen with invalid taxon
+
+    {
+      let source = Object.assign({}, baseSource);
+      source.catalogNumber = 'C101';
+      source.occurrenceID = 'X101';
+      // @ts-ignore
+      source.order = undefined;
+
+      await clearLogs(db);
+      const specimen = await Specimen.create(db, source);
+      expect(specimen).toBeNull();
+
+      let found = await containsLog(
+        db,
+        source.catalogNumber,
+        'Family given without order',
+        true
+      );
+      expect(found).toEqual(true);
+    }
+
+    // Test specimen with invalid location
+
+    {
+      let source = Object.assign({}, baseSource);
+      source.catalogNumber = 'C101';
+      source.occurrenceID = 'X101';
+      // @ts-ignore
+      source.locality = undefined;
+
+      await clearLogs(db);
+      const specimen = await Specimen.create(db, source);
+      expect(specimen).toBeNull();
+
+      let found = await containsLog(
+        db,
+        source.catalogNumber,
+        'Locality name not given',
+        true
+      );
+      expect(found).toEqual(true);
+    }
+  });
+
+  test('bad end date', async () => {
     const source = Object.assign({}, baseSource);
     // @ts-ignore
-    source.catalogNumber = undefined;
-    expect(await Specimen.create(db, source)).toBeNull();
+    source.catalogNumber = 'C3';
+    source.occurrenceID = 'X3';
+    source.collectionRemarks = '*end date foo';
+
+    await clearLogs(db);
+    const specimen = await Specimen.create(db, source);
+    expect(specimen?.problems).toContain('end date syntax');
+    let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
+    expect(found).toEqual(true);
+
+    // make sure problem was written to the database
+    const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
+    expect(readSpecimen).toEqual(specimen);
+  });
+
+  test('end date but no start date', async () => {
+    {
+      const source = Object.assign({}, baseSource);
+      source.catalogNumber = 'C4';
+      source.occurrenceID = 'X4';
+      source.startDate = '';
+
+      await clearLogs(db);
+      const specimen = await Specimen.create(db, source);
+      expect(specimen?.problems).toContain('no start date');
+      let found = await containsLog(db, source.catalogNumber, 'no start date', false);
+      expect(found).toEqual(true);
+    }
+    {
+      const source = Object.assign({}, baseSource);
+      source.catalogNumber = 'C5';
+      source.occurrenceID = 'X5';
+      // @ts-ignore
+      source.startDate = undefined;
+
+      await clearLogs(db);
+      const specimen = await Specimen.create(db, source);
+      expect(specimen?.problems).toContain('no start date');
+      let found = await containsLog(db, source.catalogNumber, 'no start date', false);
+      expect(found).toEqual(true);
+    }
+  });
+
+  test('start date follows end date', async () => {
+    const startDateISO = startDate.toISOString();
+    const source = Object.assign({}, baseSource);
+    // @ts-ignore
+    source.catalogNumber = 'C6';
+    source.occurrenceID = 'X6';
+    source.startDate = endDate.toISOString();
+    source.collectionRemarks =
+      '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
+
+    await clearLogs(db);
+    const specimen = await Specimen.create(db, source);
+    expect(specimen?.problems).toContain('Start date follows end date');
     let found = await containsLog(
       db,
-      'NO CATALOG NUMBER',
-      'Missing catalog number',
-      true
-    );
-    expect(found).toEqual(true);
-  }
-});
-
-test('creating a fully-specified specimen', async () => {
-  // test creating a fully-specified specimen
-
-  {
-    const specimen = await Specimen.create(db, baseSource);
-    expect(specimen).toEqual({
-      catalogNumber: baseSource.catalogNumber,
-      occurrenceGuid: baseSource.occurrenceID,
-      taxonID: 7,
-      localityID: 5,
-      collectionStartDate: startDate,
-      collectionEndDate: endDate,
-      collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
-      normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
-      determinationYear: detDate.getUTCFullYear(),
-      determiners: 'Person A|Person B',
-      collectionRemarks: 'meadow',
-      occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: baseSource.determinationRemarks,
-      typeStatus: baseSource.typeStatus,
-      specimenCount: 1,
-      problems: null,
-      kingdomName: 'Animalia',
-      kingdomID: 1,
-      phylumName: 'Arthropoda',
-      phylumID: 2,
-      className: 'Arachnida',
-      classID: 3,
-      orderName: 'Araneae',
-      orderID: 4,
-      familyName: 'Araneidae',
-      familyID: 5,
-      genusName: 'Argiope',
-      genusID: 6,
-      speciesName: 'aurantia',
-      speciesID: 7,
-      subspeciesName: null,
-      subspeciesID: null,
-      taxonUnique: 'Argiope aurantia',
-      taxonAuthor: 'Lucas, 1833',
-      countyName: 'Travis County',
-      countyID: 4,
-      localityName: 'My backyard',
-      publicLatitude: 23.45,
-      publicLongitude: -93.21
-    });
-    expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
-    expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
-    expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
-    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aurantia');
-    expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
-    expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
-    expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
-
-    const readSpecimen = await Specimen.getByCatNum(
-      db,
-      baseSource.catalogNumber,
+      source.catalogNumber,
+      'Start date follows end date',
       false
     );
+    expect(found).toEqual(true);
+  });
+
+  test('partial determination dates', async () => {
+    let source = Object.assign({}, baseSource);
+    source.catalogNumber = 'DET1';
+    source.determinationDate = '1985';
+    await Specimen.create(db, source);
+
+    source = Object.assign({}, baseSource);
+    source.catalogNumber = 'DET2';
+    source.determinationDate = '00/00/1999';
+    await Specimen.create(db, source);
+
+    source = Object.assign({}, baseSource);
+    source.catalogNumber = 'DET3';
+    source.determinationDate = '01-00-2001';
+    await Specimen.create(db, source);
+
+    await Specimen.commit(db);
+
+    let specimen = await Specimen.getByCatNum(db, 'DET1', true);
+    expect(specimen?.determinationYear).toEqual(1985);
+    specimen = await Specimen.getByCatNum(db, 'DET2', true);
+    expect(specimen?.determinationYear).toEqual(1999);
+    specimen = await Specimen.getByCatNum(db, 'DET3', true);
+    expect(specimen?.determinationYear).toEqual(2001);
+  });
+
+  test('bad specimen count', async () => {
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C7';
+    source.occurrenceID = 'X7';
+    source.organismQuantity = 'foo';
+
+    await clearLogs(db);
+    const specimen = await Specimen.create(db, source);
+    expect(specimen?.problems).toContain('Invalid specimen count');
+    let found = await containsLog(
+      db,
+      source.catalogNumber,
+      'Invalid specimen count',
+      false
+    );
+    expect(found).toEqual(true);
+  });
+
+  test('multiple problems with specimen', async () => {
+    const source = Object.assign({}, baseSource);
+    // @ts-ignore
+    source.catalogNumber = 'C10';
+    source.occurrenceID = 'X10';
+    source.collectionRemarks = '*end date foo';
+    source.organismQuantity = 'foo';
+
+    await clearLogs(db);
+    const specimen = await Specimen.create(db, source);
+    expect(specimen?.problems).toContain('end date syntax');
+    expect(specimen?.problems).toContain('Invalid specimen count');
+    let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
+    expect(found).toEqual(true);
+    found = await containsLog(
+      db,
+      source.catalogNumber,
+      'Invalid specimen count',
+      false
+    );
+    expect(found).toEqual(true);
+
+    // make sure problem was written to the database
+    const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
     expect(readSpecimen).toEqual(specimen);
-  }
+  });
+});
 
-  // test creating a partially-specified specimen in existing hierarchy
+describe('general specimen query', () => {
+  test('querying for single columns', async () => {
+    await Specimen.dropAll(db);
 
-  {
-    const source = {
-      catalogNumber: 'C2',
-      occurrenceID: 'X2',
+    let startDate1 = toLocalDate(new Date('2021-01-01'));
+    let endDate1 = toLocalDate(new Date('2021-01-02'));
+    let endDate1ISO = endDate1.toISOString();
+    let source: SpecimenSource = Object.assign({}, baseSource);
+    source.catalogNumber = 'Q1';
+    source.occurrenceID = 'GQ1';
+    source.startDate = startDate1.toISOString();
+    source.collectionRemarks =
+      'cave; *end date ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
+    let specimen1 = await Specimen.create(db, source);
+
+    let startDate2 = toLocalDate(new Date('2021-01-04'));
+    let detDate2 = toLocalDate(new Date('2022-01-01'));
+    let source2 = {
+      catalogNumber: 'Q2',
+      occurrenceID: 'GQ2',
 
       kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Thomisidae',
-      scientificName: 'Thomisidae',
+      phylum: 'Chordata',
+      class: 'Amphibia',
+      order: 'Urodela',
+      family: 'Plethodontidae',
+      genus: 'Eurycea',
+      specificEpithet: 'rathbuni',
+      infraspecificEpithet: 'madeup',
+      scientificName: 'Eurycea rathbuni madeup, 2000',
 
       continent: 'North America',
       country: 'United States',
       stateProvince: 'Texas',
-      locality: 'Their backyard',
+      county: 'Bastrop County',
+      locality: 'Bastrop State Park',
+      decimalLatitude: '24.00',
+      decimalLongitude: '-92.00',
 
-      startDate: startDate.toISOString(),
-      collectors: 'Any Body',
-      determiners: 'Person C'
+      startDate: startDate2.toISOString(),
+      collectors: 'Person X',
+      determinationDate: detDate2.toISOString(),
+      collectionRemarks: '*end date foo',
+      determiners: 'Person Y',
+      typeStatus: 'paratype',
+      organismQuantity: '2'
     };
-    const specimen = await Specimen.create(db, source);
-    expect(specimen).toEqual({
-      catalogNumber: source.catalogNumber,
-      occurrenceGuid: source.occurrenceID,
-      taxonID: 8,
-      localityID: 6,
-      collectionStartDate: startDate,
-      collectionEndDate: null,
-      collectors: 'Any Body',
-      normalizedCollectors: 'body',
-      determinationYear: null,
-      determiners: 'Person C',
-      collectionRemarks: null,
-      occurrenceRemarks: null,
-      determinationRemarks: null,
-      typeStatus: null,
-      specimenCount: null,
-      problems: null,
-      kingdomName: 'Animalia',
-      kingdomID: 1,
-      phylumName: 'Arthropoda',
-      phylumID: 2,
-      className: 'Arachnida',
-      classID: 3,
-      orderName: 'Araneae',
-      orderID: 4,
-      familyName: 'Thomisidae',
-      familyID: 8,
-      genusName: null,
-      genusID: null,
-      speciesName: null,
-      speciesID: null,
-      subspeciesName: null,
-      subspeciesID: null,
-      taxonUnique: 'Thomisidae',
-      taxonAuthor: null,
-      countyName: null,
-      countyID: null,
-      localityName: 'Their backyard',
-      publicLatitude: null,
-      publicLongitude: null
-    });
-    expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
-    expect((await _getLocationByID(db, 6))?.locationName).toEqual('Their backyard');
-  }
+    let specimen2 = await Specimen.create(db, source2);
 
-  // test committing specimens
+    let dateSpec = _toColumnSpec(QueryColumnID.CollectionStartDate, true);
 
-  {
-    let specimen = await Specimen.getByCatNum(db, 'C1', true);
-    expect(specimen).toBeNull();
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.CatalogNumber)], null, 0, 10);
+    expect(records).toEqual([
+      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionStartDate: startDate1 },
+      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionStartDate: startDate2 }
+    ]);
 
-    await Specimen.commit(db);
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1 },
+      { collectionStartDate: startDate2 }
+    ]);
 
-    specimen = await Specimen.getByCatNum(db, 'C1', true);
-    expect(specimen?.catalogNumber).toEqual('C1');
-  }
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionEndDate)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, collectionEndDate: endDate1 },
+      { collectionStartDate: startDate2, collectionEndDate: null }
+    ]);
 
-  // test replacing existing records
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.Collectors)], null, 0, 10);
+    expect(records).toEqual([
+      {
+        collectionStartDate: startDate1,
+        collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.'
+      },
+      { collectionStartDate: startDate2, collectors: 'Person X' }
+    ]);
 
-  {
-    let source = Object.assign({}, baseSource);
-    source.organismQuantity = '50';
-    await Specimen.create(db, source);
-    let specimen = await Specimen.getByCatNum(db, 'C1', true);
-    expect(specimen?.specimenCount).not.toEqual(50);
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.Determiners)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, determiners: 'Person A|Person B' },
+      { collectionStartDate: startDate2, determiners: 'Person Y' }
+    ]);
 
-    source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C100';
-    source.occurrenceID = 'X100';
-    await Specimen.create(db, source);
-    specimen = await Specimen.getByCatNum(db, 'C100', true);
-    expect(specimen).toBeNull();
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationYear)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, determinationYear: detDate.getFullYear() },
+      { collectionStartDate: startDate2, determinationYear: detDate2.getFullYear() }
+    ]);
 
-    await Specimen.commit(db);
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionRemarks)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, collectionRemarks: 'cave' },
+      { collectionStartDate: startDate2, collectionRemarks: null }
+    ]);
 
-    specimen = await Specimen.getByCatNum(db, 'C1', true);
-    expect(specimen?.specimenCount).toEqual(50);
-    specimen = await Specimen.getByCatNum(db, 'C100', true);
-    expect(specimen?.occurrenceGuid).toEqual('X100');
-    specimen = await Specimen.getByCatNum(db, 'C2', true);
-    expect(specimen).toBeNull();
-  }
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.OccurrenceRemarks)], null, 0, 10);
+    expect(records).toEqual([
+      {
+        collectionStartDate: startDate1,
+        occurrenceRemarks: baseSource.occurrenceRemarks
+      },
+      { collectionStartDate: startDate2, occurrenceRemarks: null }
+    ]);
 
-  // Test specimen with invalid taxon
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationRemarks)], null, 0, 10);
+    expect(records).toEqual([
+      {
+        collectionStartDate: startDate1,
+        determinationRemarks: baseSource.determinationRemarks
+      },
+      { collectionStartDate: startDate2, determinationRemarks: null }
+    ]);
 
-  {
-    let source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C101';
-    source.occurrenceID = 'X101';
-    // @ts-ignore
-    source.order = undefined;
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.TypeStatus)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, typeStatus: baseSource.typeStatus },
+      { collectionStartDate: startDate2, typeStatus: source2.typeStatus }
+    ]);
 
-    await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
-    expect(specimen).toBeNull();
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.SpecimenCount)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, specimenCount: 1 },
+      { collectionStartDate: startDate2, specimenCount: 2 }
+    ]);
 
-    let found = await containsLog(
-      db,
-      source.catalogNumber,
-      'Family given without order',
-      true
-    );
-    expect(found).toEqual(true);
-  }
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.Problems)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, problems: null },
+      {
+        collectionStartDate: startDate2,
+        problems: 'Invalid end date syntax in event remarks; assuming no end date'
+      }
+    ]);
 
-  // Test specimen with invalid location
+    const checkColumns = async (
+      columnID: QueryColumnID,
+      nameColumn: keyof Specimen,
+      idColumn: keyof Specimen
+    ) => {
+      // prettier-ignore
+      let records = await Specimen.generalQuery(
+        db, [dateSpec, _toColumnSpec(columnID)], null, 0, 10);
+      expect(records).toEqual([
+        {
+          collectionStartDate: startDate1,
+          [nameColumn]: specimen1![nameColumn],
+          [idColumn]: specimen1![idColumn]
+        },
+        {
+          collectionStartDate: startDate2,
+          [nameColumn]: specimen2![nameColumn],
+          [idColumn]: specimen2![idColumn]
+        }
+      ]);
+    };
 
-  {
-    let source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C101';
-    source.occurrenceID = 'X101';
-    // @ts-ignore
-    source.locality = undefined;
+    await checkColumns(QueryColumnID.Phylum, 'phylumName', 'phylumID');
+    await checkColumns(QueryColumnID.Class, 'className', 'classID');
+    await checkColumns(QueryColumnID.Order, 'orderName', 'orderID');
+    await checkColumns(QueryColumnID.Family, 'familyName', 'familyID');
+    await checkColumns(QueryColumnID.Genus, 'genusName', 'genusID');
+    await checkColumns(QueryColumnID.Species, 'speciesName', 'speciesID');
+    await checkColumns(QueryColumnID.Subspecies, 'subspeciesName', 'subspeciesID');
 
-    await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
-    expect(specimen).toBeNull();
+    await checkColumns(QueryColumnID.County, 'countyName', 'countyID');
+    await checkColumns(QueryColumnID.Locality, 'localityName', 'localityID');
 
-    let found = await containsLog(
-      db,
-      source.catalogNumber,
-      'Locality name not given',
-      true
-    );
-    expect(found).toEqual(true);
-  }
-});
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.Latitude)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, latitude: specimen1!.publicLatitude },
+      { collectionStartDate: startDate2, latitude: specimen2!.publicLatitude }
+    ]);
 
-test('bad end date', async () => {
-  const source = Object.assign({}, baseSource);
-  // @ts-ignore
-  source.catalogNumber = 'C3';
-  source.occurrenceID = 'X3';
-  source.collectionRemarks = '*end date foo';
-
-  await clearLogs(db);
-  const specimen = await Specimen.create(db, source);
-  expect(specimen?.problems).toContain('end date syntax');
-  let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
-  expect(found).toEqual(true);
-
-  // make sure problem was written to the database
-  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
-  expect(readSpecimen).toEqual(specimen);
-});
-
-test('end date but no start date', async () => {
-  {
-    const source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C4';
-    source.occurrenceID = 'X4';
-    source.startDate = '';
-
-    await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('no start date');
-    let found = await containsLog(db, source.catalogNumber, 'no start date', false);
-    expect(found).toEqual(true);
-  }
-  {
-    const source = Object.assign({}, baseSource);
-    source.catalogNumber = 'C5';
-    source.occurrenceID = 'X5';
-    // @ts-ignore
-    source.startDate = undefined;
-
-    await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('no start date');
-    let found = await containsLog(db, source.catalogNumber, 'no start date', false);
-    expect(found).toEqual(true);
-  }
-});
-
-test('start date follows end date', async () => {
-  const startDateISO = startDate.toISOString();
-  const source = Object.assign({}, baseSource);
-  // @ts-ignore
-  source.catalogNumber = 'C6';
-  source.occurrenceID = 'X6';
-  source.startDate = endDate.toISOString();
-  source.collectionRemarks =
-    '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
-
-  await clearLogs(db);
-  const specimen = await Specimen.create(db, source);
-  expect(specimen?.problems).toContain('Start date follows end date');
-  let found = await containsLog(
-    db,
-    source.catalogNumber,
-    'Start date follows end date',
-    false
-  );
-  expect(found).toEqual(true);
-});
-
-test('partial determination dates', async () => {
-  let source = Object.assign({}, baseSource);
-  source.catalogNumber = 'DET1';
-  source.determinationDate = '1985';
-  await Specimen.create(db, source);
-
-  source = Object.assign({}, baseSource);
-  source.catalogNumber = 'DET2';
-  source.determinationDate = '00/00/1999';
-  await Specimen.create(db, source);
-
-  source = Object.assign({}, baseSource);
-  source.catalogNumber = 'DET3';
-  source.determinationDate = '01-00-2001';
-  await Specimen.create(db, source);
-
-  await Specimen.commit(db);
-
-  let specimen = await Specimen.getByCatNum(db, 'DET1', true);
-  expect(specimen?.determinationYear).toEqual(1985);
-  specimen = await Specimen.getByCatNum(db, 'DET2', true);
-  expect(specimen?.determinationYear).toEqual(1999);
-  specimen = await Specimen.getByCatNum(db, 'DET3', true);
-  expect(specimen?.determinationYear).toEqual(2001);
-});
-
-test('bad specimen count', async () => {
-  const source = Object.assign({}, baseSource);
-  source.catalogNumber = 'C7';
-  source.occurrenceID = 'X7';
-  source.organismQuantity = 'foo';
-
-  await clearLogs(db);
-  const specimen = await Specimen.create(db, source);
-  expect(specimen?.problems).toContain('Invalid specimen count');
-  let found = await containsLog(
-    db,
-    source.catalogNumber,
-    'Invalid specimen count',
-    false
-  );
-  expect(found).toEqual(true);
-});
-
-test('multiple problems with specimen', async () => {
-  const source = Object.assign({}, baseSource);
-  // @ts-ignore
-  source.catalogNumber = 'C10';
-  source.occurrenceID = 'X10';
-  source.collectionRemarks = '*end date foo';
-  source.organismQuantity = 'foo';
-
-  await clearLogs(db);
-  const specimen = await Specimen.create(db, source);
-  expect(specimen?.problems).toContain('end date syntax');
-  expect(specimen?.problems).toContain('Invalid specimen count');
-  let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
-  expect(found).toEqual(true);
-  found = await containsLog(db, source.catalogNumber, 'Invalid specimen count', false);
-  expect(found).toEqual(true);
-
-  // make sure problem was written to the database
-  const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
-  expect(readSpecimen).toEqual(specimen);
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [dateSpec, _toColumnSpec(QueryColumnID.Longitude)], null, 0, 10);
+    expect(records).toEqual([
+      { collectionStartDate: startDate1, longitude: specimen1!.publicLongitude },
+      { collectionStartDate: startDate2, longitude: specimen2!.publicLongitude }
+    ]);
+  });
 });
 
 afterAll(async () => {
@@ -459,4 +677,12 @@ async function containsLog(
 async function _getLocationByID(db: DB, locationID: number): Promise<Location | null> {
   const locations = await Location.getByIDs(db, [locationID]);
   return locations.length > 0 ? locations[0] : null;
+}
+
+function _toColumnSpec(
+  columnID: QueryColumnID,
+  ascending: boolean | null = null,
+  nullValues: boolean | null = null
+): QueryColumnSpec {
+  return { columnID, ascending, nullValues };
 }

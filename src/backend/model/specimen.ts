@@ -1,7 +1,6 @@
 /**
  * Class representing a vial of specimens all of the same taxon.
  */
-import pgFormat from 'pg-format';
 
 import type { DataOf } from '../../shared/data_of';
 import {
@@ -13,8 +12,13 @@ import { Taxon } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
-import { TaxonFilter, SortColumn, ColumnSort, locationRanks } from '../../shared/model';
+import { TaxonFilter, locationRanks } from '../../shared/model';
 import { BadDataError } from '../util/error_util';
+import {
+  QueryColumnID,
+  type QueryColumnSpec,
+  type QueryRecord
+} from '../../shared/user_query';
 
 export type SpecimenData = DataOf<Specimen>;
 
@@ -22,21 +26,118 @@ const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 
-const sortColumnMap: Record<number, string> = {};
-sortColumnMap[SortColumn.CatalogNumber] = 'catalog_number';
-sortColumnMap[SortColumn.Phylum] = 'phylum_name';
-sortColumnMap[SortColumn.Class] = 'class_name';
-sortColumnMap[SortColumn.Order] = 'order_name';
-sortColumnMap[SortColumn.Family] = 'family_name';
-sortColumnMap[SortColumn.Genus] = 'genus_name';
-sortColumnMap[SortColumn.Species] = 'species_name';
-sortColumnMap[SortColumn.Subspecies] = 'taxon_name';
-sortColumnMap[SortColumn.County] = 'county_name';
-sortColumnMap[SortColumn.Locality] = 'locality_name';
-sortColumnMap[SortColumn.StartDate] = 'collection_start_date';
-sortColumnMap[SortColumn.EndDate] = 'collection_end_date';
-sortColumnMap[SortColumn.TypeStatus] = 'type_status';
-sortColumnMap[SortColumn.SpecimenCount] = 'specimen_count';
+interface ColumnInfo {
+  column1: string;
+  column2?: string;
+  asName?: string;
+  sortable: boolean;
+}
+
+const columnInfoMap: Record<number, ColumnInfo> = [];
+columnInfoMap[QueryColumnID.CatalogNumber] = {
+  column1: 'catalog_number',
+  column2: 'occurrence_guid',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.CollectionStartDate] = {
+  column1: 'collection_start_date',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.CollectionEndDate] = {
+  column1: 'collection_end_date',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Collectors] = {
+  column1: 'collectors',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.Determiners] = {
+  column1: 'determiners',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.DeterminationYear] = {
+  column1: 'determination_year',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.CollectionRemarks] = {
+  column1: 'collection_remarks',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.OccurrenceRemarks] = {
+  column1: 'occurrence_remarks',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.DeterminationRemarks] = {
+  column1: 'determination_remarks',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.TypeStatus] = {
+  column1: 'type_status',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.SpecimenCount] = {
+  column1: 'specimen_count',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Problems] = {
+  column1: 'problems',
+  sortable: false
+};
+columnInfoMap[QueryColumnID.Phylum] = {
+  column1: 'phylum_name',
+  column2: 'phylum_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Class] = {
+  column1: 'class_name',
+  column2: 'class_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Order] = {
+  column1: 'order_name',
+  column2: 'order_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Family] = {
+  column1: 'family_name',
+  column2: 'family_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Genus] = {
+  column1: 'genus_name',
+  column2: 'genus_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Species] = {
+  column1: 'species_name',
+  column2: 'species_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Subspecies] = {
+  column1: 'subspecies_name',
+  column2: 'subspecies_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.County] = {
+  column1: 'county_name',
+  column2: 'county_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Locality] = {
+  column1: 'locality_name',
+  column2: 'locality_id',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Latitude] = {
+  column1: 'public_latitude',
+  asName: 'latitude',
+  sortable: true
+};
+columnInfoMap[QueryColumnID.Longitude] = {
+  column1: 'public_longitude',
+  asName: 'longitude',
+  sortable: true
+};
 
 export interface SpecimenSource {
   // GBIF field names
@@ -237,6 +338,7 @@ export class Specimen {
         collectionRemarks =
           collectionRemarks.substring(0, match.index) +
           collectionRemarks.substring(match.index + match[0].length);
+        if (collectionRemarks == '') collectionRemarks = null;
         if (!END_DATE_REGEX.test(match[1])) {
           problemList.push(
             'Invalid end date syntax in event remarks; assuming no end date'
@@ -402,6 +504,11 @@ export class Specimen {
     return specimen;
   }
 
+  // for use in testing
+  static async dropAll(db: DB) {
+    await db.query('delete from specimens');
+  }
+
   static async getNextBatch(
     db: DB,
     skip: number,
@@ -416,52 +523,70 @@ export class Specimen {
 
   static async generalQuery(
     db: DB,
-    skip: number,
-    limit: number,
+    columnSpecs: QueryColumnSpec[],
     taxonFilter: TaxonFilter | null,
-    columnSorts: ColumnSort[]
-  ): Promise<Specimen[]> {
-    let query = `select s.catalog_number, s.occurrence_guid, t.taxon_rank,
-        t.unique_name as taxon_unique, t.author as taxon_author, t.phylum_name,
-        t.class_name, t.order_name, t.family_name, t.genus_name, t.species_name,
-        t.county_name, l.locality_name, s.collection_start_date,
-        s.collection_end_date, s.collectors, s.determination_year, s.determiners,
-        s.collection_remarks, s.occurrence_remarks, s.determination_remarks,
-        s.type_status, s.specimen_count, s.problems
-      from specimens s join taxa t on t.taxon_id = s.taxon_id %s
-        join locations l on l.location_id = s.locality_id %s
-        limit $1 offset $2`;
+    skip: number,
+    limit: number
+  ): Promise<QueryRecord[]> {
+    const selectedColumns: string[] = [];
+    const nullChecks: string[] = [];
+    const columnOrders: string[] = [];
 
-    let taxaConstraints = '';
-    if (taxonFilter !== null) {
-      let taxaConditions: string[] = [];
-      const taxonIDs: number[] = [];
-      _collectOrInIntList(taxaConditions, 'phylum_id', taxonFilter.phylumIDs, taxonIDs);
-      _collectOrInIntList(taxaConditions, 'class_id', taxonFilter.classIDs, taxonIDs);
-      _collectOrInIntList(taxaConditions, 'order_id', taxonFilter.orderIDs, taxonIDs);
-      _collectOrInIntList(taxaConditions, 'family_id', taxonFilter.familyIDs, taxonIDs);
-      _collectOrInIntList(taxaConditions, 'genus_id', taxonFilter.genusIDs, taxonIDs);
-      _collectOrInIntList(
-        taxaConditions,
-        'species_id',
-        taxonFilter.speciesIDs,
-        taxonIDs
-      );
-      taxaConstraints = `taxon_unique in (${taxonIDs.join(',')})`;
-      if (taxaConditions.length > 0) {
-        taxaConstraints = `${taxaConstraints} or ${taxaConditions.join(' or ')}`;
+    for (const columnSpec of columnSpecs) {
+      const columnInfo = columnInfoMap[columnSpec.columnID];
+      if (columnInfo.asName !== undefined) {
+        selectedColumns.push(`${columnInfo.column1} as ${columnInfo.asName}`);
+      } else {
+        selectedColumns.push(columnInfo.column1);
       }
-      taxaConstraints = `and (${taxaConstraints})`;
+      if (columnInfo.column2 !== undefined) {
+        selectedColumns.push(columnInfo.column2);
+      }
+      if (columnSpec.nullValues !== null) {
+        // postgres won't crash checking for null on non-nullables
+        if (columnSpec.nullValues) {
+          nullChecks.push(columnInfo.column1 + ' is null');
+        } else {
+          nullChecks.push(columnInfo.column1 + ' is not null');
+        }
+      }
+      if (columnSpec.ascending !== null && columnInfo.sortable) {
+        // only sorts on indexed columns to prevent degredation
+        if (columnSpec.ascending) {
+          columnOrders.push(columnInfo.column1);
+        } else {
+          columnOrders.push(columnInfo.column1 + ' desc');
+        }
+      }
     }
 
-    const orderBys =
-      'order by ' +
-      columnSorts
-        .map((sort) => sortColumnMap[sort.column] + (sort.ascending ? '' : ' desc'))
-        .join(',');
+    let taxaConditions: string[] = [];
+    if (taxonFilter !== null) {
+      _collectInIntegerList(taxaConditions, 'phylum_id', taxonFilter.phylumIDs);
+      _collectInIntegerList(taxaConditions, 'class_id', taxonFilter.classIDs);
+      _collectInIntegerList(taxaConditions, 'order_id', taxonFilter.orderIDs);
+      _collectInIntegerList(taxaConditions, 'family_id', taxonFilter.familyIDs);
+      _collectInIntegerList(taxaConditions, 'genus_id', taxonFilter.genusIDs);
+      _collectInIntegerList(taxaConditions, 'species_id', taxonFilter.speciesIDs);
+    }
 
-    query = pgFormat(query, taxaConstraints, orderBys);
-    const result = await db.query(query, [limit, skip]);
+    let whereClause = '';
+    if (nullChecks.length > 0 || taxaConditions.length > 0) {
+      whereClause = `where ${nullChecks.join(' and ')}${
+        taxaConditions.length == 0 ? '' : ' and ' + taxaConditions.join(' or ')
+      }`;
+    }
+
+    let orderByClause = '';
+    if (columnOrders.length > 0) {
+      orderByClause = 'order by ' + columnOrders.join(', ');
+    }
+
+    const result = await db.query(
+      `select distinct ${selectedColumns.join(', ')}
+        from specimens ${whereClause} ${orderByClause} limit $1 offset $2`,
+      [limit, skip]
+    );
     return result.rows.map((row) => toCamelRow(row));
   }
 
@@ -529,18 +654,16 @@ async function logImportProblem(
   await Logs.post(db, LogType.Import, catalogNumber, line);
 }
 
-function _collectOrInIntList(
+function _collectInIntegerList(
   conditionals: string[],
   columnName: string,
-  inList: number[] | null,
-  taxonIDs: number[]
+  integerList: number[] | null
 ): void {
-  if (inList) {
-    taxonIDs.push(...taxonIDs);
-    const inListStr = inList.join(',');
-    if (!INTEGER_LIST_CHARS_REGEX.test(inListStr)) {
-      throw new BadDataError('Invalid characters');
+  if (integerList) {
+    const integerListStr = integerList.join(',');
+    if (!INTEGER_LIST_CHARS_REGEX.test(integerListStr)) {
+      throw new BadDataError('Invalid integer characters');
     }
-    conditionals.push(`${columnName} in [${inListStr}]`);
+    conditionals.push(`${columnName} in [${integerListStr}]`);
   }
 }
