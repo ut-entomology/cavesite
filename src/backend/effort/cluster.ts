@@ -3,7 +3,6 @@ import { LocationEffort } from '../effort/location_effort';
 import { DistanceMeasure, type SeedSpec } from '../../shared/model';
 
 const EFFORT_BATCH_SIZE = 100;
-const HARD_UPPER_BOUND_SPECIES_COUNT = 50000; // assumes no cave has more
 
 type TaxonTallies = Record<string, number>; // accumulated weight for taxa
 
@@ -11,7 +10,8 @@ export async function getClusteredLocationIDs(
   db: DB,
   distanceMeasure: DistanceMeasure,
   seedIDs: number[],
-  minSpecies: number
+  minSpecies: number,
+  maxSpecies: number
 ): Promise<number[][]> {
   // console.log(
   //   '**** #### starting getClusteredLocationIDs ###################################'
@@ -38,7 +38,7 @@ export async function getClusteredLocationIDs(
   // all the while preparing nextTaxonTalliesByCluster for use in reassignment.
 
   let skipCount = 0;
-  let efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
+  let efforts = await _getNextBatchToCluster(db, minSpecies, maxSpecies, skipCount);
   for (const seedTaxa of taxaTalliesByCluster) {
     nextTaxonTalliesByCluster.push(Object.assign({}, seedTaxa)); // copy
   }
@@ -59,7 +59,7 @@ export async function getClusteredLocationIDs(
       }
     }
     skipCount += efforts.length;
-    efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
+    efforts = await _getNextBatchToCluster(db, minSpecies, maxSpecies, skipCount);
   }
   //console.log('**** initial clusters', clusterByLocationID);
 
@@ -79,7 +79,7 @@ export async function getClusteredLocationIDs(
     // the while preparing nextTaxonTalliesByCluster for use in the next pass.
 
     let skipCount = 0;
-    let efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
+    let efforts = await _getNextBatchToCluster(db, minSpecies, maxSpecies, skipCount);
     while (efforts.length > 0) {
       for (const effort of efforts) {
         const effortWeights = toTaxonWeights(effort);
@@ -106,7 +106,7 @@ export async function getClusteredLocationIDs(
         );
       }
       skipCount += efforts.length;
-      efforts = await _getNextBatchToCluster(db, minSpecies, skipCount);
+      efforts = await _getNextBatchToCluster(db, minSpecies, maxSpecies, skipCount);
     }
   }
 
@@ -144,6 +144,10 @@ export async function getDiverseSeeds(db: DB, seedSpec: SeedSpec): Promise<numbe
     if (seedIDs.length == 0) {
       seedIDs.push(efforts[0].locationID);
       _updateTaxonTallies(taxonTallies, _toUnweightedValues(efforts[0]));
+      if (seedSpec.maxClusters == 1) {
+        // continuing from here could add a 2nd cluster within this loop iteration
+        return seedIDs;
+      }
     }
 
     // Each subsequent seed location is the one with the largest number of
@@ -285,12 +289,13 @@ function _getNearestClusterIndex(
 async function _getNextBatchToCluster(
   db: DB,
   minSpecies: number,
+  maxSpecies: number,
   skipCount: number
 ): Promise<LocationEffort[]> {
   return await LocationEffort.getNextBatch(
     db,
     minSpecies,
-    HARD_UPPER_BOUND_SPECIES_COUNT,
+    maxSpecies,
     skipCount,
     EFFORT_BATCH_SIZE
   );

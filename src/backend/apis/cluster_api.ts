@@ -36,11 +36,13 @@ router.post('/get_clusters', async (req: Request, res) => {
   const seedIDs = req.body.seedIDs;
   const distanceMeasure = req.body.distanceMeasure;
   const minSpecies = req.body.minSpecies;
+  const maxSpecies = req.body.maxSpecies;
   const clusters = await cluster.getClusteredLocationIDs(
     getDB(),
     distanceMeasure,
     seedIDs,
-    minSpecies
+    minSpecies,
+    maxSpecies
   );
   return res.status(StatusCodes.OK).send({ clusters });
 });
