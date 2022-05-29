@@ -234,7 +234,7 @@ describe('basic specimen methods', () => {
       expect(specimen?.catalogNumber).toEqual('C1');
     }
 
-    // test replacing existing records
+    // test replacing existing results
 
     {
       let source = Object.assign({}, baseSource);
@@ -454,68 +454,74 @@ describe('general specimen query', () => {
     let dateSpec = _toColumnSpec(QueryColumnID.CollectionStartDate, true);
 
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.CatalogNumber)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionStartDate: startDate1 },
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionStartDate: startDate2 }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1 },
       { collectionStartDate: startDate2 }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionEndDate)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, collectionEndDate: endDate1 },
       { collectionStartDate: startDate2, collectionEndDate: null }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.Collectors)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
         collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.'
       },
       { collectionStartDate: startDate2, collectors: 'Person X' }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.Determiners)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, determiners: 'Person A|Person B' },
       { collectionStartDate: startDate2, determiners: 'Person Y' }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationYear)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, determinationYear: detDate.getFullYear() },
       { collectionStartDate: startDate2, determinationYear: detDate2.getFullYear() }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionRemarks)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, collectionRemarks: 'cave' },
       { collectionStartDate: startDate2, collectionRemarks: null }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.OccurrenceRemarks)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
         occurrenceRemarks: baseSource.occurrenceRemarks
@@ -524,9 +530,9 @@ describe('general specimen query', () => {
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationRemarks)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
         determinationRemarks: baseSource.determinationRemarks
@@ -535,25 +541,25 @@ describe('general specimen query', () => {
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.TypeStatus)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, typeStatus: specimen1!.typeStatus },
       { collectionStartDate: startDate2, typeStatus: specimen2!.typeStatus }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.SpecimenCount)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, specimenCount: 1 },
       { collectionStartDate: startDate2, specimenCount: 2 }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.Problems)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, problems: null },
       {
         collectionStartDate: startDate2,
@@ -567,9 +573,9 @@ describe('general specimen query', () => {
       idColumn: keyof Specimen
     ) => {
       // prettier-ignore
-      let records = await Specimen.generalQuery(
+      let results = await Specimen.generalQuery(
         db, [dateSpec, _toColumnSpec(columnID)], null, 0, 10);
-      expect(records).toEqual([
+      expect(results[0]).toEqual([
         {
           collectionStartDate: startDate1,
           [nameColumn]: specimen1![nameColumn],
@@ -595,17 +601,17 @@ describe('general specimen query', () => {
     await checkColumns(QueryColumnID.Locality, 'localityName', 'localityID');
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.Latitude)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, latitude: specimen1!.publicLatitude },
       { collectionStartDate: startDate2, latitude: specimen2!.publicLatitude }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [dateSpec, _toColumnSpec(QueryColumnID.Longitude)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionStartDate: startDate1, longitude: specimen1!.publicLongitude },
       { collectionStartDate: startDate2, longitude: specimen2!.publicLongitude }
     ]);
@@ -617,30 +623,33 @@ describe('general specimen query', () => {
     const specimen2 = await _createSpecimen2(db);
 
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, false)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CollectionEndDate, false)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { collectionEndDate: null },
       { collectionEndDate: endDate1 }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.TypeStatus, false)], null, 0, 10);
-    expect(records).toEqual([{ typeStatus: 'paratype' }, { typeStatus: 'normal' }]);
+    expect(results[0]).toEqual([{ typeStatus: 'paratype' }, { typeStatus: 'normal' }]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.SpecimenCount, false)], null, 0, 10);
-    expect(records).toEqual([{ specimenCount: 2 }, { specimenCount: 1 }]);
+    expect(results[0]).toEqual([{ specimenCount: 2 }, { specimenCount: 1 }]);
 
     const checkColumns = async (
       columnID: QueryColumnID,
@@ -649,7 +658,7 @@ describe('general specimen query', () => {
       idColumn: keyof Specimen
     ) => {
       // prettier-ignore
-      let records = await Specimen.generalQuery(
+      let results = await Specimen.generalQuery(
         db, [_toColumnSpec(columnID, ascending)], null, 0, 10);
       const spec1Result = {
         [nameColumn]: specimen1![nameColumn],
@@ -659,8 +668,9 @@ describe('general specimen query', () => {
         [nameColumn]: specimen2![nameColumn],
         [idColumn]: specimen2![idColumn]
       };
-      expect(records).toEqual([spec2Result, spec1Result]);
+      expect(results[0]).toEqual([spec2Result, spec1Result]);
     };
+    expect(results[1]).toEqual(2);
 
     await checkColumns(QueryColumnID.Phylum, false, 'phylumName', 'phylumID');
     await checkColumns(QueryColumnID.Class, true, 'className', 'classID');
@@ -679,17 +689,17 @@ describe('general specimen query', () => {
     await checkColumns(QueryColumnID.Locality, true, 'localityName', 'localityID');
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.Latitude, false)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { latitude: specimen2!.publicLatitude },
       { latitude: specimen1!.publicLatitude }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.Longitude, true)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { longitude: specimen1!.publicLongitude },
       { longitude: specimen2!.publicLongitude }
     ]);
@@ -701,35 +711,38 @@ describe('general specimen query', () => {
     await _createSpecimen2(db);
 
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber),
         _toColumnSpec(QueryColumnID.CollectionEndDate, true)
       ], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 },
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
     ]);
+    expect(results[1]).toEqual(2);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber),
         _toColumnSpec(QueryColumnID.CollectionEndDate, null, true)
       ], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
     ]);
+    expect(results[1]).toEqual(1);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber),
         _toColumnSpec(QueryColumnID.CollectionEndDate, null, false)
       ], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 }
     ]);
+    expect(results[1]).toEqual(1);
   });
 
   test('query with taxa constraints', async () => {
@@ -748,9 +761,10 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+    expect(results[0]).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+    expect(results[1]).toEqual(1);
 
     taxonFilter = {
       phylumIDs: null,
@@ -762,12 +776,13 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
       { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
     ]);
+    expect(results[1]).toEqual(2);
 
     taxonFilter = {
       phylumIDs: null,
@@ -779,13 +794,14 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
       { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
     ]);
+    expect(results[1]).toEqual(3);
 
     taxonFilter = {
       phylumIDs: null,
@@ -797,12 +813,13 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
       { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
     ]);
+    expect(results[1]).toEqual(2);
 
     taxonFilter = {
       phylumIDs: null,
@@ -814,12 +831,13 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1' },
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }
     ]);
+    expect(results[1]).toEqual(2);
 
     taxonFilter = {
       phylumIDs: null,
@@ -831,9 +849,9 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
       { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
     ]);
@@ -848,9 +866,9 @@ describe('general specimen query', () => {
       subspeciesIDs: [specimen2!.subspeciesID!]
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+    expect(results[0]).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
 
     taxonFilter = {
       phylumIDs: null,
@@ -862,9 +880,9 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2' },
       { catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }
     ]);
@@ -877,31 +895,31 @@ describe('general specimen query', () => {
     const specimen3 = await _createSpecimen3(db);
 
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.Family, true)], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { familyName: 'Araneidae', familyID: specimen1!.familyID },
       { familyName: 'Plethodontidae', familyID: specimen2!.familyID }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.ResultCount, true),
         _toColumnSpec(QueryColumnID.Family, true)
       ], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID },
       { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID }
     ]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.ResultCount, true),
         _toColumnSpec(QueryColumnID.Genus, true)
       ], null, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       { resultCount: 1, genusName: 'Argiope', genusID: specimen1!.genusID },
       { resultCount: 1, genusName: 'Eurycea', genusID: specimen2!.genusID },
       { resultCount: 1, genusName: 'Gea', genusID: specimen3!.genusID }
@@ -924,13 +942,16 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 0, 1);
-    expect(records).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+    expect(results[0]).toEqual([{ catalogNumber: 'Q2', occurrenceGuid: 'GQ2' }]);
+    expect(results[1]).toEqual(2);
+
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 1, 1);
-    expect(records).toEqual([{ catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }]);
+    expect(results[0]).toEqual([{ catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }]);
+    expect(results[1]).toEqual(2);
   });
 
   test('combined criteria query', async () => {
@@ -950,18 +971,19 @@ describe('general specimen query', () => {
       subspeciesIDs: null
     };
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber, true),
         _toColumnSpec(QueryColumnID.CollectionRemarks, null, false)
       ], taxonFilter, 0, 10);
-    expect(records).toEqual([
+    expect(results[0]).toEqual([
       {
         catalogNumber: 'Q3',
         occurrenceGuid: 'GQ3',
         collectionRemarks: specimen3?.collectionRemarks
       }
     ]);
+    expect(results[1]).toEqual(1);
   });
 
   test('returning no results', async () => {
@@ -969,18 +991,18 @@ describe('general specimen query', () => {
     await _createSpecimen1(db);
 
     // prettier-ignore
-    let records = await Specimen.generalQuery(
+    let results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.Phylum, null, true)], null, 0, 10);
-    expect(records).toEqual([]);
+    expect(results).toEqual([[], 0]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(db, [], null, 0, 10);
-    expect(records).toEqual([]);
+    results = await Specimen.generalQuery(db, [], null, 0, 10);
+    expect(results).toEqual([[], 0]);
 
     // prettier-ignore
-    records = await Specimen.generalQuery(
+    results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.ResultCount, null, true)], null, 0, 10);
-    expect(records).toEqual([]);
+    expect(results).toEqual([[], 0]);
   });
 });
 

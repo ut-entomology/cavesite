@@ -508,7 +508,7 @@ export class Specimen {
     taxonFilter: QueryTaxonFilter | null,
     skip: number,
     limit: number
-  ): Promise<QueryRecord[]> {
+  ): Promise<[QueryRecord[], number]> {
     let groupCountTerm: string | null = null;
     let selectDistinctResults = true;
     const selectedColumns: string[] = [];
@@ -553,7 +553,7 @@ export class Specimen {
       }
     }
 
-    if (selectedColumns.length == 0) return [];
+    if (selectedColumns.length == 0) return [[], 0];
 
     let taxaConditionsPrefix = '';
     let taxaConditions: string[] = [];
@@ -594,12 +594,17 @@ export class Specimen {
     }
 
     const result = await db.query(
-      `select ${selectionClause} from specimens
-        ${whereClause} ${groupByClause} ${orderByClause}
+      `select ${selectionClause}, count(*) over() as total_results
+        from specimens ${whereClause} ${groupByClause} ${orderByClause}
         limit $1 offset $2`,
       [limit, skip]
     );
-    return result.rows.map((row) => {
+    let totalResults = 0;
+    const camelRows = result.rows.map((row) => {
+      if (totalResults == 0) {
+        totalResults = parseInt(row.total_results);
+      }
+      delete row['total_results'];
       const data: any = toCamelRow(row);
       if (data.resultCount) {
         // postgres returns counts as strings
@@ -607,6 +612,7 @@ export class Specimen {
       }
       return data;
     });
+    return [camelRows, totalResults];
   }
 
   static async getByCatNum(
