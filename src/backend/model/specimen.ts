@@ -31,113 +31,89 @@ interface ColumnInfo {
   column1: string;
   column2?: string;
   asName?: string;
-  sortable: boolean;
 }
 
 const columnInfoMap: Record<number, ColumnInfo> = [];
 columnInfoMap[QueryColumnID.CatalogNumber] = {
   column1: 'catalog_number',
-  column2: 'occurrence_guid',
-  sortable: true
+  column2: 'occurrence_guid'
 };
 columnInfoMap[QueryColumnID.CollectionStartDate] = {
-  column1: 'collection_start_date',
-  sortable: true
+  column1: 'collection_start_date'
 };
 columnInfoMap[QueryColumnID.CollectionEndDate] = {
-  column1: 'collection_end_date',
-  sortable: true
+  column1: 'collection_end_date'
 };
 columnInfoMap[QueryColumnID.Collectors] = {
-  column1: 'collectors',
-  sortable: false
+  column1: 'collectors'
 };
 columnInfoMap[QueryColumnID.Determiners] = {
-  column1: 'determiners',
-  sortable: false
+  column1: 'determiners'
 };
 columnInfoMap[QueryColumnID.DeterminationYear] = {
-  column1: 'determination_year',
-  sortable: false
+  column1: 'determination_year'
 };
 columnInfoMap[QueryColumnID.CollectionRemarks] = {
-  column1: 'collection_remarks',
-  sortable: false
+  column1: 'collection_remarks'
 };
 columnInfoMap[QueryColumnID.OccurrenceRemarks] = {
-  column1: 'occurrence_remarks',
-  sortable: false
+  column1: 'occurrence_remarks'
 };
 columnInfoMap[QueryColumnID.DeterminationRemarks] = {
-  column1: 'determination_remarks',
-  sortable: false
+  column1: 'determination_remarks'
 };
 columnInfoMap[QueryColumnID.TypeStatus] = {
-  column1: 'type_status',
-  sortable: true
+  column1: 'type_status'
 };
 columnInfoMap[QueryColumnID.SpecimenCount] = {
-  column1: 'specimen_count',
-  sortable: true
+  column1: 'specimen_count'
 };
 columnInfoMap[QueryColumnID.Problems] = {
-  column1: 'problems',
-  sortable: false
+  column1: 'problems'
 };
 columnInfoMap[QueryColumnID.Phylum] = {
   column1: 'phylum_name',
-  column2: 'phylum_id',
-  sortable: true
+  column2: 'phylum_id'
 };
 columnInfoMap[QueryColumnID.Class] = {
   column1: 'class_name',
-  column2: 'class_id',
-  sortable: true
+  column2: 'class_id'
 };
 columnInfoMap[QueryColumnID.Order] = {
   column1: 'order_name',
-  column2: 'order_id',
-  sortable: true
+  column2: 'order_id'
 };
 columnInfoMap[QueryColumnID.Family] = {
   column1: 'family_name',
-  column2: 'family_id',
-  sortable: true
+  column2: 'family_id'
 };
 columnInfoMap[QueryColumnID.Genus] = {
   column1: 'genus_name',
-  column2: 'genus_id',
-  sortable: true
+  column2: 'genus_id'
 };
 columnInfoMap[QueryColumnID.Species] = {
   column1: 'species_name',
-  column2: 'species_id',
-  sortable: true
+  column2: 'species_id'
 };
 columnInfoMap[QueryColumnID.Subspecies] = {
   column1: 'subspecies_name',
-  column2: 'subspecies_id',
-  sortable: true
+  column2: 'subspecies_id'
 };
 columnInfoMap[QueryColumnID.County] = {
   column1: 'county_name',
-  column2: 'county_id',
-  sortable: true
+  column2: 'county_id'
 };
 columnInfoMap[QueryColumnID.Locality] = {
   column1: 'locality_name',
-  column2: 'locality_id',
-  sortable: true
+  column2: 'locality_id'
 };
 columnInfoMap[QueryColumnID.Latitude] = {
   column1: 'public_latitude',
-  asName: 'latitude',
-  sortable: true
+  asName: 'latitude'
 };
 columnInfoMap[QueryColumnID.Longitude] = {
   column1: 'public_longitude',
-  asName: 'longitude',
-  sortable: true
+  asName: 'longitude'
 };
 
 export interface SpecimenSource {
@@ -551,8 +527,7 @@ export class Specimen {
           nullChecks.push(columnInfo.column1 + ' is not null');
         }
       }
-      if (columnSpec.ascending !== null && columnInfo.sortable) {
-        // only sorts on indexed columns to prevent degredation
+      if (columnSpec.ascending !== null) {
         if (columnSpec.ascending) {
           columnOrders.push(columnInfo.column1);
         } else {

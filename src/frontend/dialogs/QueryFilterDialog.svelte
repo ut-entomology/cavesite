@@ -6,7 +6,6 @@
     abbrName: string | null; // name to display for column in column header
     description: string; // information about the column
     requested: boolean; // whether query requests the column
-    sortable: boolean; // whether query results can be sorted by this column
     nullable: boolean; // whether column can be null
     emWidth: number; // width of the column in em
   }

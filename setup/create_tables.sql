@@ -170,6 +170,17 @@ create table specimens (
     public_longitude float8
 );
 create index on specimens(catalog_number);
+create index on specimens(collection_start_date);
+create index on specimens(collection_end_date);
+create index on specimens(collectors);
+create index on specimens(determiners);
+create index on specimens(determination_year);
+create index on specimens(collection_remarks);
+create index on specimens(occurrence_remarks);
+create index on specimens(determination_remarks);
+create index on specimens(type_status);
+create index on specimens(specimen_count);
+create index on specimens(problems);
 create index on specimens(kingdom_name);
 create index on specimens(kingdom_id);
 create index on specimens(phylum_name);
@@ -189,6 +200,8 @@ create index on specimens(subspecies_id);
 create index on specimens(county_name);
 create index on specimens(county_id);
 create index on specimens(locality_name);
+create index on specimens(public_latitude);
+create index on specimens(public_longitude);
 
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF

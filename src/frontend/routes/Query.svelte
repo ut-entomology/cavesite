@@ -24,7 +24,6 @@
       abbrName: 'Catalog No.',
       description: "Catalog number of the specimen(s) in UT Austin's Specify database.",
       requested: true,
-      sortable: true,
       nullable: false,
       emWidth: 8
     });
@@ -34,7 +33,6 @@
       abbrName: 'Start Date',
       description: 'First day of collection, which may be the only collection date',
       requested: true,
-      sortable: true,
       nullable: false, // TODO: Is this true?
       emWidth: 8
     });
@@ -44,7 +42,6 @@
       abbrName: 'End Date',
       description: 'Last day of collection, if collected over more than one day',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 8
     });
@@ -54,7 +51,6 @@
       abbrName: 'Collectors',
       description: 'Names of the participating collectors',
       requested: false,
-      sortable: false,
       nullable: true,
       emWidth: 16
     });
@@ -64,7 +60,6 @@
       abbrName: 'Determiners',
       description: 'Names of the determiners',
       requested: false,
-      sortable: false,
       nullable: true,
       emWidth: 8
     });
@@ -74,7 +69,6 @@
       abbrName: 'Det. Year',
       description: 'Names of the determiners',
       requested: false,
-      sortable: false,
       nullable: true,
       emWidth: 8
     });
@@ -84,7 +78,6 @@
       abbrName: null,
       description: 'Remarks about the collecting trip and habitat',
       requested: false,
-      sortable: false,
       nullable: true,
       emWidth: 16
     });
@@ -94,7 +87,6 @@
       abbrName: null,
       description: 'Remarks about the specimens collected',
       requested: false,
-      sortable: false,
       nullable: true,
       emWidth: 16
     });
@@ -104,7 +96,6 @@
       abbrName: 'Det. Remarks',
       description: 'Remarks about the determination',
       requested: false,
-      sortable: false,
       nullable: true,
       emWidth: 16
     });
@@ -114,7 +105,6 @@
       abbrName: 'Type Status',
       description: 'The type status of this particular specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 8
     });
@@ -124,7 +114,6 @@
       abbrName: 'Count',
       description: 'The number of specimens collected',
       requested: true,
-      sortable: true,
       nullable: true, // TODO: Might want to treat 0s as nulls, if not already
       emWidth: 4
     });
@@ -134,7 +123,6 @@
       abbrName: 'Problems',
       description: 'Problems encountered parsing the data record',
       requested: false,
-      sortable: false,
       nullable: false,
       emWidth: 20
     });
@@ -144,7 +132,6 @@
       abbrName: null,
       description: 'Phylum determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -154,7 +141,6 @@
       abbrName: null,
       description: 'Class determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -164,7 +150,6 @@
       abbrName: null,
       description: 'Order determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -174,7 +159,6 @@
       abbrName: null,
       description: 'Family determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -184,7 +168,6 @@
       abbrName: null,
       description: 'Genus determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -194,7 +177,6 @@
       abbrName: null,
       description: 'Specific epithet determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -204,7 +186,6 @@
       abbrName: null,
       description: 'Infraspecific epithet determined for the specimen',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 10
     });
@@ -214,7 +195,6 @@
       abbrName: null,
       description: 'County of Texas in which specimen was found',
       requested: true,
-      sortable: true,
       nullable: true,
       emWidth: 16
     });
@@ -224,7 +204,6 @@
       abbrName: null,
       description: 'Locality within county where specimen was found',
       requested: true,
-      sortable: true,
       nullable: false,
       emWidth: 20
     });
@@ -234,7 +213,6 @@
       abbrName: null,
       description: 'Latitude of cave at which specimen was found',
       requested: false,
-      sortable: true,
       nullable: true,
       emWidth: 6
     });
@@ -244,7 +222,6 @@
       abbrName: null,
       description: 'Longitude of cave at which specimen was found',
       requested: false,
-      sortable: true,
       nullable: true,
       emWidth: 6
     });
