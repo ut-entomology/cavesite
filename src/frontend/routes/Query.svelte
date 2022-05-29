@@ -19,7 +19,7 @@
     };
 
     setColumnInfo({
-      columnID: QueryColumnID.GroupCount,
+      columnID: QueryColumnID.ResultCount,
       fullName: 'Result Count',
       abbrName: 'Results',
       description:

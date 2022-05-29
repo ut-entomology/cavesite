@@ -34,7 +34,7 @@ interface ColumnInfo {
 }
 
 const columnInfoMap: Record<number, ColumnInfo> = [];
-columnInfoMap[QueryColumnID.GroupCount] = {
+columnInfoMap[QueryColumnID.ResultCount] = {
   column1: 'count(*)',
   asName: 'result_count'
 };
@@ -515,8 +515,6 @@ export class Specimen {
     const nullChecks: string[] = [];
     const columnOrders: string[] = [];
 
-    // TODO: deal with GroupCount being the only column
-
     for (const columnSpec of columnSpecs) {
       const columnID = columnSpec.columnID;
       if (columnID == QueryColumnID.CatalogNumber) {
@@ -525,7 +523,7 @@ export class Specimen {
       const columnInfo = columnInfoMap[columnSpec.columnID];
       if (columnInfo.asName !== undefined) {
         const columnTerm = `${columnInfo.column1} as ${columnInfo.asName}`;
-        if (columnID == QueryColumnID.GroupCount) {
+        if (columnID == QueryColumnID.ResultCount) {
           groupCountTerm = columnTerm;
         } else {
           selectedColumns.push(columnTerm);
@@ -544,7 +542,7 @@ export class Specimen {
           nullChecks.push(columnInfo.column1 + ' is not null');
         }
       }
-      if (columnID != QueryColumnID.GroupCount) {
+      if (columnID != QueryColumnID.ResultCount) {
         if (columnSpec.ascending !== null) {
           if (columnSpec.ascending) {
             columnOrders.push(columnInfo.column1);
@@ -554,6 +552,8 @@ export class Specimen {
         }
       }
     }
+
+    if (selectedColumns.length == 0) return [];
 
     let taxaConditionsPrefix = '';
     let taxaConditions: string[] = [];

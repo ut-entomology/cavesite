@@ -887,7 +887,7 @@ describe('general specimen query', () => {
     // prettier-ignore
     records = await Specimen.generalQuery(
       db, [
-        _toColumnSpec(QueryColumnID.GroupCount, true),
+        _toColumnSpec(QueryColumnID.ResultCount, true),
         _toColumnSpec(QueryColumnID.Family, true)
       ], null, 0, 10);
     expect(records).toEqual([
@@ -898,7 +898,7 @@ describe('general specimen query', () => {
     // prettier-ignore
     records = await Specimen.generalQuery(
       db, [
-        _toColumnSpec(QueryColumnID.GroupCount, true),
+        _toColumnSpec(QueryColumnID.ResultCount, true),
         _toColumnSpec(QueryColumnID.Genus, true)
       ], null, 0, 10);
     expect(records).toEqual([
@@ -962,6 +962,25 @@ describe('general specimen query', () => {
         collectionRemarks: specimen3?.collectionRemarks
       }
     ]);
+  });
+
+  test('returning no results', async () => {
+    await Specimen.dropAll(db);
+    await _createSpecimen1(db);
+
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.Phylum, null, true)], null, 0, 10);
+    expect(records).toEqual([]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(db, [], null, 0, 10);
+    expect(records).toEqual([]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.ResultCount, null, true)], null, 0, 10);
+    expect(records).toEqual([]);
   });
 });
 

@@ -3,7 +3,7 @@
  */
 
 export enum QueryColumnID {
-  GroupCount,
+  ResultCount,
   CatalogNumber,
   CollectionStartDate,
   CollectionEndDate,
