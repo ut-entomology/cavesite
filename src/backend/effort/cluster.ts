@@ -2,6 +2,9 @@ import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
 import { DistanceMeasure, type SeedSpec } from '../../shared/model';
 
+// TODO: Find a memory locate that occasionally bombs node.js, which
+// I suspect started occurring after creating this module.
+
 const EFFORT_BATCH_SIZE = 100;
 
 type TaxonTallies = Record<string, number>; // accumulated weight for taxa

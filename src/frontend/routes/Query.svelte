@@ -125,7 +125,7 @@
       description: 'The number of specimens collected',
       requested: true,
       sortable: true,
-      nullable: true, // TODO: Might want to treat 0s as nulls
+      nullable: true, // TODO: Might want to treat 0s as nulls, if not already
       emWidth: 4
     });
     setColumnInfo({

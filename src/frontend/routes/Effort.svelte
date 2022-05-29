@@ -53,6 +53,8 @@
   } from '../../shared/model';
   import { client } from '../stores/client';
 
+  const MIN_PERSON_VISITS = 0;
+
   enum LoadState {
     idle,
     loading,
@@ -96,7 +98,8 @@
     res = await $client.post('api/cluster/get_clusters', {
       seedIDs: seeds.map((location) => location.locationID),
       distanceMeasure: DistanceMeasure.weighted,
-      minSpecies: 0
+      minSpecies: 0,
+      maxSpecies: 10000
     });
     const clusters: number[][] = res.data.clusters;
     if (!clusters) showNotice({ message: 'Failed to load clusters' });
@@ -110,9 +113,13 @@
         const clusterData: EffortData[] = [];
         const effortResults: EffortResult[] = res.data.efforts;
         for (const effortResult of effortResults) {
-          clusterData.push(_toEffortData(effortResult));
+          if (effortResult.perVisitPoints.length >= MIN_PERSON_VISITS) {
+            clusterData.push(_toEffortData(effortResult));
+          }
         }
-        workingClusterData.push(clusterData);
+        if (clusterData.length > 0) {
+          workingClusterData.push(clusterData);
+        }
       }
     }
 
@@ -177,6 +184,14 @@
       pointCount: 0, // will update
       points: [] // will update
     };
+    // let perPersonVisitTotalsGraph: PerGraphData = {
+    //   locationCount,
+    //   graphTitle: `Person-visits for total species found (${locationCount} caves)`,
+    //   yAxisLabel: 'person-visits',
+    //   xAxisLabel: 'cumulative species',
+    //   pointCount: 0, // will update
+    //   points: [] // will update
+    // };
     let perVisitDiffsGraph: PerGraphData = {
       locationCount,
       graphTitle: `Additional species across visits (${locationCount} caves)`,
@@ -327,7 +342,7 @@
             ? clusterGraphData.perPersonVisitDiffsGraph
             : clusterGraphData.perVisitDiffsGraph}
         <div class="row mb-2">
-          <div class="col">
+          <div class="col" style="height: 400px">
             <Scatter
               data={{
                 datasets: [
@@ -338,6 +353,7 @@
                 ]
               }}
               options={{
+                maintainAspectRatio: false,
                 scales: {
                   x: {
                     title: {
@@ -357,7 +373,9 @@
                 plugins: {
                   title: {
                     display: true,
-                    text: `#${i + 1}: ` + graphData.graphTitle,
+                    text:
+                      ($graphStore.length > 1 ? `#${i + 1}: ` : '') +
+                      graphData.graphTitle,
                     font: { size: 17 }
                   }
                 },
