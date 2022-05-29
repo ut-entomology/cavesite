@@ -870,6 +870,44 @@ describe('general specimen query', () => {
     ]);
   });
 
+  test('query for group counts', async () => {
+    await Specimen.dropAll(db);
+    const specimen1 = await _createSpecimen1(db);
+    const specimen2 = await _createSpecimen2(db);
+    const specimen3 = await _createSpecimen3(db);
+
+    // prettier-ignore
+    let records = await Specimen.generalQuery(
+      db, [_toColumnSpec(QueryColumnID.Family, true)], null, 0, 10);
+    expect(records).toEqual([
+      { familyName: 'Araneidae', familyID: specimen1!.familyID },
+      { familyName: 'Plethodontidae', familyID: specimen2!.familyID }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [
+        _toColumnSpec(QueryColumnID.GroupCount, true),
+        _toColumnSpec(QueryColumnID.Family, true)
+      ], null, 0, 10);
+    expect(records).toEqual([
+      { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID },
+      { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID }
+    ]);
+
+    // prettier-ignore
+    records = await Specimen.generalQuery(
+      db, [
+        _toColumnSpec(QueryColumnID.GroupCount, true),
+        _toColumnSpec(QueryColumnID.Genus, true)
+      ], null, 0, 10);
+    expect(records).toEqual([
+      { resultCount: 1, genusName: 'Argiope', genusID: specimen1!.genusID },
+      { resultCount: 1, genusName: 'Eurycea', genusID: specimen2!.genusID },
+      { resultCount: 1, genusName: 'Gea', genusID: specimen3!.genusID }
+    ]);
+  });
+
   test('batch queries of filtered results', async () => {
     await Specimen.dropAll(db);
     await _createSpecimen1(db);

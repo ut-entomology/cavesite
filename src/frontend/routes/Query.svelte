@@ -19,6 +19,16 @@
     };
 
     setColumnInfo({
+      columnID: QueryColumnID.GroupCount,
+      fullName: 'Result Count',
+      abbrName: 'Results',
+      description:
+        'Number of results in the data that are identical to the given result.',
+      requested: true,
+      nullable: false,
+      emWidth: 5
+    });
+    setColumnInfo({
       columnID: QueryColumnID.CatalogNumber,
       fullName: 'Catalog Number',
       abbrName: 'Catalog No.',

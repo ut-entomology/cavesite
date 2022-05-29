@@ -3,6 +3,7 @@
  */
 
 export enum QueryColumnID {
+  GroupCount,
   CatalogNumber,
   CollectionStartDate,
   CollectionEndDate,
@@ -41,6 +42,8 @@ export interface QueryColumnSpec {
  * distinct sets without repeating entries, providing query flexibility.
  */
 export interface QueryRecord {
+  resultCount?: number;
+
   catalogNumber?: string;
   occurrenceGuid?: string;
 

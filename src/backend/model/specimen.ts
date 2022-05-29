@@ -34,6 +34,10 @@ interface ColumnInfo {
 }
 
 const columnInfoMap: Record<number, ColumnInfo> = [];
+columnInfoMap[QueryColumnID.GroupCount] = {
+  column1: 'count(*)',
+  asName: 'result_count'
+};
 columnInfoMap[QueryColumnID.CatalogNumber] = {
   column1: 'catalog_number',
   column2: 'occurrence_guid'
@@ -505,20 +509,27 @@ export class Specimen {
     skip: number,
     limit: number
   ): Promise<QueryRecord[]> {
-    let includesCatalogNumber = false;
+    let groupCountTerm: string | null = null;
+    let selectDistinctResults = true;
     const selectedColumns: string[] = [];
     const nullChecks: string[] = [];
     const columnOrders: string[] = [];
 
+    // TODO: deal with GroupCount being the only column
+
     for (const columnSpec of columnSpecs) {
-      switch (columnSpec.columnID) {
-        case QueryColumnID.CatalogNumber:
-          includesCatalogNumber = true;
-          break;
+      const columnID = columnSpec.columnID;
+      if (columnID == QueryColumnID.CatalogNumber) {
+        selectDistinctResults = false;
       }
       const columnInfo = columnInfoMap[columnSpec.columnID];
       if (columnInfo.asName !== undefined) {
-        selectedColumns.push(`${columnInfo.column1} as ${columnInfo.asName}`);
+        const columnTerm = `${columnInfo.column1} as ${columnInfo.asName}`;
+        if (columnID == QueryColumnID.GroupCount) {
+          groupCountTerm = columnTerm;
+        } else {
+          selectedColumns.push(columnTerm);
+        }
       } else {
         selectedColumns.push(columnInfo.column1);
       }
@@ -533,11 +544,13 @@ export class Specimen {
           nullChecks.push(columnInfo.column1 + ' is not null');
         }
       }
-      if (columnSpec.ascending !== null) {
-        if (columnSpec.ascending) {
-          columnOrders.push(columnInfo.column1);
-        } else {
-          columnOrders.push(columnInfo.column1 + ' desc');
+      if (columnID != QueryColumnID.GroupCount) {
+        if (columnSpec.ascending !== null) {
+          if (columnSpec.ascending) {
+            columnOrders.push(columnInfo.column1);
+          } else {
+            columnOrders.push(columnInfo.column1 + ' desc');
+          }
         }
       }
     }
@@ -564,20 +577,36 @@ export class Specimen {
       }`;
     }
 
+    let selectionClause = selectedColumns.join(', ');
+    let groupByClause = '';
+    if (groupCountTerm) {
+      selectDistinctResults = false;
+      groupByClause = 'group by ' + selectionClause;
+      selectionClause += ', ' + groupCountTerm;
+    }
+    if (selectDistinctResults) {
+      selectionClause = 'distinct ' + selectionClause;
+    }
+
     let orderByClause = '';
     if (columnOrders.length > 0) {
       orderByClause = 'order by ' + columnOrders.join(', ');
     }
 
-    // 'distinct' keyword unnecessary and reduces performance with catalog number
-    const distinct = includesCatalogNumber ? '' : 'distinct';
-
     const result = await db.query(
-      `select ${distinct} ${selectedColumns.join(', ')}
-        from specimens ${whereClause} ${orderByClause} limit $1 offset $2`,
+      `select ${selectionClause} from specimens
+        ${whereClause} ${groupByClause} ${orderByClause}
+        limit $1 offset $2`,
       [limit, skip]
     );
-    return result.rows.map((row) => toCamelRow(row));
+    return result.rows.map((row) => {
+      const data: any = toCamelRow(row);
+      if (data.resultCount) {
+        // postgres returns counts as strings
+        data.resultCount = parseInt(data.resultCount);
+      }
+      return data;
+    });
   }
 
   static async getByCatNum(
