@@ -505,11 +505,17 @@ export class Specimen {
     skip: number,
     limit: number
   ): Promise<QueryRecord[]> {
+    let includesCatalogNumber = false;
     const selectedColumns: string[] = [];
     const nullChecks: string[] = [];
     const columnOrders: string[] = [];
 
     for (const columnSpec of columnSpecs) {
+      switch (columnSpec.columnID) {
+        case QueryColumnID.CatalogNumber:
+          includesCatalogNumber = true;
+          break;
+      }
       const columnInfo = columnInfoMap[columnSpec.columnID];
       if (columnInfo.asName !== undefined) {
         selectedColumns.push(`${columnInfo.column1} as ${columnInfo.asName}`);
@@ -563,8 +569,11 @@ export class Specimen {
       orderByClause = 'order by ' + columnOrders.join(', ');
     }
 
+    // 'distinct' keyword unnecessary and reduces performance with catalog number
+    const distinct = includesCatalogNumber ? '' : 'distinct';
+
     const result = await db.query(
-      `select distinct ${selectedColumns.join(', ')}
+      `select ${distinct} ${selectedColumns.join(', ')}
         from specimens ${whereClause} ${orderByClause} limit $1 offset $2`,
       [limit, skip]
     );
