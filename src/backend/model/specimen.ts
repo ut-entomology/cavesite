@@ -3,22 +3,17 @@
  */
 
 import type { DataOf } from '../../shared/data_of';
-import {
-  type DB,
-  INTEGER_LIST_CHARS_REGEX,
-  toCamelRow
-} from '../integrations/postgres';
+import { type DB, toCamelRow } from '../integrations/postgres';
 import { Taxon } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
 import { locationRanks } from '../../shared/model';
-import { BadDataError } from '../util/error_util';
 import {
   QueryColumnID,
   type QueryColumnSpec,
   type QueryTaxonFilter,
-  type QueryRecord
+  type QueryRow
 } from '../../shared/user_query';
 
 export type SpecimenData = DataOf<Specimen>;
@@ -508,7 +503,7 @@ export class Specimen {
     taxonFilter: QueryTaxonFilter | null,
     skip: number,
     limit: number
-  ): Promise<[QueryRecord[], number]> {
+  ): Promise<[QueryRow[], number]> {
     let groupCountTerm: string | null = null;
     let selectDistinctResults = true;
     const selectedColumns: string[] = [];
@@ -685,10 +680,6 @@ function _collectInIntegerList(
   integerList: number[] | null
 ): void {
   if (integerList) {
-    const integerListStr = integerList.join(',');
-    if (!INTEGER_LIST_CHARS_REGEX.test(integerListStr)) {
-      throw new BadDataError('Invalid integer characters');
-    }
-    conditionals.push(`${columnName} in (${integerListStr})`);
+    conditionals.push(`${columnName} in (${integerList.join(',')})`);
   }
 }

@@ -14,11 +14,6 @@ import pgFormat from 'pg-format';
 export type DB = DatabaseHandle;
 
 /**
- * Used for validating received lists of integers.
- */
-export const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
-
-/**
  * Class providing a handle to a database, with convenience methods.
  */
 class DatabaseHandle {

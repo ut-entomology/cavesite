@@ -1,4 +1,4 @@
-import { QueryColumnID } from '../../shared/user_query';
+import { QueryColumnID, QueryRow } from '../../shared/user_query';
 
 export interface QueryColumnInfo {
   columnID: QueryColumnID;
@@ -7,7 +7,8 @@ export interface QueryColumnInfo {
   description: string; // information about the column
   defaultSelection: boolean; // whether query requests the column by default
   nullable: boolean; // whether column can be null
-  defaultEmWidth: number; // default width of the column in em
+  defaultEmWidth: number; // default width of the column in em,
+  getValue: (row: QueryRow) => string | number;
 }
 
 export type QueryColumnInfoMap = Record<number, QueryColumnInfo>;
@@ -17,6 +18,10 @@ export const columnInfoMap: QueryColumnInfoMap = [];
 const setColumnInfo = (columnInfo: QueryColumnInfo) => {
   columnInfoMap[columnInfo.columnID] = columnInfo;
 };
+const getDateValue = (date?: Date | null) => (date ? date.toLocaleDateString() : '');
+const getNames = (names?: string | null) => (names ? names.replace('|', '; ') : '');
+const getNumber = (num?: number | null) => (num ? num.toString() : '');
+
 setColumnInfo({
   columnID: QueryColumnID.ResultCount,
   fullName: 'Result Count',
@@ -24,7 +29,8 @@ setColumnInfo({
   description: 'Number of results in the data that are identical to the given result.',
   defaultSelection: true,
   nullable: false,
-  defaultEmWidth: 5
+  defaultEmWidth: 5,
+  getValue: (row: QueryRow) => getNumber(row.resultCount)
 });
 setColumnInfo({
   columnID: QueryColumnID.CatalogNumber,
@@ -33,7 +39,8 @@ setColumnInfo({
   description: "Catalog number of the specimen(s) in UT Austin's Specify database.",
   defaultSelection: true,
   nullable: false,
-  defaultEmWidth: 8
+  defaultEmWidth: 8,
+  getValue: (row: QueryRow) => row.catalogNumber || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.CollectionStartDate,
@@ -42,7 +49,8 @@ setColumnInfo({
   description: 'First day of collection, which may be the only collection date',
   defaultSelection: true,
   nullable: false, // TODO: Is this true?
-  defaultEmWidth: 8
+  defaultEmWidth: 8,
+  getValue: (row: QueryRow) => getDateValue(row.collectionStartDate)
 });
 setColumnInfo({
   columnID: QueryColumnID.CollectionEndDate,
@@ -51,7 +59,8 @@ setColumnInfo({
   description: 'Last day of collection, if collected over more than one day',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 8
+  defaultEmWidth: 8,
+  getValue: (row: QueryRow) => getDateValue(row.collectionEndDate)
 });
 setColumnInfo({
   columnID: QueryColumnID.Collectors,
@@ -60,7 +69,8 @@ setColumnInfo({
   description: 'Names of the participating collectors',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 16
+  defaultEmWidth: 16,
+  getValue: (row: QueryRow) => getNames(row.collectors)
 });
 setColumnInfo({
   columnID: QueryColumnID.Determiners,
@@ -69,7 +79,8 @@ setColumnInfo({
   description: 'Names of the determiners',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 8
+  defaultEmWidth: 8,
+  getValue: (row: QueryRow) => getNames(row.determiners)
 });
 setColumnInfo({
   columnID: QueryColumnID.DeterminationYear,
@@ -78,7 +89,8 @@ setColumnInfo({
   description: 'Names of the determiners',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 8
+  defaultEmWidth: 8,
+  getValue: (row: QueryRow) => getNumber(row.determinationYear)
 });
 setColumnInfo({
   columnID: QueryColumnID.CollectionRemarks,
@@ -87,7 +99,8 @@ setColumnInfo({
   description: 'Remarks about the collecting trip and habitat',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 16
+  defaultEmWidth: 16,
+  getValue: (row: QueryRow) => row.collectionRemarks || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.OccurrenceRemarks,
@@ -96,7 +109,8 @@ setColumnInfo({
   description: 'Remarks about the specimens collected',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 16
+  defaultEmWidth: 16,
+  getValue: (row: QueryRow) => row.occurrenceRemarks || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.DeterminationRemarks,
@@ -105,7 +119,8 @@ setColumnInfo({
   description: 'Remarks about the determination',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 16
+  defaultEmWidth: 16,
+  getValue: (row: QueryRow) => row.determinationRemarks || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.TypeStatus,
@@ -114,7 +129,8 @@ setColumnInfo({
   description: 'The type status of this particular specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 8
+  defaultEmWidth: 8,
+  getValue: (row: QueryRow) => row.typeStatus || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.SpecimenCount,
@@ -123,7 +139,8 @@ setColumnInfo({
   description: 'The number of specimens collected',
   defaultSelection: true,
   nullable: true, // TODO: Might want to treat 0s as nulls, if not already
-  defaultEmWidth: 4
+  defaultEmWidth: 4,
+  getValue: (row: QueryRow) => row.specimenCount || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Problems,
@@ -132,7 +149,8 @@ setColumnInfo({
   description: 'Problems encountered parsing the data record',
   defaultSelection: false,
   nullable: false,
-  defaultEmWidth: 20
+  defaultEmWidth: 20,
+  getValue: (row: QueryRow) => row.problems || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Phylum,
@@ -141,7 +159,8 @@ setColumnInfo({
   description: 'Phylum determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.phylumName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Class,
@@ -150,7 +169,8 @@ setColumnInfo({
   description: 'Class determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.className || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Order,
@@ -159,7 +179,8 @@ setColumnInfo({
   description: 'Order determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.orderName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Family,
@@ -168,7 +189,8 @@ setColumnInfo({
   description: 'Family determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.familyName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Genus,
@@ -177,7 +199,8 @@ setColumnInfo({
   description: 'Genus determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.genusName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Species,
@@ -186,7 +209,8 @@ setColumnInfo({
   description: 'Specific epithet determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.speciesName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Subspecies,
@@ -195,7 +219,8 @@ setColumnInfo({
   description: 'Infraspecific epithet determined for the specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 10
+  defaultEmWidth: 10,
+  getValue: (row: QueryRow) => row.subspeciesName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.County,
@@ -204,7 +229,8 @@ setColumnInfo({
   description: 'County of Texas in which specimen was found',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 16
+  defaultEmWidth: 16,
+  getValue: (row: QueryRow) => row.countyName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Locality,
@@ -213,7 +239,8 @@ setColumnInfo({
   description: 'Locality within county where specimen was found',
   defaultSelection: true,
   nullable: false,
-  defaultEmWidth: 20
+  defaultEmWidth: 20,
+  getValue: (row: QueryRow) => row.localityName || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Latitude,
@@ -222,7 +249,8 @@ setColumnInfo({
   description: 'Latitude of cave at which specimen was found',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 6
+  defaultEmWidth: 6,
+  getValue: (row: QueryRow) => getNumber(row.publicLatitude)
 });
 setColumnInfo({
   columnID: QueryColumnID.Longitude,
@@ -231,5 +259,6 @@ setColumnInfo({
   description: 'Longitude of cave at which specimen was found',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 6
+  defaultEmWidth: 6,
+  getValue: (row: QueryRow) => getNumber(row.publicLongitude)
 });

@@ -2,19 +2,18 @@ import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
+import { checkIntegerList } from '../util/http_util';
 import type { Location } from '../model/location';
 import { LocationEffort } from '../effort/location_effort';
 import type { LocationSpec, EffortResult } from '../../shared/model';
-//import { INTEGER_LIST_JSON_REGEX } from '../util/http_util';
 
 export const router = Router();
 
 router.post('/get_effort', async (req: Request, res) => {
   const locationIDs: number[] = req.body.locationIDs;
-  // TODO: revisit validation
-  // if (!INTEGER_LIST_JSON_REGEX.test(locationIDsString)) {
-  //   return res.status(StatusCodes.BAD_REQUEST).send();
-  // }
+  if (!checkIntegerList(locationIDs)) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
   const efforts = await LocationEffort.getByLocationIDs(getDB(), locationIDs);
   return res
     .status(StatusCodes.OK)

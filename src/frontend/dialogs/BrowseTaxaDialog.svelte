@@ -54,6 +54,7 @@
 
     // Load specs for the parent taxon and its ancestors.
 
+    // TODO: Need to handle error response here and in client calls elsewhere.
     let res = await $client.post('api/taxa/get_list', {
       taxonUniques: [parentUnique]
     });

@@ -26,7 +26,8 @@ export enum QueryColumnID {
   County,
   Locality,
   Latitude,
-  Longitude
+  Longitude,
+  _LENGTH
 }
 
 export interface QueryColumnSpec {
@@ -35,13 +36,28 @@ export interface QueryColumnSpec {
   nullValues: boolean | null; // null => null or not
 }
 
+export interface QueryTaxonFilter {
+  phylumIDs: number[] | null;
+  classIDs: number[] | null;
+  orderIDs: number[] | null;
+  familyIDs: number[] | null;
+  genusIDs: number[] | null;
+  speciesIDs: number[] | null;
+  subspeciesIDs: number[] | null;
+}
+
+export interface GeneralQuery {
+  columnSpecs: QueryColumnSpec[];
+  taxonFilter: QueryTaxonFilter | null;
+}
+
 /**
  * Query records are query results, which are subsets of the specimens table.
  * All columns are optional, but columns that must occur in groups are
  * grouped together in the list below. This allows queries to return the
  * distinct sets without repeating entries, providing query flexibility.
  */
-export interface QueryRecord {
+export interface QueryRow {
   resultCount?: number;
 
   catalogNumber?: string;
@@ -100,14 +116,4 @@ export interface QueryRecord {
 
   publicLatitude?: number | null;
   publicLongitude?: number | null;
-}
-
-export interface QueryTaxonFilter {
-  phylumIDs: number[] | null;
-  classIDs: number[] | null;
-  orderIDs: number[] | null;
-  familyIDs: number[] | null;
-  genusIDs: number[] | null;
-  speciesIDs: number[] | null;
-  subspeciesIDs: number[] | null;
 }
