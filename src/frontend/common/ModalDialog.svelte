@@ -9,8 +9,8 @@
   export let contentClasses = '';
 </script>
 
-<Modal {dialogClasses} {contentClasses}>
-  <Dialog {title}>
+<Modal {contentClasses}>
+  <Dialog {title} class={dialogClasses}>
     <slot />
   </Dialog>
 </Modal>

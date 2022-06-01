@@ -20,6 +20,7 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
+  import QueryFilterDialog from '../dialogs/QueryFilterDialog.svelte';
   import RowControls, {
     type RowControlsConfig
   } from '../components/RowControls.svelte';
@@ -42,6 +43,7 @@
     toLastSet
   };
 
+  let creatingNewQuery = false;
   let lastRowNumber = 0;
   $: if ($cachedResults) {
     lastRowNumber = $cachedResults.startOffset + BIG_STEP_ROWS;
@@ -51,7 +53,11 @@
   }
 
   function createNewQuery() {
-    //
+    creatingNewQuery = true;
+  }
+
+  async function performQuery(query: GeneralQuery) {
+    console.log('**** performing query', query);
   }
 
   async function toFirstSet() {
@@ -204,3 +210,10 @@
     {/if}
   </div>
 </DataTabRoute>
+
+{#if creatingNewQuery}
+  <QueryFilterDialog
+    onQuery={performQuery}
+    onClose={() => (creatingNewQuery = false)}
+  />
+{/if}

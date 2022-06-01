@@ -3,6 +3,7 @@
   import { flip } from 'svelte/animate';
 
   import ModalDialog from '../common/ModalDialog.svelte';
+  import { TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
   import {
     QueryColumnID,
@@ -22,20 +23,67 @@
   export let onQuery: (query: GeneralQuery) => void;
 
   let filterForTaxa = false;
-  let draggableItems: DraggableItem[] = [];
+  let includedItems: DraggableItem[] = [];
+  let excludedItems: DraggableItem[] = [];
   let columnSpecs: QueryColumnSpec[] = [];
 
   for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
     const columnInfo = columnInfoMap[i];
-    draggableItems.push({ id: columnInfo.columnID, info: columnInfo });
+    includedItems.push({ id: columnInfo.columnID, info: columnInfo });
   }
 
-  function handleSort(e: CustomEvent<DndEvent>) {
-    draggableItems = e.detail.items as DraggableItem[];
+  function getTaxonFilter(): QueryTaxonFilter | null {
+    if ($selectedTaxa === null) return null;
+
+    const filter: QueryTaxonFilter = {
+      phylumIDs: null,
+      classIDs: null,
+      orderIDs: null,
+      familyIDs: null,
+      genusIDs: null,
+      speciesIDs: null,
+      subspeciesIDs: null
+    };
+    for (const spec of Object.values($selectedTaxa)) {
+      switch (spec.rank) {
+        case TaxonRank.Phylum:
+          filter.phylumIDs = appendTaxonID(filter.phylumIDs, spec.taxonID);
+          break;
+        case TaxonRank.Class:
+          filter.classIDs = appendTaxonID(filter.classIDs, spec.taxonID);
+          break;
+        case TaxonRank.Order:
+          filter.orderIDs = appendTaxonID(filter.orderIDs, spec.taxonID);
+          break;
+        case TaxonRank.Family:
+          filter.familyIDs = appendTaxonID(filter.familyIDs, spec.taxonID);
+          break;
+        case TaxonRank.Genus:
+          filter.genusIDs = appendTaxonID(filter.genusIDs, spec.taxonID);
+          break;
+        case TaxonRank.Species:
+          filter.speciesIDs = appendTaxonID(filter.speciesIDs, spec.taxonID);
+          break;
+        case TaxonRank.Subspecies:
+          filter.subspeciesIDs = appendTaxonID(filter.subspeciesIDs, spec.taxonID);
+          break;
+      }
+    }
+    return filter;
   }
 
-  function getTaxonFilter(): QueryTaxonFilter {
-    //
+  function appendTaxonID(toList: number[] | null, taxonID: number): number[] {
+    if (toList === null) return [taxonID];
+    toList.push(taxonID);
+    return toList;
+  }
+
+  function resortIncludedItems(e: CustomEvent<DndEvent>) {
+    includedItems = e.detail.items as DraggableItem[];
+  }
+
+  function resortExcludedItems(e: CustomEvent<DndEvent>) {
+    excludedItems = e.detail.items as DraggableItem[];
   }
 
   const submitQuery = () => {
@@ -46,53 +94,118 @@
   };
 </script>
 
-<ModalDialog title="New Query" contentClasses="user-form-content">
-  <div class="custom-control custom-switch">
-    <input
-      type="checkbox"
-      bind:checked={filterForTaxa}
-      class="custom-control-input"
-      id="taxonFilterSwitch"
-    />
-    <label class="custom-control-label" for="taxonFilterSwitch"
-      >Filter for selected taxa</label
-    >
-  </div>
-
-  <section
-    use:dndzone={{ items: draggableItems, flipDurationMs: FLIP_DURATION_MILLIS }}
-    on:consider={handleSort}
-    on:finalize={handleSort}
-  >
-    {#each draggableItems as item (item.id)}
-      <div class="column-spec" animate:flip={{ duration: FLIP_DURATION_MILLIS }}>
-        {item.info.fullName}
+<ModalDialog
+  title="New Query"
+  contentClasses="query-filter-content"
+  dialogClasses="query-filter-dialog"
+>
+  <div class="row justify-content-center mb-3">
+    <div class="col-auto">
+      <div class="form-check form-switch">
+        <input
+          type="checkbox"
+          bind:checked={filterForTaxa}
+          class="form-check-input"
+          id="taxonFilterSwitch"
+        />
+        <label class="form-check-label" for="taxonFilterSwitch"
+          >Filter for selected taxa</label
+        >
       </div>
-    {/each}
-  </section>
-
-  <div class="row g-2">
-    <div class="col-12 text-center">
-      <button class="btn btn-minor" type="button" on:click={onClose}>Cancel</button>
-      <button class="btn btn-major" type="button" on:click={() => onQuery(TBD)}
-        >Submit Query</button
-      >
     </div>
   </div>
-</ModalDialog>
 
-<style>
-  button {
-    width: 6rem;
-    margin: 1rem 0.5rem 0 0.5rem;
+  <div class="included_columns">
+    <div class="drag_area_title">Included in Query</div>
+    <div
+      class="drag_area"
+      use:dndzone={{ items: includedItems, flipDurationMs: FLIP_DURATION_MILLIS }}
+      on:consider={resortIncludedItems}
+      on:finalize={resortIncludedItems}
+    >
+      {#each includedItems as item (item.id)}
+        <div
+          class="column-spec row mb-1"
+          animate:flip={{ duration: FLIP_DURATION_MILLIS }}
+        >
+          <div class="col">
+            {item.info.fullName}
+          </div>
+          <div class="col">
+            <button class="btn btn-minor" type="button" on:click={onClose}
+              >Empty or not</button
+            >
+            <button class="btn btn-minor" type="button" on:click={onClose}
+              >Unsorted</button
+            >
+          </div>
+        </div>
+      {/each}
+    </div>
+  </div>
+  <div class="excluded_columns">
+    <div class="drag_area_title">Excluded from Query</div>
+    <div
+      class="drag_area"
+      use:dndzone={{ items: excludedItems, flipDurationMs: FLIP_DURATION_MILLIS }}
+      on:consider={resortExcludedItems}
+      on:finalize={resortExcludedItems}
+    >
+      {#each excludedItems as item (item.id)}
+        <div
+          class="column-spec row mb-1"
+          animate:flip={{ duration: FLIP_DURATION_MILLIS }}
+        >
+          <div class="col-auto">x</div>
+          <div class="col">
+            {item.info.fullName}
+          </div>
+        </div>
+      {/each}
+    </div>
+  </div>
+
+  <div class="dialog_controls row g-2">
+    <div class="col-12 text-center">
+      <button class="btn btn-minor" type="button" on:click={onClose}>Cancel</button>
+      <button class="btn btn-major" type="button" on:click={submitQuery}>Submit</button>
+    </div>
+  </div></ModalDialog
+>
+
+<style lang="scss">
+  @import '../variables.scss';
+
+  .included_columns,
+  .excluded_columns {
+    border-radius: $border-radius;
+    border: 1px solid black;
+    padding: 0 0.5em 0.5em 0.5em;
   }
 
-  .column-spec {
-    height: 1.5em;
-    width: 10em;
-    text-align: center;
-    border: 1px solid black;
-    margin: 0.2em;
-    padding: 0.3em;
+  .excluded_columns {
+    margin: 1.5rem 0 0.5rem 0;
+  }
+
+  .drag_area_title {
+    font-weight: bold;
+    width: fit-content;
+    margin: -0.8em 0 0.5em 1em;
+    padding: 0 0.5em;
+    background-color: white;
+  }
+
+  .included_columns button {
+    margin-left: 0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .drag_area {
+    min-height: 2rem;
+  }
+
+  .dialog_controls button {
+    width: 6rem;
+    margin: 1rem 0.5rem 0 0.5rem;
   }
 </style>
