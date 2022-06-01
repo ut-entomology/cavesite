@@ -3,6 +3,7 @@
   import { flip } from 'svelte/animate';
 
   import ModalDialog from '../common/ModalDialog.svelte';
+  import CircleIconButton from '../components/CircleIconButton.svelte';
   import { TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
   import {
@@ -86,6 +87,10 @@
     excludedItems = e.detail.items as DraggableItem[];
   }
 
+  const removeColumn = (_columnID: number) => {
+    //
+  };
+
   const submitQuery = () => {
     onQuery({
       columnSpecs,
@@ -109,7 +114,7 @@
           id="taxonFilterSwitch"
         />
         <label class="form-check-label" for="taxonFilterSwitch"
-          >Filter for selected taxa</label
+          >Filter for the currently selected taxa</label
         >
       </div>
     </div>
@@ -140,16 +145,18 @@
           <div class="col" title={item.info.description}>
             {item.info.fullName}
           </div>
-          <div class="col-auto">
-            <select
-              class="form-select form-select-sm"
-              aria-label=".form-select-sm example"
-            >
-              <option value="empty_or_not" selected>Empty or not</option>
-              <option value="non_empty">Non-empty</option>
-              <option value="empty_only">Empty only</option>
-            </select>
-          </div>
+          {#if item.info.nullable}
+            <div class="col-auto">
+              <select
+                class="form-select form-select-sm"
+                aria-label=".form-select-sm example"
+              >
+                <option value="any_value" selected>Any value</option>
+                <option value="non_blank">Non-blank</option>
+                <option value="blank">Blank</option>
+              </select>
+            </div>
+          {/if}
           <div class="col-auto">
             <select
               class="form-select form-select-sm"
@@ -159,6 +166,15 @@
               <option value="ascending">Ascending</option>
               <option value="descending">Descending</option>
             </select>
+          </div>
+          <div class="col-auto">
+            <CircleIconButton
+              class="column_toggle"
+              on:click={() => removeColumn(item.info.columnID)}
+              label="Remove column"
+            >
+              <div>&#x2715;</div>
+            </CircleIconButton>
           </div>
         </div>
       {/each}
@@ -226,6 +242,17 @@
     margin: -0.2rem 0 0 0;
     padding: 0;
     opacity: 0.4;
+  }
+
+  :global(.column_toggle) {
+    margin-top: -0.3rem;
+    font-size: 1rem;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  :global(.column_toggle div) {
+    margin-top: -0.15rem;
   }
 
   .drag_area select {

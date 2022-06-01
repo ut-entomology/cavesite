@@ -138,7 +138,7 @@ setColumnInfo({
   abbrName: 'Count',
   description: 'The number of specimens collected',
   defaultSelection: true,
-  nullable: true, // TODO: Might want to treat 0s as nulls, if not already
+  nullable: true, // there are no 0s, only nulls
   defaultEmWidth: 4,
   getValue: (row: QueryRow) => row.specimenCount || ''
 });
@@ -148,7 +148,7 @@ setColumnInfo({
   abbrName: 'Problems',
   description: 'Problems encountered parsing the data record',
   defaultSelection: false,
-  nullable: false,
+  nullable: true,
   defaultEmWidth: 20,
   getValue: (row: QueryRow) => row.problems || ''
 });
