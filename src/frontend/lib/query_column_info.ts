@@ -27,7 +27,7 @@ setColumnInfo({
   fullName: 'Result Count',
   abbrName: 'Results',
   description: 'Number of results in the data that are identical to the given result.',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: false,
   defaultEmWidth: 5,
   getValue: (row: QueryRow) => getNumber(row.resultCount)
@@ -137,7 +137,7 @@ setColumnInfo({
   fullName: 'Specimen Count',
   abbrName: 'Count',
   description: 'The number of specimens collected',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true, // there are no 0s, only nulls
   defaultEmWidth: 4,
   getValue: (row: QueryRow) => row.specimenCount || ''
@@ -167,7 +167,7 @@ setColumnInfo({
   fullName: 'Class',
   abbrName: null,
   description: 'Class determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.className || ''
@@ -177,7 +177,7 @@ setColumnInfo({
   fullName: 'Order',
   abbrName: null,
   description: 'Order determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.orderName || ''
@@ -187,7 +187,7 @@ setColumnInfo({
   fullName: 'Family',
   abbrName: null,
   description: 'Family determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.familyName || ''
@@ -197,7 +197,7 @@ setColumnInfo({
   fullName: 'Genus',
   abbrName: null,
   description: 'Genus determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.genusName || ''
@@ -207,7 +207,7 @@ setColumnInfo({
   fullName: 'Species',
   abbrName: null,
   description: 'Specific epithet determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.speciesName || ''
@@ -217,7 +217,7 @@ setColumnInfo({
   fullName: 'Subspecies',
   abbrName: null,
   description: 'Infraspecific epithet determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.subspeciesName || ''
