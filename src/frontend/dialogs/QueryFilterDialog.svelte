@@ -18,7 +18,7 @@
   };
 
   const FLIP_DURATION_MILLIS = 200;
-
+  const DRAG_ICON_TEXT = 'Click and drag to change the column sort order.';
   export let onClose: () => void;
   export let onQuery: (query: GeneralQuery) => void;
 
@@ -125,19 +125,40 @@
     >
       {#each includedItems as item (item.id)}
         <div
-          class="column-spec row mb-1"
+          class="column-spec row mb-1 gx-2"
+          style="margin: 0"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
-          <div class="col">
+          <div class="col-auto">
+            <img
+              class="non_skid_icon"
+              src="/non-skid-icon.png"
+              title={DRAG_ICON_TEXT}
+              alt={DRAG_ICON_TEXT}
+            />
+          </div>
+          <div class="col" title={item.info.description}>
             {item.info.fullName}
           </div>
-          <div class="col">
-            <button class="btn btn-minor" type="button" on:click={onClose}
-              >Empty or not</button
+          <div class="col-auto">
+            <select
+              class="form-select form-select-sm"
+              aria-label=".form-select-sm example"
             >
-            <button class="btn btn-minor" type="button" on:click={onClose}
-              >Unsorted</button
+              <option value="empty_or_not" selected>Empty or not</option>
+              <option value="non_empty">Non-empty</option>
+              <option value="empty_only">Empty only</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select
+              class="form-select form-select-sm"
+              aria-label=".form-select-sm example"
             >
+              <option value="unsorted" selected>Unsorted</option>
+              <option value="ascending">Ascending</option>
+              <option value="descending">Descending</option>
+            </select>
           </div>
         </div>
       {/each}
@@ -157,7 +178,7 @@
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
           <div class="col-auto">x</div>
-          <div class="col">
+          <div class="col" title={item.info.description}>
             {item.info.fullName}
           </div>
         </div>
@@ -195,13 +216,23 @@
     background-color: white;
   }
 
-  .included_columns button {
-    margin-left: 0.5rem;
-    padding: 0 0.5rem;
-  }
-
   .drag_area {
     min-height: 2rem;
+  }
+
+  .non_skid_icon {
+    width: 1rem;
+    height: 1rem;
+    margin: -0.2rem 0 0 0;
+    padding: 0;
+    opacity: 0.4;
+  }
+
+  .drag_area select {
+    width: fit-content;
+    font-size: 0.8rem;
+    padding: 0 2rem 0 0.5rem;
+    background-position: right 0.5rem center;
   }
 
   .dialog_controls button {
