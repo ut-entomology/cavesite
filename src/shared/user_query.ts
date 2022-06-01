@@ -3,19 +3,16 @@
  */
 
 export enum QueryColumnID {
-  ResultCount,
+  // in default order of appearance
   CatalogNumber,
   CollectionStartDate,
   CollectionEndDate,
-  Collectors,
-  Determiners,
-  DeterminationYear,
-  CollectionRemarks,
-  OccurrenceRemarks,
-  DeterminationRemarks,
+  County,
+  Locality,
   TypeStatus,
-  SpecimenCount,
-  Problems,
+  TaxonUnique,
+  // these do not initially appear, but QueryColumnInfo provides this info
+  ResultCount,
   Phylum,
   Class,
   Order,
@@ -23,10 +20,16 @@ export enum QueryColumnID {
   Genus,
   Species,
   Subspecies,
-  County,
-  Locality,
+  SpecimenCount,
   Latitude,
   Longitude,
+  Collectors,
+  CollectionRemarks,
+  Determiners,
+  DeterminationYear,
+  DeterminationRemarks,
+  OccurrenceRemarks,
+  Problems,
   _LENGTH
 }
 
@@ -106,7 +109,9 @@ export interface QueryRow {
   subspeciesName?: string | null;
   subspeciesID?: number | null;
 
-  taxonAuthor?: string | null; // occurs when any taxon rank occurs
+  taxonUnique?: string;
+  taxonID?: number;
+  taxonAuthor?: string | null;
 
   countyName?: string | null;
   countyID?: number | null;

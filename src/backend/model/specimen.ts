@@ -98,6 +98,10 @@ columnInfoMap[QueryColumnID.Subspecies] = {
   column1: 'subspecies_name',
   column2: 'subspecies_id'
 };
+columnInfoMap[QueryColumnID.TaxonUnique] = {
+  column1: 'taxon_unique',
+  column2: 'taxon_author, taxon_id'
+};
 columnInfoMap[QueryColumnID.County] = {
   column1: 'county_name',
   column2: 'county_id'

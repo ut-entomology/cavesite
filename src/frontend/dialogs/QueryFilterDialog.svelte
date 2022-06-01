@@ -87,8 +87,8 @@
     excludedItems = e.detail.items as DraggableItem[];
   }
 
-  const removeColumn = (_columnID: number) => {
-    //
+  const removeColumn = (columnID: number) => {
+    console.log('**** removeColumn', columnID);
   };
 
   const submitQuery = () => {

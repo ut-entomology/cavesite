@@ -223,6 +223,17 @@ setColumnInfo({
   getValue: (row: QueryRow) => row.subspeciesName || ''
 });
 setColumnInfo({
+  columnID: QueryColumnID.TaxonUnique,
+  fullName: 'Scientific Name',
+  abbrName: null,
+  description: 'Most-specific taxon determined, with author and date when available',
+  defaultSelection: true,
+  nullable: false,
+  defaultEmWidth: 12,
+  getValue: (row: QueryRow) =>
+    row.taxonUnique! + (row.taxonAuthor ? ' ' + row.taxonAuthor : '')
+});
+setColumnInfo({
   columnID: QueryColumnID.County,
   fullName: 'County',
   abbrName: null,

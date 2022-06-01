@@ -684,6 +684,20 @@ describe('general specimen query', () => {
       'subspeciesName',
       'subspeciesID'
     );
+    // prettier-ignore
+    results = await Specimen.generalQuery(
+        db, [_toColumnSpec(QueryColumnID.TaxonUnique, false)], null, 0, 10);
+    const spec1Result = {
+      taxonUnique: specimen1!.taxonUnique,
+      taxonAuthor: specimen1!.taxonAuthor,
+      taxonID: specimen1!.taxonID
+    };
+    const spec2Result = {
+      taxonUnique: specimen2!.taxonUnique,
+      taxonAuthor: specimen2!.taxonAuthor,
+      taxonID: specimen2!.taxonID
+    };
+    expect(results[0]).toEqual([spec2Result, spec1Result]);
 
     await checkColumns(QueryColumnID.County, true, 'countyName', 'countyID');
     await checkColumns(QueryColumnID.Locality, true, 'localityName', 'localityID');
