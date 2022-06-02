@@ -55,9 +55,11 @@
     margin: 0 0.1rem;
     padding: 0 0.5rem;
     font-family: Verdana, Geneva, sans-serif;
+    font-size: 0.9rem;
   }
 
   button span {
+    font-size: 1rem;
     font-weight: bold;
     letter-spacing: -0.1em;
   }
