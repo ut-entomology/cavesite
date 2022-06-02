@@ -111,8 +111,18 @@
     excludedItems = e.detail.items as DraggableItem[];
   }
 
-  const removeColumn = (columnID: number) => {
-    console.log('**** removeColumn', columnID);
+  const addQueryColumn = (item: DraggableItem) => {
+    excludedItems.splice(excludedItems.indexOf(item), 1);
+    includedItems.push(item);
+    excludedItems = excludedItems; // tell Svelte to redraw
+    includedItems = includedItems;
+  };
+
+  const removeQueryColumn = (item: DraggableItem) => {
+    includedItems.splice(includedItems.indexOf(item), 1);
+    excludedItems.push(item);
+    excludedItems = excludedItems; // tell Svelte to redraw
+    includedItems = includedItems;
   };
 
   const submitQuery = () => {
@@ -154,7 +164,7 @@
     >
       {#each includedItems as item (item.id)}
         <div
-          class="column-spec row mb-1 gx-2"
+          class="column_spec row mb-1 gx-2"
           style="margin: 0"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
@@ -172,7 +182,7 @@
           {#if item.info.nullable}
             <div class="col-auto">
               <select
-                class="form-select form-select-sm"
+                class="form-select form-select-sm item_select"
                 aria-label=".form-select-sm example"
               >
                 <option value="any_value" selected>Any value</option>
@@ -183,7 +193,7 @@
           {/if}
           <div class="col-auto">
             <select
-              class="form-select form-select-sm"
+              class="form-select form-select-sm item_select"
               aria-label=".form-select-sm example"
             >
               <option value="unsorted" selected>Unsorted</option>
@@ -194,10 +204,10 @@
           <div class="col-auto">
             <CircleIconButton
               class="column_toggle"
-              on:click={() => removeColumn(item.info.columnID)}
-              label="Remove column"
+              on:click={() => removeQueryColumn(item)}
+              label="Remove field from query"
             >
-              <div>&#x2715;</div>
+              <div>&times;</div>
             </CircleIconButton>
           </div>
         </div>
@@ -214,12 +224,29 @@
     >
       {#each excludedItems as item (item.id)}
         <div
-          class="column-spec row mb-1"
+          class="column_spec row mb-1 gx-2"
+          style="margin: 0"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
-          <div class="col-auto">x</div>
+          <div class="col-auto">
+            <img
+              class="non_skid_icon"
+              src="/non-skid-icon.png"
+              title={DRAG_ICON_TEXT}
+              alt={DRAG_ICON_TEXT}
+            />
+          </div>
           <div class="col" title={item.info.description}>
             {item.info.fullName}
+          </div>
+          <div class="col-auto">
+            <CircleIconButton
+              class="column_toggle"
+              on:click={() => addQueryColumn(item)}
+              label="Add field to query"
+            >
+              <div>&plus;</div>
+            </CircleIconButton>
           </div>
         </div>
       {/each}
@@ -270,18 +297,26 @@
 
   :global(.column_toggle) {
     margin-top: -0.3rem;
-    font-size: 1rem;
+    font-size: 1.3rem;
     width: 1.3rem;
     height: 1.3rem;
   }
 
   :global(.column_toggle div) {
-    margin-top: -0.15rem;
+    margin-top: -0.45rem;
   }
 
-  .drag_area select {
+  .column_spec:nth-child(even) {
+    background-color: #eaeaea;
+  }
+  .column_spec:nth-child(odd) {
+    background-color: #f4f4f4;
+  }
+
+  .item_select {
     width: fit-content;
     font-size: 0.8rem;
+    margin-top: 0.075rem;
     padding: 0 2rem 0 0.5rem;
     background-position: right 0.5rem center;
   }
