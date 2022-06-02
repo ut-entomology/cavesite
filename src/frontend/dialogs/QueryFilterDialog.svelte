@@ -6,11 +6,7 @@
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import { TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
-  import type {
-    QueryColumnSpec,
-    QueryTaxonFilter,
-    GeneralQuery
-  } from '../../shared/user_query';
+  import type { QueryTaxonFilter, GeneralQuery } from '../../shared/user_query';
   import { selectedTaxa } from '../stores/selectedTaxa';
 
   type DraggableItem = Item & {

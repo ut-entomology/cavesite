@@ -17,6 +17,8 @@
 </script>
 
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
@@ -51,6 +53,18 @@
       lastRowNumber = $cachedResults.totalRows;
     }
   }
+
+  onMount(() => {
+    if ($cachedResults) {
+      const emWidths: string[] = [];
+      for (const columnSpec of $cachedResults.query.columnSpecs) {
+        const emWidth = $cachedResults.columnEmWidths[columnSpec.columnID] + 'em';
+        emWidths.push(`minmax(${emWidth},${emWidth})`);
+      }
+      document.getElementById('results_grid')!.style.gridTemplateColumns =
+        emWidths.join(' ');
+    }
+  });
 
   function createNewQuery() {
     templateQuery = $cachedResults?.query || null;
@@ -217,31 +231,21 @@
   {:else}
     <div class="rows_box">
       <div class="rows">
-        <table>
-          <thead>
-            <tr>
-              {#each $cachedResults.query.columnSpecs as columnSpec}
-                {@const columnID = columnSpec.columnID}
-                {@const columnInfo = columnInfoMap[columnID]}
-                <th
-                  title={columnInfo.description}
-                  style="width: {$cachedResults.columnEmWidths[columnID]}em"
-                  >{columnInfo.abbrName || columnInfo.fullName}</th
-                >
-              {/each}
-            </tr>
-          </thead>
-          <tbody>
-            {#each $cachedResults.rows as row}
-              <tr>
-                {#each $cachedResults.query.columnSpecs as columnSpec}
-                  {@const columnInfo = columnInfoMap[columnSpec.columnID]}
-                  <td>{columnInfo.getValue(row)}</td>
-                {/each}
-              </tr>
+        <div id="results_grid">
+          {#each $cachedResults.query.columnSpecs as columnSpec}
+            {@const columnID = columnSpec.columnID}
+            {@const columnInfo = columnInfoMap[columnID]}
+            <div class="header" title={columnInfo.description}>
+              {columnInfo.abbrName || columnInfo.fullName}
+            </div>
+          {/each}
+          {#each $cachedResults.rows as row}
+            {#each $cachedResults.query.columnSpecs as columnSpec, i}
+              {@const columnInfo = columnInfoMap[columnSpec.columnID]}
+              <div class:left_column={i == 0}>{columnInfo.getValue(row)}</div>
             {/each}
-          </tbody>
-        </table>
+          {/each}
+        </div>
       </div>
     </div>
   {/if}
@@ -261,6 +265,7 @@
     flex-grow: 1;
     overflow: hidden;
     position: relative;
+    font-size: 0.9rem;
   }
 
   .rows_box .rows {
@@ -270,5 +275,29 @@
     right: 0;
     bottom: 0;
     overflow: scroll;
+  }
+
+  #results_grid {
+    display: grid;
+    grid-auto-rows: 1.9rem;
+    grid-gap: 0px;
+  }
+
+  #results_grid div {
+    border-right: 1px solid #888;
+    border-bottom: 1px solid #888;
+    white-space: nowrap;
+    padding: 0.2rem 0.4rem;
+    overflow: hidden;
+  }
+
+  #results_grid div.left_column {
+    border-left: 1px solid #888;
+  }
+
+  #results_grid div.header {
+    font-weight: bold;
+    border-left: none;
+    border-right: none;
   }
 </style>
