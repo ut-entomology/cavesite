@@ -15,8 +15,19 @@
 
   type DraggableItem = Item & {
     info: QueryColumnInfo;
-    spec: QueryColumnSpec;
   };
+
+  enum NullOption {
+    AnyValue = 'any-value',
+    NonNull = 'non-null',
+    OnlyNull = 'null-only'
+  }
+
+  enum SortOption {
+    Unsorted = 'unsorted',
+    Ascending = 'ascending',
+    Descending = 'descending'
+  }
 
   const FLIP_DURATION_MILLIS = 200;
   const DRAG_ICON_TEXT = 'Click and drag to change the column sort order.';
@@ -28,32 +39,21 @@
   let filterForTaxa = false;
   let includedItems: DraggableItem[] = [];
   let excludedItems: DraggableItem[] = [];
+  let nullSelections: NullOption[] = [];
+  let sortSelections: SortOption[] = [];
 
   for (const columnSpec of initialQuery.columnSpecs) {
     const columnID = columnSpec.columnID;
-    includedItems.push({
-      id: columnID,
-      info: columnInfoMap[columnID],
-      spec: {
-        columnID,
-        nullValues: columnSpec.nullValues,
-        ascending: columnSpec.ascending
-      }
-    });
+    includedItems.push({ id: columnID, info: columnInfoMap[columnID] });
+    nullSelections[columnID] = _toNullOption(columnSpec.nullValues);
+    sortSelections[columnID] = _toSortOption(columnSpec.ascending);
   }
   for (const columnInfo of Object.values(columnInfoMap)) {
-    if (
-      !initialQuery.columnSpecs.find((spec) => spec.columnID == columnInfo.columnID)
-    ) {
-      excludedItems.push({
-        id: columnInfo.columnID,
-        info: columnInfo,
-        spec: {
-          columnID: columnInfo.columnID,
-          nullValues: null,
-          ascending: null
-        }
-      });
+    const columnID = columnInfo.columnID;
+    if (!initialQuery.columnSpecs.find((spec) => spec.columnID == columnID)) {
+      excludedItems.push({ id: columnID, info: columnInfo });
+      nullSelections[columnID] = NullOption.AnyValue; // default value
+      sortSelections[columnID] = SortOption.Unsorted; // default value
     }
   }
 
@@ -127,10 +127,36 @@
 
   const submitQuery = () => {
     onQuery({
-      columnSpecs: includedItems.map((item) => item.spec),
+      columnSpecs: includedItems.map((item) => {
+        const columnID = item.columnID;
+
+        const nullOption = nullSelections[columnID];
+        let nullValues: boolean | null = null;
+        if (nullOption != NullOption.AnyValue) {
+          nullValues = nullOption == NullOption.OnlyNull;
+        }
+
+        const sortOption = sortSelections[columnID];
+        let ascending: boolean | null = null;
+        if (sortOption != SortOption.Unsorted) {
+          ascending = sortOption == SortOption.Ascending;
+        }
+
+        return { columnID, nullValues, ascending };
+      }),
       taxonFilter: filterForTaxa ? getTaxonFilter() : null
     });
   };
+
+  function _toNullOption(nullValues: boolean | null) {
+    if (nullValues === null) return NullOption.AnyValue;
+    return nullValues ? NullOption.OnlyNull : NullOption.NonNull;
+  }
+
+  function _toSortOption(ascending: boolean | null) {
+    if (ascending === null) return SortOption.Unsorted;
+    return ascending ? SortOption.Ascending : SortOption.Descending;
+  }
 </script>
 
 <ModalDialog
@@ -141,7 +167,7 @@
   <div class="row mb-4">
     <div class="col">
       Drag and drop the values you want in the query results and order them, or click
-      '&times;' and '&plus;'. Sorted values sort in their order of appearance.
+      '&times;' and '&plus;'. Sorted values sort results in order of appearance.
     </div>
   </div>
   <div class="included_columns">
@@ -172,23 +198,25 @@
           {#if item.info.nullable}
             <div class="col-auto">
               <select
+                bind:value={nullSelections[item.id]}
                 class="form-select form-select-sm item_select"
                 aria-label=".form-select-sm example"
               >
-                <option value="any_value" selected>Any value</option>
-                <option value="non_blank">Non-blank</option>
-                <option value="blank">Blank</option>
+                <option value={NullOption.AnyValue}>Any value</option>
+                <option value={NullOption.NonNull}>Non-blank</option>
+                <option value={NullOption.OnlyNull}>Blank</option>
               </select>
             </div>
           {/if}
           <div class="col-auto">
             <select
+              bind:value={sortSelections[item.id]}
               class="form-select form-select-sm item_select"
               aria-label=".form-select-sm example"
             >
-              <option value="unsorted" selected>Unsorted</option>
-              <option value="ascending">Ascending</option>
-              <option value="descending">Descending</option>
+              <option value={SortOption.Unsorted}>Unsorted</option>
+              <option value={SortOption.Ascending}>Ascending</option>
+              <option value={SortOption.Descending}>Descending</option>
             </select>
           </div>
           <div class="col-auto">

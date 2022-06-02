@@ -157,7 +157,7 @@ setColumnInfo({
   fullName: 'Phylum',
   abbrName: null,
   description: 'Phylum determined for the specimen',
-  defaultSelection: true,
+  defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
   getValue: (row: QueryRow) => row.phylumName || ''
