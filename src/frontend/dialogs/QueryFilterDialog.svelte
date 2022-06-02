@@ -138,22 +138,12 @@
   contentClasses="query-filter-content"
   dialogClasses="query-filter-dialog"
 >
-  <div class="row justify-content-center mb-3">
-    <div class="col-auto">
-      <div class="form-check form-switch">
-        <input
-          type="checkbox"
-          bind:checked={filterForTaxa}
-          class="form-check-input"
-          id="taxonFilterSwitch"
-        />
-        <label class="form-check-label" for="taxonFilterSwitch"
-          >Filter for the currently selected taxa</label
-        >
-      </div>
+  <div class="row mb-4">
+    <div class="col">
+      Drag and drop the values you want in the query results and order them, or click
+      '&times;' and '&plus;'. Sorted values sort in their order of appearance.
     </div>
   </div>
-
   <div class="included_columns">
     <div class="drag_area_title">Included in Query</div>
     <div
@@ -250,6 +240,22 @@
           </div>
         </div>
       {/each}
+    </div>
+  </div>
+
+  <div class="row justify-content-center mt-3 mb-2">
+    <div class="col-auto">
+      <div class="form-check form-switch">
+        <input
+          type="checkbox"
+          bind:checked={filterForTaxa}
+          class="form-check-input"
+          id="taxonFilterSwitch"
+        />
+        <label class="form-check-label" for="taxonFilterSwitch"
+          >Filter for the currently selected taxa</label
+        >
+      </div>
     </div>
   </div>
 
