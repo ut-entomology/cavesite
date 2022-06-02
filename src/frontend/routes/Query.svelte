@@ -29,8 +29,8 @@
   import { client, errorReason } from '../stores/client';
 
   const QUERY_BUTTON_LABEL = 'New Query';
-  const SMALL_STEP_ROWS = 20;
-  const BIG_STEP_ROWS = 500;
+  const SMALL_STEP_ROWS = 10;
+  const BIG_STEP_ROWS = 100;
 
   const rowControlsConfig: RowControlsConfig = {
     smallStepRows: SMALL_STEP_ROWS,
@@ -196,53 +196,55 @@
   <div class="container-fluid">
     <TabHeader title="Query" instructions="Instructions TBD">
       <span slot="main-buttons">
-        <button class="btn btn-minor" type="button" on:click={createNewQuery}
+        <button class="btn btn-major" type="button" on:click={createNewQuery}
           >{QUERY_BUTTON_LABEL}</button
         >
       </span>
+      <span slot="work-buttons">
+        {#if $cachedResults}
+          <RowControls
+            firstRowNumber={$cachedResults.startOffset + 1}
+            {lastRowNumber}
+            totalRows={$cachedResults.totalRows}
+            config={rowControlsConfig}
+          />
+        {/if}
+      </span>
     </TabHeader>
-    {#if !$cachedResults}
-      <EmptyTab message="Please click [{QUERY_BUTTON_LABEL}] to perform a results." />
-    {:else}
-      <RowControls
-        firstRowNumber={$cachedResults.startOffset + 1}
-        {lastRowNumber}
-        totalRows={$cachedResults.totalRows}
-        config={rowControlsConfig}
-      />
-      <table>
-        <thead>
-          <tr>
-            {#each $cachedResults.query.columnSpecs as columnSpec}
-              {@const columnID = columnSpec.columnID}
-              {@const columnInfo = columnInfoMap[columnID]}
-              <th
-                title={columnInfo.description}
-                style="width: {$cachedResults.columnEmWidths[columnID]}em"
-                >{columnInfo.abbrName || columnInfo.fullName}</th
-              >
-            {/each}
-          </tr>
-        </thead>
-        <tbody>
-          {#each $cachedResults.rows as row}
+  </div>
+  {#if !$cachedResults}
+    <EmptyTab message="Please click [{QUERY_BUTTON_LABEL}] to perform a results." />
+  {:else}
+    <div class="rows_box">
+      <div class="rows">
+        <table>
+          <thead>
             <tr>
               {#each $cachedResults.query.columnSpecs as columnSpec}
-                {@const columnInfo = columnInfoMap[columnSpec.columnID]}
-                <td>{columnInfo.getValue(row)}</td>
+                {@const columnID = columnSpec.columnID}
+                {@const columnInfo = columnInfoMap[columnID]}
+                <th
+                  title={columnInfo.description}
+                  style="width: {$cachedResults.columnEmWidths[columnID]}em"
+                  >{columnInfo.abbrName || columnInfo.fullName}</th
+                >
               {/each}
             </tr>
-          {/each}
-        </tbody>
-      </table>
-      <RowControls
-        firstRowNumber={$cachedResults.startOffset + 1}
-        {lastRowNumber}
-        totalRows={$cachedResults.totalRows}
-        config={rowControlsConfig}
-      />
-    {/if}
-  </div>
+          </thead>
+          <tbody>
+            {#each $cachedResults.rows as row}
+              <tr>
+                {#each $cachedResults.query.columnSpecs as columnSpec}
+                  {@const columnInfo = columnInfoMap[columnSpec.columnID]}
+                  <td>{columnInfo.getValue(row)}</td>
+                {/each}
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {/if}
 </DataTabRoute>
 
 {#if templateQuery !== null}
@@ -252,3 +254,21 @@
     onClose={() => (templateQuery = null)}
   />
 {/if}
+
+<style>
+  .rows_box {
+    margin-top: 0.5rem;
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .rows_box .rows {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: scroll;
+  }
+</style>
