@@ -18,44 +18,43 @@
   export let config: RowControlsConfig;
 </script>
 
-<div class="row_info">
-  Rows {firstRowNumber} - {lastRowNumber} of {totalRows}
-</div>
-<div class="buttons">
-  <button class="btn btn-minor" type="button" on:click={config.toFirstSet}
-    ><span>|&lt;</span> Start</button
-  >
-  <button class="btn btn-minor" type="button" on:click={config.bigStepBack}
-    ><span>&lt;&lt;</span> -{config.bigStepRows}</button
-  >
-  <button class="btn btn-minor" type="button" on:click={config.smallStepBack}
-    ><span>&lt;</span> -{config.smallStepRows}</button
-  >
-  <button class="btn btn-minor" type="button" on:click={config.smallStepForward}
-    >+{config.smallStepRows} <span>&gt;</span></button
-  >
-  <button class="btn btn-minor" type="button" on:click={config.bigStepForward}
-    >+{config.bigStepRows} <span>&gt;&gt;</span></button
-  >
-  <button class="btn btn-minor" type="button" on:click={config.toLastSet}
-    >End <span>&gt;|</span></button
-  >
+<div class="row row_controls">
+  <div class="col-auto">
+    <button class="btn btn-minor" type="button" on:click={config.toFirstSet}
+      ><span>|&lt;</span> Start</button
+    >
+    <button class="btn btn-minor" type="button" on:click={config.bigStepBack}
+      ><span>&lt;&lt;</span> -{config.bigStepRows}</button
+    >
+    <button class="btn btn-minor" type="button" on:click={config.smallStepBack}
+      ><span>&lt;</span> -{config.smallStepRows}</button
+    >
+  </div>
+  <div class="col-auto position">
+    Rows {firstRowNumber} - {lastRowNumber} of {totalRows}
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-minor" type="button" on:click={config.smallStepForward}
+      >+{config.smallStepRows} <span>&gt;</span></button
+    >
+    <button class="btn btn-minor" type="button" on:click={config.bigStepForward}
+      >+{config.bigStepRows} <span>&gt;&gt;</span></button
+    >
+    <button class="btn btn-minor" type="button" on:click={config.toLastSet}
+      >End <span>&gt;|</span></button
+    >
+  </div>
 </div>
 
 <style>
-  .row_info {
-    display: inline-block;
-    vertical-align: middle;
+  .position {
+    line-height: 1.8rem;
   }
 
-  .buttons {
-    display: inline-block;
-    margin-left: 2rem;
-    font-family: Verdana, Geneva, sans-serif;
-  }
-
-  .buttons button {
+  .row_controls button {
+    margin: 0 0.1rem;
     padding: 0 0.5rem;
+    font-family: Verdana, Geneva, sans-serif;
   }
 
   button span {
