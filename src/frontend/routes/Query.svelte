@@ -239,10 +239,12 @@
               {columnInfo.abbrName || columnInfo.fullName}
             </div>
           {/each}
-          {#each $cachedResults.rows as row}
-            {#each $cachedResults.query.columnSpecs as columnSpec, i}
+          {#each $cachedResults.rows as row, i}
+            {#each $cachedResults.query.columnSpecs as columnSpec, j}
               {@const columnInfo = columnInfoMap[columnSpec.columnID]}
-              <div class:left_column={i == 0}>{columnInfo.getValue(row)}</div>
+              <div class:even={i % 2 == 0} class:left={j == 0}>
+                {columnInfo.getValue(row)}
+              </div>
             {/each}
           {/each}
         </div>
@@ -259,7 +261,7 @@
   />
 {/if}
 
-<style>
+<style lang="scss">
   .rows_box {
     margin-top: 0.5rem;
     flex-grow: 1;
@@ -291,7 +293,11 @@
     overflow: hidden;
   }
 
-  #results_grid div.left_column {
+  #results_grid div.even {
+    background-color: #ececec;
+  }
+
+  #results_grid div.left {
     border-left: 1px solid #888;
   }
 
