@@ -3,7 +3,7 @@
  * wrapped within a handle that exposes convenience methods.
  */
 
-import { type ClientConfig, Client } from 'pg';
+import { type ClientConfig, Pool } from 'pg';
 import pgFormat from 'pg-format';
 
 //// TYPES AND CLASSES ///////////////////////////////////////////////////////
@@ -19,10 +19,10 @@ export type DB = DatabaseHandle;
 class DatabaseHandle {
   // Not exported, in order to limit instance creation to this module.
 
-  private _client: Client;
+  private _pool: Pool;
 
-  constructor(client: Client) {
-    this._client = client;
+  constructor(pool: Pool) {
+    this._pool = pool;
   }
 
   /**
@@ -30,13 +30,13 @@ class DatabaseHandle {
    */
   async query(sql: string, params?: (string | number | null)[]) {
     try {
-      return await this._client.query(sql, params);
+      return await this._pool.query(sql, params);
     } catch (err: any) {
       throw new PostgresError(err, sql);
     }
   }
 }
-let client: Client | null = null;
+let pool: Pool | null = null;
 
 /**
  * Class representing a postgres error in the error message.
@@ -61,25 +61,24 @@ export class PostgresError extends Error {
  * a handle to the database and making that handle available via getDB().
  */
 export async function connectDB(config: ClientConfig): Promise<void> {
-  if (client) throw Error('Prior database connection was not closed');
-  client = new Client(config);
-  await client.connect();
+  if (pool) throw Error('Prior database connection was not closed');
+  pool = new Pool(config);
 }
 
 /**
  * Indicates whether a database connection is active.
  */
 export function connectedToDB(): boolean {
-  return !!client;
+  return !!pool;
 }
 
 /**
  * Disconnects from the database, if connected.
  */
 export async function disconnectDB(): Promise<void> {
-  if (client) {
-    await client.end();
-    client = null;
+  if (pool) {
+    await pool.end();
+    pool = null;
   }
 }
 
@@ -87,8 +86,8 @@ export async function disconnectDB(): Promise<void> {
  * Returns a handle to the active database.
  */
 export function getDB(): DB {
-  if (!client) throw Error('Not connected to the database');
-  return new DatabaseHandle(client);
+  if (!pool) throw Error('Not connected to the database');
+  return new DatabaseHandle(pool);
 }
 
 /**

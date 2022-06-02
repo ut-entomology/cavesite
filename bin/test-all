@@ -1,0 +1,15 @@
+# Although the DB tests use locks, tests may timeout, so test one by one.
+
+jest src/backend/model/user.test.ts
+jest src/backend/model/session.test.ts
+jest src/backend/model/taxon.test.ts
+jest src/backend/model/location.test.ts
+jest src/backend/model/private_coords.test.ts
+jest src/backend/model/specimen.test.ts
+jest src/backend/model/logs.test.ts
+
+jest src/backend/effort/location_visit.test.ts
+jest src/backend/effort/location_effort.test.ts
+# jest src/backend/effort/cluster.test.ts
+
+jest src/frontend-core/selections_tree.test.ts
