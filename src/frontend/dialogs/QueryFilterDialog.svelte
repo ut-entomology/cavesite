@@ -6,31 +6,55 @@
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import { TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
-  import {
-    QueryColumnID,
+  import type {
     QueryColumnSpec,
     QueryTaxonFilter,
-    type GeneralQuery
+    GeneralQuery
   } from '../../shared/user_query';
   import { selectedTaxa } from '../stores/selectedTaxa';
 
   type DraggableItem = Item & {
     info: QueryColumnInfo;
+    spec: QueryColumnSpec;
   };
 
   const FLIP_DURATION_MILLIS = 200;
   const DRAG_ICON_TEXT = 'Click and drag to change the column sort order.';
+
+  export let initialQuery: GeneralQuery;
   export let onClose: () => void;
   export let onQuery: (query: GeneralQuery) => void;
 
   let filterForTaxa = false;
   let includedItems: DraggableItem[] = [];
   let excludedItems: DraggableItem[] = [];
-  let columnSpecs: QueryColumnSpec[] = [];
 
-  for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
-    const columnInfo = columnInfoMap[i];
-    includedItems.push({ id: columnInfo.columnID, info: columnInfo });
+  for (const columnSpec of initialQuery.columnSpecs) {
+    const columnID = columnSpec.columnID;
+    includedItems.push({
+      id: columnID,
+      info: columnInfoMap[columnID],
+      spec: {
+        columnID,
+        nullValues: columnSpec.nullValues,
+        ascending: columnSpec.ascending
+      }
+    });
+  }
+  for (const columnInfo of Object.values(columnInfoMap)) {
+    if (
+      !initialQuery.columnSpecs.find((spec) => spec.columnID == columnInfo.columnID)
+    ) {
+      excludedItems.push({
+        id: columnInfo.columnID,
+        info: columnInfo,
+        spec: {
+          columnID: columnInfo.columnID,
+          nullValues: null,
+          ascending: null
+        }
+      });
+    }
   }
 
   function getTaxonFilter(): QueryTaxonFilter | null {
@@ -93,7 +117,7 @@
 
   const submitQuery = () => {
     onQuery({
-      columnSpecs,
+      columnSpecs: includedItems.map((item) => item.spec),
       taxonFilter: filterForTaxa ? getTaxonFilter() : null
     });
   };

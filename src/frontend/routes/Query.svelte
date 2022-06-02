@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
-  import type { GeneralQuery, QueryRow } from '../../shared/user_query';
+  import { GeneralQuery, QueryColumnID, QueryRow } from '../../shared/user_query';
 
   interface CachedResults {
     query: GeneralQuery;
@@ -24,6 +24,7 @@
   import RowControls, {
     type RowControlsConfig
   } from '../components/RowControls.svelte';
+  import { selectedTaxa } from '../stores/selectedTaxa';
   import { showNotice } from '../common/VariableNotice.svelte';
   import { columnInfoMap } from '../lib/query_column_info';
   import { client, errorReason } from '../stores/client';
@@ -43,7 +44,7 @@
     toLastSet
   };
 
-  let creatingNewQuery = false;
+  let templateQuery: GeneralQuery | null = null;
   let lastRowNumber = 0;
   $: if ($cachedResults) {
     lastRowNumber = $cachedResults.startOffset + BIG_STEP_ROWS;
@@ -53,7 +54,25 @@
   }
 
   function createNewQuery() {
-    creatingNewQuery = true;
+    {
+      templateQuery = $cachedResults?.query || null;
+      if (templateQuery === null) {
+        templateQuery = {
+          columnSpecs: [],
+          taxonFilter: null
+        };
+        for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
+          const columnInfo = columnInfoMap[i];
+          if (columnInfo.defaultSelection) {
+            templateQuery.columnSpecs.push({
+              columnID: columnInfo.columnID,
+              ascending: null,
+              nullValues: null
+            });
+          }
+        }
+      }
+    }
   }
 
   async function performQuery(query: GeneralQuery) {
@@ -211,9 +230,10 @@
   </div>
 </DataTabRoute>
 
-{#if creatingNewQuery}
+{#if templateQuery !== null}
   <QueryFilterDialog
+    initialQuery={templateQuery}
     onQuery={performQuery}
-    onClose={() => (creatingNewQuery = false)}
+    onClose={() => (templateQuery = null)}
   />
 {/if}
