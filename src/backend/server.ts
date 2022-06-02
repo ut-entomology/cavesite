@@ -63,7 +63,7 @@ app.use('/api/auth', authApi);
 app.use('/api/user', userApi);
 app.use('/api/taxa', taxaApi);
 app.use('/api/location', locationApi);
-app.use('/api/specimenApi', specimenApi);
+app.use('/api/specimen', specimenApi);
 app.use('/api/cluster', clusterApi);
 app.use('/api/*', (_req, _res, next) => {
   const err = Error(ReasonPhrases.NOT_FOUND) as any;

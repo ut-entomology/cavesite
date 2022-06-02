@@ -128,7 +128,7 @@
   const submitQuery = () => {
     onQuery({
       columnSpecs: includedItems.map((item) => {
-        const columnID = item.columnID;
+        const columnID = item.info.columnID;
 
         const nullOption = nullSelections[columnID];
         let nullValues: boolean | null = null;

@@ -24,7 +24,6 @@
   import RowControls, {
     type RowControlsConfig
   } from '../components/RowControls.svelte';
-  import { selectedTaxa } from '../stores/selectedTaxa';
   import { showNotice } from '../common/VariableNotice.svelte';
   import { columnInfoMap } from '../lib/query_column_info';
   import { client, errorReason } from '../stores/client';
@@ -54,29 +53,45 @@
   }
 
   function createNewQuery() {
-    {
-      templateQuery = $cachedResults?.query || null;
-      if (templateQuery === null) {
-        templateQuery = {
-          columnSpecs: [],
-          taxonFilter: null
-        };
-        for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
-          const columnInfo = columnInfoMap[i];
-          if (columnInfo.defaultSelection) {
-            templateQuery.columnSpecs.push({
-              columnID: columnInfo.columnID,
-              ascending: null,
-              nullValues: null
-            });
-          }
+    templateQuery = $cachedResults?.query || null;
+    if (templateQuery === null) {
+      templateQuery = {
+        columnSpecs: [],
+        taxonFilter: null
+      };
+      for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
+        const columnInfo = columnInfoMap[i];
+        if (columnInfo.defaultSelection) {
+          templateQuery.columnSpecs.push({
+            columnID: columnInfo.columnID,
+            ascending: null,
+            nullValues: null
+          });
         }
       }
     }
   }
 
   async function performQuery(query: GeneralQuery) {
-    console.log('**** performing query', query);
+    templateQuery = null; // close the query dialog
+
+    let columnEmWidths = $cachedResults?.columnEmWidths || null;
+    if (columnEmWidths == null) {
+      columnEmWidths = [];
+      for (const columnInfo of Object.values(columnInfoMap)) {
+        columnEmWidths[columnInfo.columnID] = columnInfo.defaultEmWidth;
+      }
+    }
+    const results: CachedResults = {
+      query,
+      startOffset: 0,
+      totalRows: 0,
+      rows: [],
+      columnEmWidths
+    };
+    cachedResults.set(results);
+    results.rows = await _loadRows(0, BIG_STEP_ROWS);
+    cachedResults.set(results);
   }
 
   async function toFirstSet() {
@@ -179,7 +194,7 @@
 
 <DataTabRoute activeTab="Query">
   <div class="container-fluid">
-    <TabHeader title="Collection Effort" instructions="Instructions TBD">
+    <TabHeader title="Query" instructions="Instructions TBD">
       <span slot="main-buttons">
         <button class="btn btn-minor" type="button" on:click={createNewQuery}
           >{QUERY_BUTTON_LABEL}</button

@@ -22,7 +22,7 @@
   Rows {firstRowNumber} - {lastRowNumber} (of {totalRows})
 </div>
 <button class="btn btn-minor" type="button" on:click={config.toFirstSet}
-  >&VerticalSeperator;&ltrif; Start</button
+  >&VerticalSeparator;&ltrif; Start</button
 >
 <button class="btn btn-minor" type="button" on:click={config.bigStepBack}
   >&ltrif;&ltrif; -{config.bigStepRows}</button
@@ -37,7 +37,7 @@
   >+{config.bigStepRows} &rtrif;&rtrif;</button
 >
 <button class="btn btn-minor" type="button" on:click={config.toLastSet}
-  >End &rtrif;&VerticalSeperator;</button
+  >End &rtrif;&VerticalSeparator;</button
 >
 
 <style>

@@ -18,7 +18,9 @@ export const columnInfoMap: QueryColumnInfoMap = [];
 const setColumnInfo = (columnInfo: QueryColumnInfo) => {
   columnInfoMap[columnInfo.columnID] = columnInfo;
 };
-const getDateValue = (date?: Date | null) => (date ? date.toLocaleDateString() : '');
+const getDateValue = (date?: Date | null) => {
+  return date ? new Date(date).toLocaleDateString() : '';
+};
 const getNames = (names?: string | null) => (names ? names.replace('|', '; ') : '');
 const getNumber = (num?: number | null) => (num ? num.toString() : '');
 
