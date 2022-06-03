@@ -209,8 +209,8 @@
   function getEmInPx(): number {
     // from https://stackoverflow.com/a/39307160/650894
     const elem = document.getElementById('em_sample');
-    elem!.style.height = '1em';
-    return elem!.offsetHeight;
+    elem!.style.width = '1em';
+    return elem!.offsetWidth;
   }
 </script>
 
