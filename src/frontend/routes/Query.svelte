@@ -17,6 +17,8 @@
 </script>
 
 <script lang="ts">
+  import { afterUpdate } from 'svelte';
+
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
@@ -52,8 +54,11 @@
       lastRowNumber = $cachedResults.totalRows;
     }
   }
-  let gridColumnWidths: string;
-  if ($cachedResults) _setColumnWidths();
+  let gridColumnWidths = '';
+
+  function clearQuery() {
+    $cachedResults = null;
+  }
 
   function createNewQuery() {
     templateQuery = $cachedResults?.query || null;
@@ -78,25 +83,30 @@
   async function performQuery(query: GeneralQuery) {
     templateQuery = null; // close the query dialog
 
-    let columnPxWidths = $cachedResults?.columnPxWidths || null;
-    if (columnPxWidths == null) {
-      const emInPx = _getEmInPx();
-      columnPxWidths = [];
-      for (const columnInfo of Object.values(columnInfoMap)) {
-        columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
-      }
-    }
     const results: CachedResults = {
       query,
       startOffset: 0,
       totalRows: 0,
       rows: [],
-      columnPxWidths
+      columnPxWidths: []
     };
     cachedResults.set(results);
     results.rows = await _loadRows(0, BIG_STEP_ROWS);
     cachedResults.set(results);
   }
+
+  afterUpdate(() => {
+    if (gridColumnWidths == '' && $cachedResults) {
+      let columnPxWidths = $cachedResults.columnPxWidths;
+      if (columnPxWidths.length == 0) {
+        const emInPx = _getEmInPx();
+        for (const columnInfo of Object.values(columnInfoMap)) {
+          columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
+        }
+      }
+      _setColumnWidths();
+    }
+  });
 
   async function toFirstSet() {
     const results = $cachedResults!;
@@ -192,7 +202,7 @@
   }
 
   function _resizeColumn(columnID: QueryColumnID, widthPx: number) {
-    $cachedResults!.columnPxWidths[columnID] = widthPx;
+    $cachedResults!.columnPxWidths![columnID] = widthPx;
     _setColumnWidths();
     const columnSpecs = $cachedResults!.query.columnSpecs;
     if (columnID == columnSpecs[columnSpecs.length - 1].columnID) {
@@ -205,7 +215,7 @@
     const results = $cachedResults!;
     const pxWidths: string[] = [];
     for (const columnSpec of results.query.columnSpecs) {
-      const pxWidth = results.columnPxWidths[columnSpec.columnID] + 'px';
+      const pxWidth = results.columnPxWidths![columnSpec.columnID] + 'px';
       pxWidths.push(`minmax(${pxWidth},${pxWidth})`);
     }
     gridColumnWidths = pxWidths.join(' ');
@@ -221,8 +231,9 @@
 
 <DataTabRoute activeTab="Query">
   <div class="container-fluid">
-    <TabHeader title="Query" instructions="Instructions TBD" center={false}>
+    <TabHeader title="Query Results" center={false}>
       <span slot="main-buttons">
+        <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
         <button class="btn btn-major" type="button" on:click={createNewQuery}
           >{QUERY_BUTTON_LABEL}</button
         >
@@ -240,7 +251,7 @@
     </TabHeader>
   </div>
   {#if !$cachedResults}
-    <EmptyTab message="Please click [{QUERY_BUTTON_LABEL}] to perform a results." />
+    <EmptyTab message={'Click the "New Query" button to perform a query.'} />
   {:else}
     <div class="rows_box">
       <div id="scroll_area">
