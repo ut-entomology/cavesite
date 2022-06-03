@@ -17,8 +17,6 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
@@ -26,6 +24,7 @@
   import RowControls, {
     type RowControlsConfig
   } from '../components/RowControls.svelte';
+  import ColumnResizer from '../components/ColumnResizer.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import { columnInfoMap } from '../lib/query_column_info';
   import { client, errorReason } from '../stores/client';
@@ -53,18 +52,8 @@
       lastRowNumber = $cachedResults.totalRows;
     }
   }
-
-  onMount(() => {
-    if ($cachedResults) {
-      const pxWidths: string[] = [];
-      for (const columnSpec of $cachedResults.query.columnSpecs) {
-        const pxWidth = $cachedResults.columnPxWidths[columnSpec.columnID] + 'px';
-        pxWidths.push(`minmax(${pxWidth},${pxWidth})`);
-      }
-      document.getElementById('results_grid')!.style.gridTemplateColumns =
-        pxWidths.join(' ');
-    }
-  });
+  let gridColumnWidths: string;
+  if ($cachedResults) _setColumnWidths();
 
   function createNewQuery() {
     templateQuery = $cachedResults?.query || null;
@@ -91,7 +80,7 @@
 
     let columnPxWidths = $cachedResults?.columnPxWidths || null;
     if (columnPxWidths == null) {
-      const emInPx = getEmInPx();
+      const emInPx = _getEmInPx();
       columnPxWidths = [];
       for (const columnInfo of Object.values(columnInfoMap)) {
         columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
@@ -202,11 +191,27 @@
     }
   }
 
-  // function _updateColumnWidth() {
-  //   //
-  // }
+  function _resizeColumn(columnID: QueryColumnID, widthPx: number) {
+    $cachedResults!.columnPxWidths[columnID] = widthPx;
+    _setColumnWidths();
+    const columnSpecs = $cachedResults!.query.columnSpecs;
+    if (columnID == columnSpecs[columnSpecs.length - 1].columnID) {
+      const scrollArea = document.getElementById('scroll_area');
+      scrollArea!.scrollLeft = scrollArea!.offsetWidth;
+    }
+  }
 
-  function getEmInPx(): number {
+  function _setColumnWidths() {
+    const results = $cachedResults!;
+    const pxWidths: string[] = [];
+    for (const columnSpec of results.query.columnSpecs) {
+      const pxWidth = results.columnPxWidths[columnSpec.columnID] + 'px';
+      pxWidths.push(`minmax(${pxWidth},${pxWidth})`);
+    }
+    gridColumnWidths = pxWidths.join(' ');
+  }
+
+  function _getEmInPx(): number {
     // from https://stackoverflow.com/a/39307160/650894
     const elem = document.getElementById('em_sample');
     elem!.style.width = '1em';
@@ -238,14 +243,19 @@
     <EmptyTab message="Please click [{QUERY_BUTTON_LABEL}] to perform a results." />
   {:else}
     <div class="rows_box">
-      <div class="rows">
+      <div id="scroll_area">
         <div id="em_sample" />
-        <div id="results_grid">
+        <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
           {#each $cachedResults.query.columnSpecs as columnSpec}
             {@const columnID = columnSpec.columnID}
             {@const columnInfo = columnInfoMap[columnID]}
             <div class="header" title={columnInfo.description}>
               {columnInfo.abbrName || columnInfo.fullName}
+              <ColumnResizer
+                class="column_resizer"
+                minWidthPx={20}
+                onResize={(px) => _resizeColumn(columnID, px)}
+              />
             </div>
           {/each}
           {#each $cachedResults.rows as row, i}
@@ -279,7 +289,7 @@
     font-size: 0.9rem;
   }
 
-  .rows_box .rows {
+  #scroll_area {
     position: absolute;
     top: 0;
     left: 0;
@@ -324,5 +334,19 @@
     font-weight: bold;
     border-left: none;
     border-right: none;
+    position: relative;
+  }
+
+  :global(.column_resizer) {
+    position: absolute;
+    top: 0.15rem;
+    right: 0;
+    z-index: 10;
+  }
+
+  :global(.column_resizer img) {
+    opacity: 0.75;
+    height: 1em;
+    width: 0.5em;
   }
 </style>
