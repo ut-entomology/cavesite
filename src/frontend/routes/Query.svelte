@@ -7,7 +7,7 @@
     startOffset: number;
     totalRows: number;
     rows: QueryRow[];
-    columnEmWidths: number[]; // indexed by ColumnID
+    columnPxWidths: number[]; // indexed by ColumnID
   }
 
   const cachedResults = createSessionStore<CachedResults | null>(
@@ -56,13 +56,13 @@
 
   onMount(() => {
     if ($cachedResults) {
-      const emWidths: string[] = [];
+      const pxWidths: string[] = [];
       for (const columnSpec of $cachedResults.query.columnSpecs) {
-        const emWidth = $cachedResults.columnEmWidths[columnSpec.columnID] + 'em';
-        emWidths.push(`minmax(${emWidth},${emWidth})`);
+        const pxWidth = $cachedResults.columnPxWidths[columnSpec.columnID] + 'px';
+        pxWidths.push(`minmax(${pxWidth},${pxWidth})`);
       }
       document.getElementById('results_grid')!.style.gridTemplateColumns =
-        emWidths.join(' ');
+        pxWidths.join(' ');
     }
   });
 
@@ -89,11 +89,12 @@
   async function performQuery(query: GeneralQuery) {
     templateQuery = null; // close the query dialog
 
-    let columnEmWidths = $cachedResults?.columnEmWidths || null;
-    if (columnEmWidths == null) {
-      columnEmWidths = [];
+    let columnPxWidths = $cachedResults?.columnPxWidths || null;
+    if (columnPxWidths == null) {
+      const emInPx = getEmInPx();
+      columnPxWidths = [];
       for (const columnInfo of Object.values(columnInfoMap)) {
-        columnEmWidths[columnInfo.columnID] = columnInfo.defaultEmWidth;
+        columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
       }
     }
     const results: CachedResults = {
@@ -101,7 +102,7 @@
       startOffset: 0,
       totalRows: 0,
       rows: [],
-      columnEmWidths
+      columnPxWidths
     };
     cachedResults.set(results);
     results.rows = await _loadRows(0, BIG_STEP_ROWS);
@@ -204,6 +205,13 @@
   // function _updateColumnWidth() {
   //   //
   // }
+
+  function getEmInPx(): number {
+    // from https://stackoverflow.com/a/39307160/650894
+    const elem = document.getElementById('em_sample');
+    elem!.style.height = '1em';
+    return elem!.offsetHeight;
+  }
 </script>
 
 <DataTabRoute activeTab="Query">
@@ -231,6 +239,7 @@
   {:else}
     <div class="rows_box">
       <div class="rows">
+        <div id="em_sample" />
         <div id="results_grid">
           {#each $cachedResults.query.columnSpecs as columnSpec}
             {@const columnID = columnSpec.columnID}
@@ -277,6 +286,16 @@
     right: 0;
     bottom: 0;
     overflow: scroll;
+  }
+
+  #em_sample {
+    height: 0;
+    width: 0;
+    outline: none;
+    border: none;
+    padding: none;
+    margin: none;
+    box-sizing: content-box;
   }
 
   #results_grid {
