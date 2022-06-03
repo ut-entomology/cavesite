@@ -27,40 +27,46 @@
     <button
       class="btn btn-minor"
       type="button"
+      title="Jump to first row"
       on:click={config.toFirstSet}
-      title="Jump to first row">|&lt;</button
+      disabled={firstRowNumber == 1}>|&lt;</button
     >
     <button
       class="btn btn-minor"
       type="button"
+      title="Step back {config.bigStepRows} rows"
       on:click={config.bigStepBack}
-      title="Step back {config.bigStepRows} rows">&lt;&lt;</button
+      disabled={firstRowNumber == 1}>&lt;&lt;</button
     >
     <button
       class="btn btn-minor"
       type="button"
+      title="Step back {config.smallStepRows} rows"
       on:click={config.smallStepBack}
-      title="Step back {config.smallStepRows} rows">&lt;</button
+      disabled={firstRowNumber == 1}>&lt;</button
     >
   </div>
   <div class="col-auto">
     <button
       class="btn btn-minor"
       type="button"
+      title="Step forward {config.smallStepRows} rows"
       on:click={config.smallStepForward}
-      title="Step forward {config.smallStepRows} rows">&gt;</button
+      disabled={lastRowNumber == totalRows}>&gt;</button
     >
     <button
       class="btn btn-minor"
       type="button"
+      title="Step forward {config.bigStepRows} rows"
       on:click={config.bigStepForward}
-      title="Step forward {config.bigStepRows} rows">&gt;&gt;</button
+      disabled={lastRowNumber == totalRows}>&gt;&gt;</button
     >
     <button
       class="btn btn-minor"
       type="button"
+      title="Jump to last row"
       on:click={config.toLastSet}
-      title="Jump to last row">&gt;|</button
+      disabled={lastRowNumber == totalRows}>&gt;|</button
     >
   </div>
 </div>
