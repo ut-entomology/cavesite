@@ -350,14 +350,13 @@
 
   :global(.column_resizer) {
     position: absolute;
-    top: 0.15rem;
+    top: 0.1rem;
     right: 0;
     z-index: 10;
   }
 
   :global(.column_resizer img) {
     opacity: 0.75;
-    height: 1em;
-    width: 0.5em;
+    height: 0.8em;
   }
 </style>
