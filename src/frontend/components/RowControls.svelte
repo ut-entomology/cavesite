@@ -19,46 +19,65 @@
 </script>
 
 <div class="row row_controls">
-  <div class="col-auto">
-    <button class="btn btn-minor" type="button" on:click={config.toFirstSet}
-      ><span>|&lt;</span> Start</button
-    >
-    <button class="btn btn-minor" type="button" on:click={config.bigStepBack}
-      ><span>&lt;&lt;</span> -{config.bigStepRows}</button
-    >
-    <button class="btn btn-minor" type="button" on:click={config.smallStepBack}
-      ><span>&lt;</span> -{config.smallStepRows}</button
-    >
-  </div>
-  <div class="col-auto position">
+  <div class="col-auto row_position">
     Rows {firstRowNumber} - {lastRowNumber} of {totalRows}
   </div>
+  <div class="col" />
   <div class="col-auto">
-    <button class="btn btn-minor" type="button" on:click={config.smallStepForward}
-      >+{config.smallStepRows} <span>&gt;</span></button
+    <button
+      class="btn btn-minor"
+      type="button"
+      on:click={config.toFirstSet}
+      title="Jump to first row">|&lt;</button
     >
-    <button class="btn btn-minor" type="button" on:click={config.bigStepForward}
-      >+{config.bigStepRows} <span>&gt;&gt;</span></button
+    <button
+      class="btn btn-minor"
+      type="button"
+      on:click={config.bigStepBack}
+      title="Step back {config.bigStepRows} rows">&lt;&lt;</button
     >
-    <button class="btn btn-minor" type="button" on:click={config.toLastSet}
-      >End <span>&gt;|</span></button
+    <button
+      class="btn btn-minor"
+      type="button"
+      on:click={config.smallStepBack}
+      title="Step back {config.smallStepRows} rows">&lt;</button
+    >
+  </div>
+  <div class="col-auto">
+    <button
+      class="btn btn-minor"
+      type="button"
+      on:click={config.smallStepForward}
+      title="Step forward {config.smallStepRows} rows">&gt;</button
+    >
+    <button
+      class="btn btn-minor"
+      type="button"
+      on:click={config.bigStepForward}
+      title="Step forward {config.bigStepRows} rows">&gt;&gt;</button
+    >
+    <button
+      class="btn btn-minor"
+      type="button"
+      on:click={config.toLastSet}
+      title="Jump to last row">&gt;|</button
     >
   </div>
 </div>
 
 <style>
-  .position {
+  .row_position {
     line-height: 1.8rem;
   }
 
-  .row_controls button {
-    margin: 0 0.1rem;
-    padding: 0 0.5rem;
-    font-family: Verdana, Geneva, sans-serif;
-    font-size: 0.9rem;
+  .row_controls {
+    margin: 0;
   }
 
-  button span {
+  .row_controls button {
+    margin: 0 0.15rem;
+    padding: 0 0.5rem;
+    font-family: Verdana, Geneva, sans-serif;
     font-size: 1rem;
     font-weight: bold;
     letter-spacing: -0.1em;

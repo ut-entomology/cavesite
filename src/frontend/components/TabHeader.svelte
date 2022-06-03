@@ -1,6 +1,7 @@
 <script lang="ts">
   export let title: string;
   export let instructions: string | null = null;
+  export let center = true;
 </script>
 
 <div class="row mt-3 mb-3 justify-content-between">
@@ -18,8 +19,8 @@
   </div>
 {/if}
 {#if $$slots['work-buttons']}
-  <div class="row mb-2 justify-content-center">
-    <div class="col-auto">
+  <div class="row mb-2" class:justify-content-center={center}>
+    <div class={center ? 'col-auto' : 'col'}>
       <slot name="work-buttons" />
     </div>
   </div>

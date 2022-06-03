@@ -221,7 +221,7 @@
 
 <DataTabRoute activeTab="Query">
   <div class="container-fluid">
-    <TabHeader title="Query" instructions="Instructions TBD">
+    <TabHeader title="Query" instructions="Instructions TBD" center={false}>
       <span slot="main-buttons">
         <button class="btn btn-major" type="button" on:click={createNewQuery}
           >{QUERY_BUTTON_LABEL}</button
