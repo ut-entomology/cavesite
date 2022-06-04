@@ -19,7 +19,7 @@ export interface RegressionModel {
   name: string;
   jstat: JstatModel;
   rmse: number;
-  color: string;
+  hexColor: string;
   html: string;
 }
 
@@ -62,10 +62,10 @@ export function fitQuadraticModel(hexColor: string, points: Point[]): Regression
   )} x<sup>2</sup> + ${jstatModel.coef[1].toPrecision(MODEL_COEF_PRECISION)} x`;
   return {
     model: {
-      name: 'quadratic',
+      name: 'quadratic fit',
       jstat: jstatModel,
       rmse,
-      color: '#' + hexColor,
+      hexColor,
       html
     },
     points: modelPoints,

@@ -32,7 +32,7 @@
           type: 'line',
           label: model.name,
           data: modelPlots[i],
-          backgroundColor: model.color
+          backgroundColor: '#' + model.hexColor
         };
       })
     ]
