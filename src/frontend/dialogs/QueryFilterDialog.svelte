@@ -337,7 +337,7 @@
   }
 
   :global(.column_toggle) {
-    margin-top: -0.3rem;
+    margin-top: -0.1rem;
     font-size: 1.3rem;
     width: 1.3rem;
     height: 1.3rem;
