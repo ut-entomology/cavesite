@@ -1,10 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  interface Point {
-    x: number;
-    y: number;
-  }
+  import type { Point, EffortGraphConfig } from '../components/EffortGraph.svelte';
 
   export interface EffortData {
     locationID: number;
@@ -14,21 +11,12 @@
     perPersonVisitPoints: Point[];
   }
 
-  interface PerGraphData {
-    locationCount: number;
-    graphTitle: string;
-    xAxisLabel: string;
-    yAxisLabel: string;
-    pointCount: number;
-    points: Point[];
-  }
-
   interface PerClusterGraphData {
     locationCount: number;
-    perVisitTotalsGraph: PerGraphData;
-    perPersonVisitTotalsGraph: PerGraphData;
-    perVisitDiffsGraph: PerGraphData;
-    perPersonVisitDiffsGraph: PerGraphData;
+    perVisitTotalsGraph: EffortGraphConfig;
+    perPersonVisitTotalsGraph: EffortGraphConfig;
+    perVisitDiffsGraph: EffortGraphConfig;
+    perPersonVisitDiffsGraph: EffortGraphConfig;
   }
 
   const clusterStore = createSessionStore<EffortData[][] | null>('cluster_data', null);
@@ -41,13 +29,12 @@
 
 <script lang="ts">
   import * as jstat from 'jstat';
-  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import BusyMessage from '../common/BusyMessage.svelte';
   import ModelStats from '../components/ModelStats.svelte';
-  import type { JstatModel } from '../components/ModelStats.svelte';
+  import EffortGraph from '../components/EffortGraph.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
     type EffortResult,
@@ -56,6 +43,7 @@
     DistanceMeasure
   } from '../../shared/model';
   import { client } from '../stores/client';
+  import type { JstatModel, RegressionModel } from '../lib/linear_regression';
 
   const MIN_PERSON_VISITS = 0;
   const POINTS_IN_MODEL_PLOT = 200;
@@ -78,8 +66,8 @@
     diffs = 'basis-diffs'
   }
 
-  interface ModelResults {
-    model: any;
+  interface ModelData {
+    model: RegressionModel;
     points: Point[];
     errors: number[];
   }
@@ -180,7 +168,7 @@
 
   function _toClusterGraphData(clusterEffortData: EffortData[]): PerClusterGraphData {
     let locationCount = clusterEffortData.length;
-    let perVisitTotalsGraph: PerGraphData = {
+    let perVisitTotalsGraph: EffortGraphConfig = {
       locationCount,
       graphTitle: `Cumulative species across visits (${locationCount} caves)`,
       yAxisLabel: 'cumulative species',
@@ -188,7 +176,7 @@
       pointCount: 0, // will update
       points: [] // will update
     };
-    let perPersonVisitTotalsGraph: PerGraphData = {
+    let perPersonVisitTotalsGraph: EffortGraphConfig = {
       locationCount,
       graphTitle: `Cumulative species across person-visits (${locationCount} caves)`,
       yAxisLabel: 'cumulative species',
@@ -196,7 +184,7 @@
       pointCount: 0, // will update
       points: [] // will update
     };
-    // let perPersonVisitTotalsGraph: PerGraphData = {
+    // let perPersonVisitTotalsGraph: EffortGraphConfig = {
     //   locationCount,
     //   graphTitle: `Person-visits for total species found (${locationCount} caves)`,
     //   yAxisLabel: 'person-visits',
@@ -204,7 +192,7 @@
     //   pointCount: 0, // will update
     //   points: [] // will update
     // };
-    let perVisitDiffsGraph: PerGraphData = {
+    let perVisitDiffsGraph: EffortGraphConfig = {
       locationCount,
       graphTitle: `Additional species across visits (${locationCount} caves)`,
       yAxisLabel: 'additional species',
@@ -212,7 +200,7 @@
       pointCount: 0, // will update
       points: [] // will update
     };
-    let perPersonVisitDiffsGraph: PerGraphData = {
+    let perPersonVisitDiffsGraph: EffortGraphConfig = {
       locationCount,
       graphTitle: `Additional species across person-visits (${locationCount} caves)`,
       yAxisLabel: 'additional species',
@@ -264,7 +252,7 @@
     };
   }
 
-  function _getQuadraticModel(points: Point[]): ModelResults {
+  function _getQuadraticModel(points: Point[]): ModelData {
     const independentValues: number[][] = []; // [species^2, species]
     const dependentValues: number[] = []; // effort
     let lowestSpeciesCount = 10000;
@@ -275,13 +263,13 @@
       if (point.y < lowestSpeciesCount) lowestSpeciesCount = point.y;
       if (point.y > highestSpeciesCount) highestSpeciesCount = point.y;
     }
-    const model: JstatModel = jstat.models.ols(dependentValues, independentValues);
+    const jstatModel: JstatModel = jstat.models.ols(dependentValues, independentValues);
 
     const modelPoints: Point[] = [];
     const deltaSpecies =
       (highestSpeciesCount - lowestSpeciesCount) / POINTS_IN_MODEL_PLOT;
     let speciesCount = lowestSpeciesCount;
-    const predict = (y: number) => model.coef[0] * y * y + model.coef[1] * y;
+    const predict = (y: number) => jstatModel.coef[0] * y * y + jstatModel.coef[1] * y;
     while (speciesCount <= highestSpeciesCount) {
       modelPoints.push({
         x: predict(speciesCount),
@@ -291,11 +279,21 @@
     }
 
     const errors = points.map((point) => point.x - predict(point.y));
-    model.rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-    model.html = `y = ${model.coef[0].toPrecision(
+    const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
+    const html = `y = ${jstatModel.coef[0].toPrecision(
       MODEL_COEF_PRECISION
-    )} x<sup>2</sup> + ${model.coef[1].toPrecision(MODEL_COEF_PRECISION)} x`;
-    return { model, points: modelPoints, errors };
+    )} x<sup>2</sup> + ${jstatModel.coef[1].toPrecision(MODEL_COEF_PRECISION)} x`;
+    return {
+      model: {
+        name: 'quadratic',
+        jstat: jstatModel,
+        rmse,
+        color: '#ffa000',
+        html
+      },
+      points: modelPoints,
+      errors
+    };
   }
 
   const clearData = () => {
@@ -390,54 +388,12 @@
         {@const modelResults = _getQuadraticModel(graphData.points)}
         <div class="row mb-2">
           <div class="col" style="height: 400px">
-            <Scatter
-              data={{
-                datasets: [
-                  {
-                    type: 'scatter',
-                    label: graphData.pointCount + ' points',
-                    data: graphData.points
-                  },
-                  {
-                    type: 'line',
-                    label: 'quadratic fit',
-                    data: modelResults.points,
-                    showLine: true,
-                    backgroundColor: '#ffa000'
-                  }
-                ]
-              }}
-              options={{
-                maintainAspectRatio: false,
-                scales: {
-                  x: {
-                    title: {
-                      display: true,
-                      text: graphData.xAxisLabel,
-                      font: { size: 16 }
-                    }
-                  },
-                  y: {
-                    title: {
-                      display: true,
-                      text: graphData.yAxisLabel,
-                      font: { size: 16 }
-                    }
-                  }
-                },
-                plugins: {
-                  title: {
-                    display: true,
-                    text:
-                      ($graphStore.length > 1 ? `#${i + 1}: ` : '') +
-                      graphData.graphTitle,
-                    font: { size: 17 }
-                  }
-                },
-                animation: {
-                  duration: 0
-                }
-              }}
+            <EffortGraph
+              title={($graphStore.length > 1 ? `#${i + 1}: ` : '') +
+                graphData.graphTitle}
+              config={graphData}
+              models={[modelResults.model]}
+              modelPlots={[modelResults.points]}
             />
           </div>
         </div>
