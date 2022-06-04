@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import type { Point, EffortGraphConfig } from '../components/EffortGraph.svelte';
+  import type { EffortGraphConfig } from '../components/EffortGraph.svelte';
 
   export interface EffortData {
     locationID: number;
@@ -28,8 +28,6 @@
 </script>
 
 <script lang="ts">
-  import * as jstat from 'jstat';
-
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import BusyMessage from '../common/BusyMessage.svelte';
@@ -43,11 +41,9 @@
     DistanceMeasure
   } from '../../shared/model';
   import { client } from '../stores/client';
-  import type { JstatModel, RegressionModel } from '../lib/linear_regression';
+  import { type Point, fitQuadraticModel } from '../lib/linear_regression';
 
   const MIN_PERSON_VISITS = 0;
-  const POINTS_IN_MODEL_PLOT = 200;
-  const MODEL_COEF_PRECISION = 3;
 
   enum LoadState {
     idle,
@@ -64,12 +60,6 @@
   enum BasisID {
     totals = 'basis-totals',
     diffs = 'basis-diffs'
-  }
-
-  interface ModelData {
-    model: RegressionModel;
-    points: Point[];
-    errors: number[];
   }
 
   let loadState = LoadState.idle;
@@ -252,50 +242,6 @@
     };
   }
 
-  function _getQuadraticModel(points: Point[]): ModelData {
-    const independentValues: number[][] = []; // [species^2, species]
-    const dependentValues: number[] = []; // effort
-    let lowestSpeciesCount = 10000;
-    let highestSpeciesCount = 0;
-    for (const point of points) {
-      independentValues.push([point.y * point.y, point.y]);
-      dependentValues.push(point.x);
-      if (point.y < lowestSpeciesCount) lowestSpeciesCount = point.y;
-      if (point.y > highestSpeciesCount) highestSpeciesCount = point.y;
-    }
-    const jstatModel: JstatModel = jstat.models.ols(dependentValues, independentValues);
-
-    const modelPoints: Point[] = [];
-    const deltaSpecies =
-      (highestSpeciesCount - lowestSpeciesCount) / POINTS_IN_MODEL_PLOT;
-    let speciesCount = lowestSpeciesCount;
-    const predict = (y: number) => jstatModel.coef[0] * y * y + jstatModel.coef[1] * y;
-    while (speciesCount <= highestSpeciesCount) {
-      modelPoints.push({
-        x: predict(speciesCount),
-        y: speciesCount
-      });
-      speciesCount += deltaSpecies;
-    }
-
-    const errors = points.map((point) => point.x - predict(point.y));
-    const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-    const html = `y = ${jstatModel.coef[0].toPrecision(
-      MODEL_COEF_PRECISION
-    )} x<sup>2</sup> + ${jstatModel.coef[1].toPrecision(MODEL_COEF_PRECISION)} x`;
-    return {
-      model: {
-        name: 'quadratic',
-        jstat: jstatModel,
-        rmse,
-        color: '#ffa000',
-        html
-      },
-      points: modelPoints,
-      errors
-    };
-  }
-
   const clearData = () => {
     clusterStore.set(null);
     graphStore.set(null);
@@ -385,7 +331,7 @@
             : showingPersonVisits
             ? clusterGraphData.perPersonVisitDiffsGraph
             : clusterGraphData.perVisitDiffsGraph}
-        {@const modelResults = _getQuadraticModel(graphData.points)}
+        {@const modelResults = fitQuadraticModel('ffa000', graphData.points)}
         <div class="row mb-2">
           <div class="col" style="height: 400px">
             <EffortGraph

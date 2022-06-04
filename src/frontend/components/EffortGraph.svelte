@@ -1,8 +1,5 @@
 <script lang="ts" context="module">
-  export interface Point {
-    x: number;
-    y: number;
-  }
+  import type { Point, RegressionModel } from '../lib/linear_regression';
 
   export interface EffortGraphConfig {
     locationCount: number;
@@ -16,8 +13,6 @@
 
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
-
-  import type { RegressionModel } from '../lib/linear_regression';
 
   export let title: string;
   export let config: EffortGraphConfig;
