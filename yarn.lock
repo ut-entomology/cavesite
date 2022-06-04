@@ -3629,6 +3629,11 @@ jsprim@^1.2.2:
     json-schema "0.4.0"
     verror "1.10.0"
 
+jstat@^1.9.5:
+  version "1.9.5"
+  resolved "https://registry.yarnpkg.com/jstat/-/jstat-1.9.5.tgz#9941741566f683624ddeb56f5ba60ed8c29b374e"
+  integrity sha512-cWnp4vObF5GmB2XsIEzxI/1ZTcYlcfNqxQ/9Fp5KFUa0Jf/4tO0ZkGVnqoEHDisJvYgvn5n3eWZbd2xTVJJPUQ==
+
 keyv@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-3.1.0.tgz#ecc228486f69991e49e9476485a5be1e8fc5c4d9"

@@ -40,10 +40,14 @@
 </script>
 
 <script lang="ts">
+  import * as jstat from 'jstat';
+  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
+
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import BusyMessage from '../common/BusyMessage.svelte';
-  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
+  import ModelStats from '../components/ModelStats.svelte';
+  import type { JstatModel } from '../components/ModelStats.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
     type EffortResult,
@@ -54,6 +58,8 @@
   import { client } from '../stores/client';
 
   const MIN_PERSON_VISITS = 0;
+  const POINTS_IN_MODEL_PLOT = 200;
+  const MODEL_COEF_PRECISION = 3;
 
   enum LoadState {
     idle,
@@ -72,6 +78,12 @@
     diffs = 'basis-diffs'
   }
 
+  interface ModelResults {
+    model: any;
+    points: Point[];
+    errors: number[];
+  }
+
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let basisID = BasisID.totals;
@@ -87,7 +99,7 @@
     let res = await $client.post('api/cluster/get_seeds', {
       seedSpec: {
         seedType: SeedType.diverse,
-        maxClusters: 1,
+        maxClusters: 12,
         minSpecies: 0,
         maxSpecies: 10000
       }
@@ -252,6 +264,40 @@
     };
   }
 
+  function _getQuadraticModel(points: Point[]): ModelResults {
+    const independentValues: number[][] = []; // [species^2, species]
+    const dependentValues: number[] = []; // effort
+    let lowestSpeciesCount = 10000;
+    let highestSpeciesCount = 0;
+    for (const point of points) {
+      independentValues.push([point.y * point.y, point.y]);
+      dependentValues.push(point.x);
+      if (point.y < lowestSpeciesCount) lowestSpeciesCount = point.y;
+      if (point.y > highestSpeciesCount) highestSpeciesCount = point.y;
+    }
+    const model: JstatModel = jstat.models.ols(dependentValues, independentValues);
+
+    const modelPoints: Point[] = [];
+    const deltaSpecies =
+      (highestSpeciesCount - lowestSpeciesCount) / POINTS_IN_MODEL_PLOT;
+    let speciesCount = lowestSpeciesCount;
+    const predict = (y: number) => model.coef[0] * y * y + model.coef[1] * y;
+    while (speciesCount <= highestSpeciesCount) {
+      modelPoints.push({
+        x: predict(speciesCount),
+        y: speciesCount
+      });
+      speciesCount += deltaSpecies;
+    }
+
+    const errors = points.map((point) => point.x - predict(point.y));
+    model.rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
+    model.html = `y = ${model.coef[0].toPrecision(
+      MODEL_COEF_PRECISION
+    )} x<sup>2</sup> + ${model.coef[1].toPrecision(MODEL_COEF_PRECISION)} x`;
+    return { model, points: modelPoints, errors };
+  }
+
   const clearData = () => {
     clusterStore.set(null);
     graphStore.set(null);
@@ -341,14 +387,23 @@
             : showingPersonVisits
             ? clusterGraphData.perPersonVisitDiffsGraph
             : clusterGraphData.perVisitDiffsGraph}
+        {@const modelResults = _getQuadraticModel(graphData.points)}
         <div class="row mb-2">
           <div class="col" style="height: 400px">
             <Scatter
               data={{
                 datasets: [
                   {
+                    type: 'scatter',
                     label: graphData.pointCount + ' points',
                     data: graphData.points
+                  },
+                  {
+                    type: 'line',
+                    label: 'quadratic fit',
+                    data: modelResults.points,
+                    showLine: true,
+                    backgroundColor: '#ffa000'
                   }
                 ]
               }}
@@ -386,6 +441,7 @@
             />
           </div>
         </div>
+        <ModelStats model={modelResults.model} />
       {/each}
     {/if}
   </div>
