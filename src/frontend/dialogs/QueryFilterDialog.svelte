@@ -170,7 +170,11 @@
     <div class="drag_area_title">Included in Query</div>
     <div
       class="drag_area"
-      use:dndzone={{ items: includedItems, flipDurationMs: FLIP_DURATION_MILLIS }}
+      use:dndzone={{
+        items: includedItems,
+        flipDurationMs: FLIP_DURATION_MILLIS,
+        morphDisabled: true
+      }}
       on:consider={resortIncludedItems}
       on:finalize={resortIncludedItems}
     >
@@ -231,36 +235,43 @@
   <div class="excluded_columns">
     <div class="drag_area_title">Excluded from Query</div>
     <div
-      class="drag_area"
-      use:dndzone={{ items: excludedItems, flipDurationMs: FLIP_DURATION_MILLIS }}
+      class="row drag_area"
+      style="margin: 0"
+      use:dndzone={{
+        items: excludedItems,
+        flipDurationMs: FLIP_DURATION_MILLIS,
+        dropFromOthersDisabled: true
+      }}
       on:consider={resortExcludedItems}
       on:finalize={resortExcludedItems}
     >
       {#each excludedItems as item (item.id)}
         <div
-          class="column_spec row mb-1 gx-2"
+          class="col-md-6 column_spec mb-1 gx-2"
           style="margin: 0"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
-          <div class="col-auto">
-            <img
-              class="non_skid_icon"
-              src="/non-skid-icon-3x3.png"
-              title={DRAG_ICON_TEXT}
-              alt={DRAG_ICON_TEXT}
-            />
-          </div>
-          <div class="col" title={item.info.description}>
-            {item.info.fullName}
-          </div>
-          <div class="col-auto">
-            <CircleIconButton
-              class="column_toggle"
-              on:click={() => addQueryColumn(item)}
-              label="Add field to query"
-            >
-              <div>&plus;</div>
-            </CircleIconButton>
+          <div class="row mb-1 gx-2" style="margin: 0">
+            <div class="col-auto">
+              <img
+                class="non_skid_icon"
+                src="/non-skid-icon-3x3.png"
+                title={DRAG_ICON_TEXT}
+                alt={DRAG_ICON_TEXT}
+              />
+            </div>
+            <div class="col" title={item.info.description}>
+              {item.info.fullName}
+            </div>
+            <div class="col-auto">
+              <CircleIconButton
+                class="column_toggle"
+                on:click={() => addQueryColumn(item)}
+                label="Add field to query"
+              >
+                <div>&plus;</div>
+              </CircleIconButton>
+            </div>
           </div>
         </div>
       {/each}
