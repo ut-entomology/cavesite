@@ -32,8 +32,8 @@
   import { client, errorReason } from '../stores/client';
 
   const QUERY_BUTTON_LABEL = 'New Query';
-  const SMALL_STEP_ROWS = 10;
-  const BIG_STEP_ROWS = 100;
+  const SMALL_STEP_ROWS = 20;
+  const BIG_STEP_ROWS = 200;
 
   const rowControlsConfig: RowControlsConfig = {
     smallStepRows: SMALL_STEP_ROWS,
@@ -272,7 +272,11 @@
           {#each $cachedResults.rows as row, i}
             {#each $cachedResults.query.columnSpecs as columnSpec, j}
               {@const columnInfo = columnInfoMap[columnSpec.columnID]}
-              <div class:even={i % 2 == 0} class:left={j == 0}>
+              <div
+                class={columnInfo.columnClass || ''}
+                class:even={i % 2 == 0}
+                class:left={j == 0}
+              >
                 {columnInfo.getValue(row)}
               </div>
             {/each}
@@ -346,6 +350,10 @@
     border-left: none;
     border-right: none;
     position: relative;
+  }
+
+  #results_grid .center {
+    text-align: center;
   }
 
   :global(.column_resizer) {

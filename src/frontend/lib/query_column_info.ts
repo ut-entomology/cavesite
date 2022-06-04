@@ -8,6 +8,7 @@ export interface QueryColumnInfo {
   defaultSelection: boolean; // whether query requests the column by default
   nullable: boolean; // whether column can be null
   defaultEmWidth: number; // default width of the column in em,
+  columnClass: string | null; // CSS class for query column cells
   getValue: (row: QueryRow) => string | number;
 }
 
@@ -32,6 +33,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: false,
   defaultEmWidth: 5,
+  columnClass: 'center',
   getValue: (row: QueryRow) => getNumber(row.resultCount)
 });
 setColumnInfo({
@@ -42,6 +44,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: false,
   defaultEmWidth: 8,
+  columnClass: null,
   getValue: (row: QueryRow) => row.catalogNumber || ''
 });
 setColumnInfo({
@@ -52,6 +55,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: false, // TODO: Is this true?
   defaultEmWidth: 8,
+  columnClass: 'center',
   getValue: (row: QueryRow) => getDateValue(row.collectionStartDate)
 });
 setColumnInfo({
@@ -62,6 +66,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: true,
   defaultEmWidth: 8,
+  columnClass: 'center',
   getValue: (row: QueryRow) => getDateValue(row.collectionEndDate)
 });
 setColumnInfo({
@@ -72,6 +77,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 16,
+  columnClass: null,
   getValue: (row: QueryRow) => getNames(row.collectors)
 });
 setColumnInfo({
@@ -82,6 +88,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 8,
+  columnClass: null,
   getValue: (row: QueryRow) => getNames(row.determiners)
 });
 setColumnInfo({
@@ -92,6 +99,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 8,
+  columnClass: 'center',
   getValue: (row: QueryRow) => getNumber(row.determinationYear)
 });
 setColumnInfo({
@@ -102,6 +110,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 16,
+  columnClass: null,
   getValue: (row: QueryRow) => row.collectionRemarks || ''
 });
 setColumnInfo({
@@ -112,6 +121,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 16,
+  columnClass: null,
   getValue: (row: QueryRow) => row.occurrenceRemarks || ''
 });
 setColumnInfo({
@@ -122,6 +132,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 16,
+  columnClass: null,
   getValue: (row: QueryRow) => row.determinationRemarks || ''
 });
 setColumnInfo({
@@ -132,6 +143,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: true,
   defaultEmWidth: 8,
+  columnClass: null,
   getValue: (row: QueryRow) => row.typeStatus || ''
 });
 setColumnInfo({
@@ -142,6 +154,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true, // there are no 0s, only nulls
   defaultEmWidth: 4,
+  columnClass: 'center',
   getValue: (row: QueryRow) => row.specimenCount || ''
 });
 setColumnInfo({
@@ -152,6 +165,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 20,
+  columnClass: null,
   getValue: (row: QueryRow) => row.problems || ''
 });
 setColumnInfo({
@@ -162,6 +176,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.phylumName || ''
 });
 setColumnInfo({
@@ -172,6 +187,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.className || ''
 });
 setColumnInfo({
@@ -182,6 +198,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.orderName || ''
 });
 setColumnInfo({
@@ -192,6 +209,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.familyName || ''
 });
 setColumnInfo({
@@ -202,6 +220,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.genusName || ''
 });
 setColumnInfo({
@@ -212,6 +231,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.speciesName || ''
 });
 setColumnInfo({
@@ -222,6 +242,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,
+  columnClass: null,
   getValue: (row: QueryRow) => row.subspeciesName || ''
 });
 setColumnInfo({
@@ -232,6 +253,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: false,
   defaultEmWidth: 12,
+  columnClass: null,
   getValue: (row: QueryRow) =>
     row.taxonUnique! + (row.taxonAuthor ? ' ' + row.taxonAuthor : '')
 });
@@ -243,6 +265,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: true,
   defaultEmWidth: 16,
+  columnClass: null,
   getValue: (row: QueryRow) => row.countyName || ''
 });
 setColumnInfo({
@@ -253,6 +276,7 @@ setColumnInfo({
   defaultSelection: true,
   nullable: false,
   defaultEmWidth: 20,
+  columnClass: null,
   getValue: (row: QueryRow) => row.localityName || ''
 });
 setColumnInfo({
@@ -263,6 +287,7 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 6,
+  columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.publicLatitude)
 });
 setColumnInfo({
@@ -273,5 +298,6 @@ setColumnInfo({
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 6,
+  columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.publicLongitude)
 });
