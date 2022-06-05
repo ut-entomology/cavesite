@@ -337,7 +337,7 @@
             : clusterGraphData.perVisitDiffsGraph}
         {@const powerFit = fitPowerModel('ff0088', graphData.points)}
         {@const quadraticFit = fitQuadraticModel('ffa000', graphData.points)}
-        <div class="row mb-2">
+        <div class="row mt-3 mb-2">
           <div class="col" style="height: 400px">
             <EffortGraph
               title={($graphStore.length > 1 ? `#${i + 1}: ` : '') +

@@ -43,14 +43,14 @@
       x: {
         title: {
           display: true,
-          text: config.xAxisLabel,
+          text: config.xAxisLabel + ' (x)',
           font: { size: 16 }
         }
       },
       y: {
         title: {
           display: true,
-          text: config.yAxisLabel,
+          text: config.yAxisLabel + ' (y)',
           font: { size: 16 }
         }
       }

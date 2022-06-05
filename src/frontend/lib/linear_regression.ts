@@ -56,11 +56,9 @@ export function fitQuadraticModel(hexColor: string, points: Point[]): Regression
 
   const errors = points.map((point) => point.y - predict(point.x));
   const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-  const html = `y = ${jstatModel.coef[0].toPrecision(
-    MODEL_COEF_PRECISION
-  )} x<sup>2</sup> + ${jstatModel.coef[1].toPrecision(
-    MODEL_COEF_PRECISION
-  )} x + ${jstatModel.coef[2].toPrecision(MODEL_COEF_PRECISION)}`;
+  const html = `y = ${_coefHtml(jstatModel.coef[0], true)} x<sup>2</sup> ${_coefHtml(
+    jstatModel.coef[1]
+  )} x ${_coefHtml(jstatModel.coef[2])}`;
   return {
     model: {
       name: 'quadratic fit',
@@ -115,6 +113,13 @@ export function fitPowerModel(hexColor: string, points: Point[]): RegressionInfo
   return middleModelInfo;
 }
 
+export function shortenValue(value: number, precision: number) {
+  if (value != 0 && Math.abs(value) < 0.0001) {
+    return value.toExponential(precision - 1);
+  }
+  return value.toPrecision(precision);
+}
+
 function _tryPowerRegression(
   hexColor: string,
   power: number,
@@ -132,11 +137,10 @@ function _tryPowerRegression(
 
   const errors = points.map((point) => point.y - predict(point.x));
   const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-  const html = `y = ${jstatModel.coef[0].toPrecision(
-    MODEL_COEF_PRECISION
-  )} x<sup>${power.toPrecision(5)}</sup> + ${jstatModel.coef[1].toPrecision(
-    MODEL_COEF_PRECISION
-  )}`;
+  const html = `y = ${_coefHtml(jstatModel.coef[0])} x<sup>${shortenValue(
+    power,
+    4
+  )}</sup> ${_coefHtml(jstatModel.coef[1])}`;
 
   return {
     model: {
@@ -150,4 +154,11 @@ function _tryPowerRegression(
     points: [],
     errors
   };
+}
+
+function _coefHtml(coef: number, firstCoef = false) {
+  if (firstCoef) {
+    return shortenValue(coef, MODEL_COEF_PRECISION);
+  }
+  return (coef >= 0 ? '+ ' : '- ') + shortenValue(Math.abs(coef), MODEL_COEF_PRECISION);
 }
