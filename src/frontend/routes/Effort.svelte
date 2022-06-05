@@ -42,11 +42,7 @@
     DistanceMeasure
   } from '../../shared/model';
   import { client } from '../stores/client';
-  import {
-    type Point,
-    fitQuadraticModel,
-    fitPowerModel
-  } from '../lib/linear_regression';
+  import { type Point, QuadraticModel, PowerModel } from '../lib/linear_regression';
 
   const MIN_PERSON_VISITS = 0;
 
@@ -336,8 +332,8 @@
             : showingPersonVisits
             ? clusterGraphData.perPersonVisitDiffsGraph
             : clusterGraphData.perVisitDiffsGraph}
-        {@const powerFit = fitPowerModel('FF0088', graphData.points)}
-        {@const quadraticFit = fitQuadraticModel('00FFFC', graphData.points)}
+        {@const powerFit = new PowerModel('FF0088', graphData.points)}
+        {@const quadraticFit = new QuadraticModel('00FFFC', graphData.points)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
