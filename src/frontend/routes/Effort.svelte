@@ -336,8 +336,8 @@
             : showingPersonVisits
             ? clusterGraphData.perPersonVisitDiffsGraph
             : clusterGraphData.perVisitDiffsGraph}
-        {@const powerFit = fitPowerModel('ff0088', graphData.points)}
-        {@const quadraticFit = fitQuadraticModel('ffa000', graphData.points)}
+        {@const powerFit = fitPowerModel('FF0088', graphData.points)}
+        {@const quadraticFit = fitQuadraticModel('00FFFC', graphData.points)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
