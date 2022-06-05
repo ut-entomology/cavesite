@@ -1,7 +1,5 @@
 import * as jstat from 'jstat';
 
-import type { DataOf } from '../../shared/data_of';
-
 const MAX_POWER_SPLITS = 15;
 const POINTS_IN_MODEL_PLOT = 200;
 const MODEL_COEF_PRECISION = 3;
@@ -17,8 +15,6 @@ export interface JstatModel {
   t: { p: number[] };
   f: { pvalue: number };
 }
-
-export type FittedModelConfig = DataOf<FittedModel>;
 
 type FittedY = (y: number) => number;
 
@@ -62,9 +58,13 @@ export class QuadraticModel implements FittedModel {
     this.points = _getModelPoints(dataPoints, this.fittedY);
     this.residuals = _getResiduals(dataPoints, this.fittedY);
     this.rmse = _getRMSE(this.residuals);
-    this.equation = `y = ${_coefHtml(coefs[0], true)} x<sup>2</sup> ${_coefHtml(
-      coefs[1]
-    )} x ${_coefHtml(coefs[2])}`;
+    this.equation = [
+      _coefHtml(coefs[0], true),
+      ' x<sup>2</sup> ',
+      _coefHtml(coefs[1]),
+      ' x ',
+      _coefHtml(coefs[2])
+    ].join(' ');
   }
 }
 
@@ -114,11 +114,14 @@ export class PowerModel implements FittedModel {
     // @ts-ignore
     this.points = _getModelPoints(dataPoints, middleModel.fittedY);
     const coefs = this.jstats.coef;
-    this.equation = `y = ${_coefHtml(coefs[0], true)} x<sup>${shortenValue(
+    this.equation = [
+      _coefHtml(coefs[0], true),
+      ' x<sup>',
       // @ts-ignore
-      middlePower,
-      4
-    )}</sup> ${_coefHtml(coefs[1])}`;
+      shortenValue(middlePower, 4),
+      '</sup> ',
+      _coefHtml(coefs[1])
+    ].join(' ');
   }
 
   private _tryPowerRegression(power: number, points: Point[]): TrialModel {
