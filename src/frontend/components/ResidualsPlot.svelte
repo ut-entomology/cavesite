@@ -30,7 +30,7 @@
     labels: [1, 2, 3, 4, 5, 6, 7],
     datasets: [
       {
-        label: model.name,
+        label: model.name + ' residuals',
         borderColor: '#' + model.hexColor,
         data: model.residuals,
         fill: false
