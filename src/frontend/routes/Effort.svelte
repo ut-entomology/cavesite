@@ -41,7 +41,11 @@
     DistanceMeasure
   } from '../../shared/model';
   import { client } from '../stores/client';
-  import { type Point, fitQuadraticModel } from '../lib/linear_regression';
+  import {
+    type Point,
+    fitQuadraticModel,
+    fitPowerModel
+  } from '../lib/linear_regression';
 
   const MIN_PERSON_VISITS = 0;
 
@@ -331,19 +335,21 @@
             : showingPersonVisits
             ? clusterGraphData.perPersonVisitDiffsGraph
             : clusterGraphData.perVisitDiffsGraph}
-        {@const modelResults = fitQuadraticModel('ffa000', graphData.points)}
+        {@const powerFit = fitPowerModel('ff0088', graphData.points)}
+        {@const quadraticFit = fitQuadraticModel('ffa000', graphData.points)}
         <div class="row mb-2">
           <div class="col" style="height: 400px">
             <EffortGraph
               title={($graphStore.length > 1 ? `#${i + 1}: ` : '') +
                 graphData.graphTitle}
               config={graphData}
-              models={[modelResults.model]}
-              modelPlots={[modelResults.points]}
+              models={[powerFit.model, quadraticFit.model]}
+              modelPlots={[powerFit.points, quadraticFit.points]}
             />
           </div>
         </div>
-        <ModelStats model={modelResults.model} />
+        <ModelStats model={powerFit.model} />
+        <ModelStats model={quadraticFit.model} />
       {/each}
     {/if}
   </div>
