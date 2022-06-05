@@ -16,22 +16,18 @@ export interface JstatModel {
   f: { pvalue: number };
 }
 
-export interface RegressionModel {
+export interface FittedModel {
   name: string;
   jstat: JstatModel;
   rmse: number;
   hexColor: string;
-  html: string;
-}
-
-export interface RegressionInfo {
-  model: RegressionModel;
-  predict: (y: number) => number;
+  equation: string;
+  fittedY: (y: number) => number;
   points: Point[];
-  errors: number[];
+  residuals: Point[];
 }
 
-export function fitQuadraticModel(hexColor: string, points: Point[]): RegressionInfo {
+export function fitQuadraticModel(hexColor: string, points: Point[]): FittedModel {
   const independentValues: number[][] = []; // [effort^2, effort]
   const dependentValues: number[] = []; // species count
   let lowestX = 10000;
@@ -47,51 +43,52 @@ export function fitQuadraticModel(hexColor: string, points: Point[]): Regression
   const modelPoints: Point[] = [];
   const deltaX = (highestX - lowestX) / POINTS_IN_MODEL_PLOT;
   let x = lowestX;
-  const predict = (x: number) =>
+  const fittedY = (x: number) =>
     jstatModel.coef[0] * x * x + jstatModel.coef[1] * x + jstatModel.coef[2];
   while (x <= highestX) {
-    modelPoints.push({ x, y: predict(x) });
+    modelPoints.push({ x, y: fittedY(x) });
     x += deltaX;
   }
 
-  const errors = points.map((point) => point.y - predict(point.x));
-  const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-  const html = `y = ${_coefHtml(jstatModel.coef[0], true)} x<sup>2</sup> ${_coefHtml(
-    jstatModel.coef[1]
-  )} x ${_coefHtml(jstatModel.coef[2])}`;
+  const residuals = _getResiduals(points, fittedY);
+  const rmse = _getRMSE(residuals);
+
+  const equation = `y = ${_coefHtml(
+    jstatModel.coef[0],
+    true
+  )} x<sup>2</sup> ${_coefHtml(jstatModel.coef[1])} x ${_coefHtml(jstatModel.coef[2])}`;
+
   return {
-    model: {
-      name: 'quadratic fit',
-      jstat: jstatModel,
-      rmse,
-      hexColor,
-      html
-    },
-    predict,
+    name: 'quadratic fit',
+    jstat: jstatModel,
+    rmse,
+    hexColor,
+    equation,
+    fittedY,
     points: modelPoints,
-    errors
+    residuals
   };
 }
 
-export function fitPowerModel(hexColor: string, points: Point[]): RegressionInfo {
+export function fitPowerModel(hexColor: string, points: Point[]): FittedModel {
   let lowPower = 0.00001;
-  let lowModelInfo: RegressionInfo;
+  let lowModel: FittedModel;
   let middlePower;
-  let middleModelInfo: RegressionInfo;
+  let middleModel: FittedModel;
   let highPower = 3;
-  let highModelInfo: RegressionInfo;
+  let highModel: FittedModel;
 
-  lowModelInfo = _tryPowerRegression(hexColor, lowPower, points);
-  highModelInfo = _tryPowerRegression(hexColor, highPower, points);
+  lowModel = _tryPowerRegression(hexColor, lowPower, points);
+  highModel = _tryPowerRegression(hexColor, highPower, points);
   for (let i = 0; i < MAX_POWER_SPLITS; ++i) {
     middlePower = (lowPower + highPower) / 2;
-    middleModelInfo = _tryPowerRegression(hexColor, middlePower, points);
-    if (lowModelInfo.model.rmse < highModelInfo.model.rmse) {
+    middleModel = _tryPowerRegression(hexColor, middlePower, points);
+    if (lowModel.rmse < highModel.rmse) {
       highPower = middlePower;
-      highModelInfo = middleModelInfo;
+      highModel = middleModel;
     } else {
       lowPower = middlePower;
-      lowModelInfo = middleModelInfo;
+      lowModel = middleModel;
     }
   }
 
@@ -106,11 +103,11 @@ export function fitPowerModel(hexColor: string, points: Point[]): RegressionInfo
   let x = lowestX;
   while (x <= highestX) {
     // @ts-ignore
-    middleModelInfo.points.push({ x, y: middleModelInfo.predict(x) });
+    middleModel.points.push({ x, y: middleModel.fittedY(x) });
     x += deltaX;
   }
   // @ts-ignore
-  return middleModelInfo;
+  return middleModel;
 }
 
 export function shortenValue(value: number, precision: number) {
@@ -124,7 +121,7 @@ function _tryPowerRegression(
   hexColor: string,
   power: number,
   points: Point[]
-): RegressionInfo {
+): FittedModel {
   const independentValues: number[][] = []; // [species^power]
   const dependentValues: number[] = []; // effort
   for (const point of points) {
@@ -132,27 +129,26 @@ function _tryPowerRegression(
     dependentValues.push(point.y);
   }
   const jstatModel: JstatModel = jstat.models.ols(dependentValues, independentValues);
-  const predict = (x: number) =>
+  const fittedY = (x: number) =>
     jstatModel.coef[0] * Math.pow(x, power) + jstatModel.coef[1];
 
-  const errors = points.map((point) => point.y - predict(point.x));
-  const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-  const html = `y = ${_coefHtml(jstatModel.coef[0], true)} x<sup>${shortenValue(
+  const residuals = _getResiduals(points, fittedY);
+  const rmse = _getRMSE(residuals);
+
+  const equation = `y = ${_coefHtml(jstatModel.coef[0], true)} x<sup>${shortenValue(
     power,
     4
   )}</sup> ${_coefHtml(jstatModel.coef[1])}`;
 
   return {
-    model: {
-      name: 'power fit',
-      jstat: jstatModel,
-      rmse,
-      hexColor,
-      html
-    },
-    predict,
+    name: 'power fit',
+    jstat: jstatModel,
+    rmse,
+    hexColor,
+    equation,
+    fittedY,
     points: [],
-    errors
+    residuals
   };
 }
 
@@ -161,4 +157,16 @@ function _coefHtml(coef: number, firstCoef = false) {
     return shortenValue(coef, MODEL_COEF_PRECISION);
   }
   return (coef >= 0 ? '+ ' : '- ') + shortenValue(Math.abs(coef), MODEL_COEF_PRECISION);
+}
+
+function _getResiduals(points: Point[], fittedY: (y: number) => number) {
+  return points.map((point) => {
+    return { x: point.x, y: point.y - fittedY(point.x) };
+  });
+}
+
+function _getRMSE(residuals: Point[]) {
+  let sumOfSquares = 0;
+  residuals.forEach((residual) => (sumOfSquares += residual.y * residual.y));
+  return Math.sqrt(sumOfSquares / residuals.length);
 }

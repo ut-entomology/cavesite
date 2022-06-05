@@ -33,6 +33,7 @@
   import BusyMessage from '../common/BusyMessage.svelte';
   import ModelStats from '../components/ModelStats.svelte';
   import EffortGraph from '../components/EffortGraph.svelte';
+  import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
     type EffortResult,
@@ -337,19 +338,23 @@
             : clusterGraphData.perVisitDiffsGraph}
         {@const powerFit = fitPowerModel('ff0088', graphData.points)}
         {@const quadraticFit = fitQuadraticModel('ffa000', graphData.points)}
-        <div class="row mt-3 mb-2">
-          <div class="col" style="height: 400px">
+        <div class="row mt-3 mb-1">
+          <div class="col" style="height: 350px">
             <EffortGraph
               title={($graphStore.length > 1 ? `#${i + 1}: ` : '') +
                 graphData.graphTitle}
               config={graphData}
-              models={[powerFit.model, quadraticFit.model]}
+              models={[powerFit, quadraticFit]}
               modelPlots={[powerFit.points, quadraticFit.points]}
             />
           </div>
         </div>
-        <ModelStats model={powerFit.model} />
-        <ModelStats model={quadraticFit.model} />
+        <div class="row mb-3 gx-0 ms-4">
+          <div class="col-sm-6"><ResidualsPlot model={powerFit} /></div>
+          <div class="col-sm-6"><ResidualsPlot model={quadraticFit} /></div>
+        </div>
+        <ModelStats model={powerFit} />
+        <ModelStats model={quadraticFit} />
       {/each}
     {/if}
   </div>

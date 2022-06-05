@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  import type { Point, RegressionModel } from '../lib/linear_regression';
+  import type { Point, FittedModel } from '../lib/linear_regression';
 
   export interface EffortGraphConfig {
     locationCount: number;
@@ -16,7 +16,7 @@
 
   export let title: string;
   export let config: EffortGraphConfig;
-  export let models: RegressionModel[];
+  export let models: FittedModel[];
   export let modelPlots: Point[][];
 </script>
 
