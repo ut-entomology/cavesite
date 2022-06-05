@@ -137,7 +137,7 @@ function _tryPowerRegression(
 
   const errors = points.map((point) => point.y - predict(point.x));
   const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
-  const html = `y = ${_coefHtml(jstatModel.coef[0])} x<sup>${shortenValue(
+  const html = `y = ${_coefHtml(jstatModel.coef[0], true)} x<sup>${shortenValue(
     power,
     4
   )}</sup> ${_coefHtml(jstatModel.coef[1])}`;
