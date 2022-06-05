@@ -14,7 +14,7 @@
       const meta = params.meta;
       ctx.save();
       meta.data.forEach((point: Point) => {
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(point.x, meta.yScale.getPixelForValue(0));
         ctx.lineTo(point.x, point.y);
