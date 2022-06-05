@@ -1,6 +1,6 @@
 import * as jstat from 'jstat';
 
-const MAX_POWER_SPLITS = 10;
+const MAX_POWER_SPLITS = 15;
 const POINTS_IN_MODEL_PLOT = 200;
 const MODEL_COEF_PRECISION = 3;
 
@@ -32,33 +32,29 @@ export interface RegressionInfo {
 }
 
 export function fitQuadraticModel(hexColor: string, points: Point[]): RegressionInfo {
-  const independentValues: number[][] = []; // [species^2, species]
-  const dependentValues: number[] = []; // effort
-  let lowestSpeciesCount = 10000;
-  let highestSpeciesCount = 0;
+  const independentValues: number[][] = []; // [effort^2, effort]
+  const dependentValues: number[] = []; // species count
+  let lowestX = 10000;
+  let highestX = 0;
   for (const point of points) {
-    independentValues.push([point.y * point.y, point.y, 1]);
-    dependentValues.push(point.x);
-    if (point.y < lowestSpeciesCount) lowestSpeciesCount = point.y;
-    if (point.y > highestSpeciesCount) highestSpeciesCount = point.y;
+    independentValues.push([point.x * point.x, point.x, 1]);
+    dependentValues.push(point.y);
+    if (point.x < lowestX) lowestX = point.x;
+    if (point.x > highestX) highestX = point.x;
   }
   const jstatModel: JstatModel = jstat.models.ols(dependentValues, independentValues);
 
   const modelPoints: Point[] = [];
-  const deltaSpecies =
-    (highestSpeciesCount - lowestSpeciesCount) / POINTS_IN_MODEL_PLOT;
-  let speciesCount = lowestSpeciesCount;
-  const predict = (y: number) =>
-    jstatModel.coef[0] * y * y + jstatModel.coef[1] * y + jstatModel.coef[2];
-  while (speciesCount <= highestSpeciesCount) {
-    modelPoints.push({
-      x: predict(speciesCount),
-      y: speciesCount
-    });
-    speciesCount += deltaSpecies;
+  const deltaX = (highestX - lowestX) / POINTS_IN_MODEL_PLOT;
+  let x = lowestX;
+  const predict = (x: number) =>
+    jstatModel.coef[0] * x * x + jstatModel.coef[1] * x + jstatModel.coef[2];
+  while (x <= highestX) {
+    modelPoints.push({ x, y: predict(x) });
+    x += deltaX;
   }
 
-  const errors = points.map((point) => point.x - predict(point.y));
+  const errors = points.map((point) => point.y - predict(point.x));
   const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
   const html = `y = ${jstatModel.coef[0].toPrecision(
     MODEL_COEF_PRECISION
@@ -80,7 +76,7 @@ export function fitQuadraticModel(hexColor: string, points: Point[]): Regression
 }
 
 export function fitPowerModel(hexColor: string, points: Point[]): RegressionInfo {
-  let lowPower = 1;
+  let lowPower = 0.00001;
   let lowModelInfo: RegressionInfo;
   let middlePower;
   let middleModelInfo: RegressionInfo;
@@ -101,24 +97,19 @@ export function fitPowerModel(hexColor: string, points: Point[]): RegressionInfo
     }
   }
 
-  let lowestSpeciesCount = 10000;
-  let highestSpeciesCount = 0;
+  let lowestX = 10000;
+  let highestX = 0;
   for (const point of points) {
-    if (point.y < lowestSpeciesCount) lowestSpeciesCount = point.y;
-    if (point.y > highestSpeciesCount) highestSpeciesCount = point.y;
+    if (point.x < lowestX) lowestX = point.x;
+    if (point.x > highestX) highestX = point.x;
   }
 
-  const deltaSpecies =
-    (highestSpeciesCount - lowestSpeciesCount) / POINTS_IN_MODEL_PLOT;
-  let speciesCount = lowestSpeciesCount;
-  while (speciesCount <= highestSpeciesCount) {
+  const deltaX = (highestX - lowestX) / POINTS_IN_MODEL_PLOT;
+  let x = lowestX;
+  while (x <= highestX) {
     // @ts-ignore
-    middleModelInfo.points.push({
-      // @ts-ignore
-      x: middleModelInfo.predict(speciesCount),
-      y: speciesCount
-    });
-    speciesCount += deltaSpecies;
+    middleModelInfo.points.push({ x, y: middleModelInfo.predict(x) });
+    x += deltaX;
   }
   // @ts-ignore
   return middleModelInfo;
@@ -132,14 +123,14 @@ function _tryPowerRegression(
   const independentValues: number[][] = []; // [species^power]
   const dependentValues: number[] = []; // effort
   for (const point of points) {
-    independentValues.push([Math.pow(point.y, power), 1]);
-    dependentValues.push(point.x);
+    independentValues.push([Math.pow(point.x, power), 1]);
+    dependentValues.push(point.y);
   }
   const jstatModel: JstatModel = jstat.models.ols(dependentValues, independentValues);
-  const predict = (y: number) =>
-    jstatModel.coef[0] * Math.pow(y, power) + jstatModel.coef[1];
+  const predict = (x: number) =>
+    jstatModel.coef[0] * Math.pow(x, power) + jstatModel.coef[1];
 
-  const errors = points.map((point) => point.x - predict(point.y));
+  const errors = points.map((point) => point.y - predict(point.x));
   const rmse = Math.sqrt(jstat.sumsqrd(errors) / errors.length);
   const html = `y = ${jstatModel.coef[0].toPrecision(
     MODEL_COEF_PRECISION
