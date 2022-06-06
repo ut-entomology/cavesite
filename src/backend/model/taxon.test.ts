@@ -330,12 +330,17 @@ test('sequentially dependent taxa tests', async () => {
   // test committing followed by an exact match
 
   {
-    let matches = await Taxon.matchName(db, 'Arachnida');
+    let matches = await Taxon.matchName(db, 'Arachnida', 10);
     expect(matches.length).toEqual(0);
 
     await Taxon.commit(db);
 
-    matches = await Taxon.matchName(db, 'Arachnida');
+    matches = await Taxon.matchName(db, 'Arachnida', 10);
+    expect(matches.length).toEqual(1);
+    expect(matches[0].taxonName).toEqual('Arachnida');
+    expect(matches[0].hasChildren).toBeNull();
+
+    matches = await Taxon.matchName(db, 'arachnida', 10);
     expect(matches.length).toEqual(1);
     expect(matches[0].taxonName).toEqual('Arachnida');
     expect(matches[0].hasChildren).toBeNull();
@@ -379,12 +384,18 @@ test('sequentially dependent taxa tests', async () => {
   // test multiple internal subset matches
 
   {
-    let matches = await Taxon.matchName(db, 'ida');
+    let matches = await Taxon.matchName(db, 'ida', 10);
     expect(matches.map((taxon) => taxon.taxonName)).toEqual([
       'Arachnida',
       'Philodromidae',
       'Plethodontidae',
       'Thomisidae'
+    ]);
+
+    matches = await Taxon.matchName(db, 'ida', 2);
+    expect(matches.map((taxon) => taxon.taxonName)).toEqual([
+      'Arachnida',
+      'Philodromidae'
     ]);
   }
 
@@ -436,7 +447,7 @@ test('sequentially dependent taxa tests', async () => {
       infraspecificEpithet: 'jenningsi',
       scientificName: 'Philodromus rufus jenningsi New Author'
     });
-    let matches = await Taxon.matchName(db, 'jenningsi');
+    let matches = await Taxon.matchName(db, 'jenningsi', 10);
     expect(matches[0].author).toEqual('Author');
 
     await Taxon.getOrCreate(db, {
@@ -447,17 +458,17 @@ test('sequentially dependent taxa tests', async () => {
       family: 'Salticidae',
       scientificName: 'Salticidae'
     });
-    matches = await Taxon.matchName(db, 'Salticidae');
+    matches = await Taxon.matchName(db, 'Salticidae', 10);
     expect(matches.length).toEqual(0);
 
     await Taxon.commit(db);
 
-    matches = await Taxon.matchName(db, 'jenningsi');
+    matches = await Taxon.matchName(db, 'jenningsi', 10);
     expect(matches.length).toEqual(1);
     expect(matches[0].author).toEqual('New Author');
-    matches = await Taxon.matchName(db, 'Salticidae');
+    matches = await Taxon.matchName(db, 'Salticidae', 10);
     expect(matches.length).toEqual(1);
-    matches = await Taxon.matchName(db, 'Thomisidae');
+    matches = await Taxon.matchName(db, 'Thomisidae', 10);
     expect(matches.length).toEqual(0);
   }
 });

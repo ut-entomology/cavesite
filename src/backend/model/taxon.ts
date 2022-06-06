@@ -196,11 +196,15 @@ export class Taxon {
     return await Taxon._createMissingTaxa(db, specs);
   }
 
-  static async matchName(db: DB, partialName: string): Promise<Taxon[]> {
+  static async matchName(
+    db: DB,
+    partialName: string,
+    maxMatches: number
+  ): Promise<Taxon[]> {
     const result = await db.query(
-      `select * from taxa where unique_name like $1 and committed=true
-        order by taxon_name`,
-      [`%${partialName}%`]
+      `select * from taxa where unique_name ilike $1 and committed=true
+        order by taxon_name limit $2`,
+      [`%${partialName}%`, maxMatches]
     );
     return result.rows.map((row) => new Taxon(_toTaxonData(row)));
   }

@@ -3,7 +3,9 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { Taxon } from '../model/taxon';
-import { TaxonSpec } from '../../shared/model';
+import { TaxonSpec, MIN_PARTIAL_TAXON_LENGTH } from '../../shared/model';
+
+const MAX_LOOKUP_MATCHES = 100;
 
 export const router = Router();
 
@@ -34,6 +36,21 @@ router.post('/get_list', async (req: Request, res) => {
     }
   }
   const taxa = await Taxon.getByUniqueNames(getDB(), taxaNames);
+  return res
+    .status(StatusCodes.OK)
+    .send({ taxonSpecs: taxa.map((t) => _toTaxonSpec(t)) });
+});
+
+router.post('/match_name', async (req: Request, res) => {
+  const partialName = req.body.partialName;
+  if (
+    typeof partialName !== 'string' ||
+    partialName.length < MIN_PARTIAL_TAXON_LENGTH ||
+    partialName.length > 200
+  ) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  const taxa = await Taxon.matchName(getDB(), partialName, MAX_LOOKUP_MATCHES);
   return res
     .status(StatusCodes.OK)
     .send({ taxonSpecs: taxa.map((t) => _toTaxonSpec(t)) });

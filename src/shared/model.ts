@@ -2,6 +2,8 @@
 
 export const ROOT_TAXON = 'Animalia';
 
+export const MIN_PARTIAL_TAXON_LENGTH = 2;
+
 export enum TaxonRank {
   Kingdom = 'kingdom',
   Phylum = 'phylum',
