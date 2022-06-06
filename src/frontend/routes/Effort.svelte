@@ -15,8 +15,6 @@
     locationCount: number;
     perVisitTotalsGraph: EffortGraphConfig;
     perPersonVisitTotalsGraph: EffortGraphConfig;
-    perVisitDiffsGraph: EffortGraphConfig;
-    perPersonVisitDiffsGraph: EffortGraphConfig;
   }
 
   const clusterStore = createSessionStore<EffortData[][] | null>('cluster_data', null);
@@ -58,14 +56,8 @@
     personVisits = 'per-person-visit-set'
   }
 
-  enum BasisID {
-    totals = 'basis-totals',
-    diffs = 'basis-diffs'
-  }
-
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-  let basisID = BasisID.totals;
 
   $: showingPersonVisits = datasetID == DatasetID.personVisits;
 
@@ -175,61 +167,25 @@
       pointCount: 0, // will update
       points: [] // will update
     };
-    // let perPersonVisitTotalsGraph: EffortGraphConfig = {
-    //   locationCount,
-    //   graphTitle: `Person-visits for total species found (${locationCount} caves)`,
-    //   yAxisLabel: 'person-visits',
-    //   xAxisLabel: 'cumulative species',
-    //   pointCount: 0, // will update
-    //   points: [] // will update
-    // };
-    let perVisitDiffsGraph: EffortGraphConfig = {
-      locationCount,
-      graphTitle: `Additional species across visits (${locationCount} caves)`,
-      yAxisLabel: 'additional species',
-      xAxisLabel: 'visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
-    let perPersonVisitDiffsGraph: EffortGraphConfig = {
-      locationCount,
-      graphTitle: `Additional species across person-visits (${locationCount} caves)`,
-      yAxisLabel: 'additional species',
-      xAxisLabel: 'person-visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
 
     for (const effortData of clusterEffortData) {
       let priorSpeciesCount = 0;
-      let priorCumulativePercentChange = 0;
       for (const point of effortData.perVisitPoints) {
         perVisitTotalsGraph.points.push(point);
         if (priorSpeciesCount != 0) {
           const speciesDiff = point.y - priorSpeciesCount;
-          perVisitDiffsGraph.points.push({
-            x: point.x,
-            y: speciesDiff
-          });
         }
         ++perVisitTotalsGraph.pointCount;
-        ++perVisitDiffsGraph.pointCount;
         priorSpeciesCount = point.y;
       }
 
       priorSpeciesCount = 0;
-      priorCumulativePercentChange = 0;
       for (const point of effortData.perPersonVisitPoints) {
         perPersonVisitTotalsGraph.points.push(point);
         if (priorSpeciesCount != 0) {
           const speciesDiff = point.y - priorSpeciesCount;
-          perPersonVisitDiffsGraph.points.push({
-            x: point.x,
-            y: speciesDiff
-          });
         }
         ++perPersonVisitTotalsGraph.pointCount;
-        ++perPersonVisitDiffsGraph.pointCount;
         priorSpeciesCount = point.y;
       }
     }
@@ -237,9 +193,7 @@
     return {
       locationCount,
       perVisitTotalsGraph,
-      perPersonVisitTotalsGraph,
-      perVisitDiffsGraph,
-      perPersonVisitDiffsGraph
+      perPersonVisitTotalsGraph
     };
   }
 
@@ -294,26 +248,6 @@
               >Person-Visits</label
             >
           </div>
-          <div class="btn-group mx-2" role="group" aria-label="Basis for model">
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={basisID}
-              name="dataset"
-              id={BasisID.totals}
-              value={BasisID.totals}
-            />
-            <label class="btn btn-outline-primary" for={BasisID.totals}>Totals</label>
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={basisID}
-              name="dataset"
-              id={BasisID.diffs}
-              value={BasisID.diffs}
-            />
-            <label class="btn btn-outline-primary" for={BasisID.diffs}>Diffs</label>
-          </div>
         {/if}
       </span>
     </TabHeader>
@@ -324,14 +258,9 @@
       >
     {:else}
       {#each $graphStore as clusterGraphData, i}
-        {@const graphData =
-          basisID == BasisID.totals
-            ? showingPersonVisits
-              ? clusterGraphData.perPersonVisitTotalsGraph
-              : clusterGraphData.perVisitTotalsGraph
-            : showingPersonVisits
-            ? clusterGraphData.perPersonVisitDiffsGraph
-            : clusterGraphData.perVisitDiffsGraph}
+        {@const graphData = showingPersonVisits
+          ? clusterGraphData.perPersonVisitTotalsGraph
+          : clusterGraphData.perVisitTotalsGraph}
         {@const powerFit = new PowerModel('FF0088', graphData.points)}
         {@const quadraticFit = new QuadraticModel('00DCD8', graphData.points)}
         <div class="row mt-3 mb-1">
