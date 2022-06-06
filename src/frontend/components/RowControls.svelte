@@ -20,7 +20,7 @@
 
 <div class="row row_controls ms-2 me-2 gx-0">
   <div class="col-sm-5 align-self-start info_text">
-    Rows {firstRowNumber}-{lastRowNumber} of {totalRows}
+    Rows {firstRowNumber} - {lastRowNumber} of {totalRows}
   </div>
   <div class="col-sm-7 align-self-end">
     <div class="row justify-content-end">
