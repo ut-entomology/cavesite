@@ -1,15 +1,8 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
+  import { EffortData, loadEffort } from '../lib/effort_data';
   import type { EffortGraphConfig } from '../components/EffortGraph.svelte';
-
-  export interface EffortData {
-    locationID: number;
-    startDate: Date;
-    endDate: Date;
-    perVisitPoints: Point[];
-    perPersonVisitPoints: Point[];
-  }
 
   interface ClusterData {
     locationCount: number;
@@ -29,14 +22,9 @@
   import EffortGraph from '../components/EffortGraph.svelte';
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
-  import {
-    type EffortResult,
-    SeedType,
-    type LocationSpec,
-    DistanceMeasure
-  } from '../../shared/model';
+  import { SeedType } from '../../shared/model';
   import { client } from '../stores/client';
-  import { type Point, QuadraticModel, PowerModel } from '../lib/linear_regression';
+  import { QuadraticModel, PowerModel } from '../lib/linear_regression';
 
   const MIN_PERSON_VISITS = 0;
 
@@ -57,93 +45,35 @@
 
   $: showingPersonVisits = datasetID == DatasetID.personVisits;
 
-  const pairToPoint = (pair: number[]) => {
-    return { x: pair[0], y: pair[1] };
-  };
-
   const loadPoints = async () => {
-    loadState = LoadState.loading;
-    let res = await $client.post('api/cluster/get_seeds', {
-      seedSpec: {
+    try {
+      loadState = LoadState.loading;
+      const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
         seedType: SeedType.diverse,
         maxClusters: 12,
         minSpecies: 0,
         maxSpecies: 10000
+      });
+      effortStore.set(effortDataByCluster);
+
+      loadState = LoadState.processing;
+      const clusterDataByCluster: ClusterData[] = [];
+      for (const effortData of effortDataByCluster) {
+        clusterDataByCluster.push(_toClusterData(effortData));
       }
-    });
-    const seeds: LocationSpec[] = res.data.seeds;
-    if (!seeds) showNotice({ message: 'Failed to load seeds' });
+      clusterDataByCluster.sort((a, b) => {
+        const aPointCount = a.perPersonVisitTotalsGraph.points.length;
+        const bPointCount = b.perPersonVisitTotalsGraph.points.length;
+        if (aPointCount == bPointCount) return 0;
+        return bPointCount - aPointCount; // sort most points first
+      });
 
-    res = await $client.post('api/cluster/get_clusters', {
-      seedIDs: seeds.map((location) => location.locationID),
-      distanceMeasure: DistanceMeasure.weighted,
-      minSpecies: 0,
-      maxSpecies: 10000
-    });
-    const clusters: number[][] = res.data.clusters;
-    if (!clusters) showNotice({ message: 'Failed to load clusters' });
-
-    const effortDataByCluster: EffortData[][] = [];
-    for (const cluster of clusters) {
-      if (cluster.length > 0) {
-        res = await $client.post('api/location/get_effort', {
-          locationIDs: cluster
-        });
-        const clusterEffortData: EffortData[] = [];
-        const effortResults: EffortResult[] = res.data.efforts;
-        for (const effortResult of effortResults) {
-          if (effortResult.perVisitPoints.length >= MIN_PERSON_VISITS) {
-            clusterEffortData.push(_toEffortData(effortResult));
-          }
-        }
-        if (clusterEffortData.length > 0) {
-          effortDataByCluster.push(clusterEffortData);
-        }
-      }
+      clusterStore.set(clusterDataByCluster);
+      loadState = LoadState.ready;
+    } catch (err: any) {
+      showNotice({ message: err.message });
     }
-
-    effortStore.set(effortDataByCluster);
-
-    loadState = LoadState.processing;
-    const clusterDataByCluster: ClusterData[] = [];
-    for (const effortData of effortDataByCluster) {
-      clusterDataByCluster.push(_toClusterData(effortData));
-    }
-    clusterDataByCluster.sort((a, b) => {
-      const aPointCount = a.perPersonVisitTotalsGraph.points.length;
-      const bPointCount = b.perPersonVisitTotalsGraph.points.length;
-      if (aPointCount == bPointCount) return 0;
-      return bPointCount - aPointCount; // sort most points first
-    });
-
-    clusterStore.set(clusterDataByCluster);
-
-    loadState = LoadState.ready;
   };
-
-  function _toEffortData(effortResult: EffortResult): EffortData {
-    const perVisitPointPairs: number[][] = JSON.parse(effortResult.perVisitPoints);
-    const perVisitPoints: Point[] = [];
-    for (const pair of perVisitPointPairs) {
-      perVisitPoints.push(pairToPoint(pair));
-    }
-
-    const perPersonVisitPointPairs: number[][] = JSON.parse(
-      effortResult.perPersonVisitPoints
-    );
-    const perPersonVisitPoints: Point[] = [];
-    for (const pair of perPersonVisitPointPairs) {
-      perPersonVisitPoints.push(pairToPoint(pair));
-    }
-
-    return {
-      locationID: effortResult.locationID,
-      startDate: effortResult.startDate,
-      endDate: effortResult.endDate,
-      perVisitPoints: perVisitPoints,
-      perPersonVisitPoints: perPersonVisitPoints
-    };
-  }
 
   function _toClusterData(clusterEffortData: EffortData[]): ClusterData {
     let locationCount = clusterEffortData.length;
