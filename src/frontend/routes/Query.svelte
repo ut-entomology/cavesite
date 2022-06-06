@@ -17,7 +17,7 @@
 </script>
 
 <script lang="ts">
-  import { afterUpdate } from 'svelte';
+  import { onMount } from 'svelte';
 
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
@@ -56,6 +56,8 @@
   }
   let gridColumnWidths = '';
 
+  onMount(_initColumnWidths);
+
   function clearQuery() {
     $cachedResults = null;
   }
@@ -93,20 +95,8 @@
     cachedResults.set(results);
     results.rows = await _loadRows(0, BIG_STEP_ROWS);
     cachedResults.set(results);
+    _initColumnWidths();
   }
-
-  afterUpdate(() => {
-    if (gridColumnWidths == '' && $cachedResults) {
-      let columnPxWidths = $cachedResults.columnPxWidths;
-      if (columnPxWidths.length == 0) {
-        const emInPx = _getEmInPx();
-        for (const columnInfo of Object.values(columnInfoMap)) {
-          columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
-        }
-      }
-      _setColumnWidths();
-    }
-  });
 
   async function toFirstSet() {
     const results = $cachedResults!;
@@ -179,6 +169,19 @@
     }
   }
 
+  function _initColumnWidths() {
+    if ($cachedResults) {
+      let columnPxWidths = $cachedResults.columnPxWidths;
+      if (columnPxWidths.length == 0) {
+        const emInPx = _getEmInPx();
+        for (const columnInfo of Object.values(columnInfoMap)) {
+          columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
+        }
+      }
+      _setColumnWidths();
+    }
+  }
+
   async function _loadRows(offset: number, count: number): Promise<QueryRow[]> {
     const results = $cachedResults!;
     try {
@@ -230,6 +233,7 @@
 </script>
 
 <DataTabRoute activeTab="Query">
+  <div id="em_sample" />
   <div class="container-fluid">
     <TabHeader title="Query Results" center={false}>
       <span slot="main-buttons">
@@ -255,7 +259,6 @@
   {:else}
     <div class="rows_box">
       <div id="scroll_area">
-        <div id="em_sample" />
         <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
           {#each $cachedResults.query.columnSpecs as columnSpec}
             {@const columnID = columnSpec.columnID}
