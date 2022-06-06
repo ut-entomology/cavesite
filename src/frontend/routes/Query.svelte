@@ -18,7 +18,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
 
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
@@ -58,6 +58,16 @@
   let gridColumnWidths = '';
 
   onMount(_initColumnWidths);
+
+  afterUpdate(() => {
+    const resultsHeader = document.getElementById('results_header');
+    const scrollArea = document.getElementById('scroll_area');
+    if (scrollArea) {
+      scrollArea.addEventListener('scroll', () => {
+        resultsHeader!.style.marginLeft = `-${scrollArea.scrollLeft}px`;
+      });
+    }
+  });
 
   function clearQuery() {
     $cachedResults = null;
@@ -254,21 +264,25 @@
   {#if !$cachedResults}
     <EmptyTab message={'Click the "New Query" button to perform a query.'} />
   {:else}
-    <div class="rows_box">
+    <div class="header_box">
+      <div id="results_header" style="grid-template-columns: {gridColumnWidths}">
+        {#each $cachedResults.query.columnSpecs as columnSpec}
+          {@const columnID = columnSpec.columnID}
+          {@const columnInfo = columnInfoMap[columnID]}
+          <div class="header" title={columnInfo.description}>
+            {columnInfo.abbrName || columnInfo.fullName}
+            <ColumnResizer
+              class="column_resizer"
+              minWidthPx={20}
+              onResize={(px) => _resizeColumn(columnID, px)}
+            />
+          </div>
+        {/each}
+      </div>
+    </div>
+    <div class="grid_box">
       <div id="scroll_area">
         <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
-          {#each $cachedResults.query.columnSpecs as columnSpec}
-            {@const columnID = columnSpec.columnID}
-            {@const columnInfo = columnInfoMap[columnID]}
-            <div class="header" title={columnInfo.description}>
-              {columnInfo.abbrName || columnInfo.fullName}
-              <ColumnResizer
-                class="column_resizer"
-                minWidthPx={20}
-                onResize={(px) => _resizeColumn(columnID, px)}
-              />
-            </div>
-          {/each}
           {#each $cachedResults.rows as row, i}
             {#each $cachedResults.query.columnSpecs as columnSpec, j}
               {@const columnInfo = columnInfoMap[columnSpec.columnID]}
@@ -296,8 +310,12 @@
 {/if}
 
 <style lang="scss">
-  .rows_box {
+  .header_box {
     margin-top: 0.5rem;
+    overflow: hidden;
+    font-size: 0.9rem;
+  }
+  .grid_box {
     flex-grow: 1;
     overflow: hidden;
     position: relative;
@@ -323,18 +341,32 @@
     box-sizing: content-box;
   }
 
-  #results_grid {
+  #results_header {
+    border-bottom: 1px solid #888;
+  }
+
+  #results_grid,
+  #results_header {
     display: grid;
     grid-auto-rows: 1.9rem;
     grid-gap: 0px;
   }
 
+  #results_header div,
   #results_grid div {
-    border-right: 1px solid #888;
-    border-bottom: 1px solid #888;
     white-space: nowrap;
     padding: 0.2rem 0.4rem;
     overflow: hidden;
+  }
+
+  #results_header div {
+    font-weight: bold;
+    position: relative;
+  }
+
+  #results_grid div {
+    border-right: 1px solid #888;
+    border-bottom: 1px solid #888;
   }
 
   #results_grid div.even {
@@ -343,13 +375,6 @@
 
   #results_grid div.left {
     border-left: 1px solid #888;
-  }
-
-  #results_grid div.header {
-    font-weight: bold;
-    border-left: none;
-    border-right: none;
-    position: relative;
   }
 
   #results_grid .center {
