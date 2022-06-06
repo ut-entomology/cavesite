@@ -14,6 +14,7 @@
   import Taxa from './routes/Taxa.svelte';
   import Locations from './routes/Locations.svelte';
   import Query from './routes/Query.svelte';
+  import Time from './routes/Time.svelte';
   import Effort from './routes/Effort.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
@@ -31,8 +32,9 @@
     '/': Welcome,
     '/taxa': Taxa,
     '/locations': Locations,
-    '/query': Query,
+    '/time': Time,
     '/effort': Effort,
+    '/query': Query,
 
     '/admin/users': Users,
     '/admin/coords': Coords,

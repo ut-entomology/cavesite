@@ -17,6 +17,10 @@
       route: '/locations'
     },
     {
+      label: 'Time',
+      route: '/time'
+    },
+    {
       label: 'Effort',
       route: '/effort'
     },
