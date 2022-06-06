@@ -54,4 +54,7 @@
     cursor: ew-resize;
     user-select: none;
   }
+  div img {
+    border-right: 1px solid black;
+  }
 </style>
