@@ -4,6 +4,5 @@
 
 <DataTabRoute activeTab="Time">
   <p>Time tools</p>
-  <p>Single date range; AND</p>
-  <p>Time of year selections (a disjunction)</p>
+  <p>User select a date range and/or a time-of-year range</p>
 </DataTabRoute>
