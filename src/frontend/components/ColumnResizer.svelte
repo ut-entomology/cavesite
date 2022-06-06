@@ -1,5 +1,5 @@
 <script lang="ts">
-  const SAMPLE_RATE_MILLIS = 100;
+  const SAMPLE_RATE_MILLIS = 50;
   const text = 'Drag to resize column';
 
   let classes = '';
