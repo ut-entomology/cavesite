@@ -32,7 +32,7 @@
   export let onClose: () => void;
   export let onQuery: (query: GeneralQuery) => void;
 
-  let filterForTaxa = false;
+  let filterTaxa = initialQuery.taxonFilter !== null;
   let includedItems: DraggableItem[] = [];
   let excludedItems: DraggableItem[] = [];
   let nullSelections: NullOption[] = [];
@@ -140,7 +140,7 @@
 
         return { columnID, nullValues, ascending };
       }),
-      taxonFilter: filterForTaxa ? getTaxonFilter() : null
+      taxonFilter: filterTaxa ? getTaxonFilter() : null
     });
   };
 
@@ -283,12 +283,12 @@
       <div class="form-check form-switch">
         <input
           type="checkbox"
-          bind:checked={filterForTaxa}
+          bind:checked={filterTaxa}
           class="form-check-input"
           id="taxonFilterSwitch"
         />
         <label class="form-check-label" for="taxonFilterSwitch"
-          >Filter for the currently selected taxa</label
+          >Filter taxa &ndash; restrict to the selected taxa</label
         >
       </div>
     </div>
