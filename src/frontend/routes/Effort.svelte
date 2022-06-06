@@ -83,40 +83,40 @@
     const clusters: number[][] = res.data.clusters;
     if (!clusters) showNotice({ message: 'Failed to load clusters' });
 
-    const clusterEffortData: EffortData[][] = [];
+    const effortDataByCluster: EffortData[][] = [];
     for (const cluster of clusters) {
       if (cluster.length > 0) {
         res = await $client.post('api/location/get_effort', {
           locationIDs: cluster
         });
-        const clusterData: EffortData[] = [];
+        const clusterEffortData: EffortData[] = [];
         const effortResults: EffortResult[] = res.data.efforts;
         for (const effortResult of effortResults) {
           if (effortResult.perVisitPoints.length >= MIN_PERSON_VISITS) {
-            clusterData.push(_toEffortData(effortResult));
+            clusterEffortData.push(_toEffortData(effortResult));
           }
         }
-        if (clusterData.length > 0) {
-          clusterEffortData.push(clusterData);
+        if (clusterEffortData.length > 0) {
+          effortDataByCluster.push(clusterEffortData);
         }
       }
     }
 
-    effortStore.set(clusterEffortData);
+    effortStore.set(effortDataByCluster);
 
     loadState = LoadState.processing;
-    const clusterGraphData: ClusterData[] = [];
-    for (const clusterEffortData of $effortStore!) {
-      clusterGraphData.push(_toClusterGraphData(clusterEffortData));
+    const clusterDataByCluster: ClusterData[] = [];
+    for (const effortData of effortDataByCluster) {
+      clusterDataByCluster.push(_toClusterData(effortData));
     }
-    clusterGraphData.sort((a, b) => {
+    clusterDataByCluster.sort((a, b) => {
       const aPointCount = a.perPersonVisitTotalsGraph.points.length;
       const bPointCount = b.perPersonVisitTotalsGraph.points.length;
       if (aPointCount == bPointCount) return 0;
       return bPointCount - aPointCount; // sort most points first
     });
 
-    clusterStore.set(clusterGraphData);
+    clusterStore.set(clusterDataByCluster);
 
     loadState = LoadState.ready;
   };
@@ -145,7 +145,7 @@
     };
   }
 
-  function _toClusterGraphData(clusterEffortData: EffortData[]): ClusterData {
+  function _toClusterData(clusterEffortData: EffortData[]): ClusterData {
     let locationCount = clusterEffortData.length;
     let perVisitTotalsGraph: EffortGraphConfig = {
       locationCount,
@@ -168,9 +168,6 @@
       let priorSpeciesCount = 0;
       for (const point of effortData.perVisitPoints) {
         perVisitTotalsGraph.points.push(point);
-        if (priorSpeciesCount != 0) {
-          const speciesDiff = point.y - priorSpeciesCount;
-        }
         ++perVisitTotalsGraph.pointCount;
         priorSpeciesCount = point.y;
       }
@@ -178,9 +175,6 @@
       priorSpeciesCount = 0;
       for (const point of effortData.perPersonVisitPoints) {
         perPersonVisitTotalsGraph.points.push(point);
-        if (priorSpeciesCount != 0) {
-          const speciesDiff = point.y - priorSpeciesCount;
-        }
         ++perPersonVisitTotalsGraph.pointCount;
         priorSpeciesCount = point.y;
       }
@@ -212,16 +206,6 @@
       </span>
       <span slot="work-buttons">
         {#if $clusterStore}
-          <!-- <select
-            bind:value={$clusterIndex}
-            on:change={() => _setGraphData($clusterIndex)}
-          >
-            {#each $clusterData as cluster, i}
-              <option value={i}>
-                [{i}]: {cluster.length} locations
-              </option>
-            {/each}
-          </select> -->
           <div class="btn-group" role="group" aria-label="Switch datasets">
             <input
               type="radio"
