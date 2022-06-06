@@ -34,7 +34,7 @@
 
   const QUERY_BUTTON_LABEL = 'New Query';
   const SMALL_STEP_ROWS = 20;
-  const BIG_STEP_ROWS = 200;
+  const BIG_STEP_ROWS = 400;
 
   const rowControlsConfig: RowControlsConfig = {
     smallStepRows: SMALL_STEP_ROWS,
@@ -242,7 +242,7 @@
 <DataTabRoute activeTab="Query">
   <div id="em_sample" />
   <div class="container-fluid">
-    <TabHeader title="Query Results" center={false}>
+    <TabHeader title="Query Results" center={false} expandable={true}>
       <span slot="main-buttons">
         <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
         <button class="btn btn-major" type="button" on:click={createNewQuery}
@@ -314,6 +314,7 @@
     margin-top: 0.5rem;
     overflow: hidden;
     font-size: 0.9rem;
+    cursor: default;
   }
   .grid_box {
     flex-grow: 1;
