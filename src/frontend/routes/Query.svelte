@@ -7,13 +7,14 @@
     startOffset: number;
     totalRows: number;
     rows: QueryRow[];
-    columnPxWidths: number[]; // indexed by ColumnID
   }
 
   const cachedResults = createSessionStore<CachedResults | null>(
     'cached_results',
     null
   );
+  // columnPxWidths is indexed by ColumnID
+  const columnPxWidths = createSessionStore<number[]>('column_widths', []);
 </script>
 
 <script lang="ts">
@@ -89,8 +90,7 @@
       query,
       startOffset: 0,
       totalRows: 0,
-      rows: [],
-      columnPxWidths: []
+      rows: []
     };
     cachedResults.set(results);
     results.rows = await _loadRows(0, BIG_STEP_ROWS);
@@ -170,16 +170,13 @@
   }
 
   function _initColumnWidths() {
-    if ($cachedResults) {
-      let columnPxWidths = $cachedResults.columnPxWidths;
-      if (columnPxWidths.length == 0) {
-        const emInPx = _getEmInPx();
-        for (const columnInfo of Object.values(columnInfoMap)) {
-          columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
-        }
+    if ($columnPxWidths.length == 0) {
+      const emInPx = _getEmInPx();
+      for (const columnInfo of Object.values(columnInfoMap)) {
+        $columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
       }
-      _setColumnWidths();
     }
+    if ($cachedResults) _renderColumnWidths();
   }
 
   async function _loadRows(offset: number, count: number): Promise<QueryRow[]> {
@@ -205,8 +202,8 @@
   }
 
   function _resizeColumn(columnID: QueryColumnID, widthPx: number) {
-    $cachedResults!.columnPxWidths![columnID] = widthPx;
-    _setColumnWidths();
+    $columnPxWidths[columnID] = widthPx;
+    _renderColumnWidths();
     const columnSpecs = $cachedResults!.query.columnSpecs;
     if (columnID == columnSpecs[columnSpecs.length - 1].columnID) {
       const scrollArea = document.getElementById('scroll_area');
@@ -214,11 +211,11 @@
     }
   }
 
-  function _setColumnWidths() {
+  function _renderColumnWidths() {
     const results = $cachedResults!;
     const pxWidths: string[] = [];
     for (const columnSpec of results.query.columnSpecs) {
-      const pxWidth = results.columnPxWidths![columnSpec.columnID] + 'px';
+      const pxWidth = $columnPxWidths[columnSpec.columnID] + 'px';
       pxWidths.push(`minmax(${pxWidth},${pxWidth})`);
     }
     gridColumnWidths = pxWidths.join(' ');
