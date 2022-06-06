@@ -11,18 +11,14 @@
     perPersonVisitPoints: Point[];
   }
 
-  interface PerClusterGraphData {
+  interface ClusterData {
     locationCount: number;
     perVisitTotalsGraph: EffortGraphConfig;
     perPersonVisitTotalsGraph: EffortGraphConfig;
   }
 
-  const clusterStore = createSessionStore<EffortData[][] | null>('cluster_data', null);
-  const graphStore = createSessionStore<PerClusterGraphData[] | null>(
-    'graph_data',
-    null
-  );
-  //const clusterIndex = createSessionStore<number>('cluster_index', 0);
+  const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
+  const clusterStore = createSessionStore<ClusterData[] | null>('cluster_data', null);
 </script>
 
 <script lang="ts">
@@ -87,7 +83,7 @@
     const clusters: number[][] = res.data.clusters;
     if (!clusters) showNotice({ message: 'Failed to load clusters' });
 
-    const workingClusterData: EffortData[][] = [];
+    const clusterEffortData: EffortData[][] = [];
     for (const cluster of clusters) {
       if (cluster.length > 0) {
         res = await $client.post('api/location/get_effort', {
@@ -101,16 +97,16 @@
           }
         }
         if (clusterData.length > 0) {
-          workingClusterData.push(clusterData);
+          clusterEffortData.push(clusterData);
         }
       }
     }
 
-    clusterStore.set(workingClusterData);
+    effortStore.set(clusterEffortData);
 
     loadState = LoadState.processing;
-    const clusterGraphData: PerClusterGraphData[] = [];
-    for (const clusterEffortData of $clusterStore!) {
+    const clusterGraphData: ClusterData[] = [];
+    for (const clusterEffortData of $effortStore!) {
       clusterGraphData.push(_toClusterGraphData(clusterEffortData));
     }
     clusterGraphData.sort((a, b) => {
@@ -120,7 +116,7 @@
       return bPointCount - aPointCount; // sort most points first
     });
 
-    graphStore.set(clusterGraphData);
+    clusterStore.set(clusterGraphData);
 
     loadState = LoadState.ready;
   };
@@ -149,7 +145,7 @@
     };
   }
 
-  function _toClusterGraphData(clusterEffortData: EffortData[]): PerClusterGraphData {
+  function _toClusterGraphData(clusterEffortData: EffortData[]): ClusterData {
     let locationCount = clusterEffortData.length;
     let perVisitTotalsGraph: EffortGraphConfig = {
       locationCount,
@@ -198,8 +194,8 @@
   }
 
   const clearData = () => {
+    effortStore.set(null);
     clusterStore.set(null);
-    graphStore.set(null);
     location.reload();
   };
 </script>
@@ -208,14 +204,14 @@
   <div class="container-fluid">
     <TabHeader title="Collection Effort" instructions="Instructions TBD">
       <span slot="main-buttons">
-        {#if $graphStore != null}
+        {#if $clusterStore != null}
           <button class="btn btn-minor" type="button" on:click={clearData}
             >Clear Data</button
           >
         {/if}
       </span>
       <span slot="work-buttons">
-        {#if $graphStore}
+        {#if $clusterStore}
           <!-- <select
             bind:value={$clusterIndex}
             on:change={() => _setGraphData($clusterIndex)}
@@ -252,12 +248,12 @@
       </span>
     </TabHeader>
 
-    {#if $graphStore === null}
+    {#if $clusterStore === null}
       <button class="btn btn-major" type="button" on:click={loadPoints}
         >Load Data</button
       >
     {:else}
-      {#each $graphStore as clusterGraphData, i}
+      {#each $clusterStore as clusterGraphData, i}
         {@const graphData = showingPersonVisits
           ? clusterGraphData.perPersonVisitTotalsGraph
           : clusterGraphData.perVisitTotalsGraph}
@@ -266,7 +262,7 @@
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
-              title={($graphStore.length > 1 ? `#${i + 1}: ` : '') +
+              title={($clusterStore.length > 1 ? `#${i + 1}: ` : '') +
                 graphData.graphTitle}
               config={graphData}
               models={[powerFit, quadraticFit]}
@@ -285,7 +281,7 @@
   </div>
 </DataTabRoute>
 
-{#if $graphStore === null}
+{#if $clusterStore === null}
   {#if loadState == LoadState.loading}
     <BusyMessage message="Loading points..." />
   {:else if loadState == LoadState.processing}
