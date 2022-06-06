@@ -32,7 +32,7 @@ setColumnInfo({
   description: 'Number of results in the data that are identical to the given result.',
   defaultSelection: false,
   nullable: false,
-  defaultEmWidth: 5,
+  defaultEmWidth: 4,
   columnClass: 'center',
   getValue: (row: QueryRow) => getNumber(row.resultCount)
 });
@@ -43,7 +43,7 @@ setColumnInfo({
   description: "Catalog number of the specimen(s) in UT Austin's Specify database.",
   defaultSelection: true,
   nullable: false,
-  defaultEmWidth: 8,
+  defaultEmWidth: 7,
   columnClass: null,
   getValue: (row: QueryRow) => row.catalogNumber || ''
 });
@@ -54,7 +54,7 @@ setColumnInfo({
   description: 'First day of collection, which may be the only collection date',
   defaultSelection: true,
   nullable: false, // TODO: Is this true?
-  defaultEmWidth: 8,
+  defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => getDateValue(row.collectionStartDate)
 });
@@ -65,7 +65,7 @@ setColumnInfo({
   description: 'Last day of collection, if collected over more than one day',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 8,
+  defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => getDateValue(row.collectionEndDate)
 });
@@ -98,7 +98,7 @@ setColumnInfo({
   description: 'Names of the determiners',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 8,
+  defaultEmWidth: 4,
   columnClass: 'center',
   getValue: (row: QueryRow) => getNumber(row.determinationYear)
 });
@@ -142,7 +142,7 @@ setColumnInfo({
   description: 'The type status of this particular specimen',
   defaultSelection: true,
   nullable: true,
-  defaultEmWidth: 8,
+  defaultEmWidth: 7,
   columnClass: null,
   getValue: (row: QueryRow) => row.typeStatus || ''
 });
@@ -164,7 +164,7 @@ setColumnInfo({
   description: 'Problems encountered parsing the data record',
   defaultSelection: false,
   nullable: true,
-  defaultEmWidth: 20,
+  defaultEmWidth: 16,
   columnClass: null,
   getValue: (row: QueryRow) => row.problems || ''
 });
