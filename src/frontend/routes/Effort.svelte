@@ -2,12 +2,16 @@
   import { createSessionStore } from '../util/session_store';
 
   import { EffortData, loadEffort } from '../lib/effort_data';
-  import type { EffortGraphConfig } from '../components/EffortGraph.svelte';
+  import {
+    type EffortGraphSpec,
+    SpeciesByVisitsGraphSpec,
+    SpeciesByPersonVisitsGraphSpec
+  } from '../lib/effort_graphs';
 
   interface ClusterData {
     locationCount: number;
-    perVisitTotalsGraph: EffortGraphConfig;
-    perPersonVisitTotalsGraph: EffortGraphConfig;
+    perVisitTotalsGraph: EffortGraphSpec;
+    perPersonVisitTotalsGraph: EffortGraphSpec;
   }
 
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
@@ -59,7 +63,11 @@
       loadState = LoadState.processing;
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
-        clusterDataByCluster.push(_toClusterData(effortData));
+        clusterDataByCluster.push({
+          locationCount: effortData.length,
+          perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(effortData),
+          perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(effortData)
+        });
       }
       clusterDataByCluster.sort((a, b) => {
         const aPointCount = a.perPersonVisitTotalsGraph.points.length;
@@ -74,48 +82,6 @@
       showNotice({ message: err.message });
     }
   };
-
-  function _toClusterData(clusterEffortData: EffortData[]): ClusterData {
-    let locationCount = clusterEffortData.length;
-    let perVisitTotalsGraph: EffortGraphConfig = {
-      locationCount,
-      graphTitle: `Cumulative species across visits (${locationCount} caves)`,
-      yAxisLabel: 'cumulative species',
-      xAxisLabel: 'visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
-    let perPersonVisitTotalsGraph: EffortGraphConfig = {
-      locationCount,
-      graphTitle: `Cumulative species across person-visits (${locationCount} caves)`,
-      yAxisLabel: 'cumulative species',
-      xAxisLabel: 'person-visits',
-      pointCount: 0, // will update
-      points: [] // will update
-    };
-
-    for (const effortData of clusterEffortData) {
-      let priorSpeciesCount = 0;
-      for (const point of effortData.perVisitPoints) {
-        perVisitTotalsGraph.points.push(point);
-        ++perVisitTotalsGraph.pointCount;
-        priorSpeciesCount = point.y;
-      }
-
-      priorSpeciesCount = 0;
-      for (const point of effortData.perPersonVisitPoints) {
-        perPersonVisitTotalsGraph.points.push(point);
-        ++perPersonVisitTotalsGraph.pointCount;
-        priorSpeciesCount = point.y;
-      }
-    }
-
-    return {
-      locationCount,
-      perVisitTotalsGraph,
-      perPersonVisitTotalsGraph
-    };
-  }
 
   const clearData = () => {
     effortStore.set(null);

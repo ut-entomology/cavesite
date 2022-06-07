@@ -1,21 +1,11 @@
-<script lang="ts" context="module">
-  import type { Point, FittedModel } from '../lib/linear_regression';
-
-  export interface EffortGraphConfig {
-    locationCount: number;
-    graphTitle: string;
-    xAxisLabel: string;
-    yAxisLabel: string;
-    pointCount: number;
-    points: Point[];
-  }
-</script>
-
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
+  import type { Point, FittedModel } from '../lib/linear_regression';
+  import type { EffortGraphSpec } from '../lib/effort_graphs';
+
   export let title: string;
-  export let config: EffortGraphConfig;
+  export let config: EffortGraphSpec;
   export let models: FittedModel[];
   export let modelPlots: Point[][];
 </script>
