@@ -111,8 +111,16 @@
     _updatedSelections(false);
   }
 
-  function _removeSelection(containingTaxa: SpecEntry<TaxonSpec>[], spec: TaxonSpec) {
-    removeSelection(containingTaxa, spec);
+  function _removeSelection(spec: TaxonSpec) {
+    const ancestorContainingTaxa: SpecEntry<TaxonSpec>[] = [];
+    for (const containingTaxon of containingTaxa) {
+      if (containingTaxon.spec.unique !== spec.unique) {
+        ancestorContainingTaxa.push(containingTaxon);
+      } else {
+        break;
+      }
+    }
+    removeSelection(ancestorContainingTaxa, spec);
     _updatedSelections(true);
   }
 
@@ -154,7 +162,7 @@
                   clickable={!!spec.hasChildren && spec.unique != parentUnique}
                   {gotoTaxon}
                   addSelection={() => _addSelection(spec)}
-                  removeSelection={() => _removeSelection(containingTaxa, spec)}
+                  removeSelection={() => _removeSelection(spec)}
                 />
               </div>
             </div>
@@ -185,7 +193,7 @@
             {containingTaxa}
             {gotoTaxon}
             addSelection={() => _addSelection(spec)}
-            removeSelection={() => _removeSelection(containingTaxa, spec)}
+            removeSelection={() => _removeSelection(spec)}
           />
         </div>
       {/each}
