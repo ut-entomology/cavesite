@@ -6,32 +6,23 @@
 <script lang="ts">
   import CircleIconButton from '../components/CircleIconButton.svelte';
 
-  export let selectable: boolean;
   export let selected: boolean;
   export let addSelection: () => void;
   export let removeSelection: () => void;
 </script>
 
-{#if selectable}
-  {#if selected}
-    <CircleIconButton
-      class="selection selector"
-      on:click={removeSelection}
-      label="Remove from selections"
-    >
-      <div />
-    </CircleIconButton>
-  {:else}
-    <CircleIconButton
-      class="selector"
-      on:click={addSelection}
-      label="Add to selections"
-    >
-      <div>{@html plusIcon}</div>
-    </CircleIconButton>
-  {/if}
+{#if selected}
+  <CircleIconButton
+    class="selection selector"
+    on:click={removeSelection}
+    label="Remove from selections"
+  >
+    <div />
+  </CircleIconButton>
 {:else}
-  <slot />
+  <CircleIconButton class="selector" on:click={addSelection} label="Add to selections">
+    <div>{@html plusIcon}</div>
+  </CircleIconButton>
 {/if}
 
 <style lang="scss">

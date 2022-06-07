@@ -62,14 +62,15 @@
       {@html prefix}
     </div>
   {/if}
-  <SelectionButton
-    selectable={selection || containingTaxa.length > 0}
-    selected={selection}
-    addSelection={() => addSelection(spec)}
-    removeSelection={() => removeSelection(spec)}
-  >
+  {#if selection || containingTaxa.length > 0}
+    <SelectionButton
+      selected={selection}
+      addSelection={() => addSelection(spec)}
+      removeSelection={() => removeSelection(spec)}
+    />
+  {:else}
     <span class="root-icon">&bullet;</span>
-  </SelectionButton>
+  {/if}
   <TaxonText
     class={selection ? 'selection' : ''}
     {spec}
