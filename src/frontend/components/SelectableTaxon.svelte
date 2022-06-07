@@ -1,10 +1,5 @@
-<script lang="ts" context="module">
-  export const checkmarkIcon = '&#10003;';
-  export const plusIcon = '+';
-</script>
-
 <script lang="ts">
-  import CircleIconButton from '../components/CircleIconButton.svelte';
+  import SelectionButton from '../components/SelectionButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import type { TaxonSpec } from '../../shared/model';
   import type { SpecEntry } from '../../frontend-core/selections_tree';
@@ -67,25 +62,14 @@
       {@html prefix}
     </div>
   {/if}
-  {#if selection}
-    <CircleIconButton
-      class="selection taxon_selector"
-      on:click={() => removeSelection(spec)}
-      label="Remove from selections"
-    >
-      <div />
-    </CircleIconButton>
-  {:else if containingTaxa.length > 0}
-    <CircleIconButton
-      class="taxon_selector"
-      on:click={() => addSelection(spec)}
-      label="Add to selections"
-    >
-      <div>{@html plusIcon}</div>
-    </CircleIconButton>
-  {:else}
+  <SelectionButton
+    selectable={selection || containingTaxa.length > 0}
+    selected={selection}
+    addSelection={() => addSelection(spec)}
+    removeSelection={() => removeSelection(spec)}
+  >
     <span class="root-icon">&bullet;</span>
-  {/if}
+  </SelectionButton>
   <TaxonText
     class={selection ? 'selection' : ''}
     {spec}
@@ -114,31 +98,8 @@
     vertical-align: baseline;
   }
 
-  :global(.taxon_selector) {
-    display: inline-block;
-    margin-top: -0.05rem;
-    margin-right: 0.5rem;
-    width: 1.4rem;
-    height: 1.4rem;
-    line-height: 1.1rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
-
-  :global(.selection.icon_button.taxon_selector div:after) {
-    content: '\2713';
-  }
-
-  :global(.selection.icon_button.taxon_selector:hover div:after) {
-    content: '-';
-  }
-
   :global(.selection .taxon-name) {
     font-weight: bold;
-  }
-
-  :global(.taxon_selector div) {
-    margin-top: 0.05rem;
   }
 
   .root-icon {

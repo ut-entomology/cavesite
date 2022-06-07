@@ -10,11 +10,16 @@
 		C439.438,507.313,451.719,512,464,512c12.281,0,24.563-4.688,33.938-14.063C516.688,479.195,516.688,448.805,497.938,430.063z
 		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
 
+  export let openTaxon: (taxonID: number) => Promise<void>;
+
   let typedTaxon: string;
+  let taxonSpec: TaxonSpec | null = null;
   let matchedSpecs: TaxonSpec[] | null = null;
   let specsByUnique: Record<string, TaxonSpec> = {};
+  let selectedTaxon: string;
 
   function handleChange() {
+    taxonSpec = null;
     const partialName = typedTaxon.trim();
     if (partialName.length < 2) {
       matchedSpecs = null;
@@ -23,10 +28,19 @@
     }
   }
 
-  function _highlightMatches(name: string): string {
+  function _toMatchHtml(name: string): string {
     const partialTaxon = typedTaxon.trim();
-    const matches = name.matchAll(RegExp(escapeRegex(partialTaxon)));
-    return ''; // TODO
+    let html = '';
+    let copiedToOffset = 0;
+    const matches = name.matchAll(RegExp(escapeRegex(partialTaxon), 'ig'));
+    for (const match of matches) {
+      html += `${name.substring(copiedToOffset, match.index)}<span>${match[0]}</span>`;
+      copiedToOffset = match.index! + partialTaxon.length;
+    }
+    if (copiedToOffset < name.length) {
+      html += name.substring(copiedToOffset);
+    }
+    return html;
   }
 
   async function _loadMatches(partialName: string): Promise<void> {
@@ -36,13 +50,26 @@
       matchedSpecs = null;
     } else {
       specsByUnique = {};
-      matchedSpecs!.forEach((spec) => (specsByUnique[spec.unique] = spec));
+      for (const spec of matchedSpecs!) {
+        specsByUnique[spec.unique] = spec;
+        if (spec.unique.toLocaleLowerCase() == partialName.toLocaleLowerCase()) {
+          _selectTaxon(spec.unique);
+        }
+      }
     }
+  }
+
+  function _openTaxon() {
+    openTaxon(taxonSpec!.taxonID);
+  }
+
+  function _selectTaxon(unique: string) {
+    taxonSpec = specsByUnique[unique];
   }
 </script>
 
 <div class="row justify-content-center">
-  <div class="col">TBD</div>
+  <div class="col-sm-1">TBD</div>
   <div class="col">
     <input
       class="form-control"
@@ -52,14 +79,28 @@
       placeholder="Type a taxon to look up"
     />
     {#if matchedSpecs}
-      <select class="form-select" size="3" aria-label="size 3 select example">
-        {#each matchedSpecs as spec}
-          <option value={spec.unique}>{_highlightMatches(spec.unique)}</option>
-        {/each}
-      </select>
+      <div class="matches">
+        <select
+          bind:value={selectedTaxon}
+          class="form-select"
+          size="3"
+          aria-label="Matching taxa"
+          on:change={() => _selectTaxon(selectedTaxon)}
+        >
+          {#each matchedSpecs as spec}
+            <option value={spec.unique}>{_toMatchHtml(spec.unique)}</option>
+          {/each}
+        </select>
+      </div>
     {/if}
   </div>
-  <div class="col"><div class="loupeIcon">{@html loupeIcon}</div></div>
+  <div class="col-sm-1">
+    {#if taxonSpec}
+      <div class="loupeIcon" on:click={_openTaxon}>
+        {@html loupeIcon}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style lang="scss">
@@ -67,5 +108,8 @@
     margin-top: -0.1rem;
     width: 1.5rem;
     height: 1.5rem;
+  }
+  .matches :global(span) {
+    text-decoration: underline;
   }
 </style>

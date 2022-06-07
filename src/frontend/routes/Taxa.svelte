@@ -6,7 +6,7 @@
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
   import TaxonTree from '../components/TaxonTree.svelte';
-  import { plusIcon, checkmarkIcon } from '../components/SelectableTaxon.svelte';
+  import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import type { TaxonSpec } from '../../shared/model';

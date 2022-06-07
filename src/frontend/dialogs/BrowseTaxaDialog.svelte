@@ -1,10 +1,8 @@
 <script lang="ts">
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
-  import SelectableTaxon, {
-    checkmarkIcon,
-    plusIcon
-  } from '../components/SelectableTaxon.svelte';
+  import SelectableTaxon from '../components/SelectableTaxon.svelte';
+  import { checkmarkIcon, plusIcon } from '../components/SelectionButton.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
