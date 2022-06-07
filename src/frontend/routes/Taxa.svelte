@@ -121,6 +121,7 @@
 
 {#if requestClearConfirmation}
   <ConfirmationRequest
+    alert="warning"
     message="Clear these taxa selections?"
     okayButton="Clear"
     onOkay={confirmClear}
