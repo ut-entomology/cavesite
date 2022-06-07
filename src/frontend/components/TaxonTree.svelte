@@ -4,16 +4,18 @@
   import type { TaxonSpec } from '../../shared/model';
   import type { TreeNode } from '../../frontend-core/selections_tree';
   import SelectableTaxon from '../components/SelectableTaxon.svelte';
-  import type { SpecEntry } from '../../frontend-core/selections_tree';
-  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
+  import type {
+    SpecEntry,
+    AddSelection,
+    RemoveSelection
+  } from '../../frontend-core/selections_tree';
 
   export let node: TreeNode<TaxonSpec>;
   export let showRoot = true;
-  export let selectionsTree: TaxonSelectionsTree;
   export let containingTaxa: SpecEntry<TaxonSpec>[] = [];
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
-  export let addedSelection: () => void;
-  export let removedSelection: () => void;
+  export let addSelection: AddSelection<TaxonSpec>;
+  export let removeSelection: RemoveSelection<TaxonSpec>;
 
   let parentSpec = node.spec;
   let expanded = node.expanded;
@@ -48,11 +50,10 @@
       {expanded}
       {selection}
       spec={parentSpec}
-      {selectionsTree}
       {containingTaxa}
       {gotoTaxon}
-      {addedSelection}
-      {removedSelection}
+      {addSelection}
+      {removeSelection}
       {toggledExpansion}
     />
   {/if}
@@ -63,10 +64,9 @@
           bind:this={childComponents[i]}
           node={childNode}
           containingTaxa={[...containingTaxa, { spec: parentSpec, children: [] }]}
-          {selectionsTree}
           {gotoTaxon}
-          {addedSelection}
-          {removedSelection}
+          {addSelection}
+          {removeSelection}
         />
       {/each}
     </div>

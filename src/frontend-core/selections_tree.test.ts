@@ -212,7 +212,7 @@ test('initializing from constructor and adding ancestors of selections', () => {
     expanded: true
   });
 
-  tree.addSelection(specAB, true);
+  tree.addSelection(specAB);
   expect(tree.getSelections().sort()).toEqual(['AAA', 'AABA', 'AB']);
   expect(tree.getSelectionSpecs()).toEqual({
     AAA: specAAA,
@@ -220,11 +220,11 @@ test('initializing from constructor and adding ancestors of selections', () => {
     AB: specAB
   });
 
-  tree.addSelection(specAA, true);
+  tree.addSelection(specAA);
   expect(tree.getSelections().sort()).toEqual(['AA', 'AB']);
   expect(tree.getSelectionSpecs()).toEqual({ AA: specAA, AB: specAB });
 
-  tree.addSelection(specA, true);
+  tree.addSelection(specA);
   expect(tree.getSelections().sort()).toEqual(['A']);
   expect(tree.getSelectionSpecs()).toEqual({ A: specA });
 });

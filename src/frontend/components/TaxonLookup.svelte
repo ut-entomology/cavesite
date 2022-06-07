@@ -1,7 +1,13 @@
 <script lang="ts">
+  import SelectionButton from '../components/SelectionButton.svelte';
   import { client } from '../stores/client';
-  import type { TaxonSpec } from '../../shared/model';
+  import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
   import { escapeRegex } from '../util/regex';
+  import type {
+    AddSelection,
+    RemoveSelection
+  } from '../../frontend-core/selections_tree';
+  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
   const loupeIcon = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
@@ -10,6 +16,9 @@
 		C439.438,507.313,451.719,512,464,512c12.281,0,24.563-4.688,33.938-14.063C516.688,479.195,516.688,448.805,497.938,430.063z
 		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
 
+  export let selectionsTree: TaxonSelectionsTree;
+  export let addSelection: AddSelection<TaxonSpec>;
+  export let removeSelection: RemoveSelection<TaxonSpec>;
   export let openTaxon: (taxonID: number) => Promise<void>;
 
   let typedTaxon: string;
@@ -53,23 +62,42 @@
       for (const spec of matchedSpecs!) {
         specsByUnique[spec.unique] = spec;
         if (spec.unique.toLocaleLowerCase() == partialName.toLocaleLowerCase()) {
-          _selectTaxon(spec.unique);
+          _fillTaxon(spec.unique);
         }
       }
     }
+  }
+
+  function _fillTaxon(unique: string) {
+    taxonSpec = specsByUnique[unique];
   }
 
   function _openTaxon() {
     openTaxon(taxonSpec!.taxonID);
   }
 
-  function _selectTaxon(unique: string) {
-    taxonSpec = specsByUnique[unique];
+  function _addSelection() {
+    addSelection(taxonSpec!);
+  }
+
+  function _removeSelection() {
+    //const containingSpecs = createContainingTaxonSpecs(taxonSpec!);
+    createContainingTaxonSpecs;
+    removeSelection([], taxonSpec!);
+    // TODO: Need machinery for removal factored out of browse dialog
   }
 </script>
 
 <div class="row justify-content-center">
-  <div class="col-sm-1">TBD</div>
+  <div class="col-sm-1">
+    {#if taxonSpec}
+      <SelectionButton
+        selected={selectionsTree.isSelected(taxonSpec.unique)}
+        addSelection={_addSelection}
+        removeSelection={_removeSelection}
+      />
+    {/if}
+  </div>
   <div class="col">
     <input
       class="form-control"
@@ -85,7 +113,7 @@
           class="form-select"
           size="3"
           aria-label="Matching taxa"
-          on:change={() => _selectTaxon(selectedTaxon)}
+          on:change={() => _fillTaxon(selectedTaxon)}
         >
           {#each matchedSpecs as spec}
             <option value={spec.unique}>{_toMatchHtml(spec.unique)}</option>

@@ -2,9 +2,11 @@
   import SelectionButton from '../components/SelectionButton.svelte';
   import TaxonText from '../components/TaxonText.svelte';
   import type { TaxonSpec } from '../../shared/model';
-  import type { SpecEntry } from '../../frontend-core/selections_tree';
-  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
-  import { selectedTaxa } from '../stores/selectedTaxa';
+  import type {
+    SpecEntry,
+    AddSelection,
+    RemoveSelection
+  } from '../../frontend-core/selections_tree';
 
   export let prefixed = true;
   export let expandable = true;
@@ -13,10 +15,9 @@
   export let spec: TaxonSpec;
   export let clickable = spec.hasChildren || false;
   export let containingTaxa: SpecEntry<TaxonSpec>[];
-  export let selectionsTree: TaxonSelectionsTree;
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
-  export let addedSelection: () => void;
-  export let removedSelection: () => void;
+  export let addSelection: AddSelection<TaxonSpec>;
+  export let removeSelection: RemoveSelection<TaxonSpec>;
   export let toggledExpansion: (expanded: boolean) => void = () => {};
 
   const EXPANDED_SYMBOL = '&#9660';
@@ -42,18 +43,6 @@
       prefix = UNEXPANDABLE_SYMBOL;
     }
   }
-
-  const addSelection = (spec: TaxonSpec) => {
-    selectionsTree.addSelection(spec, true);
-    selectedTaxa.set(selectionsTree.getSelectionSpecs());
-    addedSelection();
-  };
-
-  const removeSelection = (spec: TaxonSpec) => {
-    selectionsTree.removeSelection(containingTaxa, spec);
-    selectedTaxa.set(selectionsTree.getSelectionSpecs());
-    removedSelection();
-  };
 </script>
 
 <div class="taxon-row">
@@ -66,7 +55,7 @@
     <SelectionButton
       selected={selection}
       addSelection={() => addSelection(spec)}
-      removeSelection={() => removeSelection(spec)}
+      removeSelection={() => removeSelection(containingTaxa, spec)}
     />
   {:else}
     <span class="root-icon">&bullet;</span>

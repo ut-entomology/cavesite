@@ -20,6 +20,9 @@ export interface TreeNode<S extends Spec> {
   expanded: boolean;
 }
 
+export type AddSelection<S extends Spec> = SelectionsTree<S>['addSelection'];
+export type RemoveSelection<S extends Spec> = SelectionsTree<S>['removeSelection'];
+
 export abstract class SelectionsTree<S extends Spec> {
   private _rootNode: TreeNode<S> | null = null;
   private _selectionSpecsByUnique: Record<string, S> | null = null;

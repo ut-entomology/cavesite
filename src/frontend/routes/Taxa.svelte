@@ -10,7 +10,7 @@
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import type { TaxonSpec } from '../../shared/model';
-  import type { TreeNode } from '../../frontend-core/selections_tree';
+  import type { TreeNode, SpecEntry } from '../../frontend-core/selections_tree';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { ROOT_TAXON } from '../../shared/model';
 
@@ -41,6 +41,16 @@
   };
 
   const cancelClear = () => (requestClearConfirmation = false);
+
+  function addSelection(spec: TaxonSpec) {
+    selectionsTree.addSelection(spec);
+    selectedTaxa.set(selectionsTree.getSelectionSpecs());
+  }
+
+  function removeSelection(containingTaxa: SpecEntry<TaxonSpec>[], spec: TaxonSpec) {
+    selectionsTree.removeSelection(containingTaxa, spec);
+    selectedTaxa.set(selectionsTree.getSelectionSpecs());
+  }
 </script>
 
 <DataTabRoute activeTab="Taxa">
@@ -77,10 +87,9 @@
             bind:this={rootTree}
             node={rootNode}
             showRoot={false}
-            {selectionsTree}
             gotoTaxon={async (unique) => openTaxonBrowser(unique)}
-            addedSelection={() => {}}
-            removedSelection={() => {}}
+            {addSelection}
+            {removeSelection}
           />
         </div>
       {/if}
@@ -102,6 +111,8 @@
     title="Browse and Select Taxa"
     parentUnique={browseTaxonUnique}
     {selectionsTree}
+    {addSelection}
+    {removeSelection}
     onClose={() => {
       browseTaxonUnique = null;
     }}

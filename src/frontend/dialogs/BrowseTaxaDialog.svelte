@@ -6,12 +6,18 @@
   import { client, errorReason, bubbleUpError } from '../stores/client';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
-  import type { SpecEntry } from '../../frontend-core/selections_tree';
+  import type {
+    SpecEntry,
+    AddSelection,
+    RemoveSelection
+  } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
   export let title: string;
   export let parentUnique: string;
   export let selectionsTree: TaxonSelectionsTree;
+  export let addSelection: AddSelection<TaxonSpec>;
+  export let removeSelection: RemoveSelection<TaxonSpec>;
   export let onClose: () => void;
 
   const ANCESTOR_ITEM_LEFT_MARGIN = 1.3; // em
@@ -80,19 +86,13 @@
     parentUnique = taxonUnique;
     await prepare();
   };
-
-  const addedSelection = () => {
-    _determineAncestorSelections();
-    childSpecs = childSpecs; // redraw children
-  };
-
   const deselectAll = () => {
     for (const childSpec of childSpecs) {
       if (allChildrenSelected || selectionsTree.isSelected(childSpec.unique)) {
         selectionsTree.removeSelection(containingTaxa, childSpec);
       }
     }
-    removedSelection();
+    _updatedSelections(true);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
   };
 
@@ -102,15 +102,27 @@
         selectionsTree.addSelection(childSpec);
       }
     }
-    addedSelection();
+    _updatedSelections(false);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
   };
 
-  const removedSelection = () => {
-    allChildrenSelected = false;
+  function _addSelection(spec: TaxonSpec) {
+    addSelection(spec);
+    _updatedSelections(false);
+  }
+
+  function _removeSelection(containingTaxa: SpecEntry<TaxonSpec>[], spec: TaxonSpec) {
+    removeSelection(containingTaxa, spec);
+    _updatedSelections(true);
+  }
+
+  function _updatedSelections(forRemoval: boolean) {
+    if (forRemoval) {
+      allChildrenSelected = false;
+    }
     _determineAncestorSelections();
     childSpecs = childSpecs; // redraw children
-  };
+  }
 
   function _determineAncestorSelections() {
     selectedAncestorUniques = {};
@@ -139,11 +151,10 @@
                   selection={selectedAncestorUniques[spec.unique]}
                   {spec}
                   containingTaxa={containingTaxa.slice(0, i)}
-                  {selectionsTree}
                   clickable={!!spec.hasChildren && spec.unique != parentUnique}
                   {gotoTaxon}
-                  {addedSelection}
-                  {removedSelection}
+                  addSelection={() => _addSelection(spec)}
+                  removeSelection={() => _removeSelection(containingTaxa, spec)}
                 />
               </div>
             </div>
@@ -172,10 +183,9 @@
             selection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
             {spec}
             {containingTaxa}
-            {selectionsTree}
             {gotoTaxon}
-            {addedSelection}
-            {removedSelection}
+            addSelection={() => _addSelection(spec)}
+            removeSelection={() => _removeSelection(containingTaxa, spec)}
           />
         </div>
       {/each}
