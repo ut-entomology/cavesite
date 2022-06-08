@@ -4,6 +4,7 @@
   import ConfirmationRequest from '../common/ConfirmationRequest.svelte';
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
+  import TaxonLookup from '../components/TaxonLookup.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
   import TaxonTree from '../components/TaxonTree.svelte';
   import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
@@ -101,6 +102,16 @@
       </span>
     </TabHeader>
 
+    <div class="taxon_lookup container-fluid">
+      <TaxonLookup
+        {selectionsTree}
+        {getContainingTaxa}
+        {addSelection}
+        {removeSelection}
+        openTaxon={async (unique) => openTaxonBrowser(unique)}
+      />
+    </div>
+
     <div class="tree_area">
       {#if !rootNode}
         <EmptyTab
@@ -147,6 +158,11 @@
 {/if}
 
 <style>
+  .taxon_lookup {
+    margin: 0.5rem auto 1rem auto;
+    max-width: 30rem;
+  }
+
   :global(.tree_area) {
     margin-bottom: 1.5rem;
   }

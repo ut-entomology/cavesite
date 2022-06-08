@@ -1,9 +1,10 @@
 <script lang="ts">
   import SelectionButton from '../components/SelectionButton.svelte';
   import { client } from '../stores/client';
-  import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
+  import type { TaxonSpec } from '../../shared/model';
   import { escapeRegex } from '../util/regex';
   import type {
+    SpecEntry,
     AddSelection,
     RemoveSelection
   } from '../../frontend-core/selections_tree';
@@ -17,9 +18,13 @@
 		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
 
   export let selectionsTree: TaxonSelectionsTree;
+  export let getContainingTaxa: (
+    ofTaxonSpec: TaxonSpec,
+    includesGivenTaxon: boolean
+  ) => Promise<SpecEntry<TaxonSpec>[]>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
-  export let openTaxon: (taxonID: number) => Promise<void>;
+  export let openTaxon: (taxonUnique: string) => Promise<void>;
 
   let typedTaxon: string;
   let taxonSpec: TaxonSpec | null = null;
@@ -73,18 +78,17 @@
   }
 
   function _openTaxon() {
-    openTaxon(taxonSpec!.taxonID);
+    openTaxon(taxonSpec!.unique);
   }
 
   function _addSelection() {
+    // in its own function be able to use '!'
     addSelection(taxonSpec!);
   }
 
-  function _removeSelection() {
-    //const containingSpecs = createContainingTaxonSpecs(taxonSpec!);
-    createContainingTaxonSpecs;
-    removeSelection([], taxonSpec!);
-    // TODO: Need machinery for removal factored out of browse dialog
+  async function _removeSelection() {
+    const containingSpecs = await getContainingTaxa(taxonSpec!, false);
+    removeSelection(containingSpecs, taxonSpec!);
   }
 </script>
 
@@ -111,12 +115,12 @@
         <select
           bind:value={selectedTaxon}
           class="form-select"
-          size="3"
+          size="12"
           aria-label="Matching taxa"
           on:change={() => _fillTaxon(selectedTaxon)}
         >
           {#each matchedSpecs as spec}
-            <option value={spec.unique}>{_toMatchHtml(spec.unique)}</option>
+            <option value={spec.unique}>{@html _toMatchHtml(spec.unique)}</option>
           {/each}
         </select>
       </div>
