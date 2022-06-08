@@ -28,7 +28,7 @@
   ) => Promise<SpecEntry<TaxonSpec>[]>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
-  export let openTaxon: (taxonUnique: string) => Promise<void>;
+  export let openTaxon: (selection: string) => Promise<void>;
 
   interface MatchedItem {
     unique: string;
@@ -36,16 +36,15 @@
   }
 
   let matchedSpecs: TaxonSpec[] = [];
-  let taxonUnique: string | undefined;
-  let isSelected = false;
+  let selection: string | undefined;
+  let isSelectedInTree = false;
   let taxonSpec: TaxonSpec | null = null;
   let specsByUnique: Record<string, TaxonSpec> = {};
   let autocompleteClearButton: Element;
-  let autocompleteClearIcon: string;
 
-  $: if (taxonUnique) {
-    taxonSpec = matchedSpecs.find((spec) => spec.unique == taxonUnique)!;
-    isSelected = selectionsTree.isSelected(taxonSpec.unique);
+  $: if (selection) {
+    taxonSpec = matchedSpecs.find((spec) => spec.unique == selection)!;
+    isSelectedInTree = selectionsTree.isSelected(taxonSpec.unique);
   } else {
     taxonSpec = null;
   }
@@ -59,7 +58,6 @@
     autocompleteClearButton = document.querySelector(
       'div.auto_taxon span.autocomplete-clear-button'
     )!;
-    autocompleteClearIcon = autocompleteClearButton.innerHTML;
     autocompleteClearButton.addEventListener('click', _clearedAutocomplete);
     _toggleClearButton(false);
   });
@@ -89,7 +87,7 @@
       for (const spec of matchedSpecs!) {
         specsByUnique[spec.unique] = spec;
         if (spec.unique.toLocaleLowerCase() == partialName.toLocaleLowerCase()) {
-          taxonUnique = spec.unique;
+          selection = spec.unique;
         }
       }
     }
@@ -105,26 +103,34 @@
   function _addSelection() {
     // in its own function be able to use '!'
     addSelection(taxonSpec!);
-    isSelected = true;
+    isSelectedInTree = true;
   }
 
   async function _removeSelection() {
     const containingSpecs = await getContainingTaxa(taxonSpec!, false);
     removeSelection(containingSpecs, taxonSpec!);
-    isSelected = false;
+    isSelectedInTree = false;
   }
 
   function _inputChanged() {
     // @ts-ignore
-    _toggleClearButton(!!this.value);
+    const newValue = this.value;
+    _toggleClearButton(!!newValue);
+    if (newValue.toLowerCase() != selection?.toLowerCase()) {
+      selection = undefined;
+    }
   }
 
   function _clearedAutocomplete() {
-    taxonUnique = undefined;
+    selection = undefined;
+    _toggleClearButton(false);
   }
 
   function _toggleClearButton(show: boolean) {
-    autocompleteClearButton.innerHTML = show ? autocompleteClearIcon : '';
+    autocompleteClearButton.setAttribute(
+      'style',
+      'display:' + (show ? 'block' : 'none')
+    );
   }
 </script>
 
@@ -132,7 +138,7 @@
   <div class="col-sm-1 text-end auto_control">
     {#if taxonSpec}
       <SelectionButton
-        selected={isSelected}
+        selected={isSelectedInTree}
         addSelection={_addSelection}
         removeSelection={_removeSelection}
       />
@@ -142,7 +148,7 @@
     <AutoComplete
       className="outer_auto_complete"
       inputClassName="form-control"
-      bind:value={taxonUnique}
+      bind:value={selection}
       searchFunction={_loadMatches}
       delay={LOAD_DELAY_MILLIS}
       valueFieldName="unique"
