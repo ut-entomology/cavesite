@@ -9,8 +9,7 @@
   import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
-  import type { TaxonSpec } from '../../shared/model';
-  //import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
+  import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
   import type { TreeNode, SpecEntry } from '../../frontend-core/selections_tree';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { client } from '../stores/client';
@@ -44,25 +43,29 @@
 
   const cancelClear = () => (requestClearConfirmation = false);
 
-  // async function getContainingTaxa(ofTaxonSpec: TaxonSpec) {
-  //   const containingSpecs = createContainingTaxonSpecs(parentSpec);
-  //   containingSpecs.push(parentSpec);
+  async function getContainingTaxa(ofTaxonSpec: TaxonSpec, includeGivenTaxon: boolean) {
+    // Create specs for the taxa that contain ofTaxonSpec.
 
-  //   // Load specs for the children of the parent taxon and each ancestor.
+    const containingSpecs = createContainingTaxonSpecs(ofTaxonSpec);
+    if (includeGivenTaxon) {
+      containingSpecs.push(ofTaxonSpec);
+    }
 
-  //   const res = await $client.post('api/taxa/get_children', {
-  //     parentUniques: containingSpecs.map((spec) => spec.unique)
-  //   });
-  //   const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
-  //   containingTaxa = [];
-  //   for (const containingSpec of containingSpecs) {
-  //     containingTaxa.push({
-  //       spec: containingSpec,
-  //       children: ancestorChildSpecs.shift()!
-  //     });
-  //   }
-  //   return containingTaxa;
-  // }
+    // Load specs for the children of the containing taxa.
+
+    const res = await $client.post('api/taxa/get_children', {
+      parentUniques: containingSpecs.map((spec) => spec.unique)
+    });
+    const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
+    const containingTaxa: SpecEntry<TaxonSpec>[] = [];
+    for (const containingSpec of containingSpecs) {
+      containingTaxa.push({
+        spec: containingSpec,
+        children: ancestorChildSpecs.shift()!
+      });
+    }
+    return containingTaxa;
+  }
 
   function addSelection(spec: TaxonSpec) {
     selectionsTree.addSelection(spec);
@@ -134,6 +137,7 @@
     title="Browse and Select Taxa"
     parentUnique={browseTaxonUnique}
     {selectionsTree}
+    {getContainingTaxa}
     {addSelection}
     {removeSelection}
     onClose={() => {

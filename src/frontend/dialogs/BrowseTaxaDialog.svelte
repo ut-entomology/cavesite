@@ -5,7 +5,7 @@
   import { checkmarkIcon, plusIcon } from '../components/SelectionButton.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   import { selectedTaxa } from '../stores/selectedTaxa';
-  import { TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
+  import type { TaxonSpec } from '../../shared/model';
   import type {
     SpecEntry,
     AddSelection,
@@ -16,6 +16,10 @@
   export let title: string;
   export let parentUnique: string;
   export let selectionsTree: TaxonSelectionsTree;
+  export let getContainingTaxa: (
+    ofTaxonSpec: TaxonSpec,
+    includesGivenTaxon: boolean
+  ) => Promise<SpecEntry<TaxonSpec>[]>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let onClose: () => void;
@@ -48,9 +52,6 @@
     // the code simpler than it would otherwise be. API calls are
     // necessary, regardless.
 
-    // Load specs for the parent taxon and its ancestors.
-
-    // TODO: Need to handle error response here and in client calls elsewhere.
     let res = await $client.post('api/taxa/get_list', {
       taxonUniques: [parentUnique]
     });
@@ -59,22 +60,7 @@
       throw Error(`Failed to load taxon '${parentUnique}'`);
     }
     parentSpec = taxonSpecs[0];
-    const containingSpecs = createContainingTaxonSpecs(parentSpec);
-    containingSpecs.push(parentSpec);
-
-    // Load specs for the children of the parent taxon and each ancestor.
-
-    res = await $client.post('api/taxa/get_children', {
-      parentUniques: containingSpecs.map((spec) => spec.unique)
-    });
-    const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
-    containingTaxa = [];
-    for (const containingSpec of containingSpecs) {
-      containingTaxa.push({
-        spec: containingSpec,
-        children: ancestorChildSpecs.shift()!
-      });
-    }
+    containingTaxa = await getContainingTaxa(parentSpec, true);
     childSpecs = containingTaxa[containingTaxa.length - 1].children;
 
     // Determine which ancestor taxa have been selected, if any.
