@@ -70,8 +70,8 @@
         });
       }
       clusterDataByCluster.sort((a, b) => {
-        const aPointCount = a.perPersonVisitTotalsGraph.points.length;
-        const bPointCount = b.perPersonVisitTotalsGraph.points.length;
+        const aPointCount = a.perVisitTotalsGraph.points.length;
+        const bPointCount = b.perVisitTotalsGraph.points.length;
         if (aPointCount == bPointCount) return 0;
         return bPointCount - aPointCount; // sort most points first
       });
@@ -83,11 +83,17 @@
     }
   };
 
-  const clearData = () => {
+  function clearData() {
     effortStore.set(null);
     clusterStore.set(null);
     location.reload();
-  };
+  }
+
+  function _getGraphData(clusterData: ClusterData) {
+    return showingPersonVisits
+      ? clusterData.perPersonVisitTotalsGraph
+      : clusterData.perVisitTotalsGraph;
+  }
 </script>
 
 <DataTabRoute activeTab="Effort">
@@ -133,10 +139,8 @@
         >Load Data</button
       >
     {:else}
-      {#each $clusterStore as clusterGraphData, i}
-        {@const graphData = showingPersonVisits
-          ? clusterGraphData.perPersonVisitTotalsGraph
-          : clusterGraphData.perVisitTotalsGraph}
+      {#each $clusterStore as clusterData, i}
+        {@const graphData = _getGraphData(clusterData)}
         {@const powerFit = new PowerModel('FF0088', graphData.points)}
         {@const quadraticFit = new QuadraticModel('00DCD8', graphData.points)}
         <div class="row mt-3 mb-1">
