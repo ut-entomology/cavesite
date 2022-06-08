@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import AutoComplete from 'simple-svelte-autocomplete';
 
   import SelectionButton from '../components/SelectionButton.svelte';
@@ -35,15 +36,33 @@
   }
 
   let matchedSpecs: TaxonSpec[] = [];
-  let selectedTaxonUnique: string;
+  let taxonUnique: string | undefined;
+  let isSelected = false;
   let taxonSpec: TaxonSpec | null = null;
   let specsByUnique: Record<string, TaxonSpec> = {};
+  let autocompleteClearButton: Element;
+  let autocompleteClearIcon: string;
 
-  $: if (!selectedTaxonUnique) {
-    taxonSpec = null;
+  $: if (taxonUnique) {
+    taxonSpec = matchedSpecs.find((spec) => spec.unique == taxonUnique)!;
+    isSelected = selectionsTree.isSelected(taxonSpec.unique);
   } else {
-    taxonSpec = matchedSpecs.find((spec) => spec.unique == selectedTaxonUnique) || null;
+    taxonSpec = null;
   }
+
+  onMount(() => {
+    const autocompleteInput = document.querySelector(
+      'div.auto_taxon input.autocomplete-input'
+    )!;
+    autocompleteInput.addEventListener('input', _inputChanged);
+
+    autocompleteClearButton = document.querySelector(
+      'div.auto_taxon span.autocomplete-clear-button'
+    )!;
+    autocompleteClearIcon = autocompleteClearButton.innerHTML;
+    autocompleteClearButton.addEventListener('click', _clearedAutocomplete);
+    _toggleClearButton(false);
+  });
 
   // function _toMatchHtml(name: string): string {
   //   const partialTaxon = typedTaxon.trim();
@@ -70,7 +89,7 @@
       for (const spec of matchedSpecs!) {
         specsByUnique[spec.unique] = spec;
         if (spec.unique.toLocaleLowerCase() == partialName.toLocaleLowerCase()) {
-          selectedTaxonUnique = spec.unique;
+          taxonUnique = spec.unique;
         }
       }
     }
@@ -86,11 +105,26 @@
   function _addSelection() {
     // in its own function be able to use '!'
     addSelection(taxonSpec!);
+    isSelected = true;
   }
 
   async function _removeSelection() {
     const containingSpecs = await getContainingTaxa(taxonSpec!, false);
     removeSelection(containingSpecs, taxonSpec!);
+    isSelected = false;
+  }
+
+  function _inputChanged() {
+    // @ts-ignore
+    _toggleClearButton(!!this.value);
+  }
+
+  function _clearedAutocomplete() {
+    taxonUnique = undefined;
+  }
+
+  function _toggleClearButton(show: boolean) {
+    autocompleteClearButton.innerHTML = show ? autocompleteClearIcon : '';
   }
 </script>
 
@@ -98,7 +132,7 @@
   <div class="col-sm-1 text-end auto_control">
     {#if taxonSpec}
       <SelectionButton
-        selected={selectionsTree.isSelected(taxonSpec.unique)}
+        selected={isSelected}
         addSelection={_addSelection}
         removeSelection={_removeSelection}
       />
@@ -108,7 +142,7 @@
     <AutoComplete
       className="outer_auto_complete"
       inputClassName="form-control"
-      bind:value={selectedTaxonUnique}
+      bind:value={taxonUnique}
       searchFunction={_loadMatches}
       delay={LOAD_DELAY_MILLIS}
       valueFieldName="unique"
