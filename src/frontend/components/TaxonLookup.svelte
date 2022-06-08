@@ -2,6 +2,7 @@
   import AutoComplete from 'simple-svelte-autocomplete';
 
   import SelectionButton from '../components/SelectionButton.svelte';
+  import CircleIconButton from './CircleIconButton.svelte';
   import { client } from '../stores/client';
   import type { TaxonSpec } from '../../shared/model';
   import type {
@@ -34,11 +35,13 @@
   }
 
   let matchedSpecs: TaxonSpec[] = [];
-  let selectedTaxonUnique = '';
+  let selectedTaxonUnique: string;
   let taxonSpec: TaxonSpec | null = null;
   let specsByUnique: Record<string, TaxonSpec> = {};
 
-  $: if (selectedTaxonUnique != '') {
+  $: if (!selectedTaxonUnique) {
+    taxonSpec = null;
+  } else {
     taxonSpec = matchedSpecs.find((spec) => spec.unique == selectedTaxonUnique) || null;
   }
 
@@ -113,13 +116,16 @@
       placeholder="Type a taxon to look up"
       minCharactersToSearch={2}
       hideArrow={true}
+      showClear={true}
     />
   </div>
   <div class="col-sm-1 auto_control">
     {#if taxonSpec}
-      <div class="loupeIcon" on:click={_openTaxon}>
-        {@html loupeIcon}
-      </div>
+      <CircleIconButton class="loupe_button" label="Open taxon in browser">
+        <div class="loupeIcon" on:click={_openTaxon}>
+          {@html loupeIcon}
+        </div>
+      </CircleIconButton>
     {/if}
   </div>
 </div>
@@ -133,14 +139,26 @@
   :global(.outer_auto_complete) {
     width: 100%;
   }
+  :global(span.autocomplete-clear-button) {
+    opacity: 0.6;
+  }
   .auto_control {
     margin-top: 0.05rem;
   }
+  :global(.loupe_button) {
+    margin-left: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding-left: 0.25rem;
+  }
   .loupeIcon {
-    margin-left: 0.75rem;
+    margin-top: -0.1rem;
     width: 1rem;
     height: 1rem;
     fill: $blueLinkForeColor;
     cursor: pointer;
+  }
+  .loupeIcon:hover {
+    fill: white;
   }
 </style>
