@@ -49,7 +49,7 @@
 
   $: showingPersonVisits = datasetID == DatasetID.personVisits;
 
-  const loadPoints = async () => {
+  async function loadPoints() {
     try {
       loadState = LoadState.loading;
       const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
@@ -81,7 +81,7 @@
     } catch (err: any) {
       showNotice({ message: err.message });
     }
-  };
+  }
 
   function clearData() {
     effortStore.set(null);

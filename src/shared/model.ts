@@ -133,9 +133,9 @@ export function pointSorter(a: number[], b: number[]) {
 //// Cluster /////////////////////////////////////////////////////////////////
 
 export enum SeedType {
-  random, // seed locations are randomly selected
-  sized, // seed locations are distributed in size
-  diverse // seed locations are maximally diverse
+  random = 'random', // seed locations are randomly selected
+  sized = 'sized', // seed locations are distributed in size
+  diverse = 'diverse' // seed locations are maximally diverse
 }
 
 export interface SeedSpec {
@@ -146,6 +146,6 @@ export interface SeedSpec {
 }
 
 export enum DistanceMeasure {
-  weighted,
-  unweighted
+  weighted = 'weighted',
+  unweighted = 'unweighted'
 }
