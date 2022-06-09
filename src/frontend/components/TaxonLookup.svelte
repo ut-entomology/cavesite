@@ -5,7 +5,13 @@
   import SelectionButton from '../components/SelectionButton.svelte';
   import CircleIconButton from './CircleIconButton.svelte';
   import { client } from '../stores/client';
-  import type { TaxonSpec } from '../../shared/model';
+  import {
+    ROOT_TAXON,
+    type TaxonSpec,
+    TaxonRank,
+    taxonRanks,
+    italicRanks
+  } from '../../shared/model';
   import type {
     SpecEntry,
     AddSelection,
@@ -32,7 +38,7 @@
 
   interface MatchedItem {
     unique: string;
-    html: string;
+    spec: TaxonSpec;
   }
 
   let matchedSpecs: TaxonSpec[] = [];
@@ -50,36 +56,21 @@
   }
 
   onMount(() => {
-    const autocompleteInput = document.querySelector(
-      'div.auto_taxon input.autocomplete-input'
-    )!;
+    const autocompleteInput = document.querySelector('input.autocomplete-input')!;
     autocompleteInput.addEventListener('input', _inputChanged);
 
-    autocompleteClearButton = document.querySelector(
-      'div.auto_taxon span.autocomplete-clear-button'
-    )!;
+    autocompleteClearButton = document.querySelector('span.autocomplete-clear-button')!;
     autocompleteClearButton.addEventListener('click', _clearedAutocomplete);
     _toggleClearButton(false);
   });
 
-  // function _toMatchHtml(name: string): string {
-  //   const partialTaxon = typedTaxon.trim();
-  //   let html = '';
-  //   let copiedToOffset = 0;
-  //   const matches = name.matchAll(RegExp(escapeRegex(partialTaxon), 'ig'));
-  //   for (const match of matches) {
-  //     html += `${name.substring(copiedToOffset, match.index)}<span>${match[0]}</span>`;
-  //     copiedToOffset = match.index! + partialTaxon.length;
-  //   }
-  //   if (copiedToOffset < name.length) {
-  //     html += name.substring(copiedToOffset);
-  //   }
-  //   return html;
-  // }
-
   async function _loadMatches(partialName: string): Promise<MatchedItem[]> {
     let res = await $client.post('api/taxa/match_name', { partialName });
     matchedSpecs = res.data.taxonSpecs;
+    const rootSpecIndex = matchedSpecs.findIndex((spec) => spec.unique == ROOT_TAXON);
+    if (rootSpecIndex >= 0) {
+      matchedSpecs.splice(rootSpecIndex, 1);
+    }
     if (matchedSpecs!.length == 0) {
       return [];
     } else {
@@ -92,7 +83,7 @@
       }
     }
     return matchedSpecs.map((spec) => {
-      return { unique: spec.unique, html: spec.unique };
+      return { unique: spec.unique, spec };
     });
   }
 
@@ -113,6 +104,7 @@
   }
 
   function _inputChanged() {
+    // doesn't catch changes made from JS (e.g. clearing)
     // @ts-ignore
     const newValue = this.value;
     _toggleClearButton(!!newValue);
@@ -131,6 +123,24 @@
       'style',
       'display:' + (show ? 'block' : 'none')
     );
+  }
+
+  function _toItemHtml(spec: TaxonSpec, label: string): string {
+    let html = label;
+    let rankIndex = taxonRanks.indexOf(spec.rank);
+    if (italicRanks.includes(spec.rank)) {
+      html = `<i>${label}</i>`;
+      rankIndex = taxonRanks.indexOf(TaxonRank.Genus);
+    }
+    if ([TaxonRank.Phylum, TaxonRank.Class].includes(spec.rank)) {
+      return html;
+    } else {
+      const containingTaxa = spec.parentNamePath.split('|').slice(2, rankIndex);
+      if (containingTaxa.length == 1) {
+        return html;
+      }
+      return `${html} <span>(${containingTaxa.join(' ')})</span>`;
+    }
   }
 </script>
 
@@ -152,12 +162,14 @@
       searchFunction={_loadMatches}
       delay={LOAD_DELAY_MILLIS}
       valueFieldName="unique"
-      labelFieldName="html"
+      labelFieldName="unique"
       placeholder="Type a taxon to look up"
       minCharactersToSearch={2}
       hideArrow={true}
       showClear={true}
-    />
+    >
+      <div slot="item" let:label let:item>{@html _toItemHtml(item.spec, label)}</div>
+    </AutoComplete>
   </div>
   <div class="col-sm-1 auto_control">
     {#if taxonSpec}
@@ -173,8 +185,12 @@
 <style lang="scss">
   @import '../variables.scss';
 
-  .auto_taxon {
-    min-width: 20rem;
+  .auto_taxon :global(.autocomplete-list-item span) {
+    font-size: 0.8em;
+    color: #999;
+  }
+  .auto_taxon :global(.autocomplete-list-item.selected span) {
+    color: #ddd;
   }
   :global(.outer_auto_complete) {
     width: 100%;

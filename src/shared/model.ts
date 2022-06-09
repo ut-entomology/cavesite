@@ -15,6 +15,8 @@ export enum TaxonRank {
   Subspecies = 'subspecies'
 }
 
+export const italicRanks = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies];
+
 export const taxonRanks = Object.values(TaxonRank);
 
 export interface TaxonSpec {
