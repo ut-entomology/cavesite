@@ -19,6 +19,7 @@
 
 <script lang="ts">
   import { onMount, afterUpdate } from 'svelte';
+  import { pageName } from '../stores/pageName';
 
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
@@ -31,6 +32,8 @@
   import { showNotice } from '../common/VariableNotice.svelte';
   import { columnInfoMap } from '../lib/query_column_info';
   import { client, errorReason } from '../stores/client';
+
+  $pageName = 'Query Results';
 
   const QUERY_BUTTON_LABEL = 'New Query';
   const SMALL_STEP_ROWS = 20;
@@ -242,7 +245,7 @@
 <DataTabRoute activeTab="Query">
   <div id="em_sample" />
   <div class="container-fluid">
-    <TabHeader title="Query Results" center={false} expandable={true}>
+    <TabHeader title={$pageName} center={false} expandable={true}>
       <span slot="main-buttons">
         <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
         <button class="btn btn-major" type="button" on:click={createNewQuery}

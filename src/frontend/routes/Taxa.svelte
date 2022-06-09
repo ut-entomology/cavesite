@@ -12,9 +12,12 @@
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
   import type { TreeNode, SpecEntry } from '../../frontend-core/selections_tree';
+  import { pageName } from '../stores/pageName';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { client } from '../stores/client';
   import { ROOT_TAXON } from '../../shared/model';
+
+  $pageName = 'Selected Taxa';
 
   let browseTaxonUnique: string | null = null;
   let rootTree: SvelteComponent;
@@ -89,7 +92,7 @@
 <DataTabRoute activeTab="Taxa">
   <div class="container-fluid">
     <TabHeader
-      title="Selected Taxa"
+      title={$pageName}
       instructions="This tab shows the taxa that you have selected for use in other tabs. Your selections are <b>{checkmarkIcon} checked and bold</b>. You may click on the {plusIcon} or {checkmarkIcon} to toggle selections, but this view is mainly useful for removing selections by clicking on the {checkmarkIcon}. Click on a blue taxon or on [Browse Taxa] to browse and add taxa."
     >
       <span slot="main-buttons">

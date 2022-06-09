@@ -1,3 +1,9 @@
+<script lang="ts">
+  import { pageName } from '../stores/pageName';
+
+  $pageName = 'Page Not Found';
+</script>
+
 <h1>Page not found</h1>
 
 <style>

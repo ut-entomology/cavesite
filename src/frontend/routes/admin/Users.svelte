@@ -14,6 +14,9 @@
   import { flashMessage } from '../../common/VariableFlash.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import { client, errorReason } from '../../stores/client';
+  import { pageName } from '../../stores/pageName';
+
+  $pageName = 'Registered Users';
 
   const EXPANDED_SYMBOL = '&#9660';
   const COLLAPSED_SYMBOL = '&#9654;';
@@ -161,7 +164,7 @@
 <AdminTabRoute activeTab="Users">
   {#await loadUsers() then}
     <div class="container-fluid">
-      <TabHeader title="Registered Users">
+      <TabHeader title={$pageName}>
         <span slot="main-buttons">
           <button class="btn btn-major add_user" on:click={addUser}>Add User</button>
         </span>

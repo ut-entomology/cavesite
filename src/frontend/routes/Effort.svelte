@@ -29,6 +29,9 @@
   import { SeedType } from '../../shared/model';
   import { client } from '../stores/client';
   import { QuadraticModel, PowerModel } from '../lib/linear_regression';
+  import { pageName } from '../stores/pageName';
+
+  $pageName = 'Collection Effort';
 
   const MIN_PERSON_VISITS = 0;
 
@@ -98,7 +101,7 @@
 
 <DataTabRoute activeTab="Effort">
   <div class="container-fluid">
-    <TabHeader title="Collection Effort" instructions="Instructions TBD">
+    <TabHeader title={$pageName} instructions="Instructions TBD">
       <span slot="main-buttons">
         {#if $clusterStore != null}
           <button class="btn btn-minor" type="button" on:click={clearData}

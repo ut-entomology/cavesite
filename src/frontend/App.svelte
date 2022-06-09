@@ -6,7 +6,6 @@
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
   import { globalDialog } from './stores/globalDialog.svelte';
-  import { selectedTaxa } from './stores/selectedTaxa';
   import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
@@ -25,6 +24,7 @@
   import { DialogSpec } from './common/VariableDialog.svelte';
   import { showNotice } from './common/VariableNotice.svelte';
   import { logoutUser } from './util/user_util';
+  import { pageName } from './stores/pageName';
 
   // Initialize client-side routes.
 
@@ -46,6 +46,10 @@
 
   let pageComponent: typeof SvelteComponent;
   let params: any = null;
+  $: title = $appInfo ? `${$appInfo.appTitle} - ${$pageName}` : '';
+  $: {
+    document.title = title;
+  }
 
   for (const [route, component] of Object.entries(routes)) {
     router(
@@ -54,6 +58,7 @@
         params = ctx.params;
         next();
       },
+      // @ts-ignore
       () => (pageComponent = component)
     );
   }
@@ -140,6 +145,11 @@
   }
 </script>
 
+<svelte:head>
+  <title>{title}</title>
+  <meta name="robots" content="noindex nofollow" />
+  <html lang="en" />
+</svelte:head>
 {#await prepare() then}
   {#if pageComponent !== NotFound}
     <Layout>
