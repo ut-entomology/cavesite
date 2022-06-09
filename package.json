@@ -7,12 +7,15 @@
     "build": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w",
     "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps --watch ./build ./build/backend/server.js",
-    "test": "./bin/test-all",
+    "test": "run unit-tests && run web-tests",
+    "unit-tests": "./bin/test-all",
+    "web-tests": "npx playwright test",
     "check": "svelte-check --tsconfig ./src/frontend/tsconfig.json",
     "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
     "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
   },
   "devDependencies": {
+    "@playwright/test": "^1.22.2",
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-typescript": "^8.0.0",
