@@ -4,13 +4,14 @@
 
   import SelectionButton from '../components/SelectionButton.svelte';
   import CircleIconButton from './CircleIconButton.svelte';
-  import { client } from '../stores/client';
+  import { client, errorReason } from '../stores/client';
   import {
     ROOT_TAXON,
     type TaxonSpec,
     TaxonRank,
     taxonRanks,
-    italicRanks
+    italicRanks,
+    createContainingTaxonSpecs
   } from '../../shared/model';
   import type {
     SpecEntry,
@@ -18,6 +19,7 @@
     RemoveSelection
   } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
+  import { showNotice } from '../common/VariableNotice.svelte';
 
   const LOAD_DELAY_MILLIS = 200;
   const loupeIcon = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -98,8 +100,29 @@
       .sort((a, b) => (a.unique < b.unique ? -1 : 1));
   }
 
-  function _openTaxon() {
-    openTaxon(taxonSpec!.unique);
+  async function _openTaxon() {
+    try {
+      // Need to get a spec that indicates whether there are children.
+      let res = await $client.post('api/taxa/get_list', {
+        taxonUniques: [taxonSpec!.unique]
+      });
+      const taxonSpecs: TaxonSpec[] = res.data.taxonSpecs;
+      if (taxonSpecs.length > 0) {
+        const spec = taxonSpecs[0];
+        if (spec.hasChildren) {
+          openTaxon(spec.unique);
+        } else {
+          const containingSpecs = createContainingTaxonSpecs(spec);
+          openTaxon(containingSpecs[containingSpecs.length - 1].unique);
+        }
+      }
+    } catch (err: any) {
+      showNotice({
+        header: 'ERROR',
+        alert: 'danger',
+        message: errorReason(err.response)
+      });
+    }
   }
 
   function _addSelection() {
