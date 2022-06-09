@@ -35,6 +35,7 @@
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let openTaxon: (selection: string) => Promise<void>;
+  export let clearReceiver: (clear: () => void) => void;
 
   interface MatchedItem {
     unique: string;
@@ -46,23 +47,31 @@
   let isSelectedInTree = false;
   let taxonSpec: TaxonSpec | null = null;
   let specsByUnique: Record<string, TaxonSpec> = {};
-  let autocompleteClearButton: Element;
+  let autocompleteClearButton: HTMLButtonElement;
 
-  $: if (selection) {
+  $: if (selection && selection != '') {
     taxonSpec = matchedSpecs.find((spec) => spec.unique == selection)!;
     isSelectedInTree = selectionsTree.isSelected(taxonSpec.unique);
   } else {
     taxonSpec = null;
   }
+  clearReceiver(clearInput);
 
   onMount(() => {
     const autocompleteInput = document.querySelector('input.autocomplete-input')!;
     autocompleteInput.addEventListener('input', _inputChanged);
 
+    const autocompleteList = document.querySelector('div.autocomplete-list')!;
+    autocompleteList.addEventListener('click', _setAutocomplete);
+
     autocompleteClearButton = document.querySelector('span.autocomplete-clear-button')!;
     autocompleteClearButton.addEventListener('click', _clearedAutocomplete);
     _toggleClearButton(false);
   });
+
+  function clearInput() {
+    autocompleteClearButton.click();
+  }
 
   async function _loadMatches(partialName: string): Promise<MatchedItem[]> {
     let res = await $client.post('api/taxa/match_name', { partialName });
@@ -82,9 +91,11 @@
         }
       }
     }
-    return matchedSpecs.map((spec) => {
-      return { unique: spec.unique, spec };
-    });
+    return matchedSpecs
+      .map((spec) => {
+        return { unique: spec.unique, spec };
+      })
+      .sort((a, b) => (a.unique < b.unique ? -1 : 1));
   }
 
   function _openTaxon() {
@@ -116,6 +127,10 @@
   function _clearedAutocomplete() {
     selection = undefined;
     _toggleClearButton(false);
+  }
+
+  function _setAutocomplete() {
+    _toggleClearButton(true);
   }
 
   function _toggleClearButton(show: boolean) {

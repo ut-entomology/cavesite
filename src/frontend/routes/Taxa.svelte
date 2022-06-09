@@ -20,6 +20,7 @@
   let rootTree: SvelteComponent;
   let rootNode: TreeNode<TaxonSpec> | null = null;
   let requestClearConfirmation = false;
+  let clearInput: () => void;
 
   const selectionsTree = new TaxonSelectionsTree(
     $selectedTaxa ? Object.values($selectedTaxa) : []
@@ -68,12 +69,18 @@
     return containingTaxa;
   }
 
-  function addSelection(spec: TaxonSpec) {
+  function addSelection(clear: boolean, spec: TaxonSpec) {
+    if (clear) clearInput();
     selectionsTree.addSelection(spec);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
   }
 
-  function removeSelection(containingTaxa: SpecEntry<TaxonSpec>[], spec: TaxonSpec) {
+  function removeSelection(
+    clear: boolean,
+    containingTaxa: SpecEntry<TaxonSpec>[],
+    spec: TaxonSpec
+  ) {
+    if (clear) clearInput();
     selectionsTree.removeSelection(containingTaxa, spec);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
   }
@@ -106,9 +113,10 @@
       <TaxonLookup
         {selectionsTree}
         {getContainingTaxa}
-        {addSelection}
-        {removeSelection}
+        addSelection={addSelection.bind(null, false)}
+        removeSelection={removeSelection.bind(null, false)}
         openTaxon={async (unique) => openTaxonBrowser(unique)}
+        clearReceiver={(clear) => (clearInput = clear)}
       />
     </div>
 
@@ -124,8 +132,8 @@
             node={rootNode}
             showRoot={false}
             gotoTaxon={async (unique) => openTaxonBrowser(unique)}
-            {addSelection}
-            {removeSelection}
+            addSelection={addSelection.bind(null, true)}
+            removeSelection={removeSelection.bind(null, true)}
           />
         </div>
       {/if}
@@ -149,8 +157,8 @@
     parentUnique={browseTaxonUnique}
     {selectionsTree}
     {getContainingTaxa}
-    {addSelection}
-    {removeSelection}
+    addSelection={addSelection.bind(null, true)}
+    removeSelection={removeSelection.bind(null, true)}
     onClose={() => {
       browseTaxonUnique = null;
     }}
