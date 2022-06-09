@@ -37,7 +37,7 @@
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let openTaxon: (selection: string) => Promise<void>;
-  export let clearReceiver: (clear: () => void) => void;
+  export let setClearer: (clearer: () => void) => void;
 
   interface MatchedItem {
     unique: string;
@@ -57,7 +57,7 @@
   } else {
     taxonSpec = null;
   }
-  clearReceiver(clearInput);
+  setClearer(clearInput);
 
   onMount(() => {
     const autocompleteInput = document.querySelector('input.autocomplete-input')!;

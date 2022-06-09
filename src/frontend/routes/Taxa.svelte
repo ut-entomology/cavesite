@@ -116,7 +116,7 @@
         addSelection={addSelection.bind(null, false)}
         removeSelection={removeSelection.bind(null, false)}
         openTaxon={async (unique) => openTaxonBrowser(unique)}
-        clearReceiver={(clear) => (clearInput = clear)}
+        setClearer={(clearer) => (clearInput = clearer)}
       />
     </div>
 
