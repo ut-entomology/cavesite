@@ -23,7 +23,7 @@
 </script>
 
 <div class="row mt-3 mb-3 justify-content-between">
-  <div class="col-auto title">
+  <div class="col-auto tab_title">
     {@html title}
     {#if expandable}
       <div class="expander">
@@ -71,7 +71,7 @@
     right: 0;
   }
 
-  .title {
+  .tab_title {
     font-weight: bold;
     font-size: 1.2rem;
   }
