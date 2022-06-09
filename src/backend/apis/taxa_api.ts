@@ -5,7 +5,7 @@ import { getDB } from '../integrations/postgres';
 import { Taxon } from '../model/taxon';
 import { TaxonSpec, MIN_PARTIAL_TAXON_LENGTH } from '../../shared/model';
 
-const MAX_LOOKUP_MATCHES = 100;
+const MAX_LOOKUP_MATCHES = 120;
 
 export const router = Router();
 
