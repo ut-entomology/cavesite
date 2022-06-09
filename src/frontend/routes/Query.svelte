@@ -291,7 +291,7 @@
                 class:even={i % 2 == 0}
                 class:left={j == 0}
               >
-                {columnInfo.getValue(row)}
+                {@html columnInfo.getValue(row)}
               </div>
             {/each}
           {/each}

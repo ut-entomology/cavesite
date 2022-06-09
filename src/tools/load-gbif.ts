@@ -1,5 +1,7 @@
 import { Client } from 'pg';
 
+// TODO: strip HTML tags from data for security
+
 // import { Taxon } from '../src/model/taxon';
 // import { Location } from '../src/model/location';
 // import { Specimen } from '../src/model/specimen';

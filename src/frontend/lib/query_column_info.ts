@@ -221,7 +221,7 @@ setColumnInfo({
   nullable: true,
   defaultEmWidth: 10,
   columnClass: null,
-  getValue: (row: QueryRow) => row.genusName || ''
+  getValue: (row: QueryRow) => _toItalic(row.genusName)
 });
 setColumnInfo({
   columnID: QueryColumnID.Species,
@@ -232,7 +232,7 @@ setColumnInfo({
   nullable: true,
   defaultEmWidth: 10,
   columnClass: null,
-  getValue: (row: QueryRow) => row.speciesName || ''
+  getValue: (row: QueryRow) => _toItalic(row.speciesName)
 });
 setColumnInfo({
   columnID: QueryColumnID.Subspecies,
@@ -243,7 +243,7 @@ setColumnInfo({
   nullable: true,
   defaultEmWidth: 10,
   columnClass: null,
-  getValue: (row: QueryRow) => row.subspeciesName || ''
+  getValue: (row: QueryRow) => _toItalic(row.subspeciesName)
 });
 setColumnInfo({
   columnID: QueryColumnID.TaxonUnique,
@@ -254,8 +254,10 @@ setColumnInfo({
   nullable: false,
   defaultEmWidth: 12,
   columnClass: null,
-  getValue: (row: QueryRow) =>
-    row.taxonUnique! + (row.taxonAuthor ? ' ' + row.taxonAuthor : '')
+  getValue: (row: QueryRow) => {
+    const name = row.genusID ? _toItalic(row.taxonUnique) : row.taxonUnique!;
+    return name + (row.taxonAuthor ? ' ' + row.taxonAuthor : '');
+  }
 });
 setColumnInfo({
   columnID: QueryColumnID.County,
@@ -301,3 +303,7 @@ setColumnInfo({
   columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.publicLongitude)
 });
+
+function _toItalic(name?: string | null) {
+  return name ? `<i>${name}</i>` : '';
+}

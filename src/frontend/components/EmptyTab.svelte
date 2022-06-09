@@ -8,7 +8,7 @@
   .message {
     margin: 3rem 0;
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   :global(.no-selection-paren) {

@@ -690,12 +690,14 @@ describe('general specimen query', () => {
     const spec1Result = {
       taxonUnique: specimen1!.taxonUnique,
       taxonAuthor: specimen1!.taxonAuthor,
-      taxonID: specimen1!.taxonID
+      taxonID: specimen1!.taxonID,
+      genusID: specimen1!.genusID
     };
     const spec2Result = {
       taxonUnique: specimen2!.taxonUnique,
       taxonAuthor: specimen2!.taxonAuthor,
-      taxonID: specimen2!.taxonID
+      taxonID: specimen2!.taxonID,
+      genusID: specimen2!.genusID
     };
     expect(results[0]).toEqual([spec2Result, spec1Result]);
 

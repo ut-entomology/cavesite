@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { TaxonRank, TaxonSpec } from '../../shared/model';
+  import { TaxonRank, TaxonSpec, italicRanks } from '../../shared/model';
 
   let classes = '';
   export { classes as class };
@@ -7,9 +7,7 @@
   export let clickable = false;
   export let onClick: (() => Promise<void>) | null = null;
 
-  const italic = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(
-    spec.rank
-  );
+  const italic = italicRanks.includes(spec.rank);
 </script>
 
 <span class={classes}>

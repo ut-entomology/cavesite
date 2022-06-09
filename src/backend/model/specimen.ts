@@ -100,7 +100,8 @@ columnInfoMap[QueryColumnID.Subspecies] = {
 };
 columnInfoMap[QueryColumnID.TaxonUnique] = {
   column1: 'taxon_unique',
-  column2: 'taxon_author, taxon_id'
+  // genus_id needed for italics determination
+  column2: 'taxon_author, taxon_id, genus_id'
 };
 columnInfoMap[QueryColumnID.County] = {
   column1: 'county_name',
