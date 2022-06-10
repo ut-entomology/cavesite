@@ -23,23 +23,25 @@
   export let onOkay: () => void;
 </script>
 
-<div
-  class="notice-container p-3 position-fixed start-50 translate-middle bg-{alert} bg-opacity-75"
->
-  <Toast fade={false}>
-    <ToastHeader class="text-{alert}">{header}</ToastHeader>
-    <ToastBody>
-      <div>{@html message}</div>
-      <div class="buttons">
-        <button class="btn btn-minor" type="button" on:click={onCancel}
-          >{cancelButton}</button
-        >
-        <button class="btn btn-major" type="button" on:click={onOkay}
-          >{okayButton}</button
-        >
-      </div>
-    </ToastBody>
-  </Toast>
+<div class="disable-clicks">
+  <div
+    class="notice-container p-3 position-fixed start-50 translate-middle bg-{alert} bg-opacity-75"
+  >
+    <Toast fade={false}>
+      <ToastHeader class="text-{alert}">{header}</ToastHeader>
+      <ToastBody>
+        <div>{@html message}</div>
+        <div class="buttons">
+          <button class="btn btn-minor" type="button" on:click={onCancel}
+            >{cancelButton}</button
+          >
+          <button class="btn btn-major" type="button" on:click={onOkay}
+            >{okayButton}</button
+          >
+        </div>
+      </ToastBody>
+    </Toast>
+  </div>
 </div>
 
 <style lang="scss">

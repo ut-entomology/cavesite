@@ -12,24 +12,26 @@
 </script>
 
 {#if isOpen}
-  <div
-    class="notice-container p-3 position-fixed start-50 translate-middle bg-{alert} bg-opacity-75"
-  >
-    <Toast fade={false} on:close={closeNotice} on:close>
-      <ToastHeader class="text-{alert}" toggle={button ? undefined : closeNotice}
-        >{header}</ToastHeader
-      >
-      <ToastBody>
-        {@html message}
-        {#if button}
-          <div class="button">
-            <button class="btn btn-major" type="button" on:click={closeNotice}
-              >{button}</button
-            >
-          </div>
-        {/if}
-      </ToastBody>
-    </Toast>
+  <div class="disable-clicks">
+    <div
+      class="notice-container p-3 position-fixed start-50 translate-middle bg-{alert} bg-opacity-75"
+    >
+      <Toast fade={false} on:close={closeNotice} on:close>
+        <ToastHeader class="text-{alert}" toggle={button ? undefined : closeNotice}
+          >{header}</ToastHeader
+        >
+        <ToastBody>
+          {@html message}
+          {#if button}
+            <div class="button">
+              <button class="btn btn-major" type="button" on:click={closeNotice}
+                >{button}</button
+              >
+            </div>
+          {/if}
+        </ToastBody>
+      </Toast>
+    </div>
   </div>
 {/if}
 
