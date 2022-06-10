@@ -1,14 +1,14 @@
 <script lang="ts">
-  // Not yet working because I don't know how to forward propagate slots to
-  // AutoComplete while also back-propagating AutoComplete's slot values.
-
   import { onMount } from 'svelte';
   import AutoComplete from 'simple-svelte-autocomplete';
 
+  export let value: string | undefined = undefined;
   export let setClearer: (clearer: () => void) => void = () => {};
-  setClearer(clearInput);
 
-  let selection: string | undefined;
+  setClearer(clearInput);
+  const reducedProps = Object.assign($$props);
+  delete reducedProps['setClearer'];
+
   let autocompleteClearButton: HTMLButtonElement;
 
   onMount(() => {
@@ -32,13 +32,13 @@
     // @ts-ignore
     const newValue = this.value;
     _toggleClearButton(!!newValue);
-    if (newValue.toLowerCase() != selection?.toLowerCase()) {
-      selection = undefined;
+    if (newValue.toLowerCase() != value?.toLowerCase()) {
+      value = undefined;
     }
   }
 
   function _clearedAutocomplete() {
-    selection = undefined;
+    value = undefined;
     _toggleClearButton(false);
   }
 
@@ -54,8 +54,37 @@
   }
 </script>
 
-<AutoComplete bind:value={selection} {...$$props} showClear={true}>
-  <!-- <slot slot="item" name="item" let:label let:item {label} {item} /> -->
+<AutoComplete bind:value {...reducedProps} showClear={true}>
+  <svelte:fragment slot="item" let:label let:item>
+    {#if $$slots['item']}
+      <slot name="item" {label} {item} />
+    {/if}
+  </svelte:fragment>
+  <svelte:fragment slot="no-results" let:noResultsText>
+    {#if $$slots['no-results']}
+      <slot name="no-results" {noResultsText} />
+    {/if}
+  </svelte:fragment>
+  <svelte:fragment slot="loading" let:loadingText>
+    {#if $$slots['loading']}
+      <slot name="loading" {loadingText} />
+    {/if}
+  </svelte:fragment>
+  <svelte:fragment slot="tag" let:label let:item let:unselectItem>
+    {#if $$slots['tag']}
+      <slot name="tag" {label} {item} {unselectItem} />
+    {/if}
+  </svelte:fragment>
+  <svelte:fragment slot="menu-header" let:nbItems let:maxItemsToShowInList>
+    {#if $$slots['menu-header']}
+      <slot name="menu-header" {nbItems} {maxItemsToShowInList} />
+    {/if}
+  </svelte:fragment>
+  <svelte:fragment slot="dropdown-footer" let:nbItems let:maxItemsToShowInList>
+    {#if $$slots['dropdown-footer']}
+      <slot name="dropdown-footer" {nbItems} {maxItemsToShowInList} />
+    {/if}
+  </svelte:fragment>
 </AutoComplete>
 
 <style>

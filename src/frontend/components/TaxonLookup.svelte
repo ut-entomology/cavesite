@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import AutoComplete from 'simple-svelte-autocomplete';
 
+  import ClearerAutoComplete from '../common/ClearerAutoComplete.svelte';
   import SelectionButton from '../components/SelectionButton.svelte';
   import CircleIconButton from './CircleIconButton.svelte';
   import { client, errorReason } from '../stores/client';
@@ -49,30 +50,12 @@
   let isSelectedInTree = false;
   let taxonSpec: TaxonSpec | null = null;
   let specsByUnique: Record<string, TaxonSpec> = {};
-  let autocompleteClearButton: HTMLButtonElement;
 
   $: if (selection && selection != '') {
     taxonSpec = matchedSpecs.find((spec) => spec.unique == selection)!;
     isSelectedInTree = selectionsTree.isSelected(taxonSpec.unique);
   } else {
     taxonSpec = null;
-  }
-  setClearer(clearInput);
-
-  onMount(() => {
-    const autocompleteInput = document.querySelector('input.autocomplete-input')!;
-    autocompleteInput.addEventListener('input', _inputChanged);
-
-    const autocompleteList = document.querySelector('div.autocomplete-list')!;
-    autocompleteList.addEventListener('click', _setAutocomplete);
-
-    autocompleteClearButton = document.querySelector('span.autocomplete-clear-button')!;
-    autocompleteClearButton.addEventListener('click', _clearedAutocomplete);
-    _toggleClearButton(false);
-  });
-
-  function clearInput() {
-    autocompleteClearButton.click();
   }
 
   async function _loadMatches(partialName: string): Promise<MatchedItem[]> {
@@ -137,32 +120,6 @@
     isSelectedInTree = false;
   }
 
-  function _inputChanged() {
-    // doesn't catch changes made from JS (e.g. clearing)
-    // @ts-ignore
-    const newValue = this.value;
-    _toggleClearButton(!!newValue);
-    if (newValue.toLowerCase() != selection?.toLowerCase()) {
-      selection = undefined;
-    }
-  }
-
-  function _clearedAutocomplete() {
-    selection = undefined;
-    _toggleClearButton(false);
-  }
-
-  function _setAutocomplete() {
-    _toggleClearButton(true);
-  }
-
-  function _toggleClearButton(show: boolean) {
-    autocompleteClearButton.setAttribute(
-      'style',
-      'display:' + (show ? 'block' : 'none')
-    );
-  }
-
   function _toItemHtml(spec: TaxonSpec, label: string): string {
     let html = label;
     let rankIndex = taxonRanks.indexOf(spec.rank);
@@ -193,7 +150,7 @@
     {/if}
   </div>
   <div class="col auto_taxon">
-    <AutoComplete
+    <ClearerAutoComplete
       className="outer_auto_complete"
       inputClassName="form-control"
       bind:value={selection}
@@ -204,10 +161,10 @@
       placeholder="Type a taxon to look up"
       minCharactersToSearch={2}
       hideArrow={true}
-      showClear={true}
+      {setClearer}
     >
       <div slot="item" let:label let:item>{@html _toItemHtml(item.spec, label)}</div>
-    </AutoComplete>
+    </ClearerAutoComplete>
   </div>
   <div class="col-sm-1 auto_control">
     {#if taxonSpec}
