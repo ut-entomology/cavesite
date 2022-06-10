@@ -2,23 +2,31 @@
   import { onMount } from 'svelte';
   import AutoComplete from 'simple-svelte-autocomplete';
 
+  export let inputSelector = '';
   export let value: string | undefined = undefined;
   export let setClearer: (clearer: () => void) => void = () => {};
 
   setClearer(clearInput);
   const reducedProps = Object.assign($$props);
+  delete reducedProps['inputSelector'];
   delete reducedProps['setClearer'];
 
   let autocompleteClearButton: HTMLButtonElement;
 
   onMount(() => {
-    const autocompleteInput = document.querySelector('input.autocomplete-input')!;
+    const autocompleteInput = document.querySelector(
+      inputSelector + ' .autocomplete-input'
+    )!;
     autocompleteInput.addEventListener('input', _inputChanged);
 
-    const autocompleteList = document.querySelector('div.autocomplete-list')!;
+    const autocompleteList = document.querySelector(
+      inputSelector + ' .autocomplete-list'
+    )!;
     autocompleteList.addEventListener('click', _setAutocomplete);
 
-    autocompleteClearButton = document.querySelector('span.autocomplete-clear-button')!;
+    autocompleteClearButton = document.querySelector(
+      inputSelector + ' .autocomplete-clear-button'
+    )!;
     autocompleteClearButton.addEventListener('click', _clearedAutocomplete);
     _toggleClearButton(false);
   });
