@@ -169,7 +169,7 @@
   <div class="col-sm-1 auto_control">
     {#if taxonSpec}
       <CircleIconButton class="loupe_button" label="Open taxon in browser">
-        <div class="loupeIcon" on:click={_openTaxon}>
+        <div class="loupe_icon" on:click={_openTaxon}>
           {@html loupeIcon}
         </div>
       </CircleIconButton>
@@ -202,14 +202,14 @@
     height: 1.5rem;
     padding-left: 0.25rem;
   }
-  .loupeIcon {
+  .loupe_icon {
     margin-top: -0.1rem;
     width: 1rem;
     height: 1rem;
     fill: $blueLinkForeColor;
     cursor: pointer;
   }
-  .loupeIcon:hover {
+  .loupe_icon:hover {
     fill: white;
   }
 </style>
