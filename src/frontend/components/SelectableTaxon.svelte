@@ -78,6 +78,7 @@
     font-size: 0.6rem;
     vertical-align: text-bottom;
     width: 0.75rem;
+    user-select: none;
   }
 
   .expandable {
