@@ -1,6 +1,6 @@
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
-import { DistanceMeasure, type SeedSpec } from '../../shared/model';
+import { TaxonWeight, type SeedSpec } from '../../shared/model';
 
 // TODO: Find a memory locate that occasionally bombs node.js, which
 // I suspect started occurring after creating this module.
@@ -11,7 +11,8 @@ type TaxonTallies = Record<string, number>; // accumulated weight for taxa
 
 export async function getClusteredLocationIDs(
   db: DB,
-  distanceMeasure: DistanceMeasure,
+  //similarityMetric: SimilarityMetric,
+  taxonWeight: TaxonWeight | null,
   seedIDs: number[],
   minSpecies: number,
   maxSpecies: number
@@ -19,10 +20,19 @@ export async function getClusteredLocationIDs(
   // console.log(
   //   '**** #### starting getClusteredLocationIDs ###################################'
   // );
-  const toTaxonWeights =
-    distanceMeasure == DistanceMeasure.weighted
-      ? _toWeightedValues
-      : _toUnweightedValues;
+  let isSpeciesMetric = false;
+  let toTaxonWeights = _toUnweightedValues;
+  if (isSpeciesMetric) {
+    switch (taxonWeight) {
+      case TaxonWeight.weighted:
+        toTaxonWeights = _toWeightedValues;
+        break;
+      case TaxonWeight.doubleWeight:
+        toTaxonWeights = _toDoubleWeightedValues;
+        break;
+    }
+  }
+
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];
   let taxaTalliesByCluster: TaxonTallies[] = [];
@@ -327,6 +337,19 @@ function _toUnweightedValues(effort: LocationEffort): TaxonTallies {
   _addTaxonRank(tallies, 1, effort.genusNames);
   _addTaxonRank(tallies, 1, effort.speciesNames);
   _addTaxonRank(tallies, 1, effort.subspeciesNames);
+  return tallies;
+}
+
+function _toDoubleWeightedValues(effort: LocationEffort): TaxonTallies {
+  const tallies: TaxonTallies = {};
+  _addTaxonRank(tallies, 0 * 2, effort.kingdomNames);
+  _addTaxonRank(tallies, 1 * 2, effort.phylumNames);
+  _addTaxonRank(tallies, 2 * 2, effort.classNames);
+  _addTaxonRank(tallies, 3 * 2, effort.orderNames);
+  _addTaxonRank(tallies, 4 * 2, effort.familyNames);
+  _addTaxonRank(tallies, 5 * 2, effort.genusNames);
+  _addTaxonRank(tallies, 6 * 2, effort.speciesNames);
+  _addTaxonRank(tallies, 7 * 2, effort.subspeciesNames);
   return tallies;
 }
 

@@ -26,7 +26,7 @@
   import EffortGraph from '../components/EffortGraph.svelte';
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
-  import { SeedType } from '../../shared/model';
+  import { SimilarityMetric, TaxonWeight } from '../../shared/model';
   import { client } from '../stores/client';
   import { QuadraticModel, PowerModel } from '../lib/linear_regression';
   import { pageName } from '../stores/pageName';
@@ -56,7 +56,8 @@
     try {
       loadState = LoadState.loading;
       const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
-        seedType: SeedType.diverse,
+        similarityMetric: SimilarityMetric.commonSpecies, //ignored
+        taxonWeight: TaxonWeight.weighted, // ignored
         maxClusters: 12,
         minSpecies: 0,
         maxSpecies: 10000

@@ -4,7 +4,7 @@ import type { Point } from './linear_regression';
 import {
   type EffortResult,
   type LocationSpec,
-  DistanceMeasure,
+  TaxonWeight,
   SeedSpec
 } from '../../shared/model';
 
@@ -27,7 +27,7 @@ export async function loadEffort(
 
   res = await client.post('api/cluster/get_clusters', {
     seedIDs: seeds.map((location) => location.locationID),
-    distanceMeasure: DistanceMeasure.weighted,
+    taxonWeight: TaxonWeight.weighted,
     minSpecies: 0,
     maxSpecies: 10000
   });

@@ -134,20 +134,25 @@ export function pointSorter(a: number[], b: number[]) {
 
 //// Cluster /////////////////////////////////////////////////////////////////
 
-export enum SeedType {
-  random = 'random', // seed locations are randomly selected
-  sized = 'sized', // seed locations are distributed in size
-  diverse = 'diverse' // seed locations are maximally diverse
+export enum SimilarityMetric {
+  speciesCount = 'species count', // similar numbers of species
+  logSpeciesCount = 'log species count', // similar log of number of species
+  commonSpecies = 'common species', // similar kinds of species
+  commonMinusDiffSpecies = 'common species minus diffs', // similar - diff species
+  minuseDiffSpecies = 'minus diff species', // negative of number of different species
+  minusLogDiffSpecies = 'minus log diff species' // neg. of log of no. of diff species
+}
+
+export enum TaxonWeight {
+  weighted = 'weighted',
+  unweighted = 'unweighted',
+  doubleWeight = 'doubleWeight'
 }
 
 export interface SeedSpec {
-  seedType: SeedType;
+  similarityMetric: SimilarityMetric;
+  taxonWeight: TaxonWeight;
   maxClusters: number;
   minSpecies: number;
   maxSpecies: number;
-}
-
-export enum DistanceMeasure {
-  weighted = 'weighted',
-  unweighted = 'unweighted'
 }
