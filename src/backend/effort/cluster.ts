@@ -198,10 +198,10 @@ export async function getSeedLocationIDs(
 
       for (const locationEffort of locationEfforts) {
         if (!seedIDs.includes(locationEffort.locationID)) {
-          const locationTaxonTallies = Object.values(tallyTaxa(locationEffort));
+          const locationTaxonMap = tallyTaxa(locationEffort);
           const dissimilarity = metricCalculator.calc(
             modeTallyMap,
-            locationTaxonTallies,
+            locationTaxonMap,
             locationEffort
           );
           if (dissimilarity > maxDissimilaritySoFar) {
@@ -251,7 +251,6 @@ function _getNearestClusterIndex(
   metricCalculator: DissimilarityCalculator
 ): number {
   //console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
-  const effortTallies = Object.values(taxonTallyMap);
 
   // Collect into indexesForMinDissimilarity the indexes of all clusters
   // having the least dissimilarity to the taxa of the provided effort,
@@ -262,7 +261,7 @@ function _getNearestClusterIndex(
   for (let i = 0; i < taxaTalliesByCluster.length; ++i) {
     const dissimilarity = metricCalculator.calc(
       taxaTalliesByCluster[i],
-      effortTallies,
+      taxonTallyMap,
       locationEffort
     );
     if (dissimilarity == minDissimilaritySoFar) {

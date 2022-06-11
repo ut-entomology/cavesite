@@ -24,7 +24,7 @@ export abstract class DissimilarityCalculator {
 
   abstract calc(
     clusterTaxonMap: TaxonTallyMap,
-    locationTaxonTallies: TaxonTally[],
+    locationTaxonMap: TaxonTallyMap,
     locationEffort: LocationEffort
   ): number;
 
@@ -80,6 +80,8 @@ export abstract class DissimilarityCalculator {
         return new DiffMinusCommonTaxaCalculator(metric);
       case DissimilarityBasis.diffTaxa:
         return new DiffTaxaCalculator(metric);
+      case DissimilarityBasis.bothDiffTaxa:
+        return new BothDiffTaxaCalculator(metric);
       default:
         throw Error(metric + ' not yet supported');
     }
@@ -92,17 +94,16 @@ class MinusCommonTaxaCalculator extends DissimilarityCalculator {
   }
 
   greatestLowerDissimilarity(locationEffort: LocationEffort): number {
-    const taxonTallies = tallyTaxa(locationEffort);
-    return this.calc({}, Object.values(taxonTallies), locationEffort);
+    return this.calc({}, tallyTaxa(locationEffort), locationEffort);
   }
 
   calc(
     clusterTaxonMap: TaxonTallyMap,
-    locationTaxonTallies: TaxonTally[],
+    locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let similarityCount = 0;
-    for (const taxonTally of locationTaxonTallies) {
+    for (const taxonTally of Object.values(locationTaxonMap)) {
       if (clusterTaxonMap[taxonTally.taxonUnique] !== undefined) {
         similarityCount += this._weights[taxonTally.rankIndex];
       }
@@ -118,11 +119,11 @@ class DiffMinusCommonTaxaCalculator extends DissimilarityCalculator {
 
   calc(
     clusterTaxonMap: TaxonTallyMap,
-    locationTaxonTallies: TaxonTally[],
+    locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let dissimilarityCount = 0;
-    for (const taxonTally of locationTaxonTallies) {
+    for (const taxonTally of Object.values(locationTaxonMap)) {
       if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
         dissimilarityCount += this._weights[taxonTally.rankIndex];
       } else {
@@ -142,12 +143,37 @@ class DiffTaxaCalculator extends DissimilarityCalculator {
 
   calc(
     clusterTaxonMap: TaxonTallyMap,
-    locationTaxonTallies: TaxonTally[],
+    locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let diffCount = 0;
-    for (const taxonTally of locationTaxonTallies) {
+    for (const taxonTally of Object.values(locationTaxonMap)) {
       if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
+        diffCount += this._weights[taxonTally.rankIndex];
+      }
+    }
+    return this._transform(diffCount);
+  }
+}
+
+class BothDiffTaxaCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
+    super(metric);
+  }
+
+  calc(
+    clusterTaxonMap: TaxonTallyMap,
+    locationTaxonMap: TaxonTallyMap,
+    _locationEffort: LocationEffort
+  ): number {
+    let diffCount = 0;
+    for (const taxonTally of Object.values(locationTaxonMap)) {
+      if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
+        diffCount += this._weights[taxonTally.rankIndex];
+      }
+    }
+    for (const taxonTally of Object.values(clusterTaxonMap)) {
+      if (locationTaxonMap[taxonTally.taxonUnique] === undefined) {
         diffCount += this._weights[taxonTally.rankIndex];
       }
     }
