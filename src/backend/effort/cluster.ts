@@ -1,11 +1,6 @@
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
-import {
-  TaxonWeight,
-  type SeedSpec,
-  SimilarityMetric,
-  SimilarityTransform
-} from '../../shared/model';
+import { type SeedSpec, SimilarityMetric } from '../../shared/model';
 import { type TaxonTallyMap, SimilarityCalculator } from './similarity_calc';
 
 // TODO: Find a memory locate that occasionally bombs node.js, which
@@ -16,8 +11,6 @@ const EFFORT_BATCH_SIZE = 100;
 export async function getClusteredLocationIDs(
   db: DB,
   similarityMetric: SimilarityMetric,
-  similarityTransform: SimilarityTransform,
-  taxonWeight: TaxonWeight | null,
   seedIDs: number[],
   minSpecies: number,
   maxSpecies: number
@@ -26,11 +19,7 @@ export async function getClusteredLocationIDs(
   //   '**** #### starting getClusteredLocationIDs ###################################'
   // );
 
-  const similarityCalculator = SimilarityCalculator.create(
-    similarityMetric,
-    similarityTransform,
-    taxonWeight
-  );
+  const similarityCalculator = SimilarityCalculator.create(similarityMetric);
 
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];

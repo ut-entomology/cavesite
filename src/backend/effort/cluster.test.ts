@@ -5,6 +5,7 @@ import { type TaxonTallies } from './location_visit';
 import { type EffortData, LocationEffort } from './location_effort';
 import {
   LocationRank,
+  SimilarityBasis,
   SimilarityMetric,
   SimilarityTransform,
   TaxonWeight,
@@ -16,6 +17,12 @@ jest.setTimeout(20 * 60 * 1000); // debuggin timeout
 
 const mutex = new DatabaseMutex();
 let db: DB;
+
+const metric1: SimilarityMetric = {
+  basis: SimilarityBasis.commonMinusDiffSpecies,
+  transform: SimilarityTransform.none,
+  weight: TaxonWeight.unweighted
+};
 
 beforeAll(async () => {
   db = await mutex.lock();
@@ -31,8 +38,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Select the most diverse seed location.
 
   let seedSpec: SeedSpec = {
-    similarityMetric: SimilarityMetric.commonMinusDiffSpecies,
-    taxonWeight: TaxonWeight.unweighted,
+    similarityMetric: metric1,
     maxClusters: 1,
     minSpecies: 0,
     maxSpecies: 10000
@@ -65,8 +71,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Attempt to select 2 seeds when all are subsets of one of them.
 
   seedSpec = {
-    similarityMetric: SimilarityMetric.commonMinusDiffSpecies,
-    taxonWeight: TaxonWeight.unweighted,
+    similarityMetric: metric1,
     maxClusters: 2,
     minSpecies: 0,
     maxSpecies: 10000
@@ -100,8 +105,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Selection order changes with adding a late most-diverse effort.
 
   seedSpec = {
-    similarityMetric: SimilarityMetric.commonMinusDiffSpecies,
-    taxonWeight: TaxonWeight.unweighted,
+    similarityMetric: metric1,
     maxClusters: 3,
     minSpecies: 0,
     maxSpecies: 10000
@@ -131,7 +135,7 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p1|p2|p3'
   });
-  let clusters = await _getClusters(TaxonWeight.unweighted, [1]);
+  let clusters = await _getClusters([1]);
   _checkClusters(clusters, [[1, 2, 3]]);
 
   await _addEffort(4, 1, {
@@ -146,12 +150,12 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p4|p5|p6'
   });
-  clusters = await _getClusters(TaxonWeight.unweighted, [3, 6]);
+  clusters = await _getClusters([3, 6]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
   ]);
-  clusters = await _getClusters(TaxonWeight.unweighted, [1, 4]);
+  clusters = await _getClusters([1, 4]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
@@ -215,19 +219,8 @@ async function _createLocation(locationID: number) {
   await Location.create(db, '', '', sourceLocation);
 }
 
-async function _getClusters(
-  taxonWeight: TaxonWeight,
-  seedLocationIDs: number[]
-): Promise<number[][]> {
-  return await cluster.getClusteredLocationIDs(
-    db,
-    SimilarityMetric.commonMinusDiffSpecies,
-    SimilarityTransform.none,
-    taxonWeight,
-    seedLocationIDs,
-    0,
-    100
-  );
+async function _getClusters(seedLocationIDs: number[]): Promise<number[][]> {
+  return await cluster.getClusteredLocationIDs(db, metric1, seedLocationIDs, 0, 100);
 }
 
 function _toEffortData(data: Partial<EffortData>): EffortData {

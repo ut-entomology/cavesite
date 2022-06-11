@@ -1,8 +1,9 @@
 import {
   taxonRanks,
-  TaxonWeight,
   SimilarityMetric,
-  SimilarityTransform
+  SimilarityBasis,
+  SimilarityTransform,
+  TaxonWeight
 } from '../../shared/model';
 
 export interface TaxonTally {
@@ -18,8 +19,8 @@ export abstract class SimilarityCalculator {
 
   abstract calc(clusterTaxonMap: TaxonTallyMap, effortTallies: TaxonTally[]): number;
 
-  protected constructor(transform: SimilarityTransform, weight: TaxonWeight | null) {
-    switch (transform) {
+  protected constructor(metric: SimilarityMetric) {
+    switch (metric.transform) {
       case SimilarityTransform.none:
         this._transform = (from: number) => from;
         break;
@@ -36,7 +37,7 @@ export abstract class SimilarityCalculator {
 
     this._weights = [];
     for (let i = 0; i < taxonRanks.length; ++i) {
-      switch (weight) {
+      switch (metric.weight) {
         case TaxonWeight.unweighted:
           this._weights[i] = 1;
           break;
@@ -50,16 +51,12 @@ export abstract class SimilarityCalculator {
     }
   }
 
-  static create(
-    metric: SimilarityMetric,
-    transform: SimilarityTransform,
-    weight: TaxonWeight | null
-  ): SimilarityCalculator {
-    switch (metric) {
-      case SimilarityMetric.commonSpecies:
-        return new CommonSpeciesCalculator(transform, weight);
-      case SimilarityMetric.commonMinusDiffSpecies:
-        return new CommonMinusDiffSpeciesCalculator(transform, weight);
+  static create(metric: SimilarityMetric): SimilarityCalculator {
+    switch (metric.basis) {
+      case SimilarityBasis.commonSpecies:
+        return new CommonSpeciesCalculator(metric);
+      case SimilarityBasis.commonMinusDiffSpecies:
+        return new CommonMinusDiffSpeciesCalculator(metric);
       default:
         throw Error(metric + ' not yet supported');
     }
@@ -67,8 +64,8 @@ export abstract class SimilarityCalculator {
 }
 
 class CommonSpeciesCalculator extends SimilarityCalculator {
-  constructor(transform: SimilarityTransform, weight: TaxonWeight | null) {
-    super(transform, weight);
+  constructor(metric: SimilarityMetric) {
+    super(metric);
   }
 
   calc(clusterTaxonMap: TaxonTallyMap, effortTallies: TaxonTally[]): number {
@@ -83,8 +80,8 @@ class CommonSpeciesCalculator extends SimilarityCalculator {
 }
 
 class CommonMinusDiffSpeciesCalculator extends SimilarityCalculator {
-  constructor(transform: SimilarityTransform, weight: TaxonWeight | null) {
-    super(transform, weight);
+  constructor(metric: SimilarityMetric) {
+    super(metric);
   }
 
   calc(clusterTaxonMap: TaxonTallyMap, effortTallies: TaxonTally[]): number {

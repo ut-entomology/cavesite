@@ -134,7 +134,13 @@ export function pointSorter(a: number[], b: number[]) {
 
 //// Cluster /////////////////////////////////////////////////////////////////
 
-export enum SimilarityMetric {
+export interface SimilarityMetric {
+  basis: SimilarityBasis;
+  transform: SimilarityTransform;
+  weight: TaxonWeight | null;
+}
+
+export enum SimilarityBasis {
   speciesCount = 'species count', // similar numbers of species
   commonSpecies = 'common species', // similar kinds of species
   commonMinusDiffSpecies = 'common species minus diffs', // similar - diff species
@@ -156,7 +162,6 @@ export enum TaxonWeight {
 
 export interface SeedSpec {
   similarityMetric: SimilarityMetric;
-  taxonWeight: TaxonWeight;
   maxClusters: number;
   minSpecies: number;
   maxSpecies: number;

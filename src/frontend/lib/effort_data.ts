@@ -5,7 +5,9 @@ import {
   type EffortResult,
   type LocationSpec,
   TaxonWeight,
-  SeedSpec
+  SeedSpec,
+  SimilarityBasis,
+  SimilarityTransform
 } from '../../shared/model';
 
 export interface EffortData {
@@ -26,8 +28,12 @@ export async function loadEffort(
   if (!seeds) throw Error('Failed to load seeds');
 
   res = await client.post('api/cluster/get_clusters', {
+    similarityMetric: {
+      basis: SimilarityBasis.commonMinusDiffSpecies,
+      transform: SimilarityTransform.none,
+      weight: TaxonWeight.weighted
+    },
     seedIDs: seeds.map((location) => location.locationID),
-    taxonWeight: TaxonWeight.weighted,
     minSpecies: 0,
     maxSpecies: 10000
   });
