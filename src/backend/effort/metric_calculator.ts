@@ -18,9 +18,15 @@ export abstract class DissimilarityCalculator {
   protected _weights: number[];
   protected _transform: (from: number) => number;
 
-  leastUpperSimilarity(locationEffort: LocationEffort): number {
-    const taxonTallies = tallyTaxa(locationEffort);
-    return Object.keys(taxonTallies).length;
+  greatestLowerDissimilarity(_locationEffort: LocationEffort): number {
+    return 0;
+  }
+
+  canShortcutSeeding(
+    _maxDissimilaritySoFar: number,
+    _locationEffort: LocationEffort
+  ): boolean {
+    return false;
   }
 
   abstract calc(
@@ -28,10 +34,6 @@ export abstract class DissimilarityCalculator {
     locationTaxonTallies: TaxonTally[],
     locationEffort: LocationEffort
   ): number;
-
-  canShortcutSeeding(_minSimilarity: number, _locationEffort: LocationEffort): boolean {
-    return false;
-  }
 
   protected constructor(metric: DissimilarityMetric) {
     switch (metric.transform) {
@@ -79,21 +81,26 @@ export abstract class DissimilarityCalculator {
 
   static create(metric: DissimilarityMetric): DissimilarityCalculator {
     switch (metric.basis) {
-      case DissimilarityBasis.commonTaxa:
-        return new CommonTaxaCalculator(metric);
-      case DissimilarityBasis.commonMinusDiffTaxa:
-        return new CommonMinusDiffTaxaCalculator(metric);
-      case DissimilarityBasis.minusDiffTaxa:
-        return new MinusDiffTaxaCalculator(metric);
+      case DissimilarityBasis.minusCommonTaxa:
+        return new MinusCommonTaxaCalculator(metric);
+      case DissimilarityBasis.diffMinusCommonTaxa:
+        return new DiffMinusCommonTaxaCalculator(metric);
+      case DissimilarityBasis.diffTaxa:
+        return new DiffTaxaCalculator(metric);
       default:
         throw Error(metric + ' not yet supported');
     }
   }
 }
 
-class CommonTaxaCalculator extends DissimilarityCalculator {
+class MinusCommonTaxaCalculator extends DissimilarityCalculator {
   constructor(metric: DissimilarityMetric) {
     super(metric);
+  }
+
+  greatestLowerDissimilarity(locationEffort: LocationEffort): number {
+    const taxonTallies = tallyTaxa(locationEffort);
+    return this.calc({}, Object.values(taxonTallies), locationEffort);
   }
 
   calc(
@@ -107,11 +114,11 @@ class CommonTaxaCalculator extends DissimilarityCalculator {
         similarityCount += this._weights[taxonTally.rankIndex];
       }
     }
-    return this._transform(similarityCount);
+    return -this._transform(similarityCount);
   }
 }
 
-class CommonMinusDiffTaxaCalculator extends DissimilarityCalculator {
+class DiffMinusCommonTaxaCalculator extends DissimilarityCalculator {
   constructor(metric: DissimilarityMetric) {
     super(metric);
   }
@@ -121,27 +128,23 @@ class CommonMinusDiffTaxaCalculator extends DissimilarityCalculator {
     locationTaxonTallies: TaxonTally[],
     _locationEffort: LocationEffort
   ): number {
-    let similarityCount = 0;
+    let dissimilarityCount = 0;
     for (const taxonTally of locationTaxonTallies) {
       if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
-        similarityCount -= this._weights[taxonTally.rankIndex];
+        dissimilarityCount += this._weights[taxonTally.rankIndex];
       } else {
-        similarityCount += this._weights[taxonTally.rankIndex];
+        dissimilarityCount -= this._weights[taxonTally.rankIndex];
       }
     }
-    return similarityCount >= 0
-      ? this._transform(similarityCount)
-      : -this._transform(-similarityCount);
+    return dissimilarityCount < 0
+      ? -this._transform(-dissimilarityCount)
+      : this._transform(dissimilarityCount);
   }
 }
 
-class MinusDiffTaxaCalculator extends DissimilarityCalculator {
+class DiffTaxaCalculator extends DissimilarityCalculator {
   constructor(metric: DissimilarityMetric) {
     super(metric);
-  }
-
-  leastUpperSimilarity(_locationEffort: LocationEffort): number {
-    return 0;
   }
 
   calc(
@@ -155,12 +158,15 @@ class MinusDiffTaxaCalculator extends DissimilarityCalculator {
         diffCount += this._weights[taxonTally.rankIndex];
       }
     }
-    return -this._transform(diffCount);
+    return this._transform(diffCount);
   }
 
-  canShortcutSeeding(minSimilarity: number, locationEffort: LocationEffort): boolean {
+  canShortcutSeeding(
+    maxDissimilaritySoFar: number,
+    locationEffort: LocationEffort
+  ): boolean {
     // TODO: technically, this should be a test of total taxa
-    return locationEffort.totalSpecies <= Math.abs(minSimilarity);
+    return locationEffort.totalSpecies <= maxDissimilaritySoFar;
   }
 }
 

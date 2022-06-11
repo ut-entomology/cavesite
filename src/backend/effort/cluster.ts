@@ -183,20 +183,23 @@ export async function getSeedLocationIDs(
       }
     }
 
-    // Each subsequent seed location is the one with the least similarity
-    // to all previously selected seed locations.
+    // Each subsequent seed location is the one with the greated dissimilarity
+    // from all previously selected seed locations.
 
     const metricCalculator = DissimilarityCalculator.create(seedSpec.metric);
-    let minSimilarity = metricCalculator.leastUpperSimilarity(firstSeedLocation);
-    let seedIDForMinSimilarity = 0;
-    let effortForMinSimilarity: LocationEffort;
+    let maxDissimilaritySoFar =
+      metricCalculator.greatestLowerDissimilarity(firstSeedLocation);
+    let seedIDForMaxDissimilarity = 0;
+    let effortForMaxDissimilarity: LocationEffort;
 
     while (locationEfforts.length > 0) {
       // Process efforts of the batch, looking for the next seed location
       // that is most dissimilar to prior seed locations.
 
       for (const locationEffort of locationEfforts) {
-        if (metricCalculator.canShortcutSeeding(minSimilarity, locationEffort)) {
+        if (
+          metricCalculator.canShortcutSeeding(maxDissimilaritySoFar, locationEffort)
+        ) {
           // Short-circuit the search when not possible to beat minSimilarity.
           // Efforts are retrieved ordered most-diverse first to allow this.
           skipCount = Infinity;
@@ -204,15 +207,15 @@ export async function getSeedLocationIDs(
         }
         if (!seedIDs.includes(locationEffort.locationID)) {
           const locationTaxonTallies = Object.values(tallyTaxa(locationEffort));
-          const similarity = metricCalculator.calc(
+          const dissimilarity = metricCalculator.calc(
             modeTallyMap,
             locationTaxonTallies,
             locationEffort
           );
-          if (similarity < minSimilarity) {
-            minSimilarity = similarity;
-            seedIDForMinSimilarity = locationEffort.locationID;
-            effortForMinSimilarity = locationEffort;
+          if (dissimilarity > maxDissimilaritySoFar) {
+            maxDissimilaritySoFar = dissimilarity;
+            seedIDForMaxDissimilarity = locationEffort.locationID;
+            effortForMaxDissimilarity = locationEffort;
           }
         }
       }
@@ -237,9 +240,9 @@ export async function getSeedLocationIDs(
     // If we found another seed location, add it to the list and update the
     // set of all taxa against which to compare subsequent potential seeds.
 
-    if (seedIDForMinSimilarity != 0) {
-      seedIDs.push(seedIDForMinSimilarity);
-      _updateTaxonTallies(modeTallyMap, tallyTaxa(effortForMinSimilarity!));
+    if (seedIDForMaxDissimilarity != 0) {
+      seedIDs.push(seedIDForMaxDissimilarity);
+      _updateTaxonTallies(modeTallyMap, tallyTaxa(effortForMaxDissimilarity!));
     } else {
       break; // no more seed locations found meeting the criteria
     }
@@ -258,31 +261,31 @@ function _getNearestClusterIndex(
   //console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
   const effortTallies = Object.values(taxonTallyMap);
 
-  // Collect into indexesForMaxSimilarity the indexes of all clusters
-  // having the greatest similarity to the taxa of the provided effort,
-  // with the taxa having the same similarity to each of these clusters.
+  // Collect into indexesForMinDissimilarity the indexes of all clusters
+  // having the least dissimilarity to the taxa of the provided effort,
+  // with the taxa having the same dissimilarity wrt each of these clusters.
 
-  let maxSimilarity = 0;
-  let indexesForMaxSimilarity: number[] = [];
+  let minDissimilaritySoFar = 0;
+  let indexesForMinDissimilarity: number[] = [];
   for (let i = 0; i < taxaTalliesByCluster.length; ++i) {
-    const similarity = metricCalculator.calc(
+    const dissimilarity = metricCalculator.calc(
       taxaTalliesByCluster[i],
       effortTallies,
       locationEffort
     );
-    if (similarity == maxSimilarity) {
-      indexesForMaxSimilarity.push(i);
-    } else if (similarity > maxSimilarity) {
-      indexesForMaxSimilarity = [i];
-      maxSimilarity = similarity;
+    if (dissimilarity == minDissimilaritySoFar) {
+      indexesForMinDissimilarity.push(i);
+    } else if (dissimilarity < minDissimilaritySoFar) {
+      indexesForMinDissimilarity = [i];
+      minDissimilaritySoFar = dissimilarity;
     }
     // console.log(
     //   '**** -- similarityCount',
     //   similarityCount,
     //   '\n        taxaInCluster',
     //   taxaInCluster,
-    //   '\n        indexesForMaxSimilarityCount',
-    //   indexesForMaxSimilarityCount,
+    //   '\n        indexesForMinDissimilarityCount',
+    //   indexesForMinDissimilarityCount,
     //   '\n        maxSimilarityCount',
     //   maxSimilarityCount
     // );
@@ -295,12 +298,12 @@ function _getNearestClusterIndex(
   // prevent the algorithm for forever randomly reassigning locations.
 
   let nextClusterIndex: number;
-  if (indexesForMaxSimilarity.length == 1) {
-    nextClusterIndex = indexesForMaxSimilarity[0]; // small performance benefit
-  } else if (indexesForMaxSimilarity.includes(currentClusterIndex)) {
+  if (indexesForMinDissimilarity.length == 1) {
+    nextClusterIndex = indexesForMinDissimilarity[0]; // small performance benefit
+  } else if (indexesForMinDissimilarity.includes(currentClusterIndex)) {
     nextClusterIndex = currentClusterIndex;
   } else {
-    nextClusterIndex = Math.floor(Math.random() * indexesForMaxSimilarity.length);
+    nextClusterIndex = Math.floor(Math.random() * indexesForMinDissimilarity.length);
   }
   return nextClusterIndex;
 }

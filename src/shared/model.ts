@@ -141,22 +141,22 @@ export interface DissimilarityMetric {
 }
 
 export enum DissimilarityBasis {
-  // similarity = -1 * abs(no. taxa in test cave minus no. taxa in mode)
-  minusTaxonCount = 'taxon count',
-  // similarity = no. of taxa the test cave has in common with the mode
-  commonTaxa = 'common taxa',
-  // similarity = no. of taxa the test cave has in common with the mode
-  //  minus no. of taxa in the test cave but not in the mode
-  commonMinusDiffTaxa = 'common taxa minus diffs',
-  // similarity = no. of taxa the test cave has in common with the mode
-  //  minus no. of taxa in the test cave but not in the mode
-  //  minus no. of taxa in the mode but not in the test cave
-  commonMinusBothDiffTaxa = 'common taxa minus both diffs',
-  // similarity = no. of taxa in the test cave but not in the mode
-  minusDiffTaxa = 'minus diff taxa',
-  // similarity = -1 * (no. of taxa in the test cave but not in the mode
-  //  plus no. of taxa in the mode but not in the test cave)
-  minusbothDiffTaxa = 'minus both diff taxa'
+  // dissimilarity = abs(no. taxa in test cave minus no. taxa in mode)
+  taxonCountDiff = 'taxon count diff',
+  // dissimilarity = -1 * no. of taxa the test cave has in common with the mode
+  minusCommonTaxa = 'minus common taxa',
+  // dissimilarity = no. of taxa in the test cave but not in the mode
+  //  minus no. of taxa the test cave has in common with the mode
+  diffMinusCommonTaxa = 'test diff minus common taxa',
+  // dissimilarity = no. of taxa in the test cave but not in the mode
+  //  plus no. of taxa in the mode but not in the test cave
+  //  minus no. of taxa the test cave has in common with the mode
+  bothDiffsMinusCommonTaxa = 'both diffs minus common taxa',
+  // dissimilarity = no. of taxa in the test cave but not in the mode
+  diffTaxa = 'test diff taxa',
+  // dissimilarity = no. of taxa in the test cave but not in the mode
+  //  plus no. of taxa in the mode but not in the test cave
+  bothDiffTaxa = 'minus both diff taxa'
 }
 
 export enum DissimilarityTransform {

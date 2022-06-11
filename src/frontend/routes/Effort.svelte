@@ -62,7 +62,7 @@
       loadState = LoadState.loading;
       const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
         metric: {
-          basis: DissimilarityBasis.minusDiffTaxa,
+          basis: DissimilarityBasis.diffTaxa,
           transform: DissimilarityTransform.none,
           weight: TaxonWeight.unweighted
         }, // ignored

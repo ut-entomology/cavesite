@@ -19,12 +19,12 @@ const mutex = new DatabaseMutex();
 let db: DB;
 
 const minusDiffMetric1: DissimilarityMetric = {
-  basis: DissimilarityBasis.minusDiffTaxa,
+  basis: DissimilarityBasis.diffTaxa,
   transform: DissimilarityTransform.none,
   weight: TaxonWeight.unweighted
 };
 const commonMinusDiffMetric1: DissimilarityMetric = {
-  basis: DissimilarityBasis.commonMinusDiffTaxa,
+  basis: DissimilarityBasis.diffMinusCommonTaxa,
   transform: DissimilarityTransform.none,
   weight: TaxonWeight.unweighted
 };
