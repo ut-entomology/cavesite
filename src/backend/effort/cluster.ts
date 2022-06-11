@@ -197,14 +197,6 @@ export async function getSeedLocationIDs(
       // that is most dissimilar to prior seed locations.
 
       for (const locationEffort of locationEfforts) {
-        if (
-          metricCalculator.canShortcutSeeding(maxDissimilaritySoFar, locationEffort)
-        ) {
-          // Short-circuit the search when not possible to beat minSimilarity.
-          // Efforts are retrieved ordered most-diverse first to allow this.
-          skipCount = Infinity;
-          break;
-        }
         if (!seedIDs.includes(locationEffort.locationID)) {
           const locationTaxonTallies = Object.values(tallyTaxa(locationEffort));
           const dissimilarity = metricCalculator.calc(

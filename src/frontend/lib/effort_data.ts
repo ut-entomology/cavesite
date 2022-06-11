@@ -18,22 +18,28 @@ export interface EffortData {
   perPersonVisitPoints: Point[];
 }
 
-export async function loadEffort(
+export async function loadSeeds(
   client: AxiosInstance,
-  minPersonVisits: number,
   seedSpec: SeedSpec
-) {
+): Promise<LocationSpec[]> {
   let res = await client.post('api/cluster/get_seeds', { seedSpec });
   const seeds: LocationSpec[] = res.data.seeds;
   if (!seeds) throw Error('Failed to load seeds');
+  return seeds;
+}
 
-  res = await client.post('api/cluster/get_clusters', {
+export async function loadEffort(
+  client: AxiosInstance,
+  minPersonVisits: number,
+  seedLocations: LocationSpec[]
+) {
+  let res = await client.post('api/cluster/get_clusters', {
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
       transform: DissimilarityTransform.none,
       weight: TaxonWeight.weighted
     },
-    seedIDs: seeds.map((location) => location.locationID),
+    seedIDs: seedLocations.map((location) => location.locationID),
     minSpecies: 0,
     maxSpecies: 10000
   });

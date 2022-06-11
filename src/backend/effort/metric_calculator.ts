@@ -22,13 +22,6 @@ export abstract class DissimilarityCalculator {
     return 0;
   }
 
-  canShortcutSeeding(
-    _maxDissimilaritySoFar: number,
-    _locationEffort: LocationEffort
-  ): boolean {
-    return false;
-  }
-
   abstract calc(
     clusterTaxonMap: TaxonTallyMap,
     locationTaxonTallies: TaxonTally[],
@@ -159,14 +152,6 @@ class DiffTaxaCalculator extends DissimilarityCalculator {
       }
     }
     return this._transform(diffCount);
-  }
-
-  canShortcutSeeding(
-    maxDissimilaritySoFar: number,
-    locationEffort: LocationEffort
-  ): boolean {
-    // TODO: technically, this should be a test of total taxa
-    return locationEffort.totalSpecies <= maxDissimilaritySoFar;
   }
 }
 

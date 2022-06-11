@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import { EffortData, loadEffort } from '../lib/effort_data';
+  import { EffortData, loadSeeds, loadEffort } from '../lib/effort_data';
   import {
     type EffortGraphSpec,
     SpeciesByVisitsGraphSpec,
@@ -42,7 +42,8 @@
 
   enum LoadState {
     idle,
-    loading,
+    determiningSeeds,
+    loadingEffort,
     processing,
     ready
   }
@@ -59,17 +60,24 @@
 
   async function loadPoints() {
     try {
-      loadState = LoadState.loading;
-      const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
+      loadState = LoadState.determiningSeeds;
+      const seedLocations = await loadSeeds($client, {
         metric: {
           basis: DissimilarityBasis.diffTaxa,
           transform: DissimilarityTransform.none,
           weight: TaxonWeight.unweighted
-        }, // ignored
+        },
         maxClusters: 12,
         minSpecies: 0,
         maxSpecies: 10000
       });
+
+      loadState = LoadState.loadingEffort;
+      const effortDataByCluster = await loadEffort(
+        $client,
+        MIN_PERSON_VISITS,
+        seedLocations
+      );
       effortStore.set(effortDataByCluster);
 
       loadState = LoadState.processing;
@@ -191,7 +199,9 @@
 </DataTabRoute>
 
 {#if $clusterStore === null}
-  {#if loadState == LoadState.loading}
+  {#if loadState == LoadState.determiningSeeds}
+    <BusyMessage message="Determining seed locations..." />
+  {:else if loadState == LoadState.loadingEffort}
     <BusyMessage message="Loading points..." />
   {:else if loadState == LoadState.processing}
     <BusyMessage message="Processing points..." />
