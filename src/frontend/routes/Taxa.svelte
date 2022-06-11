@@ -44,6 +44,7 @@
       selectionsTree.removeSelection([], rootNode.spec);
       selectedTaxa.set(selectionsTree.getSelectionSpecs());
     }
+    clearInput();
   };
 
   const cancelClear = () => (requestClearConfirmation = false);
