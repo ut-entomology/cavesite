@@ -29,7 +29,7 @@ export async function loadEffort(
 
   res = await client.post('api/cluster/get_clusters', {
     similarityMetric: {
-      basis: SimilarityBasis.commonMinusDiffSpecies,
+      basis: SimilarityBasis.commonMinusDiffTaxa,
       transform: SimilarityTransform.none,
       weight: TaxonWeight.weighted
     },

@@ -141,10 +141,22 @@ export interface SimilarityMetric {
 }
 
 export enum SimilarityBasis {
-  speciesCount = 'species count', // similar numbers of species
-  commonSpecies = 'common species', // similar kinds of species
-  commonMinusDiffSpecies = 'common species minus diffs', // similar - diff species
-  minuseDiffSpecies = 'minus diff species' // negative of number of different species
+  // similarity = abs(no. taxa in test cave minus no. taxa in mode)
+  taxonCount = 'taxon count',
+  // similarity = no. of taxa the test cave has in common with the mode
+  commonTaxa = 'common taxa',
+  // similarity = no. of taxa the test cave has in common with the mode
+  //  minus no. of taxa in the test cave but not in the mode
+  commonMinusDiffTaxa = 'common taxa minus diffs',
+  // similarity = no. of taxa the test cave has in common with the mode
+  //  minus no. of taxa in the test cave but not in the mode
+  //  minus no. of taxa in the mode but not in the test cave
+  commonMinusBothDiffTaxa = 'common taxa minus both diffs',
+  // similarity = no. of taxa in the test cave but not in the mode
+  minusDiffTaxa = 'minus diff taxa',
+  // similarity = -1 * (no. of taxa in the test cave but not in the mode
+  //  plus no. of taxa in the mode but not in the test cave)
+  minusbothDiffTaxa = 'minus both diff taxa'
 }
 
 export enum SimilarityTransform {

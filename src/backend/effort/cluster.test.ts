@@ -19,7 +19,7 @@ const mutex = new DatabaseMutex();
 let db: DB;
 
 const metric1: SimilarityMetric = {
-  basis: SimilarityBasis.commonMinusDiffSpecies,
+  basis: SimilarityBasis.commonMinusDiffTaxa,
   transform: SimilarityTransform.none,
   weight: TaxonWeight.unweighted
 };

@@ -61,7 +61,7 @@
       loadState = LoadState.loading;
       const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
         similarityMetric: {
-          basis: SimilarityBasis.commonSpecies,
+          basis: SimilarityBasis.commonTaxa,
           transform: SimilarityTransform.none,
           weight: TaxonWeight.weighted
         }, // ignored

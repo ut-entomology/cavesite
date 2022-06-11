@@ -53,9 +53,9 @@ export abstract class SimilarityCalculator {
 
   static create(metric: SimilarityMetric): SimilarityCalculator {
     switch (metric.basis) {
-      case SimilarityBasis.commonSpecies:
+      case SimilarityBasis.commonTaxa:
         return new CommonSpeciesCalculator(metric);
-      case SimilarityBasis.commonMinusDiffSpecies:
+      case SimilarityBasis.commonMinusDiffTaxa:
         return new CommonMinusDiffSpeciesCalculator(metric);
       default:
         throw Error(metric + ' not yet supported');
@@ -75,7 +75,7 @@ class CommonSpeciesCalculator extends SimilarityCalculator {
         similarityCount += this._weights[tally.rankIndex];
       }
     }
-    return similarityCount;
+    return this._transform(similarityCount);
   }
 }
 
@@ -93,6 +93,6 @@ class CommonMinusDiffSpeciesCalculator extends SimilarityCalculator {
         similarityCount += this._weights[tally.rankIndex];
       }
     }
-    return similarityCount;
+    return this._transform(similarityCount);
   }
 }
