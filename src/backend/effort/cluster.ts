@@ -3,6 +3,7 @@ import { LocationEffort } from '../effort/location_effort';
 import { type SeedSpec, DissimilarityMetric } from '../../shared/model';
 import {
   type TaxonTallyMap,
+  type ClusterInfo,
   DissimilarityCalculator,
   tallyTaxa
 } from './metric_calculator';
@@ -27,7 +28,7 @@ export async function getClusteredLocationIDs(
 
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];
-  let taxaTalliesByCluster: TaxonTallyMap[] = [];
+  let clusterInfos: ClusterInfo[] = [];
   let nextTaxonTalliesByCluster: TaxonTallyMap[] = [];
 
   // Establish the initial clusters based on the seed locations.
@@ -36,7 +37,12 @@ export async function getClusteredLocationIDs(
   for (let i = 0; i < seedIDs.length; ++i) {
     const seedEffort = seedEfforts[i];
     clusterByLocationID[seedEffort.locationID] = i;
-    taxaTalliesByCluster.push(tallyTaxa(seedEffort));
+    const taxonTallyMap = tallyTaxa(seedEffort);
+    clusterInfos.push({
+      taxonTallyMap,
+      initialScore: metricCalculator.initialClusterScore(seedEffort)
+    });
+    nextTaxonTalliesByCluster.push(Object.assign({}, taxonTallyMap)); // copy
   }
 
   // Provide an initial assignment of each location to its nearest cluster,
@@ -49,15 +55,12 @@ export async function getClusteredLocationIDs(
     maxSpecies,
     skipCount
   );
-  for (const seedTaxa of taxaTalliesByCluster) {
-    nextTaxonTalliesByCluster.push(Object.assign({}, seedTaxa)); // copy
-  }
   while (locationEfforts.length > 0) {
     for (const locationEffort of locationEfforts) {
       if (!seedIDs.includes(locationEffort.locationID)) {
         const effortTaxaTallies = tallyTaxa(locationEffort);
         const nearestClusterIndex = _getNearestClusterIndex(
-          taxaTalliesByCluster,
+          clusterInfos,
           effortTaxaTallies,
           locationEffort,
           -1, // force assignment to a cluster
@@ -87,9 +90,11 @@ export async function getClusteredLocationIDs(
   while (reassigned || firstPass) {
     firstPass = false;
     reassigned = false;
-    taxaTalliesByCluster = nextTaxonTalliesByCluster;
+    for (let i = 0; i < clusterInfos.length; ++i) {
+      clusterInfos[i].taxonTallyMap = nextTaxonTalliesByCluster[i];
+    }
     nextTaxonTalliesByCluster = [];
-    taxaTalliesByCluster.forEach((_) => nextTaxonTalliesByCluster.push({}));
+    clusterInfos.forEach((_) => nextTaxonTalliesByCluster.push({}));
     //console.log('**** initial cluster taxa', taxaTalliesByCluster);
 
     // Examine every location for possible assignment to a different cluster, all
@@ -107,7 +112,7 @@ export async function getClusteredLocationIDs(
         const effortTaxaTallies = tallyTaxa(locationEffort);
         const currentClusterIndex = clusterByLocationID[locationEffort.locationID];
         const nearestClusterIndex = _getNearestClusterIndex(
-          taxaTalliesByCluster,
+          clusterInfos,
           effortTaxaTallies,
           locationEffort,
           currentClusterIndex,
@@ -141,7 +146,7 @@ export async function getClusteredLocationIDs(
 
   // Convert sparse array to arrays of location IDs indexed by cluster index.
 
-  const locationIDsByCluster: number[][] = taxaTalliesByCluster.map((_) => []);
+  const locationIDsByCluster: number[][] = clusterInfos.map((_) => []);
   for (const [locationID, clusterIndex] of Object.entries(clusterByLocationID)) {
     locationIDsByCluster[clusterIndex].push(parseInt(locationID));
   }
@@ -153,7 +158,7 @@ export async function getSeedLocationIDs(
   seedSpec: SeedSpec
 ): Promise<number[]> {
   const seedIDs: number[] = [];
-  const modeTallyMap: TaxonTallyMap = {};
+  const allSeedsTallyMap: TaxonTallyMap = {};
 
   // Find each seed location, up to the maximum seeds allowed.
 
@@ -176,7 +181,7 @@ export async function getSeedLocationIDs(
     const firstSeedLocation = locationEfforts[0];
     if (seedIDs.length == 0) {
       seedIDs.push(firstSeedLocation.locationID);
-      _updateTaxonTallies(modeTallyMap, tallyTaxa(firstSeedLocation));
+      _updateTaxonTallies(allSeedsTallyMap, tallyTaxa(firstSeedLocation));
       if (seedSpec.maxClusters == 1) {
         // continuing from here could add a 2nd cluster within this loop iteration
         return seedIDs;
@@ -192,6 +197,10 @@ export async function getSeedLocationIDs(
     let seedIDForMaxDissimilarity = 0;
     let effortForMaxDissimilarity: LocationEffort;
 
+    const _TEMP_clusterInfo: ClusterInfo = {
+      taxonTallyMap: allSeedsTallyMap,
+      initialScore: 0
+    };
     while (locationEfforts.length > 0) {
       // Process efforts of the batch, looking for the next seed location
       // that is most dissimilar to prior seed locations.
@@ -200,7 +209,7 @@ export async function getSeedLocationIDs(
         if (!seedIDs.includes(locationEffort.locationID)) {
           const locationTaxonMap = tallyTaxa(locationEffort);
           const dissimilarity = metricCalculator.calc(
-            modeTallyMap,
+            _TEMP_clusterInfo,
             locationTaxonMap,
             locationEffort
           );
@@ -234,7 +243,7 @@ export async function getSeedLocationIDs(
 
     if (seedIDForMaxDissimilarity != 0) {
       seedIDs.push(seedIDForMaxDissimilarity);
-      _updateTaxonTallies(modeTallyMap, tallyTaxa(effortForMaxDissimilarity!));
+      _updateTaxonTallies(allSeedsTallyMap, tallyTaxa(effortForMaxDissimilarity!));
     } else {
       break; // no more seed locations found meeting the criteria
     }
@@ -244,7 +253,7 @@ export async function getSeedLocationIDs(
 }
 
 function _getNearestClusterIndex(
-  taxaTalliesByCluster: TaxonTallyMap[],
+  clusterInfos: ClusterInfo[],
   taxonTallyMap: TaxonTallyMap,
   locationEffort: LocationEffort,
   currentClusterIndex: number,
@@ -258,9 +267,9 @@ function _getNearestClusterIndex(
 
   let minDissimilaritySoFar = 0;
   let indexesForMinDissimilarity: number[] = [];
-  for (let i = 0; i < taxaTalliesByCluster.length; ++i) {
+  for (let i = 0; i < clusterInfos.length; ++i) {
     const dissimilarity = metricCalculator.calc(
-      taxaTalliesByCluster[i],
+      clusterInfos[i],
       taxonTallyMap,
       locationEffort
     );

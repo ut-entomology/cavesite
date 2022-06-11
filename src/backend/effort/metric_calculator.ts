@@ -14,16 +14,25 @@ export interface TaxonTally {
 }
 export type TaxonTallyMap = Record<string, TaxonTally>;
 
+export interface ClusterInfo {
+  taxonTallyMap: TaxonTallyMap;
+  initialScore: number;
+}
+
 export abstract class DissimilarityCalculator {
   protected _weights: number[];
   protected _transform: (from: number) => number;
+
+  initialClusterScore(_locationEffort: LocationEffort): number {
+    return 0;
+  }
 
   greatestLowerDissimilarity(_locationEffort: LocationEffort): number {
     return 0;
   }
 
   abstract calc(
-    clusterTaxonMap: TaxonTallyMap,
+    clusterInfo: ClusterInfo,
     locationTaxonMap: TaxonTallyMap,
     locationEffort: LocationEffort
   ): number;
@@ -74,17 +83,79 @@ export abstract class DissimilarityCalculator {
 
   static create(metric: DissimilarityMetric): DissimilarityCalculator {
     switch (metric.basis) {
+      case DissimilarityBasis.visitCountDiff:
+        return new VisitCountDiffCalculator(metric);
+      case DissimilarityBasis.personVisitCountDiff:
+        return new PersonVisitCountDiffCalculator(metric);
+      case DissimilarityBasis.taxonCountDiff:
+        return new TaxonCountDiffCalculator(metric);
       case DissimilarityBasis.minusCommonTaxa:
         return new MinusCommonTaxaCalculator(metric);
       case DissimilarityBasis.diffMinusCommonTaxa:
         return new DiffMinusCommonTaxaCalculator(metric);
+      case DissimilarityBasis.bothDiffsMinusCommonTaxa:
+        return new BothDiffsMinusCommonTaxaCalculator(metric);
       case DissimilarityBasis.diffTaxa:
         return new DiffTaxaCalculator(metric);
       case DissimilarityBasis.bothDiffTaxa:
-        return new BothDiffTaxaCalculator(metric);
+        return new BothDiffsTaxaCalculator(metric);
       default:
         throw Error(metric + ' not yet supported');
     }
+  }
+}
+
+class VisitCountDiffCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
+    super(metric);
+  }
+
+  initialClusterScore(locationEffort: LocationEffort): number {
+    return locationEffort.totalVisits;
+  }
+
+  calc(
+    clusterInfo: ClusterInfo,
+    _locationTaxonMap: TaxonTallyMap,
+    locationEffort: LocationEffort
+  ): number {
+    return Math.abs(locationEffort.totalVisits - clusterInfo.initialScore);
+  }
+}
+
+class PersonVisitCountDiffCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
+    super(metric);
+  }
+
+  initialClusterScore(locationEffort: LocationEffort): number {
+    return locationEffort.totalPersonVisits;
+  }
+
+  calc(
+    clusterInfo: ClusterInfo,
+    _locationTaxonMap: TaxonTallyMap,
+    locationEffort: LocationEffort
+  ): number {
+    return Math.abs(locationEffort.totalPersonVisits - clusterInfo.initialScore);
+  }
+}
+
+class TaxonCountDiffCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
+    super(metric);
+  }
+
+  initialClusterScore(locationEffort: LocationEffort): number {
+    return Object.keys(tallyTaxa(locationEffort)).length;
+  }
+
+  calc(
+    clusterInfo: ClusterInfo,
+    locationTaxonMap: TaxonTallyMap,
+    _locationEffort: LocationEffort
+  ): number {
+    return Math.abs(Object.keys(locationTaxonMap).length - clusterInfo.initialScore);
   }
 }
 
@@ -94,17 +165,21 @@ class MinusCommonTaxaCalculator extends DissimilarityCalculator {
   }
 
   greatestLowerDissimilarity(locationEffort: LocationEffort): number {
-    return this.calc({}, tallyTaxa(locationEffort), locationEffort);
+    return this.calc(
+      { taxonTallyMap: {}, initialScore: 0 },
+      tallyTaxa(locationEffort),
+      locationEffort
+    );
   }
 
   calc(
-    clusterTaxonMap: TaxonTallyMap,
+    clusterInfo: ClusterInfo,
     locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let similarityCount = 0;
     for (const taxonTally of Object.values(locationTaxonMap)) {
-      if (clusterTaxonMap[taxonTally.taxonUnique] !== undefined) {
+      if (clusterInfo.taxonTallyMap[taxonTally.taxonUnique] !== undefined) {
         similarityCount += this._weights[taxonTally.rankIndex];
       }
     }
@@ -118,16 +193,45 @@ class DiffMinusCommonTaxaCalculator extends DissimilarityCalculator {
   }
 
   calc(
-    clusterTaxonMap: TaxonTallyMap,
+    clusterInfo: ClusterInfo,
     locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let dissimilarityCount = 0;
     for (const taxonTally of Object.values(locationTaxonMap)) {
-      if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
+      if (clusterInfo.taxonTallyMap[taxonTally.taxonUnique] === undefined) {
         dissimilarityCount += this._weights[taxonTally.rankIndex];
       } else {
         dissimilarityCount -= this._weights[taxonTally.rankIndex];
+      }
+    }
+    return dissimilarityCount < 0
+      ? -this._transform(-dissimilarityCount)
+      : this._transform(dissimilarityCount);
+  }
+}
+
+class BothDiffsMinusCommonTaxaCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
+    super(metric);
+  }
+
+  calc(
+    clusterInfo: ClusterInfo,
+    locationTaxonMap: TaxonTallyMap,
+    _locationEffort: LocationEffort
+  ): number {
+    let dissimilarityCount = 0;
+    for (const taxonTally of Object.values(locationTaxonMap)) {
+      if (clusterInfo.taxonTallyMap[taxonTally.taxonUnique] === undefined) {
+        dissimilarityCount += this._weights[taxonTally.rankIndex];
+      } else {
+        dissimilarityCount -= this._weights[taxonTally.rankIndex];
+      }
+    }
+    for (const taxonTally of Object.values(clusterInfo.taxonTallyMap)) {
+      if (locationTaxonMap[taxonTally.taxonUnique] === undefined) {
+        dissimilarityCount += this._weights[taxonTally.rankIndex];
       }
     }
     return dissimilarityCount < 0
@@ -142,13 +246,13 @@ class DiffTaxaCalculator extends DissimilarityCalculator {
   }
 
   calc(
-    clusterTaxonMap: TaxonTallyMap,
+    clusterInfo: ClusterInfo,
     locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let diffCount = 0;
     for (const taxonTally of Object.values(locationTaxonMap)) {
-      if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
+      if (clusterInfo.taxonTallyMap[taxonTally.taxonUnique] === undefined) {
         diffCount += this._weights[taxonTally.rankIndex];
       }
     }
@@ -156,23 +260,23 @@ class DiffTaxaCalculator extends DissimilarityCalculator {
   }
 }
 
-class BothDiffTaxaCalculator extends DissimilarityCalculator {
+class BothDiffsTaxaCalculator extends DissimilarityCalculator {
   constructor(metric: DissimilarityMetric) {
     super(metric);
   }
 
   calc(
-    clusterTaxonMap: TaxonTallyMap,
+    clusterInfo: ClusterInfo,
     locationTaxonMap: TaxonTallyMap,
     _locationEffort: LocationEffort
   ): number {
     let diffCount = 0;
     for (const taxonTally of Object.values(locationTaxonMap)) {
-      if (clusterTaxonMap[taxonTally.taxonUnique] === undefined) {
+      if (clusterInfo.taxonTallyMap[taxonTally.taxonUnique] === undefined) {
         diffCount += this._weights[taxonTally.rankIndex];
       }
     }
-    for (const taxonTally of Object.values(clusterTaxonMap)) {
+    for (const taxonTally of Object.values(clusterInfo.taxonTallyMap)) {
       if (locationTaxonMap[taxonTally.taxonUnique] === undefined) {
         diffCount += this._weights[taxonTally.rankIndex];
       }
