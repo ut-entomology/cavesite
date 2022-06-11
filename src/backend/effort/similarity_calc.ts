@@ -58,8 +58,20 @@ export abstract class SimilarityCalculator {
         case TaxonWeight.weighted:
           this._weights[i] = i;
           break;
+        case TaxonWeight.halfAgainWeight:
+          this._weights[i] = 1.5 * i;
+          break;
         case TaxonWeight.doubleWeight:
           this._weights[i] = 2 * i;
+          break;
+        case TaxonWeight.onlySpecies:
+          this._weights[i] = i >= taxonRanks.length - 2 ? 1 : 0;
+          break;
+        case TaxonWeight.onlyGenera:
+          this._weights[i] = i == taxonRanks.length - 3 ? 1 : 0;
+          break;
+        case TaxonWeight.onlyGeneraAndSpecies:
+          this._weights[i] = i >= taxonRanks.length - 3 ? 1 : 0;
           break;
       }
     }

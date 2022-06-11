@@ -141,8 +141,8 @@ export interface SimilarityMetric {
 }
 
 export enum SimilarityBasis {
-  // similarity = abs(no. taxa in test cave minus no. taxa in mode)
-  taxonCount = 'taxon count',
+  // similarity = -1 * abs(no. taxa in test cave minus no. taxa in mode)
+  minusTaxonCount = 'taxon count',
   // similarity = no. of taxa the test cave has in common with the mode
   commonTaxa = 'common taxa',
   // similarity = no. of taxa the test cave has in common with the mode
@@ -163,13 +163,17 @@ export enum SimilarityTransform {
   none = 'none',
   ln = 'ln', // natural log
   sqrt = 'sqrt', // square root
-  to1_5 = 'to 1.5 power'
+  to1_5 = '^1.5'
 }
 
 export enum TaxonWeight {
-  weighted = 'weighted',
   unweighted = 'unweighted',
-  doubleWeight = 'doubleWeight'
+  weighted = 'weighted',
+  halfAgainWeight = '1.5x weight',
+  doubleWeight = '2x weight',
+  onlySpecies = 'only species',
+  onlyGenera = 'only genera',
+  onlyGeneraAndSpecies = 'only genera + species'
 }
 
 export interface SeedSpec {
