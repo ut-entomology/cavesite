@@ -1,22 +1,22 @@
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
-import { taxonRanks, TaxonWeight, type SeedSpec } from '../../shared/model';
+import {
+  TaxonWeight,
+  type SeedSpec,
+  SimilarityMetric,
+  SimilarityTransform
+} from '../../shared/model';
+import { type TaxonTallyMap, SimilarityCalculator } from './similarity_calc';
 
 // TODO: Find a memory locate that occasionally bombs node.js, which
 // I suspect started occurring after creating this module.
 
 const EFFORT_BATCH_SIZE = 100;
 
-interface TaxonTally {
-  taxonUnique: string;
-  rankIndex: number;
-  count: number;
-}
-type TaxonTallyMap = Record<string, TaxonTally>;
-
 export async function getClusteredLocationIDs(
   db: DB,
-  //similarityMetric: SimilarityMetric,
+  similarityMetric: SimilarityMetric,
+  similarityTransform: SimilarityTransform,
   taxonWeight: TaxonWeight | null,
   seedIDs: number[],
   minSpecies: number,
@@ -26,7 +26,11 @@ export async function getClusteredLocationIDs(
   //   '**** #### starting getClusteredLocationIDs ###################################'
   // );
 
-  const taxonWeights = _getTaxonWeights(taxonWeight!);
+  const similarityCalculator = SimilarityCalculator.create(
+    similarityMetric,
+    similarityTransform,
+    taxonWeight
+  );
 
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];
@@ -58,7 +62,7 @@ export async function getClusteredLocationIDs(
           taxaTalliesByCluster,
           effortTaxaTallies,
           -1, // force assignment to a cluster
-          taxonWeights
+          similarityCalculator
         );
         clusterByLocationID[effort.locationID] = nearestClusterIndex;
         _updateTaxonTallies(
@@ -97,7 +101,7 @@ export async function getClusteredLocationIDs(
           taxaTalliesByCluster,
           effortTaxaTallies,
           currentClusterIndex,
-          taxonWeights
+          similarityCalculator
         );
         if (nearestClusterIndex != currentClusterIndex) {
           clusterByLocationID[effort.locationID] = nearestClusterIndex;
@@ -241,32 +245,27 @@ function _getNearestClusterIndex(
   taxaTalliesByCluster: TaxonTallyMap[],
   taxonTallyMap: TaxonTallyMap,
   currentClusterIndex: number,
-  taxonWeights: number[]
+  similarityCalculator: SimilarityCalculator
 ): number {
   //console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
   const effortTallies = Object.values(taxonTallyMap);
 
-  // Collect into indexesForMaxSimilarityCount the indexes of all clusters
+  // Collect into indexesForMaxSimilarity the indexes of all clusters
   // having the greatest similarity to the taxa of the provided effort,
   // with the taxa having the same similarity to each of these clusters.
 
-  let maxSimilarityCount = 0;
-  let indexesForMaxSimilarityCount: number[] = [];
+  let maxSimilarity = 0;
+  let indexesForMaxSimilarity: number[] = [];
   for (let i = 0; i < taxaTalliesByCluster.length; ++i) {
-    const taxaInCluster = taxaTalliesByCluster[i];
-    let similarityCount = 0;
-    for (const tally of effortTallies) {
-      if (taxaInCluster[tally.taxonUnique] === undefined) {
-        similarityCount -= taxonWeights[tally.rankIndex];
-      } else {
-        similarityCount += taxonWeights[tally.rankIndex];
-      }
-    }
-    if (similarityCount == maxSimilarityCount) {
-      indexesForMaxSimilarityCount.push(i);
-    } else if (similarityCount > maxSimilarityCount) {
-      indexesForMaxSimilarityCount = [i];
-      maxSimilarityCount = similarityCount;
+    const similarity = similarityCalculator.calc(
+      taxaTalliesByCluster[i],
+      effortTallies
+    );
+    if (similarity == maxSimilarity) {
+      indexesForMaxSimilarity.push(i);
+    } else if (similarity > maxSimilarity) {
+      indexesForMaxSimilarity = [i];
+      maxSimilarity = similarity;
     }
     // console.log(
     //   '**** -- similarityCount',
@@ -287,12 +286,12 @@ function _getNearestClusterIndex(
   // prevent the algorithm for forever randomly reassigning locations.
 
   let nextClusterIndex: number;
-  if (indexesForMaxSimilarityCount.length == 1) {
-    nextClusterIndex = indexesForMaxSimilarityCount[0]; // small performance benefit
-  } else if (indexesForMaxSimilarityCount.includes(currentClusterIndex)) {
+  if (indexesForMaxSimilarity.length == 1) {
+    nextClusterIndex = indexesForMaxSimilarity[0]; // small performance benefit
+  } else if (indexesForMaxSimilarity.includes(currentClusterIndex)) {
     nextClusterIndex = currentClusterIndex;
   } else {
-    nextClusterIndex = Math.floor(Math.random() * indexesForMaxSimilarityCount.length);
+    nextClusterIndex = Math.floor(Math.random() * indexesForMaxSimilarity.length);
   }
   return nextClusterIndex;
 }
@@ -310,24 +309,6 @@ async function _getNextBatchToCluster(
     skipCount,
     EFFORT_BATCH_SIZE
   );
-}
-
-function _getTaxonWeights(taxonWeight: TaxonWeight): number[] {
-  const weights: number[] = [];
-  for (let i = 0; i < taxonRanks.length; ++i) {
-    switch (taxonWeight) {
-      case TaxonWeight.unweighted:
-        weights[i] = 1;
-        break;
-      case TaxonWeight.weighted:
-        weights[i] = i;
-        break;
-      case TaxonWeight.doubleWeight:
-        weights[i] = 2 * i;
-        break;
-    }
-  }
-  return weights;
 }
 
 function _tallyTaxa(effort: LocationEffort): TaxonTallyMap {

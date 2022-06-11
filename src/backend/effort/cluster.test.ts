@@ -6,8 +6,9 @@ import { type EffortData, LocationEffort } from './location_effort';
 import {
   LocationRank,
   SimilarityMetric,
-  type SeedSpec,
-  TaxonWeight
+  SimilarityTransform,
+  TaxonWeight,
+  type SeedSpec
 } from '../../shared/model';
 import * as cluster from './cluster';
 
@@ -220,6 +221,8 @@ async function _getClusters(
 ): Promise<number[][]> {
   return await cluster.getClusteredLocationIDs(
     db,
+    SimilarityMetric.commonMinusDiffSpecies,
+    SimilarityTransform.none,
     taxonWeight,
     seedLocationIDs,
     0,

@@ -136,11 +136,16 @@ export function pointSorter(a: number[], b: number[]) {
 
 export enum SimilarityMetric {
   speciesCount = 'species count', // similar numbers of species
-  logSpeciesCount = 'log species count', // similar log of number of species
   commonSpecies = 'common species', // similar kinds of species
   commonMinusDiffSpecies = 'common species minus diffs', // similar - diff species
-  minuseDiffSpecies = 'minus diff species', // negative of number of different species
-  minusLogDiffSpecies = 'minus log diff species' // neg. of log of no. of diff species
+  minuseDiffSpecies = 'minus diff species' // negative of number of different species
+}
+
+export enum SimilarityTransform {
+  none = 'none',
+  ln = 'ln', // natural log
+  sqrt = 'sqrt', // square root
+  to1_5 = 'to 1.5 power'
 }
 
 export enum TaxonWeight {

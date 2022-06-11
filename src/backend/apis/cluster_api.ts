@@ -5,7 +5,11 @@ import { getDB } from '../integrations/postgres';
 import { Location } from '../model/location';
 import * as cluster from '../effort/cluster';
 import { toLocationSpec } from './location_api';
-import { type SeedSpec } from '../../shared/model';
+import {
+  type SeedSpec,
+  SimilarityMetric,
+  SimilarityTransform
+} from '../../shared/model';
 
 export const router = Router();
 
@@ -27,6 +31,8 @@ router.post('/get_clusters', async (req: Request, res) => {
   const maxSpecies = req.body.maxSpecies;
   const clusters = await cluster.getClusteredLocationIDs(
     getDB(),
+    SimilarityMetric.commonMinusDiffSpecies,
+    SimilarityTransform.none,
     taxonWeight,
     seedIDs,
     minSpecies,
