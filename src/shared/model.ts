@@ -137,7 +137,7 @@ export function pointSorter(a: number[], b: number[]) {
 export interface SimilarityMetric {
   basis: SimilarityBasis;
   transform: SimilarityTransform;
-  weight: TaxonWeight | null;
+  weight: TaxonWeight;
 }
 
 export enum SimilarityBasis {

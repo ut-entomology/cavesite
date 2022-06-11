@@ -6,8 +6,8 @@
 
   export let title: string;
   export let config: EffortGraphSpec;
-  export let models: FittedModel[];
-  export let modelPlots: Point[][];
+  export let models: FittedModel[] = [];
+  export let modelPlots: Point[][] = [];
 </script>
 
 <Scatter

@@ -37,6 +37,7 @@
 
   $pageName = 'Collection Effort';
 
+  const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
 
   enum LoadState {
@@ -61,9 +62,9 @@
       loadState = LoadState.loading;
       const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
         similarityMetric: {
-          basis: SimilarityBasis.commonTaxa,
+          basis: SimilarityBasis.minusDiffTaxa,
           transform: SimilarityTransform.none,
-          weight: TaxonWeight.weighted
+          weight: TaxonWeight.unweighted
         }, // ignored
         maxClusters: 12,
         minSpecies: 0,
@@ -151,26 +152,39 @@
       >
     {:else}
       {#each $clusterStore as clusterData, i}
+        {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
         {@const graphData = _getGraphData(clusterData)}
-        {@const powerFit = new PowerModel('FF0088', graphData.points)}
-        {@const quadraticFit = new QuadraticModel('00DCD8', graphData.points)}
-        <div class="row mt-3 mb-1">
-          <div class="col" style="height: 350px">
-            <EffortGraph
-              title={($clusterStore.length > 1 ? `#${i + 1}: ` : '') +
-                graphData.graphTitle}
-              config={graphData}
-              models={[powerFit, quadraticFit]}
-              modelPlots={[powerFit.points, quadraticFit.points]}
-            />
+        {@const graphTitle =
+          (multipleClusters ? `#${i + 1}: ` : '') + graphData.graphTitle}
+        {#if graphData.points.length >= MIN_POINTS_TO_REGRESS}
+          {@const powerFit = new PowerModel('FF0088', graphData.points)}
+          {@const quadraticFit = new QuadraticModel('00DCD8', graphData.points)}
+          <div class="row mt-3 mb-1">
+            <div class="col" style="height: 350px">
+              <EffortGraph
+                title={graphTitle}
+                config={graphData}
+                models={[powerFit, quadraticFit]}
+                modelPlots={[powerFit.points, quadraticFit.points]}
+              />
+            </div>
           </div>
-        </div>
-        <div class="row mb-3 gx-0 ms-4">
-          <div class="col-sm-6"><ResidualsPlot model={powerFit} /></div>
-          <div class="col-sm-6"><ResidualsPlot model={quadraticFit} /></div>
-        </div>
-        <ModelStats model={powerFit} />
-        <ModelStats model={quadraticFit} />
+          <div class="row mb-3 gx-0 ms-4">
+            <div class="col-sm-6"><ResidualsPlot model={powerFit} /></div>
+            <div class="col-sm-6"><ResidualsPlot model={quadraticFit} /></div>
+          </div>
+          <ModelStats model={powerFit} />
+          <ModelStats model={quadraticFit} />
+        {:else}
+          <div class="row mt-3 mb-1">
+            <div class="col" style="height: 350px">
+              <EffortGraph title={graphTitle} config={graphData} />
+            </div>
+          </div>
+          <div class="row mb-3 gx-0 ms-4">
+            <div class="col-sm-6">Too few points to perform a regression.</div>
+          </div>
+        {/if}
       {/each}
     {/if}
   </div>

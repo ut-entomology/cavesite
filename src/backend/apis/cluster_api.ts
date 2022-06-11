@@ -13,7 +13,7 @@ router.post('/get_seeds', async (req: Request, res) => {
   const seedSpec: SeedSpec = req.body.seedSpec;
   // TODO: validate seedSpec
   let seedIDs: number[];
-  seedIDs = await cluster.getDiverseSeeds(getDB(), seedSpec);
+  seedIDs = await cluster.getSeedLocationIDs(getDB(), seedSpec);
   const locations = await Location.getByIDs(getDB(), seedIDs);
   return res
     .status(StatusCodes.OK)

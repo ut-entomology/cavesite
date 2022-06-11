@@ -18,7 +18,12 @@ jest.setTimeout(20 * 60 * 1000); // debuggin timeout
 const mutex = new DatabaseMutex();
 let db: DB;
 
-const metric1: SimilarityMetric = {
+const minusDiffMetric1: SimilarityMetric = {
+  basis: SimilarityBasis.minusDiffTaxa,
+  transform: SimilarityTransform.none,
+  weight: TaxonWeight.unweighted
+};
+const commonMinusDiffMetric1: SimilarityMetric = {
   basis: SimilarityBasis.commonMinusDiffTaxa,
   transform: SimilarityTransform.none,
   weight: TaxonWeight.unweighted
@@ -38,7 +43,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Select the most diverse seed location.
 
   let seedSpec: SeedSpec = {
-    similarityMetric: metric1,
+    similarityMetric: minusDiffMetric1,
     maxClusters: 1,
     minSpecies: 0,
     maxSpecies: 10000
@@ -47,7 +52,7 @@ test('selecting seed locations by taxon diversity', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p1'
   });
-  let seedIDs = await cluster.getDiverseSeeds(db, seedSpec);
+  let seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([1]);
 
   await _addEffort(2, 5, {
@@ -56,7 +61,7 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f2',
     genusNames: 'f1g1|f1g2|f1g3|f2g4|f2g5'
   });
-  seedIDs = await cluster.getDiverseSeeds(db, seedSpec);
+  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2]);
 
   await _addEffort(3, 3, {
@@ -65,18 +70,18 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1',
     genusNames: 'f1g1|f1g2|f1g3'
   });
-  seedIDs = await cluster.getDiverseSeeds(db, seedSpec);
+  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2]);
 
   // Attempt to select 2 seeds when all are subsets of one of them.
 
   seedSpec = {
-    similarityMetric: metric1,
+    similarityMetric: minusDiffMetric1,
     maxClusters: 2,
     minSpecies: 0,
     maxSpecies: 10000
   };
-  seedIDs = await cluster.getDiverseSeeds(db, seedSpec);
+  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2]);
 
   // Add 2nd- and 3rd-most diverse locations.
@@ -99,13 +104,13 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f3',
     genusNames: 'f1g1|f1g2|f3g1'
   });
-  seedIDs = await cluster.getDiverseSeeds(db, seedSpec);
+  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2, 5]);
 
   // Selection order changes with adding a late most-diverse effort.
 
   seedSpec = {
-    similarityMetric: metric1,
+    similarityMetric: minusDiffMetric1,
     maxClusters: 3,
     minSpecies: 0,
     maxSpecies: 10000
@@ -116,7 +121,7 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f2|f3|f4',
     genusNames: 'f1g1|f1g2|f2g1|f4g1|f4g2'
   });
-  seedIDs = await cluster.getDiverseSeeds(db, seedSpec);
+  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([7, 2, 5]);
 });
 
@@ -220,7 +225,13 @@ async function _createLocation(locationID: number) {
 }
 
 async function _getClusters(seedLocationIDs: number[]): Promise<number[][]> {
-  return await cluster.getClusteredLocationIDs(db, metric1, seedLocationIDs, 0, 100);
+  return await cluster.getClusteredLocationIDs(
+    db,
+    commonMinusDiffMetric1,
+    seedLocationIDs,
+    0,
+    100
+  );
 }
 
 function _toEffortData(data: Partial<EffortData>): EffortData {
