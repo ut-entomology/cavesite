@@ -27,8 +27,8 @@
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
-    SimilarityBasis,
-    SimilarityTransform,
+    DissimilarityBasis,
+    DissimilarityTransform,
     TaxonWeight
   } from '../../shared/model';
   import { client } from '../stores/client';
@@ -61,9 +61,9 @@
     try {
       loadState = LoadState.loading;
       const effortDataByCluster = await loadEffort($client, MIN_PERSON_VISITS, {
-        similarityMetric: {
-          basis: SimilarityBasis.minusDiffTaxa,
-          transform: SimilarityTransform.none,
+        metric: {
+          basis: DissimilarityBasis.minusDiffTaxa,
+          transform: DissimilarityTransform.none,
           weight: TaxonWeight.unweighted
         }, // ignored
         maxClusters: 12,

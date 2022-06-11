@@ -5,9 +5,9 @@ import { type TaxonTallies } from './location_visit';
 import { type EffortData, LocationEffort } from './location_effort';
 import {
   LocationRank,
-  SimilarityBasis,
-  SimilarityMetric,
-  SimilarityTransform,
+  DissimilarityBasis,
+  DissimilarityMetric,
+  DissimilarityTransform,
   TaxonWeight,
   type SeedSpec
 } from '../../shared/model';
@@ -18,14 +18,14 @@ jest.setTimeout(20 * 60 * 1000); // debuggin timeout
 const mutex = new DatabaseMutex();
 let db: DB;
 
-const minusDiffMetric1: SimilarityMetric = {
-  basis: SimilarityBasis.minusDiffTaxa,
-  transform: SimilarityTransform.none,
+const minusDiffMetric1: DissimilarityMetric = {
+  basis: DissimilarityBasis.minusDiffTaxa,
+  transform: DissimilarityTransform.none,
   weight: TaxonWeight.unweighted
 };
-const commonMinusDiffMetric1: SimilarityMetric = {
-  basis: SimilarityBasis.commonMinusDiffTaxa,
-  transform: SimilarityTransform.none,
+const commonMinusDiffMetric1: DissimilarityMetric = {
+  basis: DissimilarityBasis.commonMinusDiffTaxa,
+  transform: DissimilarityTransform.none,
   weight: TaxonWeight.unweighted
 };
 
@@ -43,7 +43,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Select the most diverse seed location.
 
   let seedSpec: SeedSpec = {
-    similarityMetric: minusDiffMetric1,
+    metric: minusDiffMetric1,
     maxClusters: 1,
     minSpecies: 0,
     maxSpecies: 10000
@@ -76,7 +76,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Attempt to select 2 seeds when all are subsets of one of them.
 
   seedSpec = {
-    similarityMetric: minusDiffMetric1,
+    metric: minusDiffMetric1,
     maxClusters: 2,
     minSpecies: 0,
     maxSpecies: 10000
@@ -110,7 +110,7 @@ test('selecting seed locations by taxon diversity', async () => {
   // Selection order changes with adding a late most-diverse effort.
 
   seedSpec = {
-    similarityMetric: minusDiffMetric1,
+    metric: minusDiffMetric1,
     maxClusters: 3,
     minSpecies: 0,
     maxSpecies: 10000

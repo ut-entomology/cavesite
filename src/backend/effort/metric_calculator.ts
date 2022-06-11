@@ -1,8 +1,8 @@
 import {
   taxonRanks,
-  SimilarityMetric,
-  SimilarityBasis,
-  SimilarityTransform,
+  DissimilarityMetric,
+  DissimilarityBasis,
+  DissimilarityTransform,
   TaxonWeight
 } from '../../shared/model';
 import { LocationEffort } from './location_effort';
@@ -14,7 +14,7 @@ export interface TaxonTally {
 }
 export type TaxonTallyMap = Record<string, TaxonTally>;
 
-export abstract class SimilarityCalculator {
+export abstract class DissimilarityCalculator {
   protected _weights: number[];
   protected _transform: (from: number) => number;
 
@@ -33,18 +33,18 @@ export abstract class SimilarityCalculator {
     return false;
   }
 
-  protected constructor(metric: SimilarityMetric) {
+  protected constructor(metric: DissimilarityMetric) {
     switch (metric.transform) {
-      case SimilarityTransform.none:
+      case DissimilarityTransform.none:
         this._transform = (from: number) => from;
         break;
-      case SimilarityTransform.ln:
+      case DissimilarityTransform.ln:
         this._transform = (from: number) => (from <= 0 ? 0 : Math.log(from));
         break;
-      case SimilarityTransform.sqrt:
+      case DissimilarityTransform.sqrt:
         this._transform = (from: number) => (from <= 0 ? 0 : Math.sqrt(from));
         break;
-      case SimilarityTransform.to1_5:
+      case DissimilarityTransform.to1_5:
         this._transform = (from: number) => Math.pow(from, 1.5);
         break;
     }
@@ -77,13 +77,13 @@ export abstract class SimilarityCalculator {
     }
   }
 
-  static create(metric: SimilarityMetric): SimilarityCalculator {
+  static create(metric: DissimilarityMetric): DissimilarityCalculator {
     switch (metric.basis) {
-      case SimilarityBasis.commonTaxa:
+      case DissimilarityBasis.commonTaxa:
         return new CommonTaxaCalculator(metric);
-      case SimilarityBasis.commonMinusDiffTaxa:
+      case DissimilarityBasis.commonMinusDiffTaxa:
         return new CommonMinusDiffTaxaCalculator(metric);
-      case SimilarityBasis.minusDiffTaxa:
+      case DissimilarityBasis.minusDiffTaxa:
         return new MinusDiffTaxaCalculator(metric);
       default:
         throw Error(metric + ' not yet supported');
@@ -91,8 +91,8 @@ export abstract class SimilarityCalculator {
   }
 }
 
-class CommonTaxaCalculator extends SimilarityCalculator {
-  constructor(metric: SimilarityMetric) {
+class CommonTaxaCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
     super(metric);
   }
 
@@ -111,8 +111,8 @@ class CommonTaxaCalculator extends SimilarityCalculator {
   }
 }
 
-class CommonMinusDiffTaxaCalculator extends SimilarityCalculator {
-  constructor(metric: SimilarityMetric) {
+class CommonMinusDiffTaxaCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
     super(metric);
   }
 
@@ -135,8 +135,8 @@ class CommonMinusDiffTaxaCalculator extends SimilarityCalculator {
   }
 }
 
-class MinusDiffTaxaCalculator extends SimilarityCalculator {
-  constructor(metric: SimilarityMetric) {
+class MinusDiffTaxaCalculator extends DissimilarityCalculator {
+  constructor(metric: DissimilarityMetric) {
     super(metric);
   }
 

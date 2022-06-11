@@ -21,7 +21,7 @@ router.post('/get_seeds', async (req: Request, res) => {
 });
 
 router.post('/get_clusters', async (req: Request, res) => {
-  const metric = req.body.similarityMetric;
+  const metric = req.body.metric;
   const seedIDs = req.body.seedIDs;
   const minSpecies = req.body.minSpecies;
   const maxSpecies = req.body.maxSpecies;

@@ -1,7 +1,11 @@
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
-import { type SeedSpec, SimilarityMetric } from '../../shared/model';
-import { type TaxonTallyMap, SimilarityCalculator, tallyTaxa } from './similarity_calc';
+import { type SeedSpec, DissimilarityMetric } from '../../shared/model';
+import {
+  type TaxonTallyMap,
+  DissimilarityCalculator,
+  tallyTaxa
+} from './metric_calculator';
 
 // TODO: Find a memory locate that occasionally bombs node.js, which
 // I suspect started occurring after creating this module.
@@ -10,7 +14,7 @@ const EFFORT_BATCH_SIZE = 100;
 
 export async function getClusteredLocationIDs(
   db: DB,
-  similarityMetric: SimilarityMetric,
+  metric: DissimilarityMetric,
   seedIDs: number[],
   minSpecies: number,
   maxSpecies: number
@@ -19,7 +23,7 @@ export async function getClusteredLocationIDs(
   //   '**** #### starting getClusteredLocationIDs ###################################'
   // );
 
-  const similarityCalculator = SimilarityCalculator.create(similarityMetric);
+  const metricCalculator = DissimilarityCalculator.create(metric);
 
   // Node.js's V8 engine should end up using sparse arrays of location IDs.
   const clusterByLocationID: Record<number, number> = [];
@@ -57,7 +61,7 @@ export async function getClusteredLocationIDs(
           effortTaxaTallies,
           locationEffort,
           -1, // force assignment to a cluster
-          similarityCalculator
+          metricCalculator
         );
         clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
         _updateTaxonTallies(
@@ -107,7 +111,7 @@ export async function getClusteredLocationIDs(
           effortTaxaTallies,
           locationEffort,
           currentClusterIndex,
-          similarityCalculator
+          metricCalculator
         );
         if (nearestClusterIndex != currentClusterIndex) {
           clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
@@ -182,8 +186,8 @@ export async function getSeedLocationIDs(
     // Each subsequent seed location is the one with the least similarity
     // to all previously selected seed locations.
 
-    const similarityCalculator = SimilarityCalculator.create(seedSpec.similarityMetric);
-    let minSimilarity = similarityCalculator.leastUpperSimilarity(firstSeedLocation);
+    const metricCalculator = DissimilarityCalculator.create(seedSpec.metric);
+    let minSimilarity = metricCalculator.leastUpperSimilarity(firstSeedLocation);
     let seedIDForMinSimilarity = 0;
     let effortForMinSimilarity: LocationEffort;
 
@@ -192,7 +196,7 @@ export async function getSeedLocationIDs(
       // that is most dissimilar to prior seed locations.
 
       for (const locationEffort of locationEfforts) {
-        if (similarityCalculator.canShortcutSeeding(minSimilarity, locationEffort)) {
+        if (metricCalculator.canShortcutSeeding(minSimilarity, locationEffort)) {
           // Short-circuit the search when not possible to beat minSimilarity.
           // Efforts are retrieved ordered most-diverse first to allow this.
           skipCount = Infinity;
@@ -200,7 +204,7 @@ export async function getSeedLocationIDs(
         }
         if (!seedIDs.includes(locationEffort.locationID)) {
           const locationTaxonTallies = Object.values(tallyTaxa(locationEffort));
-          const similarity = similarityCalculator.calc(
+          const similarity = metricCalculator.calc(
             modeTallyMap,
             locationTaxonTallies,
             locationEffort
@@ -249,7 +253,7 @@ function _getNearestClusterIndex(
   taxonTallyMap: TaxonTallyMap,
   locationEffort: LocationEffort,
   currentClusterIndex: number,
-  similarityCalculator: SimilarityCalculator
+  metricCalculator: DissimilarityCalculator
 ): number {
   //console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
   const effortTallies = Object.values(taxonTallyMap);
@@ -261,7 +265,7 @@ function _getNearestClusterIndex(
   let maxSimilarity = 0;
   let indexesForMaxSimilarity: number[] = [];
   for (let i = 0; i < taxaTalliesByCluster.length; ++i) {
-    const similarity = similarityCalculator.calc(
+    const similarity = metricCalculator.calc(
       taxaTalliesByCluster[i],
       effortTallies,
       locationEffort

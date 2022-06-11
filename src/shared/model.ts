@@ -134,13 +134,13 @@ export function pointSorter(a: number[], b: number[]) {
 
 //// Cluster /////////////////////////////////////////////////////////////////
 
-export interface SimilarityMetric {
-  basis: SimilarityBasis;
-  transform: SimilarityTransform;
+export interface DissimilarityMetric {
+  basis: DissimilarityBasis;
+  transform: DissimilarityTransform;
   weight: TaxonWeight;
 }
 
-export enum SimilarityBasis {
+export enum DissimilarityBasis {
   // similarity = -1 * abs(no. taxa in test cave minus no. taxa in mode)
   minusTaxonCount = 'taxon count',
   // similarity = no. of taxa the test cave has in common with the mode
@@ -159,7 +159,7 @@ export enum SimilarityBasis {
   minusbothDiffTaxa = 'minus both diff taxa'
 }
 
-export enum SimilarityTransform {
+export enum DissimilarityTransform {
   none = 'none',
   ln = 'ln', // natural log
   sqrt = 'sqrt', // square root
@@ -177,7 +177,7 @@ export enum TaxonWeight {
 }
 
 export interface SeedSpec {
-  similarityMetric: SimilarityMetric;
+  metric: DissimilarityMetric;
   maxClusters: number;
   minSpecies: number;
   maxSpecies: number;
