@@ -41,6 +41,25 @@
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
 
+  const CLUSTER_SPEC1 = {
+    metric: {
+      basis: DissimilarityBasis.diffTaxa,
+      transform: DissimilarityTransform.none,
+      weight: TaxonWeight.unweighted
+    },
+    minSpecies: 0,
+    maxSpecies: 10000
+  };
+  const CLUSTER_SPEC2 = {
+    metric: {
+      basis: DissimilarityBasis.diffMinusCommonTaxa,
+      transform: DissimilarityTransform.none,
+      weight: TaxonWeight.weighted
+    },
+    minSpecies: 0,
+    maxSpecies: 10000
+  };
+
   enum LoadState {
     idle,
     determiningSeeds,
@@ -62,33 +81,12 @@
   async function loadPoints() {
     try {
       loadState = LoadState.determiningSeeds;
-      const seedLocations = await loadSeeds(
-        $client,
-        {
-          metric: {
-            basis: DissimilarityBasis.diffTaxa,
-            transform: DissimilarityTransform.none,
-            weight: TaxonWeight.unweighted
-          },
-          minSpecies: 0,
-          maxSpecies: 10000
-        },
-        MAX_CLUSTERS,
-        true
-      );
+      const seedLocations = await loadSeeds($client, CLUSTER_SPEC1, MAX_CLUSTERS, true);
 
       loadState = LoadState.loadingEffort;
       const effortDataByCluster = await loadEffort(
         $client,
-        {
-          metric: {
-            basis: DissimilarityBasis.diffMinusCommonTaxa,
-            transform: DissimilarityTransform.none,
-            weight: TaxonWeight.weighted
-          },
-          minSpecies: 0,
-          maxSpecies: 10000
-        },
+        CLUSTER_SPEC2,
         seedLocations,
         MIN_PERSON_VISITS
       );
