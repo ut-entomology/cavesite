@@ -170,19 +170,21 @@
           <button class="btn btn-major" type="button" on:click={onClose}>Close</button>
         </div>
       </div>
-      {#each childSpecs as spec (spec.unique)}
-        <div class="row mt-1 gx-3">
-          <SelectableTaxon
-            prefixed={false}
-            selection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
-            {spec}
-            {containingTaxa}
-            {gotoTaxon}
-            addSelection={() => _addSelection(spec)}
-            removeSelection={() => _removeSelection(spec)}
-          />
-        </div>
-      {/each}
+      <div class="child-rows">
+        {#each childSpecs as spec (spec.unique)}
+          <div class="row mt-1 gx-3">
+            <SelectableTaxon
+              prefixed={false}
+              selection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
+              {spec}
+              {containingTaxa}
+              {gotoTaxon}
+              addSelection={() => _addSelection(spec)}
+              removeSelection={() => _removeSelection(spec)}
+            />
+          </div>
+        {/each}
+      </div>
       <div class="row info-row">
         <div class="col-auto mt-4 small">
           This box only shows taxa for which there are records. Click on a blue taxon to

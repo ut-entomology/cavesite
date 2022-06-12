@@ -54,6 +54,15 @@
   $: if (selection && selection != '') {
     taxonSpec = matchedSpecs.find((spec) => spec.unique == selection)!;
     isSelectedInTree = selectionsTree.isSelected(taxonSpec.unique);
+    if (!isSelectedInTree) {
+      const containingSpecs = createContainingTaxonSpecs(taxonSpec);
+      for (const containingSpec of containingSpecs) {
+        if (selectionsTree.isSelected(containingSpec.unique)) {
+          isSelectedInTree = true;
+          break;
+        }
+      }
+    }
   } else {
     taxonSpec = null;
   }
@@ -84,34 +93,42 @@
   }
 
   async function _openTaxon() {
+    const spec = await _loadSpecIndicatingChildren(taxonSpec!.unique);
+    if (spec) {
+      if (spec.hasChildren) {
+        openTaxon(spec.unique);
+      } else {
+        const containingSpecs = createContainingTaxonSpecs(spec);
+        openTaxon(containingSpecs[containingSpecs.length - 1].unique);
+      }
+    }
+  }
+
+  async function _addSelection() {
+    const spec = await _loadSpecIndicatingChildren(taxonSpec!.unique);
+    if (spec) {
+      addSelection(spec);
+      isSelectedInTree = true;
+    }
+  }
+
+  async function _loadSpecIndicatingChildren(
+    taxonUnique: string
+  ): Promise<TaxonSpec | null> {
     try {
-      // Need to get a spec that indicates whether there are children.
       let res = await $client.post('api/taxa/get_list', {
-        taxonUniques: [taxonSpec!.unique]
+        taxonUniques: [taxonUnique]
       });
       const taxonSpecs: TaxonSpec[] = res.data.taxonSpecs;
-      if (taxonSpecs.length > 0) {
-        const spec = taxonSpecs[0];
-        if (spec.hasChildren) {
-          openTaxon(spec.unique);
-        } else {
-          const containingSpecs = createContainingTaxonSpecs(spec);
-          openTaxon(containingSpecs[containingSpecs.length - 1].unique);
-        }
-      }
+      return taxonSpecs && taxonSpecs.length == 1 ? taxonSpecs[0] : null;
     } catch (err: any) {
       showNotice({
         header: 'ERROR',
         alert: 'danger',
         message: errorReason(err.response)
       });
+      return null;
     }
-  }
-
-  function _addSelection() {
-    // in its own function be able to use '!'
-    addSelection(taxonSpec!);
-    isSelectedInTree = true;
   }
 
   async function _removeSelection() {

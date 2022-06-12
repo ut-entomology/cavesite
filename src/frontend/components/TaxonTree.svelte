@@ -43,7 +43,7 @@
   };
 </script>
 
-<div class:taxon-level={showRoot}>
+<div class:tree-level={showRoot}>
   {#if showRoot}
     <SelectableTaxon
       expandable={!selection}
@@ -74,15 +74,15 @@
 </div>
 
 <style>
-  :global(.taxon-level .taxon-level) {
+  :global(.tree-level .tree-level) {
     margin-left: 0.9rem;
   }
 
-  :global(.taxon-row) {
+  :global(.tree-row) {
     margin-top: 0.25rem;
   }
 
-  :global(.taxon-level) .children {
+  :global(.tree-level) .children {
     margin-left: 0.35rem;
     border-left: 1px solid #ddd;
   }

@@ -45,7 +45,7 @@
   }
 </script>
 
-<div class="taxon-row">
+<div class="tree-row">
   {#if prefix}
     <div class="expander" class:expandable title={toggleLabel} on:click={toggle}>
       {@html prefix}
