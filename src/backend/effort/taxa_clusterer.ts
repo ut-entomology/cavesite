@@ -254,21 +254,16 @@ export abstract class TaxaClusterer extends Clusterer {
           }
         }
 
-        // Retrieve the next batch of efforts to examine for seed locations,
-        // if we're not short-circuiting the present search.
+        // Retrieve the next batch of efforts to examine for seed locations.
 
-        if (skipCount === Infinity) {
-          locationEfforts = []; // end the search for this next seed location
-        } else {
-          skipCount += locationEfforts.length;
-          locationEfforts = await LocationEffort.getNextBatch(
-            db,
-            this._minSpecies,
-            this._maxSpecies,
-            skipCount,
-            EFFORT_BATCH_SIZE
-          );
-        }
+        skipCount += locationEfforts.length;
+        locationEfforts = await LocationEffort.getNextBatch(
+          db,
+          this._minSpecies,
+          this._maxSpecies,
+          skipCount,
+          EFFORT_BATCH_SIZE
+        );
       }
 
       // If we found another seed location, add it to the list and update the
