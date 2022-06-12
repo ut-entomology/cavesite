@@ -164,7 +164,12 @@ export async function getSeedLocationIDs(
 
   while (seedIDs.length < seedSpec.maxClusters) {
     // Get the first batch of efforts for the search for the next seed location.
-    // Efforts are sorted by total number of species, most species found first.
+
+    // IMPORTANT: Efforts are sorted by total inferred number of species, most species
+    // first. Ideally, I would sort by whichever dissimilarity metric is in use, so
+    // that I can start with the most extreme value, but this is excessively complex.
+    // Inferred species count is a good estimate of species diversity, so we're always
+    // seeding the first cluster with the maximally diverse location.
 
     let skipCount = 0;
     let locationEfforts = await LocationEffort.getNextBatch(

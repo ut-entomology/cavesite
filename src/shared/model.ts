@@ -183,6 +183,7 @@ export enum TaxonWeight {
 
 export interface SeedSpec {
   metric: DissimilarityMetric;
+  //useCumulativeTaxa: boolean;
   maxClusters: number;
   minSpecies: number;
   maxSpecies: number;
