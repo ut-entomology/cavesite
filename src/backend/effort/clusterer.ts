@@ -1,13 +1,23 @@
 import { type DB } from '../integrations/postgres';
-import { type SeedSpec } from '../../shared/model';
+import { type ClusterSpec } from '../../shared/model';
 
 export abstract class Clusterer {
-  abstract getSeedLocationIDs(db: DB, seedSpec: SeedSpec): Promise<number[]>;
+  protected _minSpecies: number;
+  protected _maxSpecies: number;
+
+  abstract getSeedLocationIDs(
+    db: DB,
+    maxClusters: number,
+    useCumulativeTaxa: boolean
+  ): Promise<number[]>;
 
   abstract getClusteredLocationIDs(
     db: DB,
-    seedLocationIDs: number[],
-    minSpecies: number,
-    maxSpecies: number
+    seedLocationIDs: number[]
   ): Promise<number[][]>;
+
+  constructor(clusterSpec: ClusterSpec) {
+    this._minSpecies = clusterSpec.minSpecies || 0;
+    this._maxSpecies = clusterSpec.maxSpecies || 1000000; // impossible number
+  }
 }

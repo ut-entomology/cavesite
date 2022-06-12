@@ -1,10 +1,10 @@
 import { type TaxonTallyMap, TaxaClusterer } from './taxa_clusterer';
 import { LocationEffort } from './location_effort';
-import { DissimilarityMetric } from '../../shared/model';
+import { ClusterSpec } from '../../shared/model';
 
 export class MinusCommonTaxaClusterer extends TaxaClusterer {
-  constructor(metric: DissimilarityMetric) {
-    super(metric);
+  constructor(clusterSpec: ClusterSpec) {
+    super(clusterSpec);
   }
 
   greatestLowerDissimilarity(locationEffort: LocationEffort): number {
@@ -26,8 +26,8 @@ export class MinusCommonTaxaClusterer extends TaxaClusterer {
 }
 
 export class DiffMinusCommonTaxaClusterer extends TaxaClusterer {
-  constructor(metric: DissimilarityMetric) {
-    super(metric);
+  constructor(clusterSpec: ClusterSpec) {
+    super(clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -49,8 +49,8 @@ export class DiffMinusCommonTaxaClusterer extends TaxaClusterer {
 }
 
 export class BothDiffsMinusCommonTaxaClusterer extends TaxaClusterer {
-  constructor(metric: DissimilarityMetric) {
-    super(metric);
+  constructor(clusterSpec: ClusterSpec) {
+    super(clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -77,8 +77,8 @@ export class BothDiffsMinusCommonTaxaClusterer extends TaxaClusterer {
 }
 
 export class DiffTaxaClusterer extends TaxaClusterer {
-  constructor(metric: DissimilarityMetric) {
-    super(metric);
+  constructor(clusterSpec: ClusterSpec) {
+    super(clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -96,8 +96,8 @@ export class DiffTaxaClusterer extends TaxaClusterer {
 }
 
 export class BothDiffsTaxaClusterer extends TaxaClusterer {
-  constructor(metric: DissimilarityMetric) {
-    super(metric);
+  constructor(clusterSpec: ClusterSpec) {
+    super(clusterSpec);
   }
 
   protected _calculateDissimilarity(

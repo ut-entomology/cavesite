@@ -5,16 +5,20 @@ import { getDB } from '../integrations/postgres';
 import { Location } from '../model/location';
 import { createClusterer } from '../effort/create_clusterer';
 import { toLocationSpec } from './location_api';
-import { type SeedSpec } from '../../shared/model';
+import type { ClusterSpec } from '../../shared/model';
 
 export const router = Router();
 
 router.post('/get_seeds', async (req: Request, res) => {
-  const seedSpec: SeedSpec = req.body.seedSpec;
-  // TODO: validate seedSpec
+  const clusterSpec: ClusterSpec = req.body.clusterSpec;
+  const maxClusters: number = req.body.maxClusters;
+  const useCumulativeTaxa: boolean = req.body.useCumulativeTaxa;
+
+  // TODO: validate params
+
   let seedIDs: number[];
-  const clusterer = createClusterer(seedSpec.metric);
-  seedIDs = await clusterer.getSeedLocationIDs(getDB(), seedSpec);
+  const clusterer = createClusterer(clusterSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(getDB(), maxClusters, useCumulativeTaxa);
   const locations = await Location.getByIDs(getDB(), seedIDs);
   return res
     .status(StatusCodes.OK)
@@ -22,17 +26,12 @@ router.post('/get_seeds', async (req: Request, res) => {
 });
 
 router.post('/get_clusters', async (req: Request, res) => {
-  const metric = req.body.metric;
-  const seedIDs = req.body.seedIDs;
-  const minSpecies = req.body.minSpecies;
-  const maxSpecies = req.body.maxSpecies;
+  const clusterSpec: ClusterSpec = req.body.clusterSpec;
+  const seedIDs: number[] = req.body.seedIDs;
 
-  const clusterer = createClusterer(metric);
-  const clusters = await clusterer.getClusteredLocationIDs(
-    getDB(),
-    seedIDs,
-    minSpecies,
-    maxSpecies
-  );
+  // TODO: validate params
+
+  const clusterer = createClusterer(clusterSpec);
+  const clusters = await clusterer.getClusteredLocationIDs(getDB(), seedIDs);
   return res.status(StatusCodes.OK).send({ clusters });
 });

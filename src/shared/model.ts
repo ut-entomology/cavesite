@@ -181,10 +181,8 @@ export enum TaxonWeight {
   onlyGeneraAndSpecies = 'only genera + species'
 }
 
-export interface SeedSpec {
+export interface ClusterSpec {
   metric: DissimilarityMetric;
-  //useCumulativeTaxa: boolean;
-  maxClusters: number;
-  minSpecies: number;
-  maxSpecies: number;
+  minSpecies?: number;
+  maxSpecies?: number;
 }

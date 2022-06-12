@@ -37,6 +37,7 @@
 
   $pageName = 'Collection Effort';
 
+  const MAX_CLUSTERS = 12;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
 
@@ -61,22 +62,35 @@
   async function loadPoints() {
     try {
       loadState = LoadState.determiningSeeds;
-      const seedLocations = await loadSeeds($client, {
-        metric: {
-          basis: DissimilarityBasis.diffTaxa,
-          transform: DissimilarityTransform.none,
-          weight: TaxonWeight.unweighted
+      const seedLocations = await loadSeeds(
+        $client,
+        {
+          metric: {
+            basis: DissimilarityBasis.diffTaxa,
+            transform: DissimilarityTransform.none,
+            weight: TaxonWeight.unweighted
+          },
+          minSpecies: 0,
+          maxSpecies: 10000
         },
-        maxClusters: 12,
-        minSpecies: 0,
-        maxSpecies: 10000
-      });
+        MAX_CLUSTERS,
+        true
+      );
 
       loadState = LoadState.loadingEffort;
       const effortDataByCluster = await loadEffort(
         $client,
-        MIN_PERSON_VISITS,
-        seedLocations
+        {
+          metric: {
+            basis: DissimilarityBasis.diffMinusCommonTaxa,
+            transform: DissimilarityTransform.none,
+            weight: TaxonWeight.weighted
+          },
+          minSpecies: 0,
+          maxSpecies: 10000
+        },
+        seedLocations,
+        MIN_PERSON_VISITS
       );
       effortStore.set(effortDataByCluster);
 

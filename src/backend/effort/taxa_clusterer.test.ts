@@ -8,8 +8,7 @@ import {
   DissimilarityBasis,
   DissimilarityMetric,
   DissimilarityTransform,
-  TaxonWeight,
-  type SeedSpec
+  TaxonWeight
 } from '../../shared/model';
 import { Clusterer } from './clusterer';
 import { createClusterer } from './create_clusterer';
@@ -40,21 +39,15 @@ beforeAll(async () => {
 
 test('selecting seed locations by taxon diversity', async () => {
   await LocationEffort.dropAll(db);
-  const seeder = createClusterer(minusDiffMetric1);
+  const clusterer = createClusterer({ metric: minusDiffMetric1 });
 
   // Select the most diverse seed location.
 
-  let seedSpec: SeedSpec = {
-    metric: minusDiffMetric1,
-    maxClusters: 1,
-    minSpecies: 0,
-    maxSpecies: 10000
-  };
   await _addEffort(1, 1, {
     kingdomNames: 'k1',
     phylumNames: 'p1'
   });
-  let seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
+  let seedIDs = await clusterer.getSeedLocationIDs(db, 1, true);
   expect(seedIDs).toEqual([1]);
 
   await _addEffort(2, 5, {
@@ -63,7 +56,7 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f2',
     genusNames: 'f1g1|f1g2|f1g3|f2g4|f2g5'
   });
-  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(db, 1, true);
   expect(seedIDs).toEqual([2]);
 
   await _addEffort(3, 3, {
@@ -72,18 +65,12 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1',
     genusNames: 'f1g1|f1g2|f1g3'
   });
-  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(db, 1, true);
   expect(seedIDs).toEqual([2]);
 
   // Attempt to select 2 seeds when all are subsets of one of them.
 
-  seedSpec = {
-    metric: minusDiffMetric1,
-    maxClusters: 2,
-    minSpecies: 0,
-    maxSpecies: 10000
-  };
-  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(db, 2, true);
   expect(seedIDs).toEqual([2]);
 
   // Add 2nd- and 3rd-most diverse locations.
@@ -106,30 +93,24 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f3',
     genusNames: 'f1g1|f1g2|f3g1'
   });
-  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(db, 2, true);
   expect(seedIDs).toEqual([2, 5]);
 
   // Selection order changes with adding a late most-diverse effort.
 
-  seedSpec = {
-    metric: minusDiffMetric1,
-    maxClusters: 3,
-    minSpecies: 0,
-    maxSpecies: 10000
-  };
   await _addEffort(7, 7, {
     kingdomNames: 'k1',
     phylumNames: 'p1|p2',
     familyNames: 'f1|f2|f3|f4',
     genusNames: 'f1g1|f1g2|f2g1|f4g1|f4g2'
   });
-  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(db, 3, true);
   expect(seedIDs).toEqual([7, 2, 5]);
 });
 
 test('clustering', async () => {
   await LocationEffort.dropAll(db);
-  const clusterer = createClusterer(commonMinusDiffMetric1);
+  const clusterer = createClusterer({ metric: commonMinusDiffMetric1 });
 
   await _addEffort(1, 1, {
     kingdomNames: 'k1',
@@ -231,7 +212,7 @@ async function _getClusters(
   clusterer: Clusterer,
   seedLocationIDs: number[]
 ): Promise<number[][]> {
-  return await clusterer.getClusteredLocationIDs(db, seedLocationIDs, 0, 100);
+  return await clusterer.getClusteredLocationIDs(db, seedLocationIDs);
 }
 
 function _toEffortData(data: Partial<EffortData>): EffortData {

@@ -1,14 +1,7 @@
 import type { AxiosInstance } from 'axios';
 
 import type { Point } from './linear_regression';
-import {
-  type EffortResult,
-  type LocationSpec,
-  TaxonWeight,
-  SeedSpec,
-  DissimilarityBasis,
-  DissimilarityTransform
-} from '../../shared/model';
+import type { EffortResult, LocationSpec, ClusterSpec } from '../../shared/model';
 
 export interface EffortData {
   locationID: number;
@@ -20,9 +13,15 @@ export interface EffortData {
 
 export async function loadSeeds(
   client: AxiosInstance,
-  seedSpec: SeedSpec
+  clusterSpec: ClusterSpec,
+  maxClusters: number,
+  useCumulativeTaxa: boolean
 ): Promise<LocationSpec[]> {
-  let res = await client.post('api/cluster/get_seeds', { seedSpec });
+  let res = await client.post('api/cluster/get_seeds', {
+    clusterSpec,
+    maxClusters,
+    useCumulativeTaxa
+  });
   const seeds: LocationSpec[] = res.data.seeds;
   if (!seeds) throw Error('Failed to load seeds');
   return seeds;
@@ -30,18 +29,13 @@ export async function loadSeeds(
 
 export async function loadEffort(
   client: AxiosInstance,
-  minPersonVisits: number,
-  seedLocations: LocationSpec[]
+  clusterSpec: ClusterSpec,
+  seedLocations: LocationSpec[],
+  minPersonVisits: number
 ) {
   let res = await client.post('api/cluster/get_clusters', {
-    metric: {
-      basis: DissimilarityBasis.diffMinusCommonTaxa,
-      transform: DissimilarityTransform.none,
-      weight: TaxonWeight.weighted
-    },
-    seedIDs: seedLocations.map((location) => location.locationID),
-    minSpecies: 0,
-    maxSpecies: 10000
+    clusterSpec,
+    seedIDs: seedLocations.map((location) => location.locationID)
   });
   const clusters: number[][] = res.data.clusters;
   if (!clusters) throw Error('Failed to load clusters');

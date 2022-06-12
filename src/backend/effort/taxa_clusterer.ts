@@ -3,8 +3,7 @@ import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
 import {
   taxonRanks,
-  type SeedSpec,
-  DissimilarityMetric,
+  type ClusterSpec,
   DissimilarityTransform,
   TaxonWeight
 } from '../../shared/model';
@@ -22,10 +21,10 @@ export abstract class TaxaClusterer extends Clusterer {
   protected _weights: number[];
   protected _transform: (from: number) => number;
 
-  constructor(metric: DissimilarityMetric) {
-    super();
+  constructor(clusterSpec: ClusterSpec) {
+    super(clusterSpec);
 
-    switch (metric.transform) {
+    switch (clusterSpec.metric.transform) {
       case DissimilarityTransform.none:
         this._transform = (from: number) => from;
         break;
@@ -38,11 +37,13 @@ export abstract class TaxaClusterer extends Clusterer {
       case DissimilarityTransform.to1_5:
         this._transform = (from: number) => Math.pow(from, 1.5);
         break;
+      default:
+        throw Error('DissimilarityTransform not specified');
     }
 
     this._weights = [];
     for (let i = 0; i < taxonRanks.length; ++i) {
-      switch (metric.weight) {
+      switch (clusterSpec.metric.weight) {
         case TaxonWeight.unweighted:
           this._weights[i] = 1;
           break;
@@ -64,6 +65,8 @@ export abstract class TaxaClusterer extends Clusterer {
         case TaxonWeight.onlyGeneraAndSpecies:
           this._weights[i] = i >= taxonRanks.length - 3 ? 1 : 0;
           break;
+        default:
+          throw Error('TaxonWeight not specified');
       }
     }
   }
@@ -79,9 +82,7 @@ export abstract class TaxaClusterer extends Clusterer {
 
   async getClusteredLocationIDs(
     db: DB,
-    seedLocationIDs: number[],
-    minSpecies: number,
-    maxSpecies: number
+    seedLocationIDs: number[]
   ): Promise<number[][]> {
     // console.log(
     //   '**** #### starting getClusteredLocationIDs ###################################'
@@ -107,12 +108,7 @@ export abstract class TaxaClusterer extends Clusterer {
     // all the while preparing nextTaxonTallyMapsByCluster for use in reassignment.
 
     let skipCount = 0;
-    let locationEfforts = await this._getNextBatchToCluster(
-      db,
-      minSpecies,
-      maxSpecies,
-      skipCount
-    );
+    let locationEfforts = await this._getNextBatchToCluster(db, skipCount);
     while (locationEfforts.length > 0) {
       for (const locationEffort of locationEfforts) {
         if (!seedLocationIDs.includes(locationEffort.locationID)) {
@@ -130,12 +126,7 @@ export abstract class TaxaClusterer extends Clusterer {
         }
       }
       skipCount += locationEfforts.length;
-      locationEfforts = await this._getNextBatchToCluster(
-        db,
-        minSpecies,
-        maxSpecies,
-        skipCount
-      );
+      locationEfforts = await this._getNextBatchToCluster(db, skipCount);
     }
     //console.log('**** initial clusters', clusterByLocationID);
 
@@ -155,12 +146,7 @@ export abstract class TaxaClusterer extends Clusterer {
       // the while preparing nextTaxonTallyMapsByCluster for use in the next pass.
 
       let skipCount = 0;
-      let locationEfforts = await this._getNextBatchToCluster(
-        db,
-        minSpecies,
-        maxSpecies,
-        skipCount
-      );
+      let locationEfforts = await this._getNextBatchToCluster(db, skipCount);
       while (locationEfforts.length > 0) {
         for (const locationEffort of locationEfforts) {
           const effortTaxaTallies = this._tallyTaxa(locationEffort);
@@ -187,12 +173,7 @@ export abstract class TaxaClusterer extends Clusterer {
           );
         }
         skipCount += locationEfforts.length;
-        locationEfforts = await this._getNextBatchToCluster(
-          db,
-          minSpecies,
-          maxSpecies,
-          skipCount
-        );
+        locationEfforts = await this._getNextBatchToCluster(db, skipCount);
       }
     }
 
@@ -205,13 +186,17 @@ export abstract class TaxaClusterer extends Clusterer {
     return locationIDsByCluster;
   }
 
-  async getSeedLocationIDs(db: DB, seedSpec: SeedSpec): Promise<number[]> {
+  async getSeedLocationIDs(
+    db: DB,
+    maxClusters: number,
+    _useCumulativeTaxa: boolean
+  ): Promise<number[]> {
     const seedIDs: number[] = [];
     const allSeedsTallyMap: TaxonTallyMap = {};
 
     // Find each seed location, up to the maximum seeds allowed.
 
-    while (seedIDs.length < seedSpec.maxClusters) {
+    while (seedIDs.length < maxClusters) {
       // Get the first batch of efforts for the search for the next seed location.
 
       // IMPORTANT: Efforts are sorted by total inferred number of species, most species
@@ -223,8 +208,8 @@ export abstract class TaxaClusterer extends Clusterer {
       let skipCount = 0;
       let locationEfforts = await LocationEffort.getNextBatch(
         db,
-        seedSpec.minSpecies,
-        seedSpec.maxSpecies,
+        this._minSpecies,
+        this._maxSpecies,
         skipCount,
         EFFORT_BATCH_SIZE
       );
@@ -236,7 +221,7 @@ export abstract class TaxaClusterer extends Clusterer {
       if (seedIDs.length == 0) {
         seedIDs.push(firstSeedLocation.locationID);
         this._updateTaxonTallies(allSeedsTallyMap, this._tallyTaxa(firstSeedLocation));
-        if (seedSpec.maxClusters == 1) {
+        if (maxClusters == 1) {
           // continuing from here could add a 2nd cluster within this loop iteration
           return seedIDs;
         }
@@ -278,8 +263,8 @@ export abstract class TaxaClusterer extends Clusterer {
           skipCount += locationEfforts.length;
           locationEfforts = await LocationEffort.getNextBatch(
             db,
-            seedSpec.minSpecies,
-            seedSpec.maxSpecies,
+            this._minSpecies,
+            this._maxSpecies,
             skipCount,
             EFFORT_BATCH_SIZE
           );
@@ -358,14 +343,12 @@ export abstract class TaxaClusterer extends Clusterer {
 
   protected async _getNextBatchToCluster(
     db: DB,
-    minSpecies: number,
-    maxSpecies: number,
     skipCount: number
   ): Promise<LocationEffort[]> {
     return await LocationEffort.getNextBatch(
       db,
-      minSpecies,
-      maxSpecies,
+      this._minSpecies,
+      this._maxSpecies,
       skipCount,
       EFFORT_BATCH_SIZE
     );
