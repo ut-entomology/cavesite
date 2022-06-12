@@ -41,16 +41,7 @@
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
 
-  const CLUSTER_SPEC1 = {
-    metric: {
-      basis: DissimilarityBasis.diffTaxa,
-      transform: DissimilarityTransform.none,
-      weight: TaxonWeight.unweighted
-    },
-    minSpecies: 0,
-    maxSpecies: 10000
-  };
-  const CLUSTER_SPEC2 = {
+  const CLUSTER_SPEC = {
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
       transform: DissimilarityTransform.none,
@@ -81,12 +72,12 @@
   async function loadPoints() {
     try {
       loadState = LoadState.determiningSeeds;
-      const seedLocations = await loadSeeds($client, CLUSTER_SPEC1, MAX_CLUSTERS, true);
+      const seedLocations = await loadSeeds($client, CLUSTER_SPEC, MAX_CLUSTERS);
 
       loadState = LoadState.loadingEffort;
       const effortDataByCluster = await loadEffort(
         $client,
-        CLUSTER_SPEC2,
+        CLUSTER_SPEC,
         seedLocations,
         MIN_PERSON_VISITS
       );

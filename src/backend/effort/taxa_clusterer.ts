@@ -189,14 +189,15 @@ export abstract class TaxaClusterer extends Clusterer {
   async getSeedLocationIDs(
     db: DB,
     maxClusters: number,
-    _useCumulativeTaxa: boolean
+    useCumulativeTaxa: boolean
   ): Promise<number[]> {
-    const seedIDs: number[] = [];
+    const seedLocationIDs: number[] = [];
+    const seedLocationTallyMaps: TaxonTallyMap[] = [];
     const allSeedsTallyMap: TaxonTallyMap = {};
 
     // Find each seed location, up to the maximum seeds allowed.
 
-    while (seedIDs.length < maxClusters) {
+    while (seedLocationIDs.length < maxClusters) {
       // Get the first batch of efforts for the search for the next seed location.
 
       // IMPORTANT: Efforts are sorted by total inferred number of species, most species
@@ -218,12 +219,14 @@ export abstract class TaxaClusterer extends Clusterer {
       // The very first seed location is the one with the most species.
 
       const firstSeedLocation = locationEfforts[0];
-      if (seedIDs.length == 0) {
-        seedIDs.push(firstSeedLocation.locationID);
-        this._updateTaxonTallies(allSeedsTallyMap, this._tallyTaxa(firstSeedLocation));
+      if (seedLocationIDs.length == 0) {
+        seedLocationIDs.push(firstSeedLocation.locationID);
+        const taxonTallyMap = this._tallyTaxa(firstSeedLocation);
+        seedLocationTallyMaps.push(taxonTallyMap);
+        this._updateTaxonTallies(allSeedsTallyMap, taxonTallyMap);
         if (maxClusters == 1) {
           // continuing from here could add a 2nd cluster within this loop iteration
-          return seedIDs;
+          return seedLocationIDs;
         }
       }
 
@@ -237,15 +240,40 @@ export abstract class TaxaClusterer extends Clusterer {
 
       while (locationEfforts.length > 0) {
         // Process efforts of the batch, looking for the next seed location
-        // that is most dissimilar to prior seed locations.
+        // that is most dissimilar from prior seed locations.
 
         for (const locationEffort of locationEfforts) {
-          if (!seedIDs.includes(locationEffort.locationID)) {
-            const locationTaxonMap = this._tallyTaxa(locationEffort);
-            const dissimilarity = this._calculateDissimilarity(
-              allSeedsTallyMap,
-              locationTaxonMap
-            );
+          if (!seedLocationIDs.includes(locationEffort.locationID)) {
+            let dissimilarity = -Infinity;
+
+            // When using cumulative taxa, each next seed location is the one that
+            // is most different from an imaginary cluster containing all prior
+            // seed locations. This is fast but less accurate than choosing the
+            // next seed location as one most different from all established seed
+            // location, as determined by comparisons with these locations.
+
+            if (useCumulativeTaxa) {
+              dissimilarity = this._calculateDissimilarity(
+                allSeedsTallyMap,
+                this._tallyTaxa(locationEffort)
+              );
+            } else {
+              const taxonTallyMap = this._tallyTaxa(locationEffort);
+              let minDissimilaritySoFar = Infinity;
+              for (let i = 0; i < seedLocationIDs.length; ++i) {
+                dissimilarity = this._calculateDissimilarity(
+                  seedLocationTallyMaps[i],
+                  taxonTallyMap
+                );
+                if (dissimilarity < minDissimilaritySoFar) {
+                  minDissimilaritySoFar = dissimilarity;
+                }
+              }
+              dissimilarity = minDissimilaritySoFar;
+            }
+
+            // Keep track of the most dissimilar seed location found so far.
+
             if (dissimilarity > maxDissimilaritySoFar) {
               maxDissimilaritySoFar = dissimilarity;
               seedIDForMaxDissimilarity = locationEffort.locationID;
@@ -270,17 +298,16 @@ export abstract class TaxaClusterer extends Clusterer {
       // set of all taxa against which to compare subsequent potential seeds.
 
       if (seedIDForMaxDissimilarity != 0) {
-        seedIDs.push(seedIDForMaxDissimilarity);
-        this._updateTaxonTallies(
-          allSeedsTallyMap,
-          this._tallyTaxa(effortForMaxDissimilarity!)
-        );
+        seedLocationIDs.push(seedIDForMaxDissimilarity);
+        const taxonTallyMap = this._tallyTaxa(effortForMaxDissimilarity!);
+        seedLocationTallyMaps.push(taxonTallyMap);
+        this._updateTaxonTallies(allSeedsTallyMap, taxonTallyMap);
       } else {
         break; // no more seed locations found meeting the criteria
       }
     }
 
-    return seedIDs;
+    return seedLocationIDs;
   }
 
   protected _getNearestClusterIndex(

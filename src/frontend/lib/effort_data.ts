@@ -15,7 +15,7 @@ export async function loadSeeds(
   client: AxiosInstance,
   clusterSpec: ClusterSpec,
   maxClusters: number,
-  useCumulativeTaxa: boolean
+  useCumulativeTaxa = false
 ): Promise<LocationSpec[]> {
   let res = await client.post('api/cluster/get_seeds', {
     clusterSpec,
