@@ -141,13 +141,6 @@ export interface DissimilarityMetric {
 }
 
 export enum DissimilarityBasis {
-  // dissimilarity = abs(no. visits to test cave minus avg. no. visits to mode)
-  visitCountDiff = 'visit count diff',
-  // dissimilarity = abs(no. person-visits to test cave
-  //  minus avg. no. person-visits to mode)
-  personVisitCountDiff = 'person-visit count diff',
-  // dissimilarity = abs(no. taxa in test cave minus no. taxa in mode)
-  taxonCountDiff = 'taxon count diff',
   // dissimilarity = -1 * no. of taxa the test cave has in common with the mode
   minusCommonTaxa = 'minus common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
