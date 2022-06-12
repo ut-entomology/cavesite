@@ -11,7 +11,8 @@ import {
   TaxonWeight,
   type SeedSpec
 } from '../../shared/model';
-import * as cluster from './cluster';
+import { Clusterer } from './clusterer';
+import { createClusterer } from './create_clusterer';
 
 jest.setTimeout(20 * 60 * 1000); // debuggin timeout
 
@@ -39,6 +40,7 @@ beforeAll(async () => {
 
 test('selecting seed locations by taxon diversity', async () => {
   await LocationEffort.dropAll(db);
+  const seeder = createClusterer(minusDiffMetric1);
 
   // Select the most diverse seed location.
 
@@ -52,7 +54,7 @@ test('selecting seed locations by taxon diversity', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p1'
   });
-  let seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
+  let seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([1]);
 
   await _addEffort(2, 5, {
@@ -61,7 +63,7 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f2',
     genusNames: 'f1g1|f1g2|f1g3|f2g4|f2g5'
   });
-  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2]);
 
   await _addEffort(3, 3, {
@@ -70,7 +72,7 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1',
     genusNames: 'f1g1|f1g2|f1g3'
   });
-  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2]);
 
   // Attempt to select 2 seeds when all are subsets of one of them.
@@ -81,7 +83,7 @@ test('selecting seed locations by taxon diversity', async () => {
     minSpecies: 0,
     maxSpecies: 10000
   };
-  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2]);
 
   // Add 2nd- and 3rd-most diverse locations.
@@ -104,7 +106,7 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f3',
     genusNames: 'f1g1|f1g2|f3g1'
   });
-  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([2, 5]);
 
   // Selection order changes with adding a late most-diverse effort.
@@ -121,12 +123,13 @@ test('selecting seed locations by taxon diversity', async () => {
     familyNames: 'f1|f2|f3|f4',
     genusNames: 'f1g1|f1g2|f2g1|f4g1|f4g2'
   });
-  seedIDs = await cluster.getSeedLocationIDs(db, seedSpec);
+  seedIDs = await seeder.getSeedLocationIDs(db, seedSpec);
   expect(seedIDs).toEqual([7, 2, 5]);
 });
 
 test('clustering', async () => {
   await LocationEffort.dropAll(db);
+  const clusterer = createClusterer(commonMinusDiffMetric1);
 
   await _addEffort(1, 1, {
     kingdomNames: 'k1',
@@ -140,7 +143,7 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p1|p2|p3'
   });
-  let clusters = await _getClusters([1]);
+  let clusters = await _getClusters(clusterer, [1]);
   _checkClusters(clusters, [[1, 2, 3]]);
 
   await _addEffort(4, 1, {
@@ -155,12 +158,12 @@ test('clustering', async () => {
     kingdomNames: 'k1',
     phylumNames: 'p4|p5|p6'
   });
-  clusters = await _getClusters([3, 6]);
+  clusters = await _getClusters(clusterer, [3, 6]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
   ]);
-  clusters = await _getClusters([1, 4]);
+  clusters = await _getClusters(clusterer, [1, 4]);
   _checkClusters(clusters, [
     [1, 2, 3],
     [4, 5, 6]
@@ -224,14 +227,11 @@ async function _createLocation(locationID: number) {
   await Location.create(db, '', '', sourceLocation);
 }
 
-async function _getClusters(seedLocationIDs: number[]): Promise<number[][]> {
-  return await cluster.getClusteredLocationIDs(
-    db,
-    commonMinusDiffMetric1,
-    seedLocationIDs,
-    0,
-    100
-  );
+async function _getClusters(
+  clusterer: Clusterer,
+  seedLocationIDs: number[]
+): Promise<number[][]> {
+  return await clusterer.getClusteredLocationIDs(db, seedLocationIDs, 0, 100);
 }
 
 function _toEffortData(data: Partial<EffortData>): EffortData {
