@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const URL = 'http://localhost/taxa';
+const NO_TAXA_SELECTED = 'No taxa selected';
 
 const browseTaxaButtonID = 'button:has-text("Browse")';
 const browseTaxaDialogID = '.taxa-browser-content';
@@ -42,7 +43,7 @@ test('test for initial state', async ({ page }) => {
   await expect(title).toContainText('Selected Taxa');
 
   const main = page.locator('main');
-  await expect(main).toContainText('No taxa selected');
+  await expect(main).toContainText(NO_TAXA_SELECTED);
 
   const initialInput = await page.inputValue(autocompleteInputID);
   expect(initialInput).toBeFalsy();
@@ -94,7 +95,7 @@ test('test increasingly specific autocomplete', async ({ page }) => {
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
 
   const main = page.locator('main');
-  await expect(main).toContainText('No taxa selected');
+  await expect(main).toContainText(NO_TAXA_SELECTED);
   await expect(page.locator(clearTaxaButtonID)).not.toBeVisible();
 });
 
@@ -121,6 +122,7 @@ test('adding, removing, and clearing via autocomplete controls', async ({ page }
   await page.click(autoSelectorID);
   await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
+  await expect(main).not.toContainText('Animalia');
   await expect(main).toContainText('phylum: Arthropoda');
   await expect(main).toContainText('class: Arachnida');
   expect(await page.inputValue(autocompleteInputID)).toEqual('arachnida');
@@ -135,7 +137,7 @@ test('adding, removing, and clearing via autocomplete controls', async ({ page }
   await expect(page.locator(autoLoupeID)).toBeVisible();
   expect(await page.inputValue(autocompleteInputID)).toEqual('arachnida');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
-  await expect(main).toContainText('No taxa selected');
+  await expect(main).toContainText(NO_TAXA_SELECTED);
   await expect(page.locator(clearTaxaButtonID)).not.toBeVisible();
 
   // Clear the remaining autocomplete value.
@@ -226,7 +228,7 @@ test('clears taxon selections tree on confirmation', async ({ page }) => {
   await page.click(confirmClearTaxaButtonID);
   await expect(main).not.toContainText('CAUTION');
   await expect(main).not.toContainText('class: Arachnida');
-  await expect(main).toContainText('No taxa selected');
+  await expect(main).toContainText(NO_TAXA_SELECTED);
 
   const initialInput = await page.inputValue(autocompleteInputID);
   expect(initialInput).toBeFalsy();
@@ -247,7 +249,7 @@ test('interaction of autocompletion box and taxon tree', async ({ page }) => {
   // tree operations clear box in order to simplify the code
   await expect(page.locator(autoSelectorID)).not.toBeVisible();
   await expect(page.locator(autoLoupeID)).not.toBeVisible();
-  await expect(main).toContainText('No taxa selected');
+  await expect(main).toContainText(NO_TAXA_SELECTED);
 
   // Add multiple taxa via the autocompletion box and check for proper
   // autocompletion controls for each added taxon.
@@ -386,14 +388,96 @@ test('removing descendant of selection (via autocompletion) selects peripheral t
   ).toBeVisible();
 });
 
-test('removing only selection eliminates taxon tree', async ({ page }) => {
+test('taxon tree supports multiple root-level phyla', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
+
+  await page.fill(autocompleteInputID, 'arthropoda');
+  await page.click(autoSelectorID);
+  await page.fill(autocompleteInputID, 'mollusca');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Arthropoda') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Mollusca') + '.selection')
+  ).toBeVisible();
+  await expect(main).not.toContainText('Animalia');
 });
 
-test("selecting 'Animalia' in taxon tree removes taxon tree", async ({ page }) => {
+test('removing phyla from taxon tree removes taxon tree', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
+
+  await page.fill(autocompleteInputID, 'arthropoda');
+  await page.click(autoSelectorID);
+  await page.fill(autocompleteInputID, 'mollusca');
+  await page.click(autoSelectorID);
+
+  await page.locator(toTreeRowSelectorID('Arthropoda')).click();
+  await page.locator(toTreeRowSelectorID('Mollusca')).click();
+
+  await expect(main).not.toContainText('Animalia');
+  await expect(main).not.toContainText('phylum: Arthropoda');
+  await expect(main).not.toContainText('phylum: Mollusca');
+  await expect(main).toContainText(NO_TAXA_SELECTED);
+});
+
+test('removing only nested selection eliminates taxon tree', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+
+  // Add 'Latrodectus mactans' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'latrodectus mactans');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Theridiidae'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('genus: Latrodectus') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('genus: Latrodectus'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Latrodectus mactans') + '.selection')
+  ).toBeVisible();
+
+  // Remove 'Latrodectus mactans' via the autocompletion box.
+
+  await page.click(autoSelectorID);
+  await expect(
+    page.locator(toTreeRowSelectorID('Latrodectus mactans'))
+  ).not.toBeVisible();
+  await expect(main).toContainText(NO_TAXA_SELECTED);
+
+  // Re-add 'Latrodectus mactans' and remove via the taxon tree.
+
+  await page.click(autoSelectorID);
+  await expect(
+    page.locator(toTreeRowSelectorID('mactans') + '.selection')
+  ).toBeVisible();
+  await expect(main).not.toContainText(NO_TAXA_SELECTED);
+
+  await page.click(toTreeRowSelectorID('mactans'));
+  await expect(
+    page.locator(toTreeRowSelectorID('mactans') + '.selection')
+  ).not.toBeVisible();
+  await expect(main).toContainText(NO_TAXA_SELECTED);
 });
 
 test('opening and closing taxon browser via autocompletion', async ({ page }) => {
@@ -596,12 +680,22 @@ test('opening and closing taxon browser via selection tree links', async ({ page
   await page.locator(closeButtonID).click();
 });
 
-test('selecting via the taxon browser', async ({ page }) => {
+test('selecting children via the taxon browser', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 });
 
-test('removing via the taxon browser', async ({ page }) => {
+test('selecting ancestors via the taxon browser', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('removing children via the taxon browser', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('removing ancestors via the taxon browser', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 });
@@ -616,7 +710,37 @@ test('navigating to parents and selecting in taxon browser', async ({ page }) =>
   const main = page.locator('main');
 });
 
-test("inabiltiy to select 'Animalia' via browser", async ({ page }) => {
+test("inability to select 'Animalia' via taxon browser", async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('select-all for no children selected', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('select-all for all children selected', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('select-all for some children selected', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('deseelect-all for all children selected', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('deselect-all for no children selected', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+});
+
+test('deselect-all for some children selected', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 });
