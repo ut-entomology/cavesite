@@ -16,6 +16,8 @@ const autocompleteInputID = '.autocomplete-input';
 const autocompleteClearButton = ' .autocomplete-clear-button';
 const autocompleteListID = '.autocomplete-list';
 const autocompleteListItemID = '.autocomplete-list-item';
+const selectAllButtonID = 'button:has-text("Select All")';
+const deselectAllButtonID = 'button:has-text("Deselect All")';
 
 const toTreeRowNameID = (taxon: string) => `.tree-row .taxon-name:has-text("${taxon}")`;
 const toTreeRowSelectorID = (taxon: string) =>
@@ -961,24 +963,436 @@ test('removing directly selected ancestor via the taxon browser', async ({ page 
 
 test('removing indirectly selected child via the taxon browser', async ({ page }) => {
   await page.goto(URL);
-  const main = page.locator('main');
+
+  // Select 'Araneae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('class: Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('class: Arachnida'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+
+  await expect(page.locator(toChildRowNameID('family: Theridiidae'))).not.toBeVisible();
+
+  // Open 'Theridiidae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'Theridiidae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Theridiidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Latrodectus') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Steatoda') + '.selection')
+  ).toBeVisible();
+
+  // Remove 'Latrodectus' via the taxon browser.
+
+  await page.click(toChildRowSelectorID('Latrodectus'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Theridiidae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Latrodectus') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Latrodectus'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Steatoda') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Neospintharus') + '.selection')
+  ).toBeVisible();
+
+  // Check parent 'Araneae' from taxon browser.
+
+  await page.click(toAncestorRowNameID('Araneae'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Gnaphosidae') + '.selection')
+  ).toBeVisible();
+
+  // Check the taxon tree after closing the taxon browser.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('genus: Latrodectus'))
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('genus: Steatoda') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('genus: Neospintharus') + '.selection')
+  ).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('family: Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Gnaphosidae') + '.selection')
+  ).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('order: Araneae'))).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('order: Ixodida'))).not.toBeVisible();
 });
 
 test('removing indirectly selected ancestor via the taxon browser', async ({
   page
 }) => {
   await page.goto(URL);
-  const main = page.locator('main');
+
+  // Select 'Araneae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('class: Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('class: Arachnida'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+
+  await expect(page.locator(toChildRowNameID('family: Theridiidae'))).not.toBeVisible();
+
+  // Open 'Latrodectus' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'Latrodectus');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Arachnida'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Theridiidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Latrodectus') + '.selection')
+  ).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus hesperus') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus mactans') + '.selection')
+  ).toBeVisible();
+
+  // Remove 'Theridiidae' from selections via ancestor selector.
+
+  await page.click(toAncestorRowSelectorID('Theridiidae'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Latrodectus') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Latrodectus'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus hesperus') + '.selection')
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus hesperus'))
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus mactans') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Latrodectus mactans'))).toBeVisible();
+
+  // Check 'Theridiidae' to make sure its children are not selected.
+
+  await page.click(toAncestorRowNameID('Theridiidae'));
+
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Latrodectus') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('genus: Latrodectus'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('genus: Steatoda') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('genus: Steatoda'))).toBeVisible();
+
+  // Check 'Araneae' to make sure its remaining children are selected.
+
+  await page.click(toAncestorRowNameID('Araneae'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+
+  // Check the taxon tree after closing the taxon browser.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Theridiidae'))
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+});
+
+test('adding ancestor of already-selected taxa via autocompletion box', async ({
+  page
+}) => {
+  await page.goto(URL);
+
+  // Select two descendent taxa of 'Araneae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'Latrodectus mactans');
+  await page.click(autoSelectorID);
+  await page.fill(autocompleteInputID, 'Lycosidae');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('family: Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Latrodectus mactans') + '.selection')
+  ).toBeVisible();
+
+  // Add 'Araneae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'Araneae');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Lycosidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Theridiidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Latrodectus mactans'))).not.toBeVisible();
+});
+
+test('adding ancestor of already-selected taxa via taxon browser', async ({ page }) => {
+  await page.goto(URL);
+  await page.goto(URL);
+
+  // Select two descendent taxa of 'Araneae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'Latrodectus mactans');
+  await page.click(autoSelectorID);
+  await page.fill(autocompleteInputID, 'Lycosidae');
+  await page.click(autoSelectorID);
+
+  // Open the taxon browser at 'Araneae'.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Theridiidae'))).toBeVisible();
+
+  // Add 'Araneae' via the ancestor selector.
+
+  await page.click(toAncestorRowSelectorID('Araneae'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Theridiidae') + '.selection')
+  ).toBeVisible();
+
+  // Close the taxon browser and check the taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Lycosidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Theridiidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Latrodectus mactans'))).not.toBeVisible();
+});
+
+test('adding ancestor of already-selected taxa via taxon tree', async ({ page }) => {
+  await page.goto(URL);
+
+  // Select two descendent taxa of 'Araneae' via the autocompletion box.
+
+  await page.fill(autocompleteInputID, 'Latrodectus mactans');
+  await page.click(autoSelectorID);
+  await page.fill(autocompleteInputID, 'Lycosidae');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('family: Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Latrodectus mactans') + '.selection')
+  ).toBeVisible();
+
+  // Add 'Araneae' via the autocompletion box.
+
+  await page.click(toTreeRowSelectorID('Araneae'));
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Lycosidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Theridiidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Latrodectus mactans'))).not.toBeVisible();
 });
 
 test('select-all for no children selected', async ({ page }) => {
   await page.goto(URL);
-  const main = page.locator('main');
-});
 
-test('select-all for all children selected', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
+  // Open 'Araneae'.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Agelenidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('family: Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('family: Lycosidae'))).toBeVisible();
+
+  // Click 'Select All'.
+
+  await page.click(selectAllButtonID);
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+
+  // Close taxon browser and check taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
 });
 
 test('select-all for some children selected', async ({ page }) => {
@@ -987,11 +1401,6 @@ test('select-all for some children selected', async ({ page }) => {
 });
 
 test('deseelect-all for all children selected', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-});
-
-test('deselect-all for no children selected', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 });
