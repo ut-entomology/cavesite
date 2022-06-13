@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import AutoComplete from 'simple-svelte-autocomplete';
-
   import ClearerAutoComplete from '../common/ClearerAutoComplete.svelte';
   import SelectionButton from '../components/SelectionButton.svelte';
   import CircleIconButton from './CircleIconButton.svelte';
@@ -22,7 +19,7 @@
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import { showNotice } from '../common/VariableNotice.svelte';
 
-  const LOAD_DELAY_MILLIS = 200;
+  const LOAD_DELAY_MILLIS = 333;
   const loupeIcon = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
 <g><path d="M497.938,430.063l-126.914-126.91C389.287,272.988,400,237.762,400,200C400,89.719,310.281,0,200,0
@@ -177,6 +174,7 @@
       labelFieldName="unique"
       placeholder="Type a taxon to look up"
       minCharactersToSearch={2}
+      cleanUserText={false}
       hideArrow={true}
       {setClearer}
     >
