@@ -552,7 +552,27 @@ test('opening and closing taxon browser via autocompletion', async ({ page }) =>
 
 test('opening and closing taxon browser via tab button', async ({ page }) => {
   await page.goto(URL);
-  const main = page.locator('main');
+  await page.click(browseTaxaButtonID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Animalia') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Animalia'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Animalia'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Animalia') + '.clickable')
+  ).not.toBeVisible();
+
+  await expect(page.locator(toChildRowSelectorID('Arthropoda'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Arthropoda') + '.clickable')
+  ).toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Mollusca'))).toBeVisible();
+  await expect(page.locator(toChildRowNameID('Mollusca') + '.clickable')).toBeVisible();
+
+  await page.locator(closeButtonID).click();
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
 });
 
 test('opening and closing taxon browser via selection tree links', async ({ page }) => {
@@ -680,37 +700,273 @@ test('opening and closing taxon browser via selection tree links', async ({ page
   await page.locator(closeButtonID).click();
 });
 
-test('selecting children via the taxon browser', async ({ page }) => {
+test('navigating to children and selecting via the taxon browser', async ({ page }) => {
+  await page.goto(URL);
+
+  // Enter 'Araneae' into the autocompletion box and browse via the loupe.
+
+  await page.fill(autocompleteInputID, 'Araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowNameID('Agelenidae') + '.clickable')
+  ).toBeVisible();
+
+  // Click the child 'Agelenidae' to browse there.
+
+  await page.click(toChildRowNameID('Agelenidae'));
+
+  await expect(page.locator(toAncestorRowNameID('Animalia'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Animalia'))).not.toBeVisible();
+
+  await expect(page.locator(toAncestorRowNameID('Agelenidae'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Agelenidae') + '.clickable')
+  ).not.toBeVisible();
+
+  await expect(page.locator(toChildRowSelectorID('Agelenopsis'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Agelenopsis') + '.clickable')
+  ).toBeVisible();
+
+  // Click 'Agelenopsis' to browse there.
+
+  await page.click(toChildRowNameID('Agelenopsis'));
+
+  await expect(page.locator(toAncestorRowNameID('Agelenidae'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Agelenidae') + '.clickable')
+  ).toBeVisible();
+
+  await expect(page.locator(toAncestorRowNameID('Agelenopsis'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Agelenopsis'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Agelenopsis') + '.clickable')
+  ).not.toBeVisible();
+
+  await expect(page.locator(toChildRowSelectorID('Agelenopsis aperta'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Agelenopsis aperta') + '.clickable')
+  ).not.toBeVisible();
+
+  // Add 'Agelenopsis aperta' to the selected taxa.
+
+  await expect(
+    page.locator(toChildRowSelectorID('Agelenopsis aperta') + '.selection')
+  ).not.toBeVisible();
+  await page.click(toChildRowSelectorID('Agelenopsis aperta'));
+  await expect(
+    page.locator(toChildRowSelectorID('Agelenopsis aperta') + '.selection')
+  ).toBeVisible();
+
+  // Close the taxon browser and check the taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Agelenopsis aperta') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Agelenopsis aperta') + '.clickable')
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('genus: Agelenopsis') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('genus: Agelenopsis'))).toBeVisible();
+});
+
+test('navigating to ancestors and selecting via the taxon browser', async ({
+  page
+}) => {
+  await page.goto(URL);
+
+  // Enter 'Araneae' into the autocompletion box and browse via the loupe.
+
+  await page.fill(autocompleteInputID, 'Araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
+  ).toBeVisible();
+
+  // Click the ancestor 'Arachnida' to browse there.
+
+  await page.click(toAncestorRowNameID('Arachnida'));
+
+  await expect(page.locator(toChildRowSelectorID('Araneae'))).toBeVisible();
+  await expect(page.locator(toChildRowNameID('Araneae') + '.clickable')).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Arachnida'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
+  ).not.toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Arthropoda'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
+  ).toBeVisible();
+
+  // Add 'Arthropoda' to the selected taxa via the ancestor selector.
+
+  await page.click(toAncestorRowSelectorID('Arthropoda'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
+  ).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
+  ).not.toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Ixodida') + '.selection')
+  ).toBeVisible();
+
+  // Close the taxon browser and check the taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('phylum: Arthropoda') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('phylum: Arthropoda') + '.clickable')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('class: Arachnida'))).not.toBeVisible();
+});
+
+test('removing directly selected child via the taxon browser', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+
+  // Add 'Latrodectus' to the taxa selections via autocompletion.
+
+  await page.fill(autocompleteInputID, 'latrodectus');
+  await page.click(autoSelectorID);
+  await expect(
+    page.locator(toTreeRowSelectorID('genus: Latrodectus') + '.selection')
+  ).toBeVisible();
+
+  // Open 'Theridiidae' via the taxon tree.
+
+  await page.click(toTreeRowNameID('Theridiidae'));
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus') + '.selection')
+  ).toBeVisible();
+
+  // Remove 'Latrodectus' from selections via the taxon browser.
+
+  await page.click(toChildRowSelectorID('Latrodectus'));
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Latrodectus'))).toBeVisible();
+
+  // Make sure it got removed from the taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(main).toContainText(NO_TAXA_SELECTED);
+});
+
+test('removing directly selected ancestor via the taxon browser', async ({ page }) => {
+  await page.goto(URL);
+  const main = page.locator('main');
+
+  // Add 'Araneae' to the taxa selections via autocompletion.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoSelectorID);
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(main).not.toContainText(NO_TAXA_SELECTED);
+
+  // Open browser for 'Latrodectus' via the autocompletion loupe.
+
+  await page.fill(autocompleteInputID, 'latrodectus');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Arachnida'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Theridiidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Latrodectus') + '.selection')
+  ).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus mactans') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Latrodectus mactans'))).toBeVisible();
+
+  // Remove 'Araneae' from the taxa selections via an ancestor selector.
+
+  await page.click(toAncestorRowSelectorID('Araneae'));
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Arachnida'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Araneae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Theridiidae'))).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('Latrodectus') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Latrodectus'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('Latrodectus mactans') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Latrodectus mactans'))).toBeVisible();
+
+  // Make sure it got removed from the taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(main).toContainText(NO_TAXA_SELECTED);
+});
+
+test('removing indirectly selected child via the taxon browser', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 });
 
-test('selecting ancestors via the taxon browser', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-});
-
-test('removing children via the taxon browser', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-});
-
-test('removing ancestors via the taxon browser', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-});
-
-test('navigating to children and selecting in taxon browser', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-});
-
-test('navigating to parents and selecting in taxon browser', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-});
-
-test("inability to select 'Animalia' via taxon browser", async ({ page }) => {
+test('removing indirectly selected ancestor via the taxon browser', async ({
+  page
+}) => {
   await page.goto(URL);
   const main = page.locator('main');
 });
