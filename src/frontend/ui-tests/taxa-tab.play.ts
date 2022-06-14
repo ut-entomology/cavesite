@@ -1397,15 +1397,188 @@ test('select-all for no children selected', async ({ page }) => {
 
 test('select-all for some children selected', async ({ page }) => {
   await page.goto(URL);
-  const main = page.locator('main');
+
+  // Open 'Araneae'.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  // Individually select a few child families.
+
+  await page.click(toChildRowSelectorID('Lycosidae'));
+  await page.click(toChildRowSelectorID('Theridiidae'));
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+
+  // Click 'Select All'.
+
+  await page.click(selectAllButtonID);
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+
+  // Close taxon browser and check taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
 });
 
 test('deseelect-all for all children selected', async ({ page }) => {
   await page.goto(URL);
-  const main = page.locator('main');
+
+  // Select 'Ixodida'.
+
+  await page.fill(autocompleteInputID, 'Ixodida');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Ixodida') + '.selection')
+  ).toBeVisible();
+
+  // Open 'Araneae'.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  // Click 'Select All'.
+
+  await page.click(selectAllButtonID);
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+
+  // Click 'Deselect All'.
+
+  await page.click(deselectAllButtonID);
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Lycosidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Theridiidae'))).toBeVisible();
+
+  // Close taxon browser and check taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Ixodida') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Araneae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Agelenidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Lycosidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Theridiidae'))).not.toBeVisible();
 });
 
 test('deselect-all for some children selected', async ({ page }) => {
   await page.goto(URL);
-  const main = page.locator('main');
+
+  // Select 'Ixodida'.
+
+  await page.fill(autocompleteInputID, 'Ixodida');
+  await page.click(autoSelectorID);
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Ixodida') + '.selection')
+  ).toBeVisible();
+
+  // Open 'Araneae'.
+
+  await page.fill(autocompleteInputID, 'araneae');
+  await page.click(autoLoupeID);
+  await expect(page.locator(browseTaxaDialogID)).toBeVisible();
+
+  // Individually select a few child families.
+
+  await page.click(toChildRowSelectorID('Lycosidae'));
+  await page.click(toChildRowSelectorID('Theridiidae'));
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).toBeVisible();
+
+  // Click 'Deselect All'.
+
+  await page.click(deselectAllButtonID);
+
+  await expect(
+    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+
+  await expect(
+    page.locator(toChildRowSelectorID('family: Agelenidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Agelenidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Lycosidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Lycosidae'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('family: Theridiidae') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('family: Theridiidae'))).toBeVisible();
+
+  // Close taxon browser and check taxon tree.
+
+  await page.click(closeButtonID);
+  await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
+
+  await expect(
+    page.locator(toTreeRowSelectorID('order: Ixodida') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Araneae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Agelenidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Lycosidae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Theridiidae'))).not.toBeVisible();
 });
