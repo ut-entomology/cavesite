@@ -9,7 +9,8 @@
     "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps --watch ./build ./build/backend/server.js",
     "test": "run unit-tests && run web-tests",
     "unit-tests": "./bin/test-all",
-    "web-tests": "npx playwright test",
+    "web-tests": "npx playwright test --project=chromium",
+    "all-web-tests": "npx playwright test",
     "check": "svelte-check --tsconfig ./src/frontend/tsconfig.json",
     "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
     "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
