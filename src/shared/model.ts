@@ -1,8 +1,10 @@
+//// General /////////////////////////////////////////////////////////////////
+
+export const MIN_LOOKUP_CHAR_LENGTH = 2;
+
 //// Taxa ////////////////////////////////////////////////////////////////////
 
 export const ROOT_TAXON = 'Animalia';
-
-export const MIN_PARTIAL_TAXON_LENGTH = 2;
 
 export enum TaxonRank {
   Kingdom = 'kingdom',

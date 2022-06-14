@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { Taxon } from '../model/taxon';
-import { TaxonSpec, MIN_PARTIAL_TAXON_LENGTH } from '../../shared/model';
+import { TaxonSpec, MIN_LOOKUP_CHAR_LENGTH } from '../../shared/model';
 
 const MAX_LOOKUP_MATCHES = 120;
 
@@ -45,7 +45,7 @@ router.post('/match_name', async (req: Request, res) => {
   const partialName = req.body.partialName;
   if (
     typeof partialName !== 'string' ||
-    partialName.length < MIN_PARTIAL_TAXON_LENGTH ||
+    partialName.length < MIN_LOOKUP_CHAR_LENGTH ||
     partialName.length > 200
   ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
