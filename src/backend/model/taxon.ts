@@ -147,7 +147,8 @@ export class Taxon {
     const childrenPerParent: Taxon[][] = [];
     for (const uniqueName of parentUniqueNames) {
       const result = await db.query(
-        `select x.*, ${childCountSql} from taxa x join taxa p on x.parent_id = p.taxon_id and
+        `select x.*, ${childCountSql} from taxa x
+          join taxa p on x.parent_id = p.taxon_id and
           p.unique_name=$1 and p.committed=true order by x.unique_name`,
         [uniqueName]
       );

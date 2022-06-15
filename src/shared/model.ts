@@ -86,10 +86,11 @@ export interface LocationSpec {
   locationID: number;
   rank: LocationRank;
   name: string;
-  guid: string | null;
+  unique: string;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentNamePath: string;
+  hasChildren: boolean | null;
 }
 
 export function createContainingLocationSpecs(fromSpec: LocationSpec): LocationSpec[] {
@@ -106,16 +107,39 @@ export function createContainingLocationSpecs(fromSpec: LocationSpec): LocationS
       locationID: 0,
       rank: locationRanks[i],
       name: containingName,
-      guid: null, // not needed above locality
+      unique: toLocationUnique(parentNamePath, containingName),
       publicLatitude: null,
       publicLongitude: null,
-      parentNamePath
+      parentNamePath,
+      hasChildren: true
     });
     if (parentNamePath != '') parentNamePath += '|';
     parentNamePath += containingName;
   }
   return containingSpecs;
 }
+
+/**
+ * Creates a unique identifier for a location based on its name and the names of
+ * the locations that contain it. The unique is a concatenation of the three most
+ * specific names available for the location, or fewer names if fewer are available.
+ * It uses lowercase with punctuation and duplicate spaces removed in an attempt to
+ * survive at least some edits made to the names. GUIDs are not used because each
+ * Specify installation creates its own for each locality, potentially giving the
+ * same location multiple GUIDs and preventing their correlation, should the website
+ * ever draw from additional data sources.
+ */
+export function toLocationUnique(parentNamePath: string, locationName: string): string {
+  const names = parentNamePath == '' ? [] : parentNamePath.split('|');
+  names.push(locationName);
+  while (names.length > 3) names.shift();
+  return names
+    .join('|')
+    .replace(PUNCT_REGEX, '')
+    .replace(/\s{2,}/g, ' ')
+    .toLowerCase();
+}
+const PUNCT_REGEX = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{}~]/g;
 
 //// Effort //////////////////////////////////////////////////////////////////
 

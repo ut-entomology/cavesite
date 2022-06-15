@@ -3,7 +3,7 @@ import { DatabaseMutex, expectRecentTime } from '../util/test_util';
 import { User } from './user';
 import { Permission } from '../../shared/user_auth';
 import { PrivateCoords } from './private_coords';
-import { UserError, ValidationError } from '../../shared/validation';
+import { UserError } from '../../shared/validation';
 
 const mutex = new DatabaseMutex();
 let db: DB;
@@ -31,32 +31,25 @@ test('creating, modifying, and dropping private coordinates', async () => {
   const createdCoords2 = await PrivateCoords.create(db, 'G2', user, 1, 2, 0.5);
   verifyCoords(createdCoords2, 'G2', user, 1, 2, 0.5);
 
-  let readCoords = await PrivateCoords.getByGUID(db, 'G1');
+  let readCoords = await PrivateCoords.getByUnique(db, 'G1');
   verifyCoords(readCoords, 'G1', user, 1, 2, null);
 
   createdCoords1.latitude = 100;
   createdCoords1.uncertaintyMeters = 2.5;
   await createdCoords1.save(db);
 
-  readCoords = await PrivateCoords.getByGUID(db, 'G1');
+  readCoords = await PrivateCoords.getByUnique(db, 'G1');
   verifyCoords(readCoords, 'G1', user, 100, 2, 2.5);
 
-  await PrivateCoords.dropGUID(db, 'G1');
-  readCoords = await PrivateCoords.getByGUID(db, 'G1');
+  await PrivateCoords.dropLocation(db, 'G1');
+  readCoords = await PrivateCoords.getByUnique(db, 'G1');
   expect(readCoords).toBeNull();
 });
 
-test('invalid private coordinates GUID', async () => {
-  await expect(() => PrivateCoords.create(db, '', user, 1, 2, null)).rejects.toThrow(
-    new ValidationError('Invalid location GUID')
-  );
-  await expect(() => PrivateCoords.create(db, '  ', user, 1, 2, null)).rejects.toThrow(
-    new ValidationError('Invalid location GUID')
-  );
-
+test('invalid private coordinates location unique', async () => {
   await PrivateCoords.create(db, 'X1', user, 1, 2, null);
   await expect(() => PrivateCoords.create(db, 'X1', user, 1, 2, null)).rejects.toThrow(
-    new UserError(`Private coordinates already exist for GUID X1`)
+    new UserError(`Private coordinates already exist for location unique X1`)
   );
 });
 
@@ -66,14 +59,14 @@ afterAll(async () => {
 
 function verifyCoords(
   coords: PrivateCoords | null,
-  guid: string,
+  unique: string,
   user: User,
   latitude: number,
   longitude: number,
   uncertaintyMeters: number | null
 ) {
   expect(coords).not.toBeNull();
-  expect(coords!.locationGuid).toEqual(guid);
+  expect(coords!.locationUnique).toEqual(unique);
   expect(coords!.modifiedBy).toEqual(user.userID);
   expectRecentTime(coords!.modifiedOn);
   expect(coords!.latitude).toEqual(latitude);

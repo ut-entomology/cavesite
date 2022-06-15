@@ -359,7 +359,7 @@ test('sequentially dependent taxa tests', async () => {
       'Eurycea rathbuni'
     ];
     let readTaxa = await Taxon.getByUniqueNames(db, taxaNames);
-    findTaxonNames(readTaxa, taxaNames);
+    _findTaxonNames(readTaxa, taxaNames);
     expect(readTaxa.find((t) => t.uniqueName == 'Araneae')?.hasChildren).toBe(true);
     expect(readTaxa.find((t) => t.uniqueName == 'Mecaphesa')?.hasChildren).toBe(true);
     expect(readTaxa.find((t) => t.uniqueName == 'Eurycea rathbuni')?.hasChildren).toBe(
@@ -404,24 +404,24 @@ test('sequentially dependent taxa tests', async () => {
   {
     let readTaxa = await Taxon.getChildrenOf(db, ['Animalia']);
     expect(readTaxa.length).toEqual(1);
-    findTaxonNames(readTaxa[0], ['Arthropoda', 'Chordata']);
+    _findTaxonNames(readTaxa[0], ['Arthropoda', 'Chordata']);
     readTaxa[0].forEach((t) => expect(t.hasChildren).toBe(true));
 
     readTaxa = await Taxon.getChildrenOf(db, ['Arachnida']);
     expect(readTaxa.length).toEqual(1);
-    findTaxonNames(readTaxa[0], ['Araneae']);
+    _findTaxonNames(readTaxa[0], ['Araneae']);
     readTaxa[0].forEach((t) => expect(t.hasChildren).toBe(true));
 
     readTaxa = await Taxon.getChildrenOf(db, ['Araneae']);
     expect(readTaxa.length).toEqual(1);
-    findTaxonNames(readTaxa[0], ['Thomisidae', 'Philodromidae']);
+    _findTaxonNames(readTaxa[0], ['Thomisidae', 'Philodromidae']);
     readTaxa[0].forEach((t) => expect(t.hasChildren).toBe(true));
 
     readTaxa = await Taxon.getChildrenOf(db, ['Animalia', 'Araneae']);
     expect(readTaxa.length).toEqual(2);
-    findTaxonNames(readTaxa[0], ['Arthropoda', 'Chordata']);
+    _findTaxonNames(readTaxa[0], ['Arthropoda', 'Chordata']);
     readTaxa[0].forEach((t) => expect(t.hasChildren).toBe(true));
-    findTaxonNames(readTaxa[1], ['Thomisidae', 'Philodromidae']);
+    _findTaxonNames(readTaxa[1], ['Thomisidae', 'Philodromidae']);
     readTaxa[1].forEach((t) => expect(t.hasChildren).toBe(true));
 
     readTaxa = await Taxon.getChildrenOf(db, ['Eurycea rathbuni']);
@@ -531,7 +531,7 @@ afterAll(async () => {
   await mutex.unlock();
 });
 
-function findTaxonNames(taxa: Taxon[], lookForNames: string[]) {
+function _findTaxonNames(taxa: Taxon[], lookForNames: string[]) {
   for (const name of lookForNames) {
     const taxon = taxa.find((t) => t.uniqueName == name);
     expect(taxon).not.toBeUndefined();

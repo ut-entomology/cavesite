@@ -200,10 +200,10 @@ async function _createLocation(locationID: number) {
   const sourceLocation = {
     locationRank: LocationRank.Continent,
     locationName: 'Continent ' + locationID,
-    locationGuid: null,
     publicLatitude: null,
     publicLongitude: null,
-    parentID: null
+    parentID: null,
+    hasChildren: null
   };
   await Location.create(db, '', '', sourceLocation);
 }

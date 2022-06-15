@@ -14,12 +14,14 @@ import { ImportFailure } from './import_failure';
 import {
   LocationRank,
   LocationSpec,
-  createContainingLocationSpecs
+  createContainingLocationSpecs,
+  toLocationUnique
 } from '../../shared/model';
+
+const childCountSql = `(select count(*) from locations y where y.parent_id=x.location_id) as child_count`;
 
 export interface LocationSource {
   // GBIF field names
-  locationID?: string; // actually a GUID
   continent: string;
   country?: string;
   stateProvince?: string;
@@ -35,12 +37,13 @@ export class Location {
   locationID = 0;
   locationRank: LocationRank;
   locationName: string;
-  locationGuid: string | null;
+  locationUnique: string;
   publicLatitude: number | null;
   publicLongitude: number | null;
   parentID: number | null;
   parentIDPath: string;
   parentNamePath: string;
+  hasChildren: boolean | null; // null => unknown; not a DB column
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -48,12 +51,13 @@ export class Location {
     this.locationID = data.locationID;
     this.locationRank = data.locationRank;
     this.locationName = data.locationName;
-    this.locationGuid = data.locationGuid;
+    this.locationUnique = data.locationUnique;
     this.publicLatitude = data.publicLatitude;
     this.publicLongitude = data.publicLongitude;
     this.parentID = data.parentID;
     this.parentIDPath = data.parentIDPath;
     this.parentNamePath = data.parentNamePath;
+    this.hasChildren = data.hasChildren;
   }
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
@@ -62,7 +66,7 @@ export class Location {
     if (this.locationID === 0) {
       const result = await db.query(
         `insert into locations(
-						location_rank, location_name, location_guid,
+						location_rank, location_name, location_unique,
             public_latitude, public_longitude,
 						parent_id, parent_id_path, parent_name_path
 					) values ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -70,7 +74,7 @@ export class Location {
         [
           this.locationRank,
           this.locationName,
-          this.locationGuid,
+          this.locationUnique,
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
@@ -82,14 +86,14 @@ export class Location {
     } else {
       const result = await db.query(
         `update locations set 
-						location_rank=$1, location_name=$2, location_guid=$3,
+						location_rank=$1, location_name=$2, location_unique=$3,
             public_latitude=$4, public_longitude=$5,
 						parent_id=$6, parent_id_path=$7, parent_name_path=$8
 					where location_id=$9`,
         [
           this.locationRank,
           this.locationName,
-          this.locationGuid,
+          this.locationUnique,
           this.publicLatitude,
           this.publicLongitude,
           this.parentID,
@@ -116,14 +120,18 @@ export class Location {
     db: DB,
     parentNamePath: string,
     parentIDPath: string,
-    data: Omit<LocationData, 'locationID' | 'parentIDPath' | 'parentNamePath'>
+    data: Omit<
+      LocationData,
+      'locationID' | 'parentIDPath' | 'parentNamePath' | 'locationUnique'
+    >
   ): Promise<Location> {
     const location = new Location(
       Object.assign(
         {
           locationID: 0 /* DB will assign a value */,
           parentIDPath,
-          parentNamePath
+          parentNamePath,
+          locationUnique: toLocationUnique(parentNamePath, data.locationName)
         },
         data
       )
@@ -132,20 +140,34 @@ export class Location {
     return location;
   }
 
-  static async getByGUID(
+  static async getByUnique(
     db: DB,
-    locationGUID: string,
+    locationUnique: string,
     committed: boolean
   ): Promise<Location | null> {
     const result = await db.query(
-      `select * from locations where location_guid=$1 and committed=$2`,
+      `select * from locations where location_unique=$1 and committed=$2`,
       [
-        locationGUID,
+        locationUnique,
         // @ts-ignore
         committed
       ]
     );
-    return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
+    return result.rows.length > 0
+      ? new Location(_toLocationData(result.rows[0]))
+      : null;
+  }
+
+  static async getByUniques(db: DB, guids: string[]): Promise<Location[]> {
+    const result = await db.query(
+      `select *, ${childCountSql} from locations x where location_unique=any ($1)
+        and committed=true`,
+      [
+        // @ts-ignore
+        guids
+      ]
+    );
+    return result.rows.map((row) => new Location(_toLocationData(row)));
   }
 
   static async getByIDs(db: DB, locationIDs: number[]): Promise<Location[]> {
@@ -154,24 +176,39 @@ export class Location {
       // @ts-ignore
       [locationIDs]
     );
-    return result.rows.map((row) => new Location(toCamelRow(row)));
+    return result.rows.map((row) => new Location(_toLocationData(row)));
+  }
+
+  static async getChildrenOf(
+    db: DB,
+    parentLocationUniques: string[]
+  ): Promise<Location[][]> {
+    const childrenPerParent: Location[][] = [];
+    for (const locationUnique of parentLocationUniques) {
+      const result = await db.query(
+        `select x.*, ${childCountSql} from locations x
+          join locations p on x.parent_id = p.location_id and
+          p.location_unique=$1 and p.committed=true order by x.location_name`,
+        [locationUnique]
+      );
+      childrenPerParent.push(
+        result.rows.map((row) => new Location(_toLocationData(row)))
+      );
+    }
+    return childrenPerParent;
   }
 
   static async getOrCreate(db: DB, source: LocationSource): Promise<Location> {
     // Return the location if it already exists.
 
-    if (source.locationID) {
-      const location = await Location.getByGUID(db, source.locationID, false);
-      if (location) return location;
-    }
     const containingNames = Location._extractLocations(source);
     const locationName = containingNames.pop()!;
     const parentNamePath = containingNames.join('|');
 
-    if (!source.locationID) {
-      let location = await Location._getByNamePath(db, parentNamePath, locationName);
-      if (location) return location;
-    }
+    // Lookup existing location by name path rather than by unique in order to spare
+    // the clock cycles necessary to generate the unique.
+    const location = await Location._getByNamePath(db, parentNamePath, locationName);
+    if (location) return location;
 
     // Parse the coordinates.
 
@@ -192,10 +229,11 @@ export class Location {
       locationID: 0,
       rank: LocationRank.Locality,
       name: locationName,
-      guid: source.locationID || null,
+      unique: toLocationUnique(parentNamePath, locationName),
       publicLatitude: latitude,
       publicLongitude: longitude,
-      parentNamePath
+      parentNamePath,
+      hasChildren: null
     };
     const specs = createContainingLocationSpecs(spec);
     specs.push(spec);
@@ -205,13 +243,17 @@ export class Location {
     return await Location._createMissingLocations(db, specs);
   }
 
-  static async matchName(db: DB, partialName: string): Promise<Location[]> {
+  static async matchName(
+    db: DB,
+    partialName: string,
+    maxMatches: number
+  ): Promise<Location[]> {
     const result = await db.query(
-      `select * from locations where location_name like $1 and committed=true
-        order by location_name`,
-      [`%${partialName}%`]
+      `select * from locations where location_name ilike $1 and committed=true
+        order by location_name limit $2`,
+      [`%${partialName}%`, maxMatches]
     );
-    return result.rows.map((row) => toCamelRow(row));
+    return result.rows.map((row) => new Location(_toLocationData(row)));
   }
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
@@ -235,10 +277,10 @@ export class Location {
       location = await Location.create(db, spec.parentNamePath, parentIDPath, {
         locationRank: spec.rank,
         locationName: spec.name,
-        locationGuid: spec.guid,
         publicLatitude: spec.publicLatitude,
         publicLongitude: spec.publicLongitude,
-        parentID: location?.locationID || null
+        parentID: location?.locationID || null,
+        hasChildren: spec.hasChildren || null
       });
     }
     return location!;
@@ -254,7 +296,9 @@ export class Location {
         and committed=false`,
       [parentNamePath, locationName]
     );
-    return result.rows.length > 0 ? new Location(toCamelRow(result.rows[0])) : null;
+    return result.rows.length > 0
+      ? new Location(_toLocationData(result.rows[0]))
+      : null;
   }
 
   private static async _getClosestLocation(
@@ -264,11 +308,7 @@ export class Location {
   ): Promise<[Location | null, number]> {
     const spec = specs[specIndex]!;
     let location: Location | null;
-    if (spec.guid) {
-      location = await Location.getByGUID(db, spec.guid, false);
-    } else {
-      location = await Location._getByNamePath(db, spec.parentNamePath, spec.name);
-    }
+    location = await Location.getByUnique(db, spec.unique, false);
     if (location) {
       return [location, specIndex];
     }
@@ -309,4 +349,12 @@ export class Location {
 
     return locationNames;
   }
+}
+
+function _toLocationData(row: any): LocationData {
+  const childCount: number | null = row.child_count;
+  if (childCount) delete row['child_count'];
+  const data: any = toCamelRow(row);
+  data.hasChildren = childCount ? childCount > 0 : null;
+  return data;
 }

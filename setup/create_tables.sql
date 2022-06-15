@@ -84,10 +84,12 @@ create table locations (
 
     location_id serial primary key, -- locally generated
     -- GBIF substring of georeferenceSources (Specify location.guid)
-    location_guid text, -- can't enforce uniqueness due to import
     location_rank text not null, -- locally assigned
     -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
     location_name text not null,
+    -- unique identifier for location based only on location and containing names;
+    -- GUID not used because it is specific to Specify installation and very long
+    location_unique text not null,
     -- GBIF decimalLongitude
     public_latitude float8,
     -- GBIF decimalLatitude
@@ -101,7 +103,7 @@ create table locations (
     -- |-delimited series of location names for containing locations
     parent_name_path text not null 
 );
-create index on locations(location_guid);
+create index on locations(location_unique);
 create index on locations(parent_name_path);
 
 create table specimens (
@@ -205,7 +207,7 @@ create index on specimens(public_longitude);
 
 create table private_coordinates (
     -- Users will be supplying this data, not GBIF
-    location_guid text unique not null,
+    location_unique text unique not null,
     modified_by integer references users,
     modified_on timestamptz not null,
     latitude float8 not null,
