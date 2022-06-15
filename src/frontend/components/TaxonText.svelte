@@ -34,6 +34,7 @@
 
   .clickable {
     color: $blueLinkForeColor;
+    text-decoration: underline;
   }
   .clickable:hover {
     cursor: pointer;

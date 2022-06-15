@@ -133,6 +133,14 @@
 
 {#await prepare() then}
   <ModalDialog {title} contentClasses="taxa-browser-content">
+    <div class="row info-row">
+      <div class="col-auto mb-3 small">
+        This box only shows taxa having records. Click on taxon links to navigate. A
+        plus ({@html plusIcon}) indicates a taxon that can be selected. A check ({@html checkmarkIcon})
+        indicates a taxon that has been selected. Click on
+        {@html plusIcon} or {@html checkmarkIcon} to toggle selections.
+      </div>
+    </div>
     <div class="container-md">
       <div class="row gx-2 ancestors-row">
         <div class="col">
@@ -184,15 +192,6 @@
             />
           </div>
         {/each}
-      </div>
-      <div class="row info-row">
-        <div class="col-auto mt-4 small">
-          This box only shows taxa for which there are records. Click on a blue taxon to
-          navigate to it. A plus ({@html plusIcon}) indicates a taxon that can be
-          selected. A check ({@html checkmarkIcon}) indicates a taxon that has been
-          selected. Click on the {@html plusIcon} or {@html checkmarkIcon} to toggle the
-          selection. Type taxa in the box for autocompletion assistance.
-        </div>
       </div>
     </div>
   </ModalDialog>

@@ -245,7 +245,12 @@
 <DataTabRoute activeTab="Query">
   <div id="em_sample" />
   <div class="container-fluid">
-    <TabHeader title={$pageName} center={false} expandable={true}>
+    <TabHeader
+      title={$pageName}
+      center={false}
+      expandable={true}
+      instructions="Specify the optional filters for new queries using the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs."
+    >
       <span slot="main-buttons">
         <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
         <button class="btn btn-major" type="button" on:click={createNewQuery}

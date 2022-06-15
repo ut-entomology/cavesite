@@ -77,6 +77,7 @@
   }
   .tab-instructions {
     margin-bottom: 1rem;
+    font-size: 0.9rem;
   }
   .main-buttons :global(button) {
     margin-left: 0.4rem;
