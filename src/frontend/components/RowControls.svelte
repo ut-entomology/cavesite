@@ -20,7 +20,9 @@
 
 <div class="row row_controls ms-2 me-2 gx-0">
   <div class="col-sm-5 align-self-start info_text">
-    Rows {firstRowNumber} - {lastRowNumber} of {totalRows}
+    {#if totalRows > 0}
+      Rows {firstRowNumber} - {lastRowNumber} of {totalRows}
+    {/if}
   </div>
   <div class="col-sm-7 align-self-end">
     <div class="row justify-content-end">

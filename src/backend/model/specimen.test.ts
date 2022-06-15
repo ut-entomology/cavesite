@@ -967,7 +967,7 @@ describe('general specimen query', () => {
     results = await Specimen.generalQuery(
       db, [_toColumnSpec(QueryColumnID.CatalogNumber, true)], taxonFilter, 1, 1);
     expect(results[0]).toEqual([{ catalogNumber: 'Q3', occurrenceGuid: 'GQ3' }]);
-    expect(results[1]).toEqual(2);
+    expect(results[1]).toEqual(null);
   });
 
   test('combined criteria query', async () => {

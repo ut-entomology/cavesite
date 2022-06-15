@@ -508,7 +508,7 @@ export class Specimen {
     taxonFilter: QueryTaxonFilter | null,
     skip: number,
     limit: number
-  ): Promise<[QueryRow[], number]> {
+  ): Promise<[QueryRow[], number | null]> {
     let groupCountTerm: string | null = null;
     let selectDistinctResults = true;
     const selectedColumns: string[] = [];
@@ -578,6 +578,7 @@ export class Specimen {
     }
 
     let selectionClause = selectedColumns.join(', ');
+    let countedClause = selectionClause;
     let groupByClause = '';
     if (groupCountTerm) {
       selectDistinctResults = false;
@@ -586,6 +587,7 @@ export class Specimen {
     }
     if (selectDistinctResults) {
       selectionClause = 'distinct ' + selectionClause;
+      countedClause = 'distinct ' + countedClause;
     }
 
     let orderByClause = '';
@@ -593,18 +595,22 @@ export class Specimen {
       orderByClause = 'order by ' + columnOrders.join(', ');
     }
 
+    let totalResults: number | null = null;
+    if (skip == 0) {
+      const result = await db.query(
+        `select count(*) from (select ${countedClause} from specimens
+          ${whereClause}) as temp`
+      );
+      // postgres returns counts as strings
+      totalResults = parseInt(result.rows[0].count);
+    }
     const result = await db.query(
-      `select ${selectionClause}, count(*) over() as total_results
-        from specimens ${whereClause} ${groupByClause} ${orderByClause}
-        limit $1 offset $2`,
+      `select ${selectionClause} from specimens
+        ${whereClause} ${groupByClause} ${orderByClause} limit $1 offset $2`,
       [limit, skip]
     );
-    let totalResults = 0;
+
     const camelRows = result.rows.map((row) => {
-      if (totalResults == 0) {
-        totalResults = parseInt(row.total_results);
-      }
-      delete row['total_results'];
       const data: any = toCamelRow(row);
       if (data.resultCount) {
         // postgres returns counts as strings

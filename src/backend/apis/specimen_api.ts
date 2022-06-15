@@ -47,7 +47,7 @@ router.post('/query', async (req: Request, res) => {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 
-  const result: [QueryRow[], number] = await Specimen.generalQuery(
+  const result: [QueryRow[], number | null] = await Specimen.generalQuery(
     getDB(),
     query.columnSpecs,
     query.taxonFilter,

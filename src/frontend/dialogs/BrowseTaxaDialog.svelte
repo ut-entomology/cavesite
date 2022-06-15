@@ -135,10 +135,10 @@
   <ModalDialog {title} contentClasses="taxa-browser-content">
     <div class="row info-row">
       <div class="col-auto mb-3 small">
-        This box only shows taxa having records. Click on taxon links to navigate. A
-        plus ({@html plusIcon}) indicates a taxon that can be selected. A check ({@html checkmarkIcon})
-        indicates a taxon that has been selected. Click on
-        {@html plusIcon} or {@html checkmarkIcon} to toggle selections.
+        This box only shows taxa having records. Click on taxon links to navigate
+        around. A plus ({@html plusIcon}) indicates a taxon that can be selected. A
+        check ({@html checkmarkIcon}) indicates a taxon that has been selected. Click {@html plusIcon}
+        or {@html checkmarkIcon} to toggle selections.
       </div>
     </div>
     <div class="container-md">

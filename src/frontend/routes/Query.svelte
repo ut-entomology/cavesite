@@ -59,16 +59,18 @@
     }
   }
   let gridColumnWidths = '';
+  let scrollArea: HTMLDivElement;
+  let installedScrollListener = false;
 
   onMount(_initColumnWidths);
 
   afterUpdate(() => {
-    const resultsHeader = document.getElementById('results_header');
-    const scrollArea = document.getElementById('scroll_area');
-    if (scrollArea) {
+    if (scrollArea && !installedScrollListener) {
+      const resultsHeader = document.getElementById('results_header');
       scrollArea.addEventListener('scroll', () => {
         resultsHeader!.style.marginLeft = `-${scrollArea.scrollLeft}px`;
       });
+      installedScrollListener = true;
     }
   });
 
@@ -129,6 +131,7 @@
       }
       results.rows = await _loadRows(0, BIG_STEP_ROWS);
       cachedResults.set(results);
+      scrollArea.scrollTop = 0;
     }
   }
 
@@ -147,6 +150,7 @@
       precedingRows.forEach((_) => results.rows.pop());
       results.rows.unshift(...precedingRows);
       cachedResults.set(results);
+      scrollArea.scrollTop = 0;
     }
   }
 
@@ -161,6 +165,7 @@
       followingRows.forEach((_) => results.rows.shift());
       results.rows.push(...followingRows);
       cachedResults.set(results);
+      scrollArea.scrollTop = scrollArea.scrollHeight;
     }
   }
 
@@ -170,6 +175,7 @@
       results.startOffset += BIG_STEP_ROWS;
       results.rows = await _loadRows(results.startOffset, BIG_STEP_ROWS);
       cachedResults.set(results);
+      scrollArea.scrollTop = 0;
     }
   }
 
@@ -179,6 +185,7 @@
       results.startOffset = results.totalRows - BIG_STEP_ROWS;
       results.rows = await _loadRows(results.startOffset, BIG_STEP_ROWS);
       cachedResults.set(results);
+      scrollArea.scrollTop = scrollArea.scrollHeight;
     }
   }
 
@@ -200,8 +207,11 @@
         skip: offset,
         limit: count
       });
-      // Only set totalRows, as caller may not reassign all cached rows.
-      results.totalRows = res.data.totalRows;
+      // Only set totalRows, as caller may not reassign all cached rows. totalRows
+      // is null except when retrieving from offset 0.
+      if (res.data.totalRows !== null) {
+        results.totalRows = res.data.totalRows;
+      }
       return res.data.rows;
     } catch (err: any) {
       showNotice({
@@ -289,21 +299,25 @@
       </div>
     </div>
     <div class="grid_box">
-      <div id="scroll_area">
-        <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
-          {#each $cachedResults.rows as row, i}
-            {#each $cachedResults.query.columnSpecs as columnSpec, j}
-              {@const columnInfo = columnInfoMap[columnSpec.columnID]}
-              <div
-                class={columnInfo.columnClass || ''}
-                class:even={i % 2 == 0}
-                class:left={j == 0}
-              >
-                {@html columnInfo.getValue(row)}
-              </div>
+      <div id="scroll_area" bind:this={scrollArea}>
+        {#if $cachedResults.totalRows > 0}
+          <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
+            {#each $cachedResults.rows as row, i}
+              {#each $cachedResults.query.columnSpecs as columnSpec, j}
+                {@const columnInfo = columnInfoMap[columnSpec.columnID]}
+                <div
+                  class={columnInfo.columnClass || ''}
+                  class:even={i % 2 == 0}
+                  class:left={j == 0}
+                >
+                  {@html columnInfo.getValue(row)}
+                </div>
+              {/each}
             {/each}
-          {/each}
-        </div>
+          </div>
+        {:else}
+          <div class="no_results">No results found.</div>
+        {/if}
       </div>
     </div>
   {/if}
@@ -400,5 +414,11 @@
   :global(.column_resizer img) {
     opacity: 0.75;
     height: 0.8em;
+  }
+
+  .no_results {
+    margin: 3rem 0;
+    text-align: center;
+    font-size: 1.1rem;
   }
 </style>
