@@ -125,7 +125,10 @@ function toScientificName(record: CsvSpecimen): string {
         name += ' ' + record.subspecies;
       }
     }
-    return name + ' (Author-Date)';
+    if (record.authors) {
+      name += ' ' + record.authors;
+    }
+    return name;
   }
   if (record.family) return record.family;
   if (record.order) return record.order;

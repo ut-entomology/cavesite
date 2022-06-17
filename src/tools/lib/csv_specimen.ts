@@ -18,6 +18,7 @@ export class CsvSpecimen {
   genus: string;
   species: string;
   subspecies: string;
+  authors: string;
   country: string;
   state: string;
   county: string;
@@ -46,13 +47,14 @@ export class CsvSpecimen {
     this.catalogerFirstName = row['Cataloger First Name'];
     this.catalogerLastName = row['Cataloger Last Name'];
     this.catalogedDate = row['Cataloged Date'];
-    this.phylum = row['Phylum1'];
-    this.class = row['Class1'];
-    this.order = row['Order1'];
-    this.family = row['Family1'];
-    this.genus = row['Genus1'];
-    this.species = row['Species1'];
-    this.subspecies = row['Subspecies1'];
+    this.phylum = removeAnnotations(row['Phylum1']);
+    this.class = removeAnnotations(row['Class1']);
+    this.order = removeAnnotations(row['Order1']);
+    this.family = removeAnnotations(row['Family1']);
+    this.genus = removeAnnotations(row['Genus1']);
+    this.species = removeAnnotations(row['Species1']);
+    this.subspecies = removeAnnotations(row['Subspecies1']);
+    this.authors = row['Author1'];
     this.country = row['Country'];
     this.state = row['State'];
     this.county = row['County'];
@@ -134,4 +136,10 @@ function addPersonName(
       names[index].lastName = name;
     }
   }
+}
+
+function removeAnnotations(term: string): string {
+  if (term == '') return '';
+  const substrings = term.split(/[(][^)]*[)]/);
+  return substrings.join(' ').replace('?', '').replace('  ', ' ').trim();
 }
