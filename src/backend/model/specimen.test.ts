@@ -305,6 +305,144 @@ describe('basic specimen methods', () => {
     }
   });
 
+  test('specimen with subgenus encoded in det remarks', async () => {
+    await Specimen.dropAll(db);
+    await Taxon.dropAll(db);
+
+    const specimen = await Specimen.create(
+      db,
+      Object.assign({}, baseSource, {
+        determinationRemarks: 'CAVEDATA[subgenus Subby]'
+      })
+    );
+    expect(specimen).toEqual({
+      catalogNumber: baseSource.catalogNumber,
+      occurrenceGuid: baseSource.occurrenceID,
+      taxonID: 7,
+      localityID: 5,
+      collectionStartDate: startDate,
+      collectionEndDate: endDate,
+      collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
+      normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
+      determinationYear: detDate.getUTCFullYear(),
+      determiners: 'Person A|Person B',
+      collectionRemarks: 'meadow',
+      occurrenceRemarks: baseSource.occurrenceRemarks,
+      determinationRemarks: null,
+      typeStatus: baseSource.typeStatus,
+      specimenCount: 1,
+      problems: null,
+      kingdomName: 'Animalia',
+      kingdomID: 1,
+      phylumName: 'Arthropoda',
+      phylumID: 2,
+      className: 'Arachnida',
+      classID: 3,
+      orderName: 'Araneae',
+      orderID: 4,
+      familyName: 'Araneidae',
+      familyID: 5,
+      genusName: 'Argiope (Subby)',
+      genusID: 6,
+      speciesName: 'aurantia',
+      speciesID: 7,
+      subspeciesName: null,
+      subspeciesID: null,
+      taxonUnique: 'Argiope aurantia',
+      taxonAuthor: 'Lucas, 1833',
+      countyName: 'Travis County',
+      countyID: 4,
+      localityName: 'My backyard',
+      publicLatitude: 23.45,
+      publicLongitude: -93.21
+    });
+    expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
+    expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
+    expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
+    expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Argiope (Subby)');
+    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aurantia');
+    expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
+    expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
+    expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
+
+    const readSpecimen = await Specimen.getByCatNum(
+      db,
+      baseSource.catalogNumber,
+      false
+    );
+    expect(readSpecimen).toEqual(specimen);
+  });
+
+  test('specimen with new species encoded in det remarks', async () => {
+    await Specimen.dropAll(db);
+    await Taxon.dropAll(db);
+
+    const specimen = await Specimen.create(
+      db,
+      Object.assign({}, baseSource, {
+        specificEpithet: '',
+        scientificName: 'Argiope',
+        determinationRemarks: 'big one; CAVEDATA[n. sp. A]'
+      })
+    );
+    expect(specimen).toEqual({
+      catalogNumber: baseSource.catalogNumber,
+      occurrenceGuid: baseSource.occurrenceID,
+      taxonID: 7,
+      localityID: 5,
+      collectionStartDate: startDate,
+      collectionEndDate: endDate,
+      collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
+      normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
+      determinationYear: detDate.getUTCFullYear(),
+      determiners: 'Person A|Person B',
+      collectionRemarks: 'meadow',
+      occurrenceRemarks: baseSource.occurrenceRemarks,
+      determinationRemarks: 'big one',
+      typeStatus: baseSource.typeStatus,
+      specimenCount: 1,
+      problems: null,
+      kingdomName: 'Animalia',
+      kingdomID: 1,
+      phylumName: 'Arthropoda',
+      phylumID: 2,
+      className: 'Arachnida',
+      classID: 3,
+      orderName: 'Araneae',
+      orderID: 4,
+      familyName: 'Araneidae',
+      familyID: 5,
+      genusName: 'Argiope',
+      genusID: 6,
+      speciesName: 'n. sp. A',
+      speciesID: 7,
+      subspeciesName: null,
+      subspeciesID: null,
+      taxonUnique: 'Argiope n. sp. A',
+      taxonAuthor: null,
+      countyName: 'Travis County',
+      countyID: 4,
+      localityName: 'My backyard',
+      publicLatitude: 23.45,
+      publicLongitude: -93.21
+    });
+    expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
+    expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
+    expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
+    expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Argiope');
+    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('n. sp. A');
+    expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
+    expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
+    expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
+
+    const readSpecimen = await Specimen.getByCatNum(
+      db,
+      baseSource.catalogNumber,
+      false
+    );
+    expect(readSpecimen).toEqual(specimen);
+  });
+
   test('bad end date', async () => {
     const source = Object.assign({}, baseSource);
     // @ts-ignore

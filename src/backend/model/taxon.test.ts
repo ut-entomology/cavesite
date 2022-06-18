@@ -12,6 +12,8 @@ beforeAll(async () => {
 });
 
 test('sequentially dependent taxa tests', async () => {
+  await Taxon.dropAll(db);
+
   // Each of these tests depends on the prior tests, so run all as a unit.
 
   // test adding kingdom taxon
@@ -473,7 +475,86 @@ test('sequentially dependent taxa tests', async () => {
   }
 });
 
+test('taxa with subgenera', async () => {
+  await Taxon.dropAll(db);
+
+  const createdTaxon = await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Thomisidae',
+    genus: 'Mecaphesa',
+    subgenus: 'Madeup',
+    specificEpithet: 'dubia',
+    infraspecificEpithet: 'notreal',
+    scientificName: 'Mecaphesa dubia notreal (Keyserling, 1880)'
+  });
+  await Taxon.commit(db);
+  expect(await Taxon.getByID(db, 4)).toEqual({
+    taxonID: 4,
+    taxonRank: TaxonRank.Order,
+    taxonName: 'Araneae',
+    uniqueName: 'Araneae',
+    author: null,
+    parentID: 3,
+    parentIDPath: '1,2,3',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 5)).toEqual({
+    taxonID: 5,
+    taxonRank: TaxonRank.Family,
+    taxonName: 'Thomisidae',
+    uniqueName: 'Thomisidae',
+    author: null,
+    parentID: 4,
+    parentIDPath: '1,2,3,4',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 6)).toEqual({
+    taxonID: 6,
+    taxonRank: TaxonRank.Genus,
+    taxonName: 'Mecaphesa (Madeup)',
+    uniqueName: 'Mecaphesa (Madeup)',
+    author: null,
+    parentID: 5,
+    parentIDPath: '1,2,3,4,5',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 7)).toEqual({
+    taxonID: 7,
+    taxonRank: TaxonRank.Species,
+    taxonName: 'dubia',
+    uniqueName: 'Mecaphesa dubia',
+    author: null,
+    parentID: 6,
+    parentIDPath: '1,2,3,4,5,6',
+    parentNamePath:
+      'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa (Madeup)',
+    hasChildren: null
+  });
+  const readTaxon = await Taxon.getByID(db, 8);
+  expect(readTaxon).toEqual({
+    taxonID: 8,
+    taxonRank: TaxonRank.Subspecies,
+    taxonName: 'notreal',
+    uniqueName: 'Mecaphesa dubia notreal',
+    author: '(Keyserling, 1880)',
+    parentID: 7,
+    parentIDPath: '1,2,3,4,5,6,7',
+    parentNamePath:
+      'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa (Madeup)|dubia',
+    hasChildren: null
+  });
+  expect(createdTaxon).toEqual(readTaxon);
+});
+
 test('poorly sourced taxa', async () => {
+  await Taxon.dropAll(db);
+
   await expect(() =>
     Taxon.getOrCreate(db, {
       // @ts-ignore

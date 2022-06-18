@@ -43,6 +43,7 @@ export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
   for (let i = 0; i < containingNames.length; ++i) {
     const containingName = containingNames[i];
     uniqueName = _nextUniqueName(uniqueName, containingName);
+
     containingSpecs.push({
       taxonID: 0, // initial, unsaved value
       rank: taxonRanks[i],
@@ -63,6 +64,12 @@ export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
 }
 
 function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
+  // Allow subgenus in genus unique but not in species or subspecies uniques.
+  const leftParenOffset = parentUniqueName.indexOf('(');
+  if (leftParenOffset > 0) {
+    parentUniqueName = parentUniqueName.substring(0, leftParenOffset).trim();
+  }
+
   return taxonName[0] == taxonName[0].toUpperCase()
     ? taxonName
     : `${parentUniqueName} ${taxonName}`;

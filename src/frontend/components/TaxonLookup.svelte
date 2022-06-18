@@ -174,8 +174,8 @@
       labelFieldName="unique"
       placeholder="Type a taxon to look up"
       minCharactersToSearch={2}
-      cleanUserText={false}
       hideArrow={true}
+      cleanUserText={false}
       {setClearer}
     >
       <div slot="item" let:label let:item>{@html _toItemHtml(item.spec, label)}</div>

@@ -216,7 +216,7 @@ setColumnInfo({
   columnID: QueryColumnID.Genus,
   fullName: 'Genus',
   abbrName: null,
-  description: 'Genus determined for the specimen',
+  description: 'Genus determined for the specimen (with subgenus in parentheses)',
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 10,

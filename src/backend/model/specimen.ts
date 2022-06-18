@@ -4,7 +4,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { Taxon } from './taxon';
+import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
@@ -21,6 +21,7 @@ export type SpecimenData = DataOf<Specimen>;
 const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
+const CAVEDATA_REGEX = /CAVEDATA\[([^\]]*)\]/;
 
 interface ColumnInfo {
   column1: string;
@@ -265,6 +266,7 @@ export class Specimen {
     let locationNames: (string | null)[];
     let locationIDs: (string | null)[];
     let specimen: Specimen;
+    let detRemarks = source.determinationRemarks;
 
     // Perform crucial initial actions that might prevent the import on error.
 
@@ -283,9 +285,47 @@ export class Specimen {
       const lookup = await Specimen.getByCatNum(db, source.catalogNumber, false);
       if (lookup) return lookup;
 
+      // Parse the subgenus from the determination remarks.
+
+      let taxonSource: TaxonSource = source;
+      if (detRemarks) {
+        const match = detRemarks.match(CAVEDATA_REGEX);
+        if (match) {
+          detRemarks = (
+            detRemarks.substring(0, match.index) +
+            ' ' +
+            detRemarks.substring(match.index! + match[0].length)
+          )
+            .replace('; ;', '; ')
+            .replace('  ', ' ')
+            .trim() /* needed here */;
+          if ([';', ','].includes(detRemarks[0])) {
+            detRemarks = detRemarks.substring(1);
+          }
+          if ([';', ','].includes(detRemarks[detRemarks.length - 1])) {
+            detRemarks = detRemarks.substring(0, detRemarks.length - 1);
+          }
+          detRemarks = detRemarks.trim();
+
+          const caveDataItems = match[1].split(';');
+          for (let item of caveDataItems) {
+            item = item.trim();
+            if (item.startsWith('subgenus')) {
+              taxonSource.subgenus = item.substring('subgenus '.length).trim();
+            } else if (item.includes('n.')) {
+              if (item.includes('subsp')) {
+                taxonSource.infraspecificEpithet = item;
+              } else {
+                taxonSource.specificEpithet = item;
+              }
+            }
+          }
+        }
+      }
+
       // Create the associated taxa and locations, if they don't already exist.
 
-      taxon = await Taxon.getOrCreate(db, source);
+      taxon = await Taxon.getOrCreate(db, taxonSource);
       if (taxon.parentIDPath != '') {
         taxonIDs = taxon.parentIDPath.split(',');
         taxonNames = taxon.parentNamePath.split('|');
@@ -389,7 +429,7 @@ export class Specimen {
       determiners: source.determiners?.replace(/ ?[|] ?/g, '|') || null,
       collectionRemarks: collectionRemarks,
       occurrenceRemarks: source.occurrenceRemarks || null,
-      determinationRemarks: source.determinationRemarks || null,
+      determinationRemarks: detRemarks || null,
       typeStatus: source.typeStatus || null,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
       problems: problemList.length > 0 ? problemList.join('|') : null,

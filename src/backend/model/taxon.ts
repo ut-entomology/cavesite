@@ -23,6 +23,7 @@ export interface TaxonSource {
   order?: string;
   family?: string;
   genus?: string;
+  subgenus?: string;
   specificEpithet?: string;
   infraspecificEpithet?: string;
   scientificName: string;
@@ -125,6 +126,12 @@ export class Taxon {
     );
     await taxon.save(db);
     return taxon;
+  }
+
+  // for use in testing
+  static async dropAll(db: DB) {
+    await db.query('delete from taxa');
+    await db.query('alter sequence taxa_taxon_id_seq restart');
   }
 
   static async getByID(db: DB, taxonID: number): Promise<Taxon | null> {
@@ -304,7 +311,11 @@ export class Taxon {
     if (source.genus) {
       if (!source.family) throw new ImportFailure('Genus given without family');
       taxonRank = TaxonRank.Genus;
-      taxonNames.push(source.genus);
+      let genus = source.genus;
+      if (source.subgenus) genus = `${genus} (${source.subgenus})`;
+      taxonNames.push(genus);
+    } else if (source.subgenus) {
+      throw new ImportFailure('Subgenus given without genus');
     }
     if (source.specificEpithet) {
       if (!source.genus)
