@@ -44,8 +44,8 @@
   const MAX_CLUSTERS = 12;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 10;
-  const UPPER_BOUND_X = 100;
+  const LOWER_BOUND_X = 0;
+  const UPPER_BOUND_X = Infinity;
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -79,6 +79,8 @@
 
   async function loadData() {
     try {
+      // Configure and load the data.
+
       loadState = LoadState.determiningSeeds;
       const seedLocations = await loadSeeds($client, CLUSTER_SPEC, MAX_CLUSTERS);
 
@@ -98,14 +100,28 @@
       );
       effortStore.set(effortDataByCluster);
 
+      // Process the loaded data.
+
       loadState = LoadState.processing;
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
         clusterDataByCluster.push({
           locationCount: effortData.length,
-          perDayTotalsGraph: new SpeciesByDaysGraphSpec(effortData),
-          perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(effortData),
-          perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(effortData)
+          perDayTotalsGraph: new SpeciesByDaysGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          )
         });
       }
       clusterDataByCluster.sort((a, b) => {
