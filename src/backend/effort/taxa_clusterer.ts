@@ -2,6 +2,11 @@ import { Clusterer } from './clusterer';
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
 import {
+  type TaxonPathsByUniqueMap,
+  loadCaveObligateTaxonPathMap
+} from '../effort/cave_obligates';
+import {
+  TaxonRankIndex,
   taxonRanks,
   type ClusterSpec,
   DissimilarityTransform,
@@ -20,6 +25,9 @@ const EFFORT_BATCH_SIZE = 100;
 export abstract class TaxaClusterer extends Clusterer {
   protected _weights: number[];
   protected _transform: (from: number) => number;
+  protected _sansSubgeneraMap: Record<string, string> = {};
+  protected _caveTaxonPathsByUnique: TaxonPathsByUniqueMap = {};
+  protected _taxonNamesByRankByLocationID: string[][][] = [];
 
   constructor(clusterSpec: ClusterSpec) {
     super(clusterSpec);
@@ -84,14 +92,11 @@ export abstract class TaxaClusterer extends Clusterer {
     db: DB,
     seedLocationIDs: number[]
   ): Promise<number[][]> {
-    // console.log(
-    //   '**** #### starting getClusteredLocationIDs ###################################'
-    // );
-
     // Node.js's V8 engine should end up using sparse arrays of location IDs.
     const clusterByLocationID: Record<number, number> = [];
     let taxonTallyMapsByCluster: TaxonTallyMap[] = [];
     let nextTaxonTallyMapsByCluster: TaxonTallyMap[] = [];
+    await this._prepareCaveTaxa(db);
 
     // Establish the initial clusters based on the seed locations.
 
@@ -128,7 +133,6 @@ export abstract class TaxaClusterer extends Clusterer {
       skipCount += locationEfforts.length;
       locationEfforts = await this._getNextBatchToCluster(db, skipCount);
     }
-    //console.log('**** initial clusters', clusterByLocationID);
 
     // Loop reassigning the clusters of locations until none are reassigned.
 
@@ -140,7 +144,6 @@ export abstract class TaxaClusterer extends Clusterer {
       taxonTallyMapsByCluster = nextTaxonTallyMapsByCluster;
       nextTaxonTallyMapsByCluster = [];
       taxonTallyMapsByCluster.forEach((_) => nextTaxonTallyMapsByCluster.push({}));
-      //console.log('**** initial cluster taxa', taxaTalliesByCluster);
 
       // Examine every location for possible assignment to a different cluster, all
       // the while preparing nextTaxonTallyMapsByCluster for use in the next pass.
@@ -160,12 +163,6 @@ export abstract class TaxaClusterer extends Clusterer {
             clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
 
             reassigned = true;
-            // console.log(
-            //   '****',
-            //   effort.locationID,
-            //   'changed cluster',
-            //   clusterByLocationID
-            // );
           }
           this._updateTaxonTallies(
             nextTaxonTallyMapsByCluster[nearestClusterIndex],
@@ -194,6 +191,7 @@ export abstract class TaxaClusterer extends Clusterer {
     const seedLocationIDs: number[] = [];
     const seedLocationTallyMaps: TaxonTallyMap[] = [];
     const allSeedsTallyMap: TaxonTallyMap = {};
+    await this._prepareCaveTaxa(db);
 
     // Find each seed location, up to the maximum seeds allowed.
 
@@ -315,8 +313,6 @@ export abstract class TaxaClusterer extends Clusterer {
     taxonTallyMap: TaxonTallyMap,
     currentClusterIndex: number
   ): number {
-    //console.log('**** locationID', effort.locationID, 'effortTaxa', effortTaxa);
-
     // Collect into indexesForMinDissimilarity the indexes of all clusters
     // having the least dissimilarity to the taxa of the provided effort,
     // with the taxa having the same dissimilarity wrt each of these clusters.
@@ -334,16 +330,6 @@ export abstract class TaxaClusterer extends Clusterer {
         indexesForMinDissimilarity = [i];
         minDissimilaritySoFar = dissimilarity;
       }
-      // console.log(
-      //   '**** -- similarityCount',
-      //   similarityCount,
-      //   '\n        taxaInCluster',
-      //   taxaInCluster,
-      //   '\n        indexesForMinDissimilarityCount',
-      //   indexesForMinDissimilarityCount,
-      //   '\n        maxSimilarityCount',
-      //   maxSimilarityCount
-      // );
     }
 
     // Randomly assign the location assigned with the effort to one of the
@@ -376,6 +362,15 @@ export abstract class TaxaClusterer extends Clusterer {
     );
   }
 
+  protected async _prepareCaveTaxa(db: DB): Promise<void> {
+    if (
+      this._onlyCaveObligates &&
+      Object.keys(this._caveTaxonPathsByUnique).length == 0
+    ) {
+      this._caveTaxonPathsByUnique = await loadCaveObligateTaxonPathMap(db);
+    }
+  }
+
   protected _updateTaxonTallies(
     tallies: TaxonTallyMap,
     fromTallies: TaxonTallyMap
@@ -392,29 +387,115 @@ export abstract class TaxaClusterer extends Clusterer {
 
   protected _tallyTaxa(effort: LocationEffort): TaxonTallyMap {
     const tallies: TaxonTallyMap = {};
-    this._tallyTaxonRank(tallies, 0, effort.kingdomNames);
-    this._tallyTaxonRank(tallies, 1, effort.phylumNames);
-    this._tallyTaxonRank(tallies, 2, effort.classNames);
-    this._tallyTaxonRank(tallies, 3, effort.orderNames);
-    this._tallyTaxonRank(tallies, 4, effort.familyNames);
-    this._tallyTaxonRank(tallies, 5, effort.genusNames);
-    this._tallyTaxonRank(tallies, 6, effort.speciesNames);
-    this._tallyTaxonRank(tallies, 7, effort.subspeciesNames);
+    if (this._onlyCaveObligates) {
+      // TODO: If I want to keep this functionality, store this in the efforts table.
+      const taxonNamesByRank = this._getTaxonNamesByRank(effort);
+      for (let i = 0; i <= TaxonRankIndex.Subspecies; ++i) {
+        this._tallySplitTaxonRank(tallies, i, taxonNamesByRank[i]);
+      }
+    } else {
+      // TODO: I can speed this up by caching splits of per-effort taxa strings.
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Kingdom, effort.kingdomNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Phylum, effort.phylumNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Class, effort.classNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Order, effort.orderNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Family, effort.familyNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Genus, effort.genusNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Species, effort.speciesNames);
+      this._tallyTaxonRank(tallies, TaxonRankIndex.Subspecies, effort.subspeciesNames);
+    }
     return tallies;
   }
 
   protected _tallyTaxonRank(
     tallies: TaxonTallyMap,
-    rankIndex: number,
+    rankIndex: TaxonRankIndex,
     taxaString: string | null
   ): void {
     if (taxaString === null) return;
-    for (const taxonUnique of taxaString.split('|')) {
+    return this._tallySplitTaxonRank(tallies, rankIndex, taxaString.split('|'));
+  }
+
+  protected _tallySplitTaxonRank(
+    tallies: TaxonTallyMap,
+    rankIndex: TaxonRankIndex,
+    taxonNames: string[]
+  ): void {
+    if (taxonNames.length == 0) return;
+    if (rankIndex == TaxonRankIndex.Genus && this._ignoreSubgenera) {
+      const sansSubgenera: Record<string, boolean> = {};
+      for (const originalGenus of taxonNames) {
+        let sansSubgenus = this._sansSubgeneraMap[originalGenus];
+        if (!sansSubgenus) {
+          const leftParenOffset = originalGenus.indexOf('(');
+          if (leftParenOffset > 0) {
+            // Don't presume to know whether a space precedes subgenus paren.
+            sansSubgenus = originalGenus.substring(0, leftParenOffset).trimEnd();
+          } else {
+            sansSubgenus = originalGenus;
+          }
+          this._sansSubgeneraMap[originalGenus] = sansSubgenus;
+        }
+        sansSubgenera[sansSubgenus] = true;
+      }
+      // Eliminate duplicate occurrences of each genus.
+      taxonNames = Object.keys(sansSubgenera);
+    }
+
+    for (const taxonUnique of taxonNames) {
       if (tallies[taxonUnique] === undefined) {
         tallies[taxonUnique] = { taxonUnique, rankIndex, count: 1 };
       } else {
         tallies[taxonUnique].count += 1;
       }
     }
+  }
+
+  private _getTaxonNamesByRank(effort: LocationEffort): string[][] {
+    // TODO: If I want to keep this functionality, store this in the efforts table.
+
+    let taxonNamesByRank = this._taxonNamesByRankByLocationID[effort.locationID];
+    if (taxonNamesByRank !== undefined) return taxonNamesByRank;
+
+    taxonNamesByRank = [];
+    this._taxonNamesByRankByLocationID[effort.locationID] = taxonNamesByRank;
+
+    // Collect the taxon paths for each cave obligate found in this effort.
+
+    const retainedTaxonPaths: string[][] = [];
+    if (effort.genusNames !== null) {
+      const genusNames = effort.genusNames.split('|');
+      for (const genusName of genusNames) {
+        const taxonPath = this._caveTaxonPathsByUnique[genusName];
+        if (taxonPath) retainedTaxonPaths.push(taxonPath);
+      }
+    }
+    if (effort.speciesNames !== null) {
+      const speciesNames = effort.speciesNames.split('|');
+      for (const speciesName of speciesNames) {
+        const taxonPath = this._caveTaxonPathsByUnique[speciesName];
+        if (taxonPath) retainedTaxonPaths.push(taxonPath);
+      }
+    }
+
+    // Collect the taxa of these taxon paths separately for each rank.
+
+    taxonNamesByRank = new Array(TaxonRankIndex.Subspecies + 1);
+    for (const taxonPath of retainedTaxonPaths) {
+      let i = 0;
+      while (i <= TaxonRankIndex.Subspecies) {
+        let collectedTaxonNames = taxonNamesByRank[i];
+        if (collectedTaxonNames === undefined) {
+          collectedTaxonNames = [];
+          taxonNamesByRank[i] = collectedTaxonNames;
+        }
+        const taxonName = taxonPath[i];
+        if (!collectedTaxonNames.includes(taxonName)) {
+          collectedTaxonNames.push(taxonName);
+        }
+        ++i;
+      }
+    }
+    return taxonNamesByRank;
   }
 }

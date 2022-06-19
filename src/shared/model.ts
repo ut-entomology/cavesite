@@ -17,6 +17,17 @@ export enum TaxonRank {
   Subspecies = 'subspecies'
 }
 
+export enum TaxonRankIndex {
+  Kingdom,
+  Phylum,
+  Class,
+  Order,
+  Family,
+  Genus,
+  Species,
+  Subspecies
+}
+
 export const italicRanks = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies];
 
 export const taxonRanks = Object.values(TaxonRank);
@@ -209,6 +220,8 @@ export enum TaxonWeight {
 
 export interface ClusterSpec {
   metric: DissimilarityMetric;
+  onlyCaveObligates?: boolean;
+  ignoreSubgenera?: boolean;
   minSpecies?: number;
   maxSpecies?: number;
 }
