@@ -227,8 +227,11 @@ export class LocationVisit implements TaxonTallies {
         const caveObligatesMap = getCaveObligatesMap();
         if (
           !(
-            (speciesName && caveObligatesMap[speciesName]) ||
-            (subspeciesName && caveObligatesMap[subspeciesName]) ||
+            (speciesName &&
+              (caveObligatesMap[speciesName] || speciesName.includes('n. sp'))) ||
+            (subspeciesName &&
+              (caveObligatesMap[subspeciesName] ||
+                subspeciesName.includes('n. sub'))) ||
             (specimen.genusName && caveObligatesMap[specimen.genusName])
           )
         ) {
