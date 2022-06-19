@@ -27,6 +27,7 @@
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
+    ClusterSpec,
     DissimilarityBasis,
     DissimilarityTransform,
     TaxonWeight
@@ -41,12 +42,14 @@
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
 
-  const CLUSTER_SPEC = {
+  const CLUSTER_SPEC: ClusterSpec = {
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
       transform: DissimilarityTransform.none,
       weight: TaxonWeight.weighted
     },
+    onlyCaveObligates: false,
+    ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000
   };

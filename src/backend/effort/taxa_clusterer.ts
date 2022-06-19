@@ -391,7 +391,9 @@ export abstract class TaxaClusterer extends Clusterer {
       // TODO: If I want to keep this functionality, store this in the efforts table.
       const taxonNamesByRank = this._getTaxonNamesByRank(effort);
       for (let i = 0; i <= TaxonRankIndex.Subspecies; ++i) {
-        this._tallySplitTaxonRank(tallies, i, taxonNamesByRank[i]);
+        if (taxonNamesByRank[i] !== undefined) {
+          this._tallySplitTaxonRank(tallies, i, taxonNamesByRank[i]);
+        }
       }
     } else {
       // TODO: I can speed this up by caching splits of per-effort taxa strings.
