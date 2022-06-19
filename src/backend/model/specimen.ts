@@ -22,6 +22,8 @@ const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
 const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 const CAVEDATA_REGEX = /CAVEDATA\[([^\]]*)\]/;
+const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
 
 interface ColumnInfo {
   column1: string;
@@ -375,6 +377,17 @@ export class Specimen {
           } else if (startDate.getTime() > endDate.getTime()) {
             problemList.push('Start date follows end date; both dates ignored');
             startDate = endDate = null;
+          } else if (
+            _toEpochDay(endDate) - _toEpochDay(startDate) >
+            MAX_PITFALL_TRAP_COLLECTION_DAYS
+          ) {
+            problemList.push(
+              `End date ${endDate.toDateString()} follows start date ` +
+                `${startDate.toDateString()} by more than ` +
+                `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropping end date`
+            );
+            console.log(problemList[problemList.length - 1]);
+            endDate = startDate;
           }
         }
       }
@@ -733,4 +746,8 @@ function _collectInIntegerList(
   if (integerList) {
     conditionals.push(`${columnName} in (${integerList.join(',')})`);
   }
+}
+
+function _toEpochDay(date: Date): number {
+  return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }

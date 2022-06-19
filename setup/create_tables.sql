@@ -230,8 +230,8 @@ create table all_taxa_for_visits (
     is_cave boolean not null,
     start_date timestamptz not null, -- to pass on to effort table with timezone
     start_epoch_day integer not null, -- days since 1/1/1970, for performance
-    end_date timestamptz,
-    end_epoch_day integer, -- days since 1/1/1970, for performance
+    end_date timestamptz not null,
+    end_epoch_day integer not null, -- days since 1/1/1970, for performance
     normalized_collectors text not null,
     collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
@@ -250,7 +250,7 @@ create table all_taxa_for_visits (
     species_counts text,
     subspecies_names text,
     subspecies_counts text,
-    primary key (location_id, start_epoch_day, normalized_collectors)
+    primary key (location_id, end_epoch_day, normalized_collectors)
 );
 
 create table cave_genera_for_visits (
@@ -258,8 +258,8 @@ create table cave_genera_for_visits (
     is_cave boolean not null,
     start_date timestamptz not null, -- to pass on to effort table with timezone
     start_epoch_day integer not null, -- days since 1/1/1970, for performance
-    end_date timestamptz,
-    end_epoch_day integer, -- days since 1/1/1970, for performance
+    end_date timestamptz not null,
+    end_epoch_day integer not null, -- days since 1/1/1970, for performance
     normalized_collectors text not null,
     collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
@@ -278,7 +278,7 @@ create table cave_genera_for_visits (
     species_counts text,
     subspecies_names text,
     subspecies_counts text,
-    primary key (location_id, start_epoch_day, normalized_collectors)
+    primary key (location_id, end_epoch_day, normalized_collectors)
 );
 
 create table cave_obligates_for_visits (
@@ -286,8 +286,8 @@ create table cave_obligates_for_visits (
     is_cave boolean not null,
     start_date timestamptz not null, -- to pass on to effort table with timezone
     start_epoch_day integer not null, -- days since 1/1/1970, for performance
-    end_date timestamptz,
-    end_epoch_day integer, -- days since 1/1/1970, for performance
+    end_date timestamptz not null,
+    end_epoch_day integer not null, -- days since 1/1/1970, for performance
     normalized_collectors text not null,
     collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
@@ -306,7 +306,7 @@ create table cave_obligates_for_visits (
     species_counts text,
     subspecies_names text,
     subspecies_counts text,
-    primary key (location_id, start_epoch_day, normalized_collectors)
+    primary key (location_id, end_epoch_day, normalized_collectors)
 );
 
 create table all_taxa_for_effort (

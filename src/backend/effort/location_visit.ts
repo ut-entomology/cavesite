@@ -3,8 +3,6 @@
  * group of people to a specific location on a single day.
  */
 
-import type { QueryResult } from 'pg';
-
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
@@ -39,9 +37,9 @@ export class LocationVisit implements TaxonTallies {
   isCave: boolean;
   startDate: Date;
   startEpochDay: number;
-  endDate: Date | null;
-  endEpochDay: number | null;
-  normalizedCollectors: string | null;
+  endDate: Date;
+  endEpochDay: number;
+  normalizedCollectors: string; // can't be null because is a key in the DB
   collectorCount: number;
   kingdomNames: string;
   kingdomCounts: string;
@@ -102,7 +100,7 @@ export class LocationVisit implements TaxonTallies {
             subspecies_names, subspecies_counts, collector_count
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
               $16, $17, $18, $19, $20, $21, $22, $23, $24)
-          on conflict (location_id, start_epoch_day, normalized_collectors)
+          on conflict (location_id, end_epoch_day, normalized_collectors)
           do update set 
             is_cave=excluded.is_cave, kingdom_names=excluded.kingdom_names,
             kingdom_counts=excluded.kingdom_counts,
@@ -148,7 +146,7 @@ export class LocationVisit implements TaxonTallies {
     if (result.rowCount != 1) {
       throw Error(
         `Failed to upsert visit location ID ${this.locationID}, ` +
-          `day ${this.startEpochDay}, collectors ${this.normalizedCollectors}`
+          `end day ${this.endEpochDay}, collectors '${this.normalizedCollectors}'`
       );
     }
   }
@@ -250,15 +248,15 @@ export class LocationVisit implements TaxonTallies {
         break;
     }
 
-    const startEpochDay = Math.floor(
-      specimen.collectionStartDate.getTime() / MILLIS_PER_DAY
-    );
+    const startEpochDay = _toEpochDay(specimen.collectionStartDate);
+    const endDate = specimen.collectionEndDate || specimen.collectionStartDate;
+    const endEpochDay = _toEpochDay(endDate);
 
     const visit = await LocationVisit.getByKey(
       db,
       comparedTaxa,
       specimen.localityID,
-      startEpochDay,
+      endEpochDay,
       specimen.normalizedCollectors
     );
 
@@ -269,9 +267,9 @@ export class LocationVisit implements TaxonTallies {
         isCave: specimen.localityName.toLowerCase().includes('cave'),
         startDate: specimen.collectionStartDate,
         startEpochDay,
-        endDate: specimen.collectionEndDate,
-        endEpochDay: null,
-        normalizedCollectors: collectors,
+        endDate,
+        endEpochDay,
+        normalizedCollectors: collectors || '',
         collectorCount: collectors ? collectors.split('|').length : 1,
         kingdomNames: specimen.kingdomName,
         kingdomCounts: _toInitialCount(specimen.kingdomName, specimen.phylumName)!,
@@ -340,9 +338,13 @@ export class LocationVisit implements TaxonTallies {
     skip: number,
     limit: number
   ): Promise<LocationVisit[]> {
+    // Ordered first by location_id so caller can sequentially aggregrate
+    // data by location. Then by end date so caller can tabulate species
+    // at the time they are known. I've forgotten why I'm sorting by
+    // collectors here -- this may not be necessary.
     const result = await db.query(
       `select * from ${comparedTaxa}_for_visits where is_cave=true
-        order by location_id, start_epoch_day, normalized_collectors
+        order by location_id, end_epoch_day, normalized_collectors
         limit $1 offset $2`,
       [limit, skip]
     );
@@ -353,21 +355,14 @@ export class LocationVisit implements TaxonTallies {
     db: DB,
     comparedTaxa: ComparedTaxa,
     locationID: number,
-    startEpochDay: number,
+    endEpochDay: number,
     normalizedCollectors: string | null
   ): Promise<LocationVisit | null> {
-    let result: QueryResult<any>;
-    const baseQuery = `select * from ${comparedTaxa}_for_visits
-        where location_id=$1 and start_epoch_day=$2 and normalized_collectors`;
-    if (normalizedCollectors === null) {
-      result = await db.query(`${baseQuery} is null`, [locationID, startEpochDay]);
-    } else {
-      result = await db.query(`${baseQuery}=$3`, [
-        locationID,
-        startEpochDay,
-        normalizedCollectors
-      ]);
-    }
+    let result = await db.query(
+      `select * from ${comparedTaxa}_for_visits
+        where location_id=$1 and end_epoch_day=$2 and normalized_collectors=$3`,
+      [locationID, endEpochDay, normalizedCollectors]
+    );
     return result.rows.length > 0
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;
@@ -382,6 +377,10 @@ export function setTaxonCounts(
   return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
     offset + 1
   )}`;
+}
+
+function _toEpochDay(date: Date): number {
+  return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }
 
 function _toInitialCount(

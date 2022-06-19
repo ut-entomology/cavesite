@@ -9,6 +9,9 @@ import { TaxonTallies, LocationVisit, setTaxonCounts } from './location_visit';
 import { ComparedTaxa } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
+const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+const MAX_DAYS_TREATED_AS_PER_PERSON = 3;
+const PITFALL_TRAP_DAYS_PER_VISIT = 3;
 
 export type EffortData = Pick<
   DataOf<LocationEffort>,
@@ -168,6 +171,8 @@ export class LocationEffort {
       VISIT_BATCH_SIZE
     );
     while (visits.length > 0) {
+      // Visits are ordered first by locationID then by end date and collectors.
+
       for (const visit of visits) {
         if (visit.locationID != priorLocationID) {
           if (priorLocationID != 0) {
@@ -199,11 +204,25 @@ export class LocationEffort {
           this._mergeVisit(tallies!, visit);
         }
 
+        endDate = visit.endDate || visit.startDate;
+        const spanInDays =
+          Math.round(
+            (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
+          ) + 1;
+
         totalSpecies = this._countSpecies(tallies!);
-        perVisitPoints.push([++totalVisits, totalSpecies]);
-        totalPersonVisits += visit.collectorCount;
+        if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
+          // treat as individually collected each day
+          totalVisits += spanInDays;
+          totalPersonVisits += spanInDays * visit.collectorCount;
+        } else {
+          // treat as a pitfall trap
+          const visitEquivalent = Math.ceil(spanInDays / PITFALL_TRAP_DAYS_PER_VISIT);
+          totalVisits += visitEquivalent;
+          totalPersonVisits += visitEquivalent;
+        }
+        perVisitPoints.push([totalVisits, totalSpecies]);
         perPersonVisitPoints.push([totalPersonVisits, totalSpecies]);
-        endDate = visit.startDate;
       }
 
       skipCount += visits.length;

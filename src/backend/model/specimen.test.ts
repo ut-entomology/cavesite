@@ -511,6 +511,29 @@ describe('basic specimen methods', () => {
     expect(found).toEqual(true);
   });
 
+  test('end date follows start date by too much time', async () => {
+    const startDateISO = new Date('10/10/70').toISOString();
+    const endDateISO = new Date('10/10/80').toISOString();
+    const source = Object.assign({}, baseSource);
+    // @ts-ignore
+    source.catalogNumber = 'C99';
+    source.occurrenceID = 'X99';
+    source.startDate = startDateISO;
+    source.collectionRemarks =
+      '*end date ' + endDateISO.substring(0, startDateISO.indexOf('T'));
+
+    await clearLogs(db);
+    const specimen = await Specimen.create(db, source);
+    expect(specimen?.problems).toContain('dropping end date');
+    let found = await containsLog(
+      db,
+      source.catalogNumber,
+      'End date Fri Oct 10 1980 follows start date Sat Oct 10 1970 by more than 124 days; dropping end date',
+      false
+    );
+    expect(found).toEqual(true);
+  });
+
   test('partial determination dates', async () => {
     let source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET1';
