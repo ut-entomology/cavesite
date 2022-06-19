@@ -100,101 +100,6 @@ export abstract class TaxaClusterer extends Clusterer {
     locationTaxonMap: TaxonTallyMap
   ): number;
 
-  async getClusteredLocationIDs(seedLocationIDs: number[]): Promise<number[][]> {
-    // Node.js's V8 engine should end up using sparse arrays of location IDs.
-    const clusterByLocationID: Record<number, number> = [];
-    let taxonTallyMapsByCluster: TaxonTallyMap[] = [];
-    let nextTaxonTallyMapsByCluster: TaxonTallyMap[] = [];
-
-    // Establish the initial clusters based on the seed locations.
-
-    const seedEfforts = await LocationEffort.getByLocationIDs(
-      this._db,
-      this._comparedTaxa,
-      seedLocationIDs
-    );
-    for (let i = 0; i < seedLocationIDs.length; ++i) {
-      const seedEffort = seedEfforts[i];
-      clusterByLocationID[seedEffort.locationID] = i;
-      const taxonTallyMap = await this._tallyTaxa(seedEffort);
-      taxonTallyMapsByCluster.push(taxonTallyMap);
-      nextTaxonTallyMapsByCluster.push(Object.assign({}, taxonTallyMap)); // copy
-    }
-
-    // Provide an initial assignment of each location to its nearest cluster,
-    // all the while preparing nextTaxonTallyMapsByCluster for use in reassignment.
-
-    let skipCount = 0;
-    let locationEfforts = await this._getNextBatchToCluster(skipCount);
-    while (locationEfforts.length > 0) {
-      for (const locationEffort of locationEfforts) {
-        if (!seedLocationIDs.includes(locationEffort.locationID)) {
-          const effortTaxaTallies = await this._tallyTaxa(locationEffort);
-          const nearestClusterIndex = this._getNearestClusterIndex(
-            taxonTallyMapsByCluster,
-            effortTaxaTallies,
-            -1 // force assignment to a cluster
-          );
-          clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
-          this._updateTaxonTallies(
-            nextTaxonTallyMapsByCluster[nearestClusterIndex],
-            effortTaxaTallies
-          );
-        }
-      }
-      skipCount += locationEfforts.length;
-      locationEfforts = await this._getNextBatchToCluster(skipCount);
-    }
-
-    // Loop reassigning the clusters of locations until none are reassigned.
-
-    let firstPass = true; // first pass is required to evaluate initial assignments
-    let reassigned = false;
-    while (reassigned || firstPass) {
-      firstPass = false;
-      reassigned = false;
-      taxonTallyMapsByCluster = nextTaxonTallyMapsByCluster;
-      nextTaxonTallyMapsByCluster = [];
-      taxonTallyMapsByCluster.forEach((_) => nextTaxonTallyMapsByCluster.push({}));
-
-      // Examine every location for possible assignment to a different cluster, all
-      // the while preparing nextTaxonTallyMapsByCluster for use in the next pass.
-
-      let skipCount = 0;
-      let locationEfforts = await this._getNextBatchToCluster(skipCount);
-      while (locationEfforts.length > 0) {
-        for (const locationEffort of locationEfforts) {
-          const effortTaxaTallies = await this._tallyTaxa(locationEffort);
-          const currentClusterIndex = clusterByLocationID[locationEffort.locationID];
-          const nearestClusterIndex = this._getNearestClusterIndex(
-            taxonTallyMapsByCluster,
-            effortTaxaTallies,
-            currentClusterIndex
-          );
-          if (nearestClusterIndex != currentClusterIndex) {
-            clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
-
-            reassigned = true;
-          }
-          this._updateTaxonTallies(
-            nextTaxonTallyMapsByCluster[nearestClusterIndex],
-            effortTaxaTallies
-          );
-        }
-        skipCount += locationEfforts.length;
-        locationEfforts = await this._getNextBatchToCluster(skipCount);
-      }
-    }
-
-    // Convert sparse array to arrays of location IDs indexed by cluster index.
-
-    const locationIDsByCluster: number[][] = taxonTallyMapsByCluster.map((_) => []);
-    for (const [locationID, clusterIndex] of Object.entries(clusterByLocationID)) {
-      locationIDsByCluster[clusterIndex].push(parseInt(locationID));
-    }
-    return locationIDsByCluster;
-  }
-
   async getSeedLocationIDs(
     maxClusters: number,
     useCumulativeTaxa: boolean
@@ -318,6 +223,101 @@ export abstract class TaxaClusterer extends Clusterer {
     }
 
     return seedLocationIDs;
+  }
+
+  async getClusteredLocationIDs(seedLocationIDs: number[]): Promise<number[][]> {
+    // Node.js's V8 engine should end up using sparse arrays of location IDs.
+    const clusterByLocationID: Record<number, number> = [];
+    let taxonTallyMapsByCluster: TaxonTallyMap[] = [];
+    let nextTaxonTallyMapsByCluster: TaxonTallyMap[] = [];
+
+    // Establish the initial clusters based on the seed locations.
+
+    const seedEfforts = await LocationEffort.getByLocationIDs(
+      this._db,
+      this._comparedTaxa,
+      seedLocationIDs
+    );
+    for (let i = 0; i < seedLocationIDs.length; ++i) {
+      const seedEffort = seedEfforts[i];
+      clusterByLocationID[seedEffort.locationID] = i;
+      const taxonTallyMap = await this._tallyTaxa(seedEffort);
+      taxonTallyMapsByCluster.push(taxonTallyMap);
+      nextTaxonTallyMapsByCluster.push(Object.assign({}, taxonTallyMap)); // copy
+    }
+
+    // Provide an initial assignment of each location to its nearest cluster,
+    // all the while preparing nextTaxonTallyMapsByCluster for use in reassignment.
+
+    let skipCount = 0;
+    let locationEfforts = await this._getNextBatchToCluster(skipCount);
+    while (locationEfforts.length > 0) {
+      for (const locationEffort of locationEfforts) {
+        if (!seedLocationIDs.includes(locationEffort.locationID)) {
+          const effortTaxaTallies = await this._tallyTaxa(locationEffort);
+          const nearestClusterIndex = this._getNearestClusterIndex(
+            taxonTallyMapsByCluster,
+            effortTaxaTallies,
+            -1 // force assignment to a cluster
+          );
+          clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
+          this._updateTaxonTallies(
+            nextTaxonTallyMapsByCluster[nearestClusterIndex],
+            effortTaxaTallies
+          );
+        }
+      }
+      skipCount += locationEfforts.length;
+      locationEfforts = await this._getNextBatchToCluster(skipCount);
+    }
+
+    // Loop reassigning the clusters of locations until none are reassigned.
+
+    let firstPass = true; // first pass is required to evaluate initial assignments
+    let reassigned = false;
+    while (reassigned || firstPass) {
+      firstPass = false;
+      reassigned = false;
+      taxonTallyMapsByCluster = nextTaxonTallyMapsByCluster;
+      nextTaxonTallyMapsByCluster = [];
+      taxonTallyMapsByCluster.forEach((_) => nextTaxonTallyMapsByCluster.push({}));
+
+      // Examine every location for possible assignment to a different cluster, all
+      // the while preparing nextTaxonTallyMapsByCluster for use in the next pass.
+
+      let skipCount = 0;
+      let locationEfforts = await this._getNextBatchToCluster(skipCount);
+      while (locationEfforts.length > 0) {
+        for (const locationEffort of locationEfforts) {
+          const effortTaxaTallies = await this._tallyTaxa(locationEffort);
+          const currentClusterIndex = clusterByLocationID[locationEffort.locationID];
+          const nearestClusterIndex = this._getNearestClusterIndex(
+            taxonTallyMapsByCluster,
+            effortTaxaTallies,
+            currentClusterIndex
+          );
+          if (nearestClusterIndex != currentClusterIndex) {
+            clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
+
+            reassigned = true;
+          }
+          this._updateTaxonTallies(
+            nextTaxonTallyMapsByCluster[nearestClusterIndex],
+            effortTaxaTallies
+          );
+        }
+        skipCount += locationEfforts.length;
+        locationEfforts = await this._getNextBatchToCluster(skipCount);
+      }
+    }
+
+    // Convert sparse array to arrays of location IDs indexed by cluster index.
+
+    const locationIDsByCluster: number[][] = taxonTallyMapsByCluster.map((_) => []);
+    for (const [locationID, clusterIndex] of Object.entries(clusterByLocationID)) {
+      locationIDsByCluster[clusterIndex].push(parseInt(locationID));
+    }
+    return locationIDsByCluster;
   }
 
   protected _getNearestClusterIndex(
