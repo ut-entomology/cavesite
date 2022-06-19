@@ -14,6 +14,9 @@ import {
 import { Clusterer } from './clusterer';
 import { createClusterer } from './create_clusterer';
 
+// NOTE: Can't reuse location IDs across tests, because clustering clears
+// effort cache based on whether it has cached for a location ID.
+
 jest.setTimeout(20 * 60 * 1000); // debuggin timeout
 
 const mutex = new DatabaseMutex();
@@ -119,42 +122,42 @@ test('clustering', async () => {
     comparedTaxa: ComparedTaxa.all
   });
 
-  await _addEffort(1, 1, {
+  await _addEffort(11, 1, {
     kingdomNames: 'k1',
     phylumNames: 'p1'
   });
-  await _addEffort(2, 2, {
+  await _addEffort(12, 2, {
     kingdomNames: 'k1',
     phylumNames: 'p1|p2'
   });
-  await _addEffort(3, 3, {
+  await _addEffort(13, 3, {
     kingdomNames: 'k1',
     phylumNames: 'p1|p2|p3'
   });
-  let clusters = await _getClusters(clusterer, [1]);
-  _checkClusters(clusters, [[1, 2, 3]]);
+  let clusters = await _getClusters(clusterer, [11]);
+  _checkClusters(clusters, [[11, 12, 13]]);
 
-  await _addEffort(4, 1, {
+  await _addEffort(14, 1, {
     kingdomNames: 'k1',
     phylumNames: 'p4'
   });
-  await _addEffort(5, 2, {
+  await _addEffort(15, 2, {
     kingdomNames: 'k1',
     phylumNames: 'p4|p5'
   });
-  await _addEffort(6, 3, {
+  await _addEffort(16, 3, {
     kingdomNames: 'k1',
     phylumNames: 'p4|p5|p6'
   });
-  clusters = await _getClusters(clusterer, [3, 6]);
+  clusters = await _getClusters(clusterer, [13, 16]);
   _checkClusters(clusters, [
-    [1, 2, 3],
-    [4, 5, 6]
+    [11, 12, 13],
+    [14, 15, 16]
   ]);
-  clusters = await _getClusters(clusterer, [1, 4]);
+  clusters = await _getClusters(clusterer, [11, 14]);
   _checkClusters(clusters, [
-    [1, 2, 3],
-    [4, 5, 6]
+    [11, 12, 13],
+    [14, 15, 16]
   ]);
   // clusters = await _getClusters(TaxonWeight.weighted, [1, 2]);
   // _checkClusters(clusters, [
