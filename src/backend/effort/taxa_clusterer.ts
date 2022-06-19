@@ -473,6 +473,8 @@ export abstract class TaxaClusterer extends Clusterer {
     if (effort.speciesNames !== null) {
       const speciesNames = effort.speciesNames.split('|');
       for (const speciesName of speciesNames) {
+        // TODO: look into includes taxon paths for all new species; probably
+        // requires an async Taxon lookup.
         const taxonPath = this._caveTaxonPathsByUnique[speciesName];
         if (taxonPath) retainedTaxonPaths.push(taxonPath);
       }
