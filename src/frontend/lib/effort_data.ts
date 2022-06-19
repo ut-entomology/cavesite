@@ -1,7 +1,12 @@
 import type { AxiosInstance } from 'axios';
 
 import type { Point } from './linear_regression';
-import type { EffortResult, LocationSpec, ClusterSpec } from '../../shared/model';
+import type {
+  EffortResult,
+  LocationSpec,
+  ClusterSpec,
+  ComparedTaxa
+} from '../../shared/model';
 
 export interface EffortData {
   locationID: number;
@@ -30,6 +35,7 @@ export async function loadSeeds(
 export async function loadEffort(
   client: AxiosInstance,
   clusterSpec: ClusterSpec,
+  effortComparedTaxa: ComparedTaxa,
   seedLocations: LocationSpec[],
   minPersonVisits: number
 ) {
@@ -45,7 +51,7 @@ export async function loadEffort(
     if (cluster.length > 0) {
       res = await client.post('api/location/get_effort', {
         locationIDs: cluster,
-        comparedTaxa: clusterSpec.comparedTaxa
+        comparedTaxa: effortComparedTaxa
       });
       const clusterEffortData: EffortData[] = [];
       const effortResults: EffortResult[] = res.data.efforts;

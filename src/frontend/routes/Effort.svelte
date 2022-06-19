@@ -39,7 +39,7 @@
 
   $pageName = 'Collection Effort';
 
-  const MAX_CLUSTERS = 12;
+  const MAX_CLUSTERS = 5;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
 
@@ -49,7 +49,7 @@
       transform: DissimilarityTransform.none,
       weight: TaxonWeight.weighted
     },
-    comparedTaxa: ComparedTaxa.all,
+    comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000
@@ -82,6 +82,7 @@
       const effortDataByCluster = await loadEffort(
         $client,
         CLUSTER_SPEC,
+        ComparedTaxa.all,
         seedLocations,
         MIN_PERSON_VISITS
       );
