@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import { EffortData, loadSeeds, loadEffort } from '../lib/effort_data';
+  import { EffortData, loadSeeds, sortClusters, loadPoints } from '../lib/effort_data';
   import {
     type EffortGraphSpec,
     SpeciesByDaysGraphSpec,
@@ -44,6 +44,8 @@
   const MAX_CLUSTERS = 12;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
+  const LOWER_BOUND_X = 10;
+  const UPPER_BOUND_X = 100;
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -60,7 +62,8 @@
   enum LoadState {
     idle,
     determiningSeeds,
-    loadingEffort,
+    sortingClusters,
+    loadingPoints,
     processing,
     ready
   }
@@ -74,17 +77,23 @@
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
 
-  async function loadPoints() {
+  async function loadData() {
     try {
       loadState = LoadState.determiningSeeds;
       const seedLocations = await loadSeeds($client, CLUSTER_SPEC, MAX_CLUSTERS);
 
-      loadState = LoadState.loadingEffort;
-      const effortDataByCluster = await loadEffort(
+      loadState = LoadState.sortingClusters;
+      const locationIDsByClusterIndex = await sortClusters(
         $client,
         CLUSTER_SPEC,
+        seedLocations
+      );
+
+      loadState = LoadState.loadingPoints;
+      const effortDataByCluster = await loadPoints(
+        $client,
         CLUSTER_SPEC.comparedTaxa!,
-        seedLocations,
+        locationIDsByClusterIndex,
         MIN_PERSON_VISITS
       );
       effortStore.set(effortDataByCluster);
@@ -180,9 +189,7 @@
     </TabHeader>
 
     {#if $clusterStore === null}
-      <button class="btn btn-major" type="button" on:click={loadPoints}
-        >Load Data</button
-      >
+      <button class="btn btn-major" type="button" on:click={loadData}>Load Data</button>
     {:else}
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
@@ -226,7 +233,9 @@
 {#if $clusterStore === null}
   {#if loadState == LoadState.determiningSeeds}
     <BusyMessage message="Determining seed locations..." />
-  {:else if loadState == LoadState.loadingEffort}
+  {:else if loadState == LoadState.sortingClusters}
+    <BusyMessage message="Sorting clusters..." />
+  {:else if loadState == LoadState.loadingPoints}
     <BusyMessage message="Loading points..." />
   {:else if loadState == LoadState.processing}
     <BusyMessage message="Processing points..." />

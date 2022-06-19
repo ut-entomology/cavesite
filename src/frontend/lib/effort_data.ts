@@ -33,25 +33,31 @@ export async function loadSeeds(
   return seeds;
 }
 
-export async function loadEffort(
+export async function sortClusters(
   client: AxiosInstance,
   clusterSpec: ClusterSpec,
-  effortComparedTaxa: ComparedTaxa,
-  seedLocations: LocationSpec[],
-  minPersonVisits: number
-) {
+  seedLocations: LocationSpec[]
+): Promise<number[][]> {
   let res = await client.post('api/cluster/get_clusters', {
     clusterSpec,
     seedIDs: seedLocations.map((location) => location.locationID)
   });
   const clusters: number[][] = res.data.clusters;
   if (!clusters) throw Error('Failed to load clusters');
+  return clusters;
+}
 
+export async function loadPoints(
+  client: AxiosInstance,
+  effortComparedTaxa: ComparedTaxa,
+  locationIDsByClusterIndex: number[][],
+  minPersonVisits: number
+): Promise<EffortData[][]> {
   const effortDataByCluster: EffortData[][] = [];
-  for (const cluster of clusters) {
-    if (cluster.length > 0) {
-      res = await client.post('api/location/get_effort', {
-        locationIDs: cluster,
+  for (const locationIDs of locationIDsByClusterIndex) {
+    if (locationIDs.length > 0) {
+      const res = await client.post('api/location/get_effort', {
+        locationIDs: locationIDs,
         comparedTaxa: effortComparedTaxa
       });
       const clusterEffortData: EffortData[] = [];
@@ -66,7 +72,6 @@ export async function loadEffort(
       }
     }
   }
-
   return effortDataByCluster;
 }
 
