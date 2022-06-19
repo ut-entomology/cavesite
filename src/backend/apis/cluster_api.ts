@@ -5,7 +5,7 @@ import { getDB } from '../integrations/postgres';
 import { Location } from '../model/location';
 import { createClusterer } from '../effort/create_clusterer';
 import { toLocationSpec } from './location_api';
-import type { ClusterSpec } from '../../shared/model';
+import { ClusterSpec, checkComparedTaxa } from '../../shared/model';
 
 export const router = Router();
 
@@ -16,9 +16,13 @@ router.post('/get_seeds', async (req: Request, res) => {
 
   // TODO: validate params
 
+  if (!checkComparedTaxa(clusterSpec.comparedTaxa)) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+
   let seedIDs: number[];
-  const clusterer = createClusterer(clusterSpec);
-  seedIDs = await clusterer.getSeedLocationIDs(getDB(), maxClusters, useCumulativeTaxa);
+  const clusterer = createClusterer(getDB(), clusterSpec);
+  seedIDs = await clusterer.getSeedLocationIDs(maxClusters, useCumulativeTaxa);
   const locations = await Location.getByIDs(getDB(), seedIDs);
   return res
     .status(StatusCodes.OK)
@@ -31,7 +35,7 @@ router.post('/get_clusters', async (req: Request, res) => {
 
   // TODO: validate params
 
-  const clusterer = createClusterer(clusterSpec);
-  const clusters = await clusterer.getClusteredLocationIDs(getDB(), seedIDs);
+  const clusterer = createClusterer(getDB(), clusterSpec);
+  const clusters = await clusterer.getClusteredLocationIDs(seedIDs);
   return res.status(StatusCodes.OK).send({ clusters });
 });

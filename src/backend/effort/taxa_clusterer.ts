@@ -1,10 +1,8 @@
 import { Clusterer } from './clusterer';
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
-import {
-  type TaxonPathsByUniqueMap,
-  loadCaveObligateTaxonPathMap
-} from '../effort/cave_obligates';
+import { type TaxonPathsByUniqueMap } from '../effort/cave_obligates';
+import { Location } from '../model/location';
 import {
   TaxonRankIndex,
   taxonRanks,
@@ -21,16 +19,21 @@ export interface TaxonTally {
 export type TaxonTallyMap = Record<string, TaxonTally>;
 
 const EFFORT_BATCH_SIZE = 100;
+const sampleLocationIDByComparedTaxa: Record<string, number> = {};
+const cachedTaxonNamesByRankByLocationIDByComparedTaxa: Record<
+  string,
+  (string[] | null)[][]
+> = {};
 
 export abstract class TaxaClusterer extends Clusterer {
   protected _weights: number[];
   protected _transform: (from: number) => number;
   protected _sansSubgeneraMap: Record<string, string> = {};
   protected _caveTaxonPathsByUnique: TaxonPathsByUniqueMap = {};
-  protected _taxonNamesByRankByLocationID: string[][][] = [];
+  protected _taxonNamesByRankByLocationID: (string[] | null)[][];
 
-  constructor(clusterSpec: ClusterSpec) {
-    super(clusterSpec);
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    super(db, clusterSpec);
 
     switch (clusterSpec.metric.transform) {
       case DissimilarityTransform.none:
@@ -77,6 +80,15 @@ export abstract class TaxaClusterer extends Clusterer {
           throw Error('TaxonWeight not specified');
       }
     }
+
+    if (!clusterSpec.comparedTaxa) throw 'ComparedTaxa not specified';
+    this._taxonNamesByRankByLocationID =
+      cachedTaxonNamesByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa];
+    if (this._taxonNamesByRankByLocationID === undefined) {
+      this._taxonNamesByRankByLocationID = [];
+      cachedTaxonNamesByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa] =
+        this._taxonNamesByRankByLocationID;
+    }
   }
 
   protected _getGreatestLowerDissimilarity(_locationEffort: LocationEffort): number {
@@ -88,23 +100,23 @@ export abstract class TaxaClusterer extends Clusterer {
     locationTaxonMap: TaxonTallyMap
   ): number;
 
-  async getClusteredLocationIDs(
-    db: DB,
-    seedLocationIDs: number[]
-  ): Promise<number[][]> {
+  async getClusteredLocationIDs(seedLocationIDs: number[]): Promise<number[][]> {
     // Node.js's V8 engine should end up using sparse arrays of location IDs.
     const clusterByLocationID: Record<number, number> = [];
     let taxonTallyMapsByCluster: TaxonTallyMap[] = [];
     let nextTaxonTallyMapsByCluster: TaxonTallyMap[] = [];
-    await this._prepareCaveTaxa(db);
 
     // Establish the initial clusters based on the seed locations.
 
-    const seedEfforts = await LocationEffort.getByLocationIDs(db, seedLocationIDs);
+    const seedEfforts = await LocationEffort.getByLocationIDs(
+      this._db,
+      this._comparedTaxa,
+      seedLocationIDs
+    );
     for (let i = 0; i < seedLocationIDs.length; ++i) {
       const seedEffort = seedEfforts[i];
       clusterByLocationID[seedEffort.locationID] = i;
-      const taxonTallyMap = this._tallyTaxa(seedEffort);
+      const taxonTallyMap = await this._tallyTaxa(seedEffort);
       taxonTallyMapsByCluster.push(taxonTallyMap);
       nextTaxonTallyMapsByCluster.push(Object.assign({}, taxonTallyMap)); // copy
     }
@@ -113,11 +125,11 @@ export abstract class TaxaClusterer extends Clusterer {
     // all the while preparing nextTaxonTallyMapsByCluster for use in reassignment.
 
     let skipCount = 0;
-    let locationEfforts = await this._getNextBatchToCluster(db, skipCount);
+    let locationEfforts = await this._getNextBatchToCluster(skipCount);
     while (locationEfforts.length > 0) {
       for (const locationEffort of locationEfforts) {
         if (!seedLocationIDs.includes(locationEffort.locationID)) {
-          const effortTaxaTallies = this._tallyTaxa(locationEffort);
+          const effortTaxaTallies = await this._tallyTaxa(locationEffort);
           const nearestClusterIndex = this._getNearestClusterIndex(
             taxonTallyMapsByCluster,
             effortTaxaTallies,
@@ -131,7 +143,7 @@ export abstract class TaxaClusterer extends Clusterer {
         }
       }
       skipCount += locationEfforts.length;
-      locationEfforts = await this._getNextBatchToCluster(db, skipCount);
+      locationEfforts = await this._getNextBatchToCluster(skipCount);
     }
 
     // Loop reassigning the clusters of locations until none are reassigned.
@@ -149,10 +161,10 @@ export abstract class TaxaClusterer extends Clusterer {
       // the while preparing nextTaxonTallyMapsByCluster for use in the next pass.
 
       let skipCount = 0;
-      let locationEfforts = await this._getNextBatchToCluster(db, skipCount);
+      let locationEfforts = await this._getNextBatchToCluster(skipCount);
       while (locationEfforts.length > 0) {
         for (const locationEffort of locationEfforts) {
-          const effortTaxaTallies = this._tallyTaxa(locationEffort);
+          const effortTaxaTallies = await this._tallyTaxa(locationEffort);
           const currentClusterIndex = clusterByLocationID[locationEffort.locationID];
           const nearestClusterIndex = this._getNearestClusterIndex(
             taxonTallyMapsByCluster,
@@ -170,7 +182,7 @@ export abstract class TaxaClusterer extends Clusterer {
           );
         }
         skipCount += locationEfforts.length;
-        locationEfforts = await this._getNextBatchToCluster(db, skipCount);
+        locationEfforts = await this._getNextBatchToCluster(skipCount);
       }
     }
 
@@ -184,14 +196,12 @@ export abstract class TaxaClusterer extends Clusterer {
   }
 
   async getSeedLocationIDs(
-    db: DB,
     maxClusters: number,
     useCumulativeTaxa: boolean
   ): Promise<number[]> {
     const seedLocationIDs: number[] = [];
     const seedLocationTallyMaps: TaxonTallyMap[] = [];
     const allSeedsTallyMap: TaxonTallyMap = {};
-    await this._prepareCaveTaxa(db);
 
     // Find each seed location, up to the maximum seeds allowed.
 
@@ -206,7 +216,8 @@ export abstract class TaxaClusterer extends Clusterer {
 
       let skipCount = 0;
       let locationEfforts = await LocationEffort.getNextBatch(
-        db,
+        this._db,
+        this._comparedTaxa,
         this._minSpecies,
         this._maxSpecies,
         skipCount,
@@ -219,7 +230,7 @@ export abstract class TaxaClusterer extends Clusterer {
       const firstSeedLocation = locationEfforts[0];
       if (seedLocationIDs.length == 0) {
         seedLocationIDs.push(firstSeedLocation.locationID);
-        const taxonTallyMap = this._tallyTaxa(firstSeedLocation);
+        const taxonTallyMap = await this._tallyTaxa(firstSeedLocation);
         seedLocationTallyMaps.push(taxonTallyMap);
         this._updateTaxonTallies(allSeedsTallyMap, taxonTallyMap);
         if (maxClusters == 1) {
@@ -253,10 +264,10 @@ export abstract class TaxaClusterer extends Clusterer {
             if (useCumulativeTaxa) {
               dissimilarity = this._calculateDissimilarity(
                 allSeedsTallyMap,
-                this._tallyTaxa(locationEffort)
+                await this._tallyTaxa(locationEffort)
               );
             } else {
-              const taxonTallyMap = this._tallyTaxa(locationEffort);
+              const taxonTallyMap = await this._tallyTaxa(locationEffort);
               let minDissimilaritySoFar = Infinity;
               for (let i = 0; i < seedLocationIDs.length; ++i) {
                 dissimilarity = this._calculateDissimilarity(
@@ -284,7 +295,8 @@ export abstract class TaxaClusterer extends Clusterer {
 
         skipCount += locationEfforts.length;
         locationEfforts = await LocationEffort.getNextBatch(
-          db,
+          this._db,
+          this._comparedTaxa,
           this._minSpecies,
           this._maxSpecies,
           skipCount,
@@ -297,7 +309,7 @@ export abstract class TaxaClusterer extends Clusterer {
 
       if (seedIDForMaxDissimilarity != 0) {
         seedLocationIDs.push(seedIDForMaxDissimilarity);
-        const taxonTallyMap = this._tallyTaxa(effortForMaxDissimilarity!);
+        const taxonTallyMap = await this._tallyTaxa(effortForMaxDissimilarity!);
         seedLocationTallyMaps.push(taxonTallyMap);
         this._updateTaxonTallies(allSeedsTallyMap, taxonTallyMap);
       } else {
@@ -349,26 +361,15 @@ export abstract class TaxaClusterer extends Clusterer {
     return nextClusterIndex;
   }
 
-  protected async _getNextBatchToCluster(
-    db: DB,
-    skipCount: number
-  ): Promise<LocationEffort[]> {
+  protected async _getNextBatchToCluster(skipCount: number): Promise<LocationEffort[]> {
     return await LocationEffort.getNextBatch(
-      db,
+      this._db,
+      this._comparedTaxa,
       this._minSpecies,
       this._maxSpecies,
       skipCount,
       EFFORT_BATCH_SIZE
     );
-  }
-
-  protected async _prepareCaveTaxa(db: DB): Promise<void> {
-    if (
-      this._onlyCaveObligates &&
-      Object.keys(this._caveTaxonPathsByUnique).length == 0
-    ) {
-      this._caveTaxonPathsByUnique = await loadCaveObligateTaxonPathMap(db);
-    }
   }
 
   protected _updateTaxonTallies(
@@ -385,40 +386,19 @@ export abstract class TaxaClusterer extends Clusterer {
     return tallies;
   }
 
-  protected _tallyTaxa(effort: LocationEffort): TaxonTallyMap {
+  protected async _tallyTaxa(effort: LocationEffort): Promise<TaxonTallyMap> {
     const tallies: TaxonTallyMap = {};
-    if (this._onlyCaveObligates) {
-      // TODO: If I want to keep this functionality, store this in the efforts table.
-      const taxonNamesByRank = this._getTaxonNamesByRank(effort);
-      for (let i = 0; i <= TaxonRankIndex.Subspecies; ++i) {
-        if (taxonNamesByRank[i] !== undefined) {
-          this._tallySplitTaxonRank(tallies, i, taxonNamesByRank[i]);
-        }
+    const taxonNamesByRank = await this._getTaxonNamesByRank(effort);
+    for (let i = 0; i <= TaxonRankIndex.Subspecies; ++i) {
+      const taxonNames = taxonNamesByRank[i];
+      if (taxonNames !== null) {
+        this._tallyTaxonRank(tallies, i, taxonNames);
       }
-    } else {
-      // TODO: I can speed this up by caching splits of per-effort taxa strings.
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Kingdom, effort.kingdomNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Phylum, effort.phylumNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Class, effort.classNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Order, effort.orderNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Family, effort.familyNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Genus, effort.genusNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Species, effort.speciesNames);
-      this._tallyTaxonRank(tallies, TaxonRankIndex.Subspecies, effort.subspeciesNames);
     }
     return tallies;
   }
 
   protected _tallyTaxonRank(
-    tallies: TaxonTallyMap,
-    rankIndex: TaxonRankIndex,
-    taxaString: string | null
-  ): void {
-    if (taxaString === null) return;
-    return this._tallySplitTaxonRank(tallies, rankIndex, taxaString.split('|'));
-  }
-
-  protected _tallySplitTaxonRank(
     tallies: TaxonTallyMap,
     rankIndex: TaxonRankIndex,
     taxonNames: string[]
@@ -453,53 +433,48 @@ export abstract class TaxaClusterer extends Clusterer {
     }
   }
 
-  private _getTaxonNamesByRank(effort: LocationEffort): string[][] {
-    // TODO: If I want to keep this functionality, store this in the efforts table.
+  private async _getTaxonNamesByRank(
+    effort: LocationEffort
+  ): Promise<(string[] | null)[]> {
+    // Return cached taxon names for the effort, when available.
 
     let taxonNamesByRank = this._taxonNamesByRankByLocationID[effort.locationID];
     if (taxonNamesByRank !== undefined) return taxonNamesByRank;
 
-    taxonNamesByRank = [];
-    this._taxonNamesByRankByLocationID[effort.locationID] = taxonNamesByRank;
+    // Clear the cache if the effort data has since been updated.
 
-    // Collect the taxon paths for each cave obligate found in this effort.
-
-    const retainedTaxonPaths: string[][] = [];
-    if (effort.genusNames !== null) {
-      const genusNames = effort.genusNames.split('|');
-      for (const genusName of genusNames) {
-        const taxonPath = this._caveTaxonPathsByUnique[genusName];
-        if (taxonPath) retainedTaxonPaths.push(taxonPath);
-      }
+    let sampleLocationID: number | undefined =
+      sampleLocationIDByComparedTaxa[this._comparedTaxa];
+    if (sampleLocationID !== undefined) {
+      const location = await Location.getByIDs(this._db, [sampleLocationID]);
+      if (location === null) sampleLocationID = undefined;
     }
-    if (effort.speciesNames !== null) {
-      const speciesNames = effort.speciesNames.split('|');
-      for (const speciesName of speciesNames) {
-        // TODO: look into includes taxon paths for all new species; probably
-        // requires an async Taxon lookup.
-        const taxonPath = this._caveTaxonPathsByUnique[speciesName];
-        if (taxonPath) retainedTaxonPaths.push(taxonPath);
-      }
+    if (sampleLocationID === undefined) {
+      // Clear the existing map because it's shared by all clients.
+      this._taxonNamesByRankByLocationID.length = 0;
+      sampleLocationIDByComparedTaxa[this._comparedTaxa] = effort.locationID;
     }
 
-    // Collect the taxa of these taxon paths separately for each rank.
+    // Compute the taxon names by rank for this effort.
 
     taxonNamesByRank = new Array(TaxonRankIndex.Subspecies + 1);
-    for (const taxonPath of retainedTaxonPaths) {
-      let i = 0;
-      while (i <= TaxonRankIndex.Subspecies) {
-        let collectedTaxonNames = taxonNamesByRank[i];
-        if (collectedTaxonNames === undefined) {
-          collectedTaxonNames = [];
-          taxonNamesByRank[i] = collectedTaxonNames;
-        }
-        const taxonName = taxonPath[i];
-        if (!collectedTaxonNames.includes(taxonName)) {
-          collectedTaxonNames.push(taxonName);
-        }
-        ++i;
-      }
-    }
+    taxonNamesByRank[TaxonRankIndex.Kingdom] = _getNamesList(effort.kingdomNames);
+    taxonNamesByRank[TaxonRankIndex.Phylum] = _getNamesList(effort.phylumNames);
+    taxonNamesByRank[TaxonRankIndex.Class] = _getNamesList(effort.classNames);
+    taxonNamesByRank[TaxonRankIndex.Order] = _getNamesList(effort.orderNames);
+    taxonNamesByRank[TaxonRankIndex.Family] = _getNamesList(effort.familyNames);
+    taxonNamesByRank[TaxonRankIndex.Genus] = _getNamesList(effort.genusNames);
+    taxonNamesByRank[TaxonRankIndex.Species] = _getNamesList(effort.speciesNames);
+    taxonNamesByRank[TaxonRankIndex.Subspecies] = _getNamesList(effort.subspeciesNames);
+
+    // Cache and return the computed taxon names.
+
+    this._taxonNamesByRankByLocationID[effort.locationID] = taxonNamesByRank;
     return taxonNamesByRank;
   }
+}
+
+function _getNamesList(taxonNamesString: string | null): string[] | null {
+  if (taxonNamesString === null) return null;
+  return taxonNamesString.split('|');
 }

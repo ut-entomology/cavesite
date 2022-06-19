@@ -225,7 +225,7 @@ create table logs (
 );
 create index on logs(timestamp);
 
-create table visits (
+create table all_taxa_for_visits (
     location_id integer not null references locations,
     is_cave boolean not null,
     start_date timestamptz not null, -- to pass on to effort table with timezone
@@ -253,7 +253,63 @@ create table visits (
     primary key (location_id, start_epoch_day, normalized_collectors)
 );
 
-create table effort (
+create table cave_genera_for_visits (
+    location_id integer not null references locations,
+    is_cave boolean not null,
+    start_date timestamptz not null, -- to pass on to effort table with timezone
+    start_epoch_day integer not null, -- days since 1/1/1970, for performance
+    end_date timestamptz,
+    end_epoch_day integer, -- days since 1/1/1970, for performance
+    normalized_collectors text not null,
+    collector_count integer not null,
+    kingdom_names text, -- |-delimited taxon uniques collected on visit
+    kingdom_counts text, -- /[01]+/ indicating count contributed by each taxon
+    phylum_names text,
+    phylum_counts text,
+    class_names text,
+    class_counts text,
+    order_names text,
+    order_counts text,
+    family_names text,
+    family_counts text,
+    genus_names text,
+    genus_counts text,
+    species_names text,
+    species_counts text,
+    subspecies_names text,
+    subspecies_counts text,
+    primary key (location_id, start_epoch_day, normalized_collectors)
+);
+
+create table cave_obligates_for_visits (
+    location_id integer not null references locations,
+    is_cave boolean not null,
+    start_date timestamptz not null, -- to pass on to effort table with timezone
+    start_epoch_day integer not null, -- days since 1/1/1970, for performance
+    end_date timestamptz,
+    end_epoch_day integer, -- days since 1/1/1970, for performance
+    normalized_collectors text not null,
+    collector_count integer not null,
+    kingdom_names text, -- |-delimited taxon uniques collected on visit
+    kingdom_counts text, -- /[01]+/ indicating count contributed by each taxon
+    phylum_names text,
+    phylum_counts text,
+    class_names text,
+    class_counts text,
+    order_names text,
+    order_counts text,
+    family_names text,
+    family_counts text,
+    genus_names text,
+    genus_counts text,
+    species_names text,
+    species_counts text,
+    subspecies_names text,
+    subspecies_counts text,
+    primary key (location_id, start_epoch_day, normalized_collectors)
+);
+
+create table all_taxa_for_effort (
     location_id integer not null references locations,
     is_cave boolean not null,
     start_date timestamptz not null,
@@ -273,6 +329,54 @@ create table effort (
     per_person_visit_points text not null,
     primary key (location_id)
 );
-create index on effort(total_visits);
-create index on effort(total_person_visits);
-create index on effort(total_species);
+create index on all_taxa_for_effort(total_visits);
+create index on all_taxa_for_effort(total_person_visits);
+create index on all_taxa_for_effort(total_species);
+
+create table cave_genera_for_effort (
+    location_id integer not null references locations,
+    is_cave boolean not null,
+    start_date timestamptz not null,
+    end_date timestamptz not null,
+    total_visits integer not null,
+    total_person_visits integer not null,
+    total_species integer not null,
+    kingdom_names text, -- |-delimited taxon uniques ever found
+    phylum_names text,
+    class_names text,
+    order_names text,
+    family_names text,
+    genus_names text,
+    species_names text,
+    subspecies_names text,
+    per_visit_points text not null,
+    per_person_visit_points text not null,
+    primary key (location_id)
+);
+create index on cave_genera_for_effort(total_visits);
+create index on cave_genera_for_effort(total_person_visits);
+create index on cave_genera_for_effort(total_species);
+
+create table cave_obligates_for_effort (
+    location_id integer not null references locations,
+    is_cave boolean not null,
+    start_date timestamptz not null,
+    end_date timestamptz not null,
+    total_visits integer not null,
+    total_person_visits integer not null,
+    total_species integer not null,
+    kingdom_names text, -- |-delimited taxon uniques ever found
+    phylum_names text,
+    class_names text,
+    order_names text,
+    family_names text,
+    genus_names text,
+    species_names text,
+    subspecies_names text,
+    per_visit_points text not null,
+    per_person_visit_points text not null,
+    primary key (location_id)
+);
+create index on cave_obligates_for_effort(total_visits);
+create index on cave_obligates_for_effort(total_person_visits);
+create index on cave_obligates_for_effort(total_species);

@@ -3,9 +3,13 @@
  * group of people to a specific location on a single day.
  */
 
+import type { QueryResult } from 'pg';
+
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
+import { ComparedTaxa } from '../../shared/model';
+import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligates';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -37,7 +41,7 @@ export class LocationVisit implements TaxonTallies {
   startEpochDay: number;
   endDate: Date | null;
   endEpochDay: number | null;
-  normalizedCollectors: string;
+  normalizedCollectors: string | null;
   collectorCount: number;
   kingdomNames: string;
   kingdomCounts: string;
@@ -87,9 +91,9 @@ export class LocationVisit implements TaxonTallies {
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
 
-  async save(db: DB): Promise<void> {
+  async save(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
     const result = await db.query(
-      `insert into visits(
+      `insert into ${comparedTaxa}_for_visits(
             location_id, is_cave, start_date, start_epoch_day, end_date, end_epoch_day,
             normalized_collectors, kingdom_names, kingdom_counts,
             phylum_names, phylum_counts, class_names, class_counts,
@@ -194,21 +198,23 @@ export class LocationVisit implements TaxonTallies {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
-  private static async create(db: DB, data: LocationVisitData): Promise<LocationVisit> {
+  private static async create(
+    db: DB,
+    comparedTaxa: ComparedTaxa,
+    data: LocationVisitData
+  ): Promise<LocationVisit> {
     const visit = new LocationVisit(data);
-    await visit.save(db);
+    await visit.save(db, comparedTaxa);
     return visit;
   }
 
-  static async addSpecimen(db: DB, specimen: Specimen): Promise<void> {
+  static async addSpecimen(
+    db: DB,
+    comparedTaxa: ComparedTaxa,
+    specimen: Specimen
+  ): Promise<void> {
     if (specimen.collectionStartDate === null) {
       throw Error("Can't add visits for a specimen with no start date");
-    }
-    if (specimen.collectionEndDate !== null) {
-      throw Error("Can't add visits for a specimen having an end date");
-    }
-    if (specimen.normalizedCollectors === null) {
-      throw Error("Can't add visits for a specimen with no collectors");
     }
 
     const speciesName = specimen.speciesName
@@ -217,27 +223,56 @@ export class LocationVisit implements TaxonTallies {
         : specimen.taxonUnique
       : null;
     const subspeciesName = specimen.subspeciesName ? specimen.taxonUnique : null;
+
+    switch (comparedTaxa) {
+      case ComparedTaxa.caveObligates:
+        const caveObligatesMap = getCaveObligatesMap();
+        if (
+          !(
+            (speciesName && caveObligatesMap[speciesName]) ||
+            (subspeciesName && caveObligatesMap[subspeciesName]) ||
+            (specimen.genusName && caveObligatesMap[specimen.genusName])
+          )
+        ) {
+          return; // exclude non-cave obligates
+        }
+        break;
+      case ComparedTaxa.generaHavingCaveObligates:
+        const genusSansSubgenus = specimen.genusName
+          ? specimen.genusName.includes('(')
+            ? specimen.genusName.substring(0, specimen.genusName.indexOf('(')).trimEnd()
+            : specimen.genusName
+          : null;
+        const caveContainingGeneraMap = getCaveContainingGeneraMap();
+        if (!genusSansSubgenus || !caveContainingGeneraMap[genusSansSubgenus]) {
+          return; // exclude genera that don't contain cave obligates
+        }
+        break;
+    }
+
     const startEpochDay = Math.floor(
       specimen.collectionStartDate.getTime() / MILLIS_PER_DAY
     );
 
     const visit = await LocationVisit.getByKey(
       db,
+      comparedTaxa,
       specimen.localityID,
       startEpochDay,
       specimen.normalizedCollectors
     );
 
     if (visit === null) {
-      await this.create(db, {
+      const collectors = specimen.normalizedCollectors;
+      await this.create(db, comparedTaxa, {
         locationID: specimen.localityID,
         isCave: specimen.localityName.toLowerCase().includes('cave'),
         startDate: specimen.collectionStartDate,
         startEpochDay,
         endDate: specimen.collectionEndDate,
         endEpochDay: null,
-        normalizedCollectors: specimen.normalizedCollectors,
-        collectorCount: specimen.normalizedCollectors.split('|').length,
+        normalizedCollectors: collectors,
+        collectorCount: collectors ? collectors.split('|').length : 1,
         kingdomNames: specimen.kingdomName,
         kingdomCounts: _toInitialCount(specimen.kingdomName, specimen.phylumName)!,
         phylumNames: specimen.phylumName,
@@ -290,22 +325,23 @@ export class LocationVisit implements TaxonTallies {
       visit._updateTaxon(speciesName, subspeciesName, 'speciesNames', 'speciesCounts');
       visit._updateTaxon(subspeciesName, null, 'subspeciesNames', 'subspeciesCounts');
 
-      await visit.save(db);
+      await visit.save(db, comparedTaxa);
     }
   }
 
   // for testing purposes...
-  static async dropAll(db: DB): Promise<void> {
-    await db.query(`delete from visits`);
+  static async dropAll(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
+    await db.query(`delete from ${comparedTaxa}_for_visits`);
   }
 
   static async getNextCaveBatch(
     db: DB,
+    comparedTaxa: ComparedTaxa,
     skip: number,
     limit: number
   ): Promise<LocationVisit[]> {
     const result = await db.query(
-      `select * from visits where is_cave=true
+      `select * from ${comparedTaxa}_for_visits where is_cave=true
         order by location_id, start_epoch_day, normalized_collectors
         limit $1 offset $2`,
       [limit, skip]
@@ -315,15 +351,23 @@ export class LocationVisit implements TaxonTallies {
 
   static async getByKey(
     db: DB,
+    comparedTaxa: ComparedTaxa,
     locationID: number,
     startEpochDay: number,
-    normalizedCollectors: string
+    normalizedCollectors: string | null
   ): Promise<LocationVisit | null> {
-    const result = await db.query(
-      `select * from visits where location_id=$1 and start_epoch_day=$2
-        and normalized_collectors=$3`,
-      [locationID, startEpochDay, normalizedCollectors]
-    );
+    let result: QueryResult<any>;
+    const baseQuery = `select * from ${comparedTaxa}_for_visits
+        where location_id=$1 and start_epoch_day=$2 and normalized_collectors`;
+    if (normalizedCollectors === null) {
+      result = await db.query(`${baseQuery} is null`, [locationID, startEpochDay]);
+    } else {
+      result = await db.query(`${baseQuery}=$3`, [
+        locationID,
+        startEpochDay,
+        normalizedCollectors
+      ]);
+    }
     return result.rows.length > 0
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;

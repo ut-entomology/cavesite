@@ -3,6 +3,7 @@ import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres
 import { Specimen } from '../backend/model/specimen';
 import { LocationVisit } from '../backend/effort/location_visit';
 import { LocationEffort } from '../backend/effort/location_effort';
+import { comparedTaxa } from '../shared/model';
 
 const SPECIMEN_BATCH_SIZE = 500;
 
@@ -12,12 +13,10 @@ async function tallyVisits() {
   let specimens = await Specimen.getNextBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
   while (specimens.length > 0) {
     for (const specimen of specimens) {
-      if (
-        specimen.collectionStartDate !== null &&
-        specimen.collectors !== null &&
-        specimen.collectionEndDate === null
-      ) {
-        await LocationVisit.addSpecimen(db, specimen);
+      if (specimen.collectionStartDate !== null) {
+        for (const compare of comparedTaxa) {
+          await LocationVisit.addSpecimen(db, compare, specimen);
+        }
       }
     }
     skipCount += specimens.length;
@@ -34,9 +33,13 @@ async function tallyVisits() {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
-  await LocationEffort.dropAll(getDB());
-  await LocationVisit.dropAll(getDB());
+  for (const compare of comparedTaxa) {
+    await LocationEffort.dropAll(getDB(), compare);
+    await LocationVisit.dropAll(getDB(), compare);
+  }
   await tallyVisits();
-  await LocationEffort.tallyEffort(getDB());
+  for (const compare of comparedTaxa) {
+    await LocationEffort.tallyEffort(getDB(), compare);
+  }
   await disconnectDB();
 })();

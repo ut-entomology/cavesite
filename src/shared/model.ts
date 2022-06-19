@@ -218,10 +218,21 @@ export enum TaxonWeight {
   onlyGeneraAndSpecies = 'only genera + species'
 }
 
+export enum ComparedTaxa {
+  all = 'all_taxa',
+  caveObligates = 'cave_obligates',
+  generaHavingCaveObligates = 'cave_genera'
+}
+export const comparedTaxa = Object.values(ComparedTaxa);
+
 export interface ClusterSpec {
   metric: DissimilarityMetric;
-  onlyCaveObligates?: boolean;
+  comparedTaxa?: ComparedTaxa;
   ignoreSubgenera?: boolean;
   minSpecies?: number;
   maxSpecies?: number;
+}
+
+export function checkComparedTaxa(comparedTaxa: ComparedTaxa | undefined): boolean {
+  return comparedTaxa === undefined || comparedTaxa.includes(comparedTaxa);
 }

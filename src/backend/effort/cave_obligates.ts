@@ -322,6 +322,36 @@ const caveObligateTaxa = [
   'Ufocandona hannaleae'
 ];
 
+let caveObligatesMap: Record<string, boolean> | null = null;
+let caveContainingGeneraMap: Record<string, boolean> | null = null;
+
+export function getCaveObligatesMap(): Record<string, boolean> {
+  if (caveObligatesMap) return caveObligatesMap;
+  caveObligatesMap = {};
+  for (const taxonName of caveObligateTaxa) {
+    // Exclude new species because they don't correspond to those in the database.
+    if (!taxonName.includes('n.')) {
+      caveObligatesMap[taxonName] = true;
+    }
+  }
+  return caveObligatesMap;
+}
+
+export function getCaveContainingGeneraMap(): Record<string, boolean> {
+  if (caveContainingGeneraMap) return caveContainingGeneraMap;
+  caveContainingGeneraMap = {};
+  for (const taxonName of caveObligateTaxa) {
+    let genus = taxonName;
+    const spaceOffset = genus.indexOf(' ');
+    if (spaceOffset > 0) {
+      genus = genus.substring(0, spaceOffset);
+    }
+    caveContainingGeneraMap[genus] = true;
+  }
+  return caveContainingGeneraMap;
+}
+
+// TODO: Do I still need this?
 export async function loadCaveObligateTaxonPathMap(
   db: DB
 ): Promise<TaxonPathsByUniqueMap> {

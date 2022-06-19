@@ -44,7 +44,8 @@ export async function loadEffort(
   for (const cluster of clusters) {
     if (cluster.length > 0) {
       res = await client.post('api/location/get_effort', {
-        locationIDs: cluster
+        locationIDs: cluster,
+        comparedTaxa: clusterSpec.comparedTaxa
       });
       const clusterEffortData: EffortData[] = [];
       const effortResults: EffortResult[] = res.data.efforts;

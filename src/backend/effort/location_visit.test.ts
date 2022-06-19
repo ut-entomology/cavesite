@@ -3,6 +3,7 @@ import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Specimen, SpecimenSource } from '../model/specimen';
 import { LocationVisit } from './location_visit';
+import { ComparedTaxa } from '../../shared/model';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -816,7 +817,7 @@ async function _addSpecimen(data: PartialSpecimenSource): Promise<Specimen> {
   ++nextCatalogNumber;
   const specimen = await Specimen.create(db, source);
   if (!specimen) throw Error('Invalid specimen');
-  await LocationVisit.addSpecimen(db, specimen);
+  await LocationVisit.addSpecimen(db, ComparedTaxa.all, specimen);
   return specimen;
 }
 
@@ -860,6 +861,7 @@ async function _checkVisitFor(
 async function _getVisitFor(specimen: Specimen): Promise<LocationVisit> {
   const visit = await LocationVisit.getByKey(
     db,
+    ComparedTaxa.all,
     specimen.localityID,
     _toDaysEpoch(specimen.collectionStartDate!),
     specimen.normalizedCollectors!

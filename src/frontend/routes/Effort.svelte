@@ -30,7 +30,8 @@
     ClusterSpec,
     DissimilarityBasis,
     DissimilarityTransform,
-    TaxonWeight
+    TaxonWeight,
+    ComparedTaxa
   } from '../../shared/model';
   import { client } from '../stores/client';
   import { QuadraticModel, PowerModel } from '../lib/linear_regression';
@@ -48,7 +49,7 @@
       transform: DissimilarityTransform.none,
       weight: TaxonWeight.weighted
     },
-    onlyCaveObligates: false,
+    comparedTaxa: ComparedTaxa.all,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000

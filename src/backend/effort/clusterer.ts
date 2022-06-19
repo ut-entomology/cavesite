@@ -1,28 +1,26 @@
 import { type DB } from '../integrations/postgres';
-import { type ClusterSpec } from '../../shared/model';
+import { type ClusterSpec, ComparedTaxa } from '../../shared/model';
 
 export abstract class Clusterer {
-  protected _onlyCaveObligates: boolean;
+  protected _db: DB;
+  protected _comparedTaxa: ComparedTaxa;
   protected _ignoreSubgenera: boolean;
   protected _minSpecies: number;
   protected _maxSpecies: number;
 
   abstract getSeedLocationIDs(
-    db: DB,
     maxClusters: number,
     useCumulativeTaxa: boolean
   ): Promise<number[]>;
 
-  abstract getClusteredLocationIDs(
-    db: DB,
-    seedLocationIDs: number[]
-  ): Promise<number[][]>;
+  abstract getClusteredLocationIDs(seedLocationIDs: number[]): Promise<number[][]>;
 
-  constructor(clusterSpec: ClusterSpec) {
-    this._onlyCaveObligates =
-      clusterSpec.onlyCaveObligates === undefined
-        ? false
-        : clusterSpec.onlyCaveObligates;
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    this._db = db;
+    this._comparedTaxa =
+      clusterSpec.comparedTaxa === undefined
+        ? ComparedTaxa.all
+        : clusterSpec.comparedTaxa;
     this._ignoreSubgenera =
       clusterSpec.ignoreSubgenera === undefined ? false : clusterSpec.ignoreSubgenera;
     this._minSpecies = clusterSpec.minSpecies || 0;

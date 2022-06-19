@@ -1,7 +1,11 @@
 -- Drops tables in reverse order of creation.
 
-drop table if exists effort;
-drop table if exists visits;
+drop table if exists all_taxa_for_effort;
+drop table if exists cave_genera_for_effort;
+drop table if exists cave_obligates_for_effort;
+drop table if exists all_taxa_for_visits;
+drop table if exists cave_genera_for_visits;
+drop table if exists cave_obligates_for_visits;
 drop table if exists logs;
 drop table if exists private_coordinates;
 drop table if exists specimens;

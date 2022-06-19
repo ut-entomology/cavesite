@@ -6,6 +6,7 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { TaxonTallies, LocationVisit, setTaxonCounts } from './location_visit';
+import { ComparedTaxa } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
 
@@ -65,6 +66,7 @@ export class LocationEffort {
 
   static async create(
     db: DB,
+    comparedTaxa: ComparedTaxa,
     locationID: number,
     isCave: boolean,
     data: EffortData,
@@ -74,7 +76,7 @@ export class LocationEffort {
       Object.assign({ locationID, isCave }, tallies, data)
     );
     const result = await db.query(
-      `insert into effort (
+      `insert into ${comparedTaxa}_for_effort (
             location_id, is_cave, start_date, end_date,
             total_visits, total_person_visits, total_species, kingdom_names,
             phylum_names, class_names, order_names, family_names,
@@ -112,37 +114,42 @@ export class LocationEffort {
   }
 
   // for testing purposes...
-  static async dropAll(db: DB): Promise<void> {
-    await db.query(`delete from effort`);
+  static async dropAll(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
+    await db.query(`delete from ${comparedTaxa}_for_effort`);
   }
 
   static async getByLocationIDs(
     db: DB,
+    comparedTaxa: ComparedTaxa,
     locationIDs: number[]
   ): Promise<LocationEffort[]> {
-    const result = await db.query(`select * from effort where location_id=any ($1)`, [
-      // @ts-ignore
-      locationIDs
-    ]);
+    const result = await db.query(
+      `select * from ${comparedTaxa}_for_effort where location_id=any ($1)`,
+      [
+        // @ts-ignore
+        locationIDs
+      ]
+    );
     return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
   }
 
   static async getNextBatch(
     db: DB,
+    comparedTaxa: ComparedTaxa,
     minSpecies: number,
     maxSpecies: number,
     skip: number,
     limit: number
   ): Promise<LocationEffort[]> {
     const result = await db.query(
-      `select * from effort where total_species between $1 and $2
+      `select * from ${comparedTaxa}_for_effort where total_species between $1 and $2
         order by total_species desc, location_id limit $3 offset $4`,
       [minSpecies, maxSpecies, limit, skip]
     );
     return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
   }
 
-  static async tallyEffort(db: DB): Promise<void> {
+  static async tallyEffort(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
     let priorLocationID = 0;
     let startDate: Date;
     let endDate: Date;
@@ -154,13 +161,19 @@ export class LocationEffort {
     let perPersonVisitPoints: number[][] = [];
     let skipCount = 0;
 
-    let visits = await LocationVisit.getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
+    let visits = await LocationVisit.getNextCaveBatch(
+      db,
+      comparedTaxa,
+      skipCount,
+      VISIT_BATCH_SIZE
+    );
     while (visits.length > 0) {
       for (const visit of visits) {
         if (visit.locationID != priorLocationID) {
           if (priorLocationID != 0) {
             await this.create(
               db,
+              comparedTaxa,
               tallies!.locationID,
               tallies!.isCave,
               {
@@ -194,12 +207,18 @@ export class LocationEffort {
       }
 
       skipCount += visits.length;
-      visits = await LocationVisit.getNextCaveBatch(db, skipCount, VISIT_BATCH_SIZE);
+      visits = await LocationVisit.getNextCaveBatch(
+        db,
+        comparedTaxa,
+        skipCount,
+        VISIT_BATCH_SIZE
+      );
     }
 
     if (priorLocationID != 0) {
       await this.create(
         db,
+        comparedTaxa,
         tallies!.locationID,
         tallies!.isCave,
         {

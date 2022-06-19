@@ -8,6 +8,8 @@ import { LocationEffort } from '../effort/location_effort';
 import {
   type LocationSpec,
   type EffortResult,
+  ComparedTaxa,
+  checkComparedTaxa,
   MIN_LOOKUP_CHAR_LENGTH
 } from '../../shared/model';
 
@@ -33,10 +35,15 @@ router.post('/get_children', async (req: Request, res) => {
 
 router.post('/get_effort', async (req: Request, res) => {
   const locationIDs: number[] = req.body.locationIDs;
-  if (!checkIntegerList(locationIDs)) {
+  const comparedTaxa: ComparedTaxa = req.body.comparedTaxa;
+  if (!checkComparedTaxa(comparedTaxa) || !checkIntegerList(locationIDs)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  const efforts = await LocationEffort.getByLocationIDs(getDB(), locationIDs);
+  const efforts = await LocationEffort.getByLocationIDs(
+    getDB(),
+    comparedTaxa,
+    locationIDs
+  );
   return res
     .status(StatusCodes.OK)
     .send({ efforts: efforts.map((effort) => _toEffortResult(effort)) });

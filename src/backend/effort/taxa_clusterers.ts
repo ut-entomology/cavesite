@@ -1,14 +1,10 @@
+import { type DB } from '../integrations/postgres';
 import { type TaxonTallyMap, TaxaClusterer } from './taxa_clusterer';
-import { LocationEffort } from './location_effort';
 import { ClusterSpec } from '../../shared/model';
 
 export class MinusCommonTaxaClusterer extends TaxaClusterer {
-  constructor(clusterSpec: ClusterSpec) {
-    super(clusterSpec);
-  }
-
-  greatestLowerDissimilarity(locationEffort: LocationEffort): number {
-    return this._calculateDissimilarity({}, this._tallyTaxa(locationEffort));
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    super(db, clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -26,8 +22,8 @@ export class MinusCommonTaxaClusterer extends TaxaClusterer {
 }
 
 export class DiffMinusCommonTaxaClusterer extends TaxaClusterer {
-  constructor(clusterSpec: ClusterSpec) {
-    super(clusterSpec);
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    super(db, clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -49,8 +45,8 @@ export class DiffMinusCommonTaxaClusterer extends TaxaClusterer {
 }
 
 export class BothDiffsMinusCommonTaxaClusterer extends TaxaClusterer {
-  constructor(clusterSpec: ClusterSpec) {
-    super(clusterSpec);
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    super(db, clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -77,8 +73,8 @@ export class BothDiffsMinusCommonTaxaClusterer extends TaxaClusterer {
 }
 
 export class DiffTaxaClusterer extends TaxaClusterer {
-  constructor(clusterSpec: ClusterSpec) {
-    super(clusterSpec);
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    super(db, clusterSpec);
   }
 
   protected _calculateDissimilarity(
@@ -96,8 +92,8 @@ export class DiffTaxaClusterer extends TaxaClusterer {
 }
 
 export class BothDiffsTaxaClusterer extends TaxaClusterer {
-  constructor(clusterSpec: ClusterSpec) {
-    super(clusterSpec);
+  constructor(db: DB, clusterSpec: ClusterSpec) {
+    super(db, clusterSpec);
   }
 
   protected _calculateDissimilarity(
