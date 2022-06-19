@@ -15,6 +15,25 @@ export abstract class EffortGraphSpec {
   }
 }
 
+export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
+  graphTitle: string;
+  xAxisLabel: string;
+  yAxisLabel: string;
+
+  constructor(clusterEffortData: EffortData[]) {
+    super(clusterEffortData);
+    this.graphTitle = `Cumulative species across days (${this.locationCount} caves)`;
+    this.yAxisLabel = 'cumulative species';
+    this.xAxisLabel = 'days';
+    for (const effortData of clusterEffortData) {
+      for (const point of effortData.perDayPoints) {
+        this.points.push(point);
+        ++this.pointCount;
+      }
+    }
+  }
+}
+
 export class SpeciesByVisitsGraphSpec extends EffortGraphSpec {
   graphTitle: string;
   xAxisLabel: string;

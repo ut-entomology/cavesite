@@ -231,9 +231,11 @@ function _toEffortData(data: Partial<EffortData>): EffortData {
     {
       startDate: new Date(),
       endDate: new Date(),
+      totalDays: 1,
       totalVisits: 1,
       totalPersonVisits: 1,
       totalSpecies: 1,
+      perDayPoints: '',
       perVisitPoints: '',
       perPersonVisitPoints: ''
     },

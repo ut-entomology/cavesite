@@ -12,6 +12,7 @@ export interface EffortData {
   locationID: number;
   startDate: Date;
   endDate: Date;
+  perDayPoints: Point[];
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
 }
@@ -74,6 +75,12 @@ function _pairToPoint(pair: number[]) {
 }
 
 function _toEffortData(effortResult: EffortResult): EffortData {
+  const perDayPointPairs: number[][] = JSON.parse(effortResult.perDayPoints);
+  const perDayPoints: Point[] = [];
+  for (const pair of perDayPointPairs) {
+    perDayPoints.push(_pairToPoint(pair));
+  }
+
   const perVisitPointPairs: number[][] = JSON.parse(effortResult.perVisitPoints);
   const perVisitPoints: Point[] = [];
   for (const pair of perVisitPointPairs) {
@@ -92,7 +99,8 @@ function _toEffortData(effortResult: EffortResult): EffortData {
     locationID: effortResult.locationID,
     startDate: effortResult.startDate,
     endDate: effortResult.endDate,
-    perVisitPoints: perVisitPoints,
-    perPersonVisitPoints: perPersonVisitPoints
+    perDayPoints,
+    perVisitPoints,
+    perPersonVisitPoints
   };
 }

@@ -165,6 +165,7 @@ export interface EffortResult {
   locationID: number;
   startDate: Date;
   endDate: Date;
+  perDayPoints: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
 }

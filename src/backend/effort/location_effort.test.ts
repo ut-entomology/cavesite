@@ -67,6 +67,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: startDate,
+    totalDays: 1,
     totalVisits: 1,
     totalPersonVisits: 1,
     totalSpecies: 1,
@@ -78,6 +79,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa',
     speciesNames: null,
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -103,6 +105,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 2,
     totalVisits: 2,
     totalPersonVisits: 2,
     totalSpecies: 1,
@@ -114,6 +117,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa',
     speciesNames: 'Mecaphesa celer',
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -138,6 +142,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 3,
     totalVisits: 3,
     totalPersonVisits: 3,
     totalSpecies: 1,
@@ -149,6 +154,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa',
     speciesNames: 'Mecaphesa celer',
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -174,6 +180,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 4,
     totalVisits: 4,
     totalPersonVisits: 4,
     totalSpecies: 1,
@@ -185,6 +192,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa',
     speciesNames: 'Mecaphesa celer',
     subspeciesNames: 'Mecaphesa celer xyz',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -210,6 +218,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 5,
     totalVisits: 5,
     totalPersonVisits: 5,
     totalSpecies: 2,
@@ -221,6 +230,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa',
     speciesNames: 'Mecaphesa celer',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -245,6 +255,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 6,
     totalVisits: 6,
     totalPersonVisits: 6,
     totalSpecies: 3,
@@ -256,6 +267,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -280,6 +292,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 7,
     totalVisits: 7,
     totalPersonVisits: 7,
     totalSpecies: 4,
@@ -291,6 +304,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Xysticus',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -314,6 +328,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 8,
     totalVisits: 8,
     totalPersonVisits: 8,
     totalSpecies: 5,
@@ -325,6 +340,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Xysticus|Ozyptila',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -348,6 +364,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 9,
     totalVisits: 9,
     totalPersonVisits: 9,
     totalSpecies: 6,
@@ -359,6 +376,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -383,6 +401,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 10,
     totalVisits: 10,
     totalPersonVisits: 10,
     totalSpecies: 6,
@@ -394,6 +413,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -417,6 +437,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 11,
     totalVisits: 11,
     totalPersonVisits: 11,
     totalSpecies: 7,
@@ -428,6 +449,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -449,6 +471,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 12,
     totalVisits: 12,
     totalPersonVisits: 12,
     totalSpecies: 8,
@@ -460,6 +483,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Xysticus|Ozyptila|Bassaniana|Latrodectus',
     speciesNames: 'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -484,6 +508,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 13,
     totalVisits: 13,
     totalPersonVisits: 13,
     totalSpecies: 9,
@@ -496,6 +521,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -516,6 +542,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 14,
     totalVisits: 14,
     totalPersonVisits: 14,
     totalSpecies: 10,
@@ -528,6 +555,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -550,6 +578,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 15,
     totalVisits: 15,
     totalPersonVisits: 15,
     totalSpecies: 10,
@@ -562,6 +591,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -581,6 +611,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 16,
     totalVisits: 16,
     totalPersonVisits: 16,
     totalSpecies: 11,
@@ -593,6 +624,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Mecaphesa dubia|Xysticus funestus|Ozyptila distans|Diestrammena asynamora',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -652,6 +684,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 1,
     totalVisits: 1,
     totalPersonVisits: 1,
     totalSpecies: 4,
@@ -663,6 +696,7 @@ test('tallying species counts per unit effort', async () => {
     genusNames: 'Mecaphesa|Phidippus',
     speciesNames: 'Mecaphesa celer|Phidippus audax|Phidippus regius',
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -728,6 +762,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 2,
     totalVisits: 2,
     totalPersonVisits: 2,
     totalSpecies: 9,
@@ -740,6 +775,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Phidippus audax|Phidippus regius|Phidippus texanus|Latrodectus mactans',
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(points),
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -770,8 +806,10 @@ test('tallying species counts per unit effort', async () => {
     genus: 'Phidippus',
     specificEpithet: 'cardinalis'
   });
+  let perDayPoints = JSON.parse(JSON.stringify(points));
   let perVisitPoints = JSON.parse(JSON.stringify(points));
   let perPersonVisitPoints = JSON.parse(JSON.stringify(points));
+  perDayPoints.push([33, 10], [35, 11]);
   perVisitPoints.push([3, 10], [4, 11]);
   perPersonVisitPoints.push([4, 10], [6, 11]);
   await _retally();
@@ -781,6 +819,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
+    totalDays: 35,
     totalVisits: 4,
     totalPersonVisits: 6,
     totalSpecies: 11,
@@ -793,6 +832,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Phidippus audax|Phidippus regius|Phidippus texanus|Latrodectus mactans|Phidippus mystaceus|Phidippus cardinalis',
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(perDayPoints),
     perVisitPoints: _toJsonPoints(perVisitPoints),
     perPersonVisitPoints: _toJsonPoints(perPersonVisitPoints)
   });
@@ -822,8 +862,10 @@ test('tallying species counts per unit effort', async () => {
     family: 'Theridiidae',
     genus: 'Steatoda'
   });
+  perDayPoints = JSON.parse(JSON.stringify(points));
   perVisitPoints = JSON.parse(JSON.stringify(points));
   perPersonVisitPoints = JSON.parse(JSON.stringify(points));
+  perDayPoints.push([33, 10], [34, 12], [35, 13]);
   perVisitPoints.push([3, 10], [4, 12], [5, 13]);
   perPersonVisitPoints.push([4, 10], [5, 12], [7, 13]);
   await _retally();
@@ -833,6 +875,7 @@ test('tallying species counts per unit effort', async () => {
     isCave: true,
     startDate,
     endDate, // of prior visit
+    totalDays: 35,
     totalVisits: 5,
     totalPersonVisits: 7,
     totalSpecies: 13,
@@ -845,6 +888,7 @@ test('tallying species counts per unit effort', async () => {
     speciesNames:
       'Mecaphesa celer|Phidippus audax|Phidippus regius|Phidippus texanus|Latrodectus mactans|Phidippus mystaceus|Phidippus cardinalis',
     subspeciesNames: null,
+    perDayPoints: _toJsonPoints(perDayPoints),
     perVisitPoints: _toJsonPoints(perVisitPoints),
     perPersonVisitPoints: _toJsonPoints(perPersonVisitPoints)
   });

@@ -17,9 +17,11 @@ export type EffortData = Pick<
   DataOf<LocationEffort>,
   | 'startDate'
   | 'endDate'
+  | 'totalDays'
   | 'totalVisits'
   | 'totalPersonVisits'
   | 'totalSpecies'
+  | 'perDayPoints'
   | 'perVisitPoints'
   | 'perPersonVisitPoints'
 >;
@@ -29,6 +31,7 @@ export class LocationEffort {
   isCave: boolean;
   startDate: Date;
   endDate: Date;
+  totalDays: number;
   totalVisits: number;
   totalPersonVisits: number;
   totalSpecies: number;
@@ -40,6 +43,7 @@ export class LocationEffort {
   genusNames: string | null;
   speciesNames: string | null;
   subspeciesNames: string | null;
+  perDayPoints: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
 
@@ -50,6 +54,7 @@ export class LocationEffort {
     this.isCave = data.isCave;
     this.startDate = data.startDate;
     this.endDate = data.endDate;
+    this.totalDays = data.totalDays;
     this.totalVisits = data.totalVisits;
     this.totalPersonVisits = data.totalPersonVisits;
     this.totalSpecies = data.totalSpecies;
@@ -61,6 +66,7 @@ export class LocationEffort {
     this.genusNames = data.genusNames;
     this.speciesNames = data.speciesNames;
     this.subspeciesNames = data.subspeciesNames;
+    this.perDayPoints = data.perDayPoints;
     this.perVisitPoints = data.perVisitPoints;
     this.perPersonVisitPoints = data.perPersonVisitPoints;
   }
@@ -80,13 +86,13 @@ export class LocationEffort {
     );
     const result = await db.query(
       `insert into ${comparedTaxa}_for_effort (
-            location_id, is_cave, start_date, end_date,
+            location_id, is_cave, start_date, end_date, total_days,
             total_visits, total_person_visits, total_species, kingdom_names,
             phylum_names, class_names, order_names, family_names,
             genus_names, species_names, subspecies_names,
-            per_visit_points, per_person_visit_points
+            per_day_points, per_visit_points, per_person_visit_points
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-              $14, $15, $16, $17)`,
+              $14, $15, $16, $17, $18, $19)`,
       [
         effort.locationID,
         // @ts-ignore
@@ -95,6 +101,7 @@ export class LocationEffort {
         effort.startDate,
         // @ts-ignore
         effort.endDate,
+        effort.totalDays,
         effort.totalVisits,
         effort.totalPersonVisits,
         effort.totalSpecies,
@@ -106,6 +113,7 @@ export class LocationEffort {
         effort.genusNames,
         effort.speciesNames,
         effort.subspeciesNames,
+        effort.perDayPoints,
         effort.perVisitPoints,
         effort.perPersonVisitPoints
       ]
@@ -157,9 +165,12 @@ export class LocationEffort {
     let startDate: Date;
     let endDate: Date;
     let tallies: LocationVisit;
+    let firstEpochDay = 0;
+    let totalDays = 0;
     let totalSpecies = 0;
     let totalVisits = 0;
     let totalPersonVisits = 0;
+    let perDayPoints: number[][] = [];
     let perVisitPoints: number[][] = [];
     let perPersonVisitPoints: number[][] = [];
     let skipCount = 0;
@@ -184,9 +195,11 @@ export class LocationEffort {
               {
                 startDate: startDate!,
                 endDate: endDate!,
+                totalDays,
                 totalVisits,
                 totalPersonVisits,
                 totalSpecies,
+                perDayPoints: JSON.stringify(perDayPoints),
                 perVisitPoints: JSON.stringify(perVisitPoints),
                 perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
               },
@@ -194,9 +207,11 @@ export class LocationEffort {
             );
           }
           startDate = visit.startDate;
+          firstEpochDay = visit.startEpochDay;
           tallies = visit; // okay to overwrite the visit
           totalVisits = 0;
           totalPersonVisits = 0;
+          perDayPoints = [];
           perVisitPoints = [];
           perPersonVisitPoints = [];
           priorLocationID = visit.locationID;
@@ -211,6 +226,8 @@ export class LocationEffort {
           ) + 1;
 
         totalSpecies = this._countSpecies(tallies!);
+        totalDays = visit.endEpochDay - firstEpochDay + 1;
+
         if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
           // treat as individually collected each day
           totalVisits += spanInDays;
@@ -221,6 +238,8 @@ export class LocationEffort {
           totalVisits += visitEquivalent;
           totalPersonVisits += visitEquivalent;
         }
+
+        perDayPoints.push([totalDays, totalSpecies]);
         perVisitPoints.push([totalVisits, totalSpecies]);
         perPersonVisitPoints.push([totalPersonVisits, totalSpecies]);
       }
@@ -244,9 +263,11 @@ export class LocationEffort {
           // @ts-ignore
           startDate,
           endDate: endDate!,
+          totalDays,
           totalVisits,
           totalPersonVisits,
           totalSpecies,
+          perDayPoints: JSON.stringify(perDayPoints),
           perVisitPoints: JSON.stringify(perVisitPoints),
           perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
         },

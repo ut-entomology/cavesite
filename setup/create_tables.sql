@@ -314,6 +314,7 @@ create table all_taxa_for_effort (
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
+    total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
     total_species integer not null,
@@ -325,10 +326,12 @@ create table all_taxa_for_effort (
     genus_names text,
     species_names text,
     subspecies_names text,
+    per_day_points text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
     primary key (location_id)
 );
+create index on all_taxa_for_effort(total_days);
 create index on all_taxa_for_effort(total_visits);
 create index on all_taxa_for_effort(total_person_visits);
 create index on all_taxa_for_effort(total_species);
@@ -338,6 +341,7 @@ create table cave_genera_for_effort (
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
+    total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
     total_species integer not null,
@@ -349,10 +353,12 @@ create table cave_genera_for_effort (
     genus_names text,
     species_names text,
     subspecies_names text,
+    per_day_points text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
     primary key (location_id)
 );
+create index on cave_genera_for_effort(total_days);
 create index on cave_genera_for_effort(total_visits);
 create index on cave_genera_for_effort(total_person_visits);
 create index on cave_genera_for_effort(total_species);
@@ -362,6 +368,7 @@ create table cave_obligates_for_effort (
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
+    total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
     total_species integer not null,
@@ -373,10 +380,12 @@ create table cave_obligates_for_effort (
     genus_names text,
     species_names text,
     subspecies_names text,
+    per_day_points text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
     primary key (location_id)
 );
+create index on cave_obligates_for_effort(total_days);
 create index on cave_obligates_for_effort(total_visits);
 create index on cave_obligates_for_effort(total_person_visits);
 create index on cave_obligates_for_effort(total_species);

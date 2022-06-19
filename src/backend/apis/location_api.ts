@@ -98,6 +98,7 @@ function _toEffortResult(effort: LocationEffort): EffortResult {
     locationID: effort.locationID,
     startDate: effort.startDate,
     endDate: effort.endDate,
+    perDayPoints: effort.perDayPoints,
     perVisitPoints: effort.perVisitPoints,
     perPersonVisitPoints: effort.perPersonVisitPoints
   };

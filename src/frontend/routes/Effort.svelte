@@ -4,12 +4,14 @@
   import { EffortData, loadSeeds, loadEffort } from '../lib/effort_data';
   import {
     type EffortGraphSpec,
+    SpeciesByDaysGraphSpec,
     SpeciesByVisitsGraphSpec,
     SpeciesByPersonVisitsGraphSpec
   } from '../lib/effort_graphs';
 
   interface ClusterData {
     locationCount: number;
+    perDayTotalsGraph: EffortGraphSpec;
     perVisitTotalsGraph: EffortGraphSpec;
     perPersonVisitTotalsGraph: EffortGraphSpec;
   }
@@ -64,14 +66,13 @@
   }
 
   enum DatasetID {
+    days = 'days',
     visits = 'per-visit-set',
     personVisits = 'per-person-visit-set'
   }
 
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-
-  $: showingPersonVisits = datasetID == DatasetID.personVisits;
 
   async function loadPoints() {
     try {
@@ -93,6 +94,7 @@
       for (const effortData of effortDataByCluster) {
         clusterDataByCluster.push({
           locationCount: effortData.length,
+          perDayTotalsGraph: new SpeciesByDaysGraphSpec(effortData),
           perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(effortData),
           perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(effortData)
         });
@@ -117,10 +119,16 @@
     location.reload();
   }
 
-  function _getGraphData(clusterData: ClusterData) {
-    return showingPersonVisits
-      ? clusterData.perPersonVisitTotalsGraph
-      : clusterData.perVisitTotalsGraph;
+  function _getGraphData(datasetID: DatasetID, clusterData: ClusterData) {
+    // datasetID is passed in to get reactivity in the HTML
+    switch (datasetID) {
+      case DatasetID.days:
+        return clusterData.perDayTotalsGraph;
+      case DatasetID.visits:
+        return clusterData.perVisitTotalsGraph;
+      case DatasetID.personVisits:
+        return clusterData.perPersonVisitTotalsGraph;
+    }
   }
 </script>
 
@@ -137,6 +145,15 @@
       <span slot="work-buttons">
         {#if $clusterStore}
           <div class="btn-group" role="group" aria-label="Switch datasets">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={datasetID}
+              name="dataset"
+              id={DatasetID.days}
+              value={DatasetID.days}
+            />
+            <label class="btn btn-outline-primary" for={DatasetID.days}>Days</label>
             <input
               type="radio"
               class="btn-check"
@@ -169,7 +186,7 @@
     {:else}
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
-        {@const graphData = _getGraphData(clusterData)}
+        {@const graphData = _getGraphData(datasetID, clusterData)}
         {@const graphTitle =
           (multipleClusters ? `#${i + 1}: ` : '') + graphData.graphTitle}
         {#if graphData.points.length >= MIN_POINTS_TO_REGRESS}
