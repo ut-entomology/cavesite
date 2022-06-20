@@ -221,7 +221,7 @@
                 title={graphTitle}
                 config={graphData}
                 models={[powerFit, quadraticFit]}
-                modelPlots={[powerFit.points, quadraticFit.points]}
+                modelPlots={[powerFit.modelPoints, quadraticFit.modelPoints]}
               />
             </div>
           </div>

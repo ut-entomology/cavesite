@@ -16,7 +16,10 @@ export interface JstatModel {
   f: { pvalue: number };
 }
 
+type XTransform = (p: number, x: number) => number[];
 type FittedY = (y: number) => number;
+type FittedYTakingCoefs = (coefs: number[], y: number) => number;
+type FittedYTakingPAndCoefs = (p: number, coefs: number[], y: number) => number;
 
 interface TrialModel {
   jstats: JstatModel;
@@ -25,75 +28,88 @@ interface TrialModel {
   residuals: Point[];
 }
 
-export interface FittedModel extends TrialModel {
+export abstract class FittedModel implements TrialModel {
   name: string;
   hexColor: string;
-  equation: string;
-  points: Point[];
+  equation!: string;
+  modelPoints!: Point[];
+
+  jstats!: JstatModel;
+  fittedY!: FittedY;
+  rmse!: number;
+  residuals!: Point[];
+
+  constructor(name: string, hexColor: string) {
+    this.name = name;
+    this.hexColor = hexColor;
+  }
+
+  protected _assignModel(
+    model: TrialModel,
+    dataPoints: Point[],
+    toTerms: (coefs: number[]) => string[]
+  ): void {
+    Object.assign(this, model);
+    // @ts-ignore
+    this.modelPoints = _getModelPoints(dataPoints, model.fittedY);
+    this.equation = toTerms(this.jstats.coef).join(' ');
+  }
 }
 
-export class QuadraticModel implements FittedModel {
-  name: string;
-  jstats: JstatModel;
-  fittedY: FittedY;
-  rmse: number;
-  hexColor: string;
-  equation: string;
-  points: Point[];
-  residuals: Point[];
-
+export class QuadraticModel extends FittedModel {
   constructor(hexColor: string, dataPoints: Point[]) {
-    this.name = 'quadratic fit';
-    this.hexColor = hexColor;
+    super('quadratic fit', hexColor);
 
-    const independentValues: number[][] = []; // [effort^2, effort]
-    const dependentValues: number[] = []; // species count
-    for (const point of dataPoints) {
-      independentValues.push([point.x * point.x, point.x, 1]);
-      dependentValues.push(point.y);
-    }
-    this.jstats = jstat.models.ols(dependentValues, independentValues);
-    const coefs = this.jstats.coef;
-    this.fittedY = (x: number) => coefs[0] * x * x + coefs[1] * x + coefs[2];
-    this.points = _getModelPoints(dataPoints, this.fittedY);
-    this.residuals = _getResiduals(dataPoints, this.fittedY);
-    this.rmse = _getRMSE(this.residuals);
-    this.equation = [
+    const xTransform: XTransform = (_p, x) => [x * x, x, 1];
+    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
+      coefs[0] * x * x + coefs[1] * x + coefs[2];
+
+    const model = _tryRegression(xTransform, fittedYTakingCoefs, 1, dataPoints);
+    this._assignModel(model, dataPoints, (coefs) => [
       _coefHtml(coefs[0], true),
       ' x<sup>2</sup> ',
       _coefHtml(coefs[1]),
       ' x ',
       _coefHtml(coefs[2])
-    ].join(' ');
+    ]);
   }
 }
 
-export class PowerModel implements FittedModel {
-  name: string;
-  jstats: JstatModel;
-  fittedY: FittedY;
-  rmse: number;
-  hexColor: string;
-  equation: string;
-  points: Point[];
-  residuals: Point[];
-
+export class PowerModel extends FittedModel {
   constructor(hexColor: string, dataPoints: Point[]) {
-    this.name = 'power fit';
-    this.hexColor = hexColor;
+    super('power fit', hexColor);
+
+    const xTransform: XTransform = (p, x) => [Math.pow(x, p), 1];
+    const fittedYTakingPAndCoefs: FittedYTakingPAndCoefs = (p, coefs, x) =>
+      coefs[0] * Math.pow(x, p) + coefs[1];
 
     let lowPower = 0.001;
     let lowModel: TrialModel;
-    let middlePower;
+    let middlePower: number;
     let middleModel: TrialModel;
     let highPower = 3;
     let highModel: TrialModel;
 
-    lowModel = this._tryPowerRegression(lowPower, dataPoints);
-    highModel = this._tryPowerRegression(highPower, dataPoints);
+    lowModel = _tryRegression(
+      xTransform,
+      fittedYTakingPAndCoefs.bind(null, lowPower),
+      lowPower,
+      dataPoints
+    );
+    highModel = _tryRegression(
+      xTransform,
+      fittedYTakingPAndCoefs.bind(null, highPower),
+      highPower,
+      dataPoints
+    );
     for (let i = 0; i < MAX_POWER_SPLITS; ++i) {
       middlePower = (lowPower + highPower) / 2;
-      middleModel = this._tryPowerRegression(middlePower, dataPoints);
+      middleModel = _tryRegression(
+        xTransform,
+        fittedYTakingPAndCoefs.bind(null, middlePower),
+        middlePower,
+        dataPoints
+      );
       if (lowModel.rmse < highModel.rmse) {
         highPower = middlePower;
         highModel = middleModel;
@@ -104,41 +120,14 @@ export class PowerModel implements FittedModel {
     }
 
     // @ts-ignore
-    this.jstats = middleModel.jstats;
-    // @ts-ignore
-    this.rmse = middleModel.rmse;
-    // @ts-ignore
-    this.residuals = middleModel.residuals;
-    // @ts-ignore
-    this.fittedY = middleModel.fittedY;
-    // @ts-ignore
-    this.points = _getModelPoints(dataPoints, middleModel.fittedY);
-    const coefs = this.jstats.coef;
-    this.equation = [
+    this._assignModel(middleModel, dataPoints, (coefs) => [
       _coefHtml(coefs[0], true),
       ' x<sup>',
       // @ts-ignore
       shortenValue(middlePower, 4),
       '</sup> ',
       _coefHtml(coefs[1])
-    ].join(' ');
-  }
-
-  private _tryPowerRegression(power: number, points: Point[]): TrialModel {
-    const independentValues: number[][] = []; // [effort^power]
-    const dependentValues: number[] = []; // species count
-    for (const point of points) {
-      independentValues.push([Math.pow(point.x, power), 1]);
-      dependentValues.push(point.y);
-    }
-    const jstats: JstatModel = jstat.models.ols(dependentValues, independentValues);
-
-    const coefs = jstats.coef;
-    const fittedY = (x: number) => coefs[0] * Math.pow(x, power) + coefs[1];
-    const residuals = _getResiduals(points, fittedY);
-    const rmse = _getRMSE(residuals);
-
-    return { jstats, fittedY, rmse, residuals };
+    ]);
   }
 }
 
@@ -157,7 +146,7 @@ function _coefHtml(coef: number, firstCoef = false) {
 }
 
 function _getModelPoints(dataPoints: Point[], fittedY: FittedY) {
-  let lowestX = 10000;
+  let lowestX = Infinity;
   let highestX = 0;
   for (const point of dataPoints) {
     if (point.x < lowestX) lowestX = point.x;
@@ -184,4 +173,26 @@ function _getRMSE(residuals: Point[]) {
   let sumOfSquares = 0;
   residuals.forEach((residual) => (sumOfSquares += residual.y * residual.y));
   return Math.sqrt(sumOfSquares / residuals.length);
+}
+
+function _tryRegression(
+  xTransform: XTransform,
+  fittedYTakingCoefs: FittedYTakingCoefs,
+  power: number,
+  dataPoints: Point[]
+): TrialModel {
+  const independentValues: number[][] = [];
+  const dependentValues: number[] = [];
+  for (const point of dataPoints) {
+    independentValues.push(xTransform(power, point.x));
+    dependentValues.push(point.y);
+  }
+
+  const jstats: JstatModel = jstat.models.ols(dependentValues, independentValues);
+  const coefs = jstats.coef;
+  const fittedY = fittedYTakingCoefs.bind(null, coefs);
+  const residuals = _getResiduals(dataPoints, fittedY);
+  const rmse = _getRMSE(residuals);
+
+  return { jstats, fittedY, rmse, residuals };
 }
