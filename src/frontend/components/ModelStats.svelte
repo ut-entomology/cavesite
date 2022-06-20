@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { type FittedModel, shortenValue } from '../lib/linear_regression';
+  import { type PlottableModel, shortenValue } from '../lib/linear_regression';
 
-  export let model: FittedModel;
+  export let model: PlottableModel;
 </script>
 
 <div class="row mt-1 stats">

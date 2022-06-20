@@ -1,9 +1,9 @@
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { FittedModel, Point } from '../lib/linear_regression';
+  import type { PlottableModel, Point } from '../lib/linear_regression';
 
-  export let model: FittedModel;
+  export let model: PlottableModel;
 
   // Chart.js plugin adapted from
   //  https://nishimura.eti.br/blog/2021/02/07/chartjs-point-with-vertical/

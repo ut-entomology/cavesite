@@ -16,19 +16,19 @@ export interface JstatModel {
   f: { pvalue: number };
 }
 
-type XTransform = (p: number, x: number) => number[];
+type XTransform = (x: number) => number[];
 type FittedY = (y: number) => number;
 type FittedYTakingCoefs = (coefs: number[], y: number) => number;
 type FittedYTakingPAndCoefs = (p: number, coefs: number[], y: number) => number;
 
-interface TrialModel {
+interface RegressionModel {
   jstats: JstatModel;
   fittedY: FittedY;
   rmse: number;
   residuals: Point[];
 }
 
-export abstract class FittedModel implements TrialModel {
+export abstract class PlottableModel implements RegressionModel {
   name: string;
   hexColor: string;
   equation!: string;
@@ -45,7 +45,7 @@ export abstract class FittedModel implements TrialModel {
   }
 
   protected _assignModel(
-    model: TrialModel,
+    model: RegressionModel,
     dataPoints: Point[],
     toTerms: (coefs: number[]) => string[]
   ): void {
@@ -56,15 +56,15 @@ export abstract class FittedModel implements TrialModel {
   }
 }
 
-export class QuadraticModel extends FittedModel {
+export class QuadraticModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[]) {
     super('quadratic fit', hexColor);
 
-    const xTransform: XTransform = (_p, x) => [x * x, x, 1];
+    const xTransform: XTransform = (x) => [x * x, x, 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * x * x + coefs[1] * x + coefs[2];
 
-    const model = _tryRegression(xTransform, fittedYTakingCoefs, 1, dataPoints);
+    const model = _createRegressionModel(xTransform, fittedYTakingCoefs, dataPoints);
     this._assignModel(model, dataPoints, (coefs) => [
       _coefHtml(coefs[0], true),
       ' x<sup>2</sup> ',
@@ -75,39 +75,36 @@ export class QuadraticModel extends FittedModel {
   }
 }
 
-export class PowerModel extends FittedModel {
+export class PowerModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[]) {
     super('power fit', hexColor);
 
-    const xTransform: XTransform = (p, x) => [Math.pow(x, p), 1];
+    const powerXTransform = (p: number, x: number) => [Math.pow(x, p), 1];
     const fittedYTakingPAndCoefs: FittedYTakingPAndCoefs = (p, coefs, x) =>
       coefs[0] * Math.pow(x, p) + coefs[1];
 
     let lowPower = 0.001;
-    let lowModel: TrialModel;
+    let lowModel: RegressionModel;
     let middlePower: number;
-    let middleModel: TrialModel;
+    let middleModel: RegressionModel;
     let highPower = 3;
-    let highModel: TrialModel;
+    let highModel: RegressionModel;
 
-    lowModel = _tryRegression(
-      xTransform,
+    lowModel = _createRegressionModel(
+      powerXTransform.bind(null, lowPower),
       fittedYTakingPAndCoefs.bind(null, lowPower),
-      lowPower,
       dataPoints
     );
-    highModel = _tryRegression(
-      xTransform,
+    highModel = _createRegressionModel(
+      powerXTransform.bind(null, highPower),
       fittedYTakingPAndCoefs.bind(null, highPower),
-      highPower,
       dataPoints
     );
     for (let i = 0; i < MAX_POWER_SPLITS; ++i) {
       middlePower = (lowPower + highPower) / 2;
-      middleModel = _tryRegression(
-        xTransform,
+      middleModel = _createRegressionModel(
+        powerXTransform.bind(null, middlePower),
         fittedYTakingPAndCoefs.bind(null, middlePower),
-        middlePower,
         dataPoints
       );
       if (lowModel.rmse < highModel.rmse) {
@@ -175,16 +172,15 @@ function _getRMSE(residuals: Point[]) {
   return Math.sqrt(sumOfSquares / residuals.length);
 }
 
-function _tryRegression(
+function _createRegressionModel(
   xTransform: XTransform,
   fittedYTakingCoefs: FittedYTakingCoefs,
-  power: number,
   dataPoints: Point[]
-): TrialModel {
+): RegressionModel {
   const independentValues: number[][] = [];
   const dependentValues: number[] = [];
   for (const point of dataPoints) {
-    independentValues.push(xTransform(power, point.x));
+    independentValues.push(xTransform(point.x));
     dependentValues.push(point.y);
   }
 

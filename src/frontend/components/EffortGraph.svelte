@@ -1,12 +1,12 @@
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { Point, FittedModel } from '../lib/linear_regression';
+  import type { Point, PlottableModel } from '../lib/linear_regression';
   import type { EffortGraphSpec } from '../lib/effort_graphs';
 
   export let title: string;
   export let config: EffortGraphSpec;
-  export let models: FittedModel[] = [];
+  export let models: PlottableModel[] = [];
   export let modelPlots: Point[][] = [];
 </script>
 
