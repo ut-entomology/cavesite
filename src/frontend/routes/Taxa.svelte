@@ -6,7 +6,8 @@
   import TabHeader from '../components/TabHeader.svelte';
   import TaxonLookup from '../components/TaxonLookup.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
-  import TaxonTree from '../components/TaxonTree.svelte';
+  import ExpandableSelectableTree from '../components/ExpandableSelectableTree.svelte';
+  import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
@@ -131,14 +132,19 @@
         />
       {:else}
         <div class="container-fluid gx-1">
-          <TaxonTree
+          <ExpandableSelectableTree
             bind:this={rootTree}
             node={rootNode}
             showRoot={false}
-            gotoTaxon={async (unique) => openTaxonBrowser(unique)}
-            addSelection={addSelection.bind(null, true)}
-            removeSelection={removeSelection.bind(null, true)}
-          />
+            let:config
+          >
+            <SelectableTaxon
+              {...config}
+              gotoTaxon={async (unique) => openTaxonBrowser(unique)}
+              addSelection={addSelection.bind(null, true)}
+              removeSelection={removeSelection.bind(null, true)}
+            />
+          </ExpandableSelectableTree>
         </div>
       {/if}
     </div>

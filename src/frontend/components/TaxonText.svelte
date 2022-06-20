@@ -1,27 +1,31 @@
 <script lang="ts">
-  import { TaxonRank, TaxonSpec, italicRanks } from '../../shared/model';
+  import { ModelSpec, TaxonRank, TaxonSpec, italicRanks } from '../../shared/model';
 
   let classes = '';
   export { classes as class };
-  export let spec: TaxonSpec;
+  export let spec: ModelSpec;
   export let clickable = false;
   export let onClick: (() => Promise<void>) | null = null;
 
-  const italic = italicRanks.includes(spec.rank);
+  // Make it easy to use this component in a generic component.
+  let taxonSpec = spec as TaxonSpec;
+
+  const italic = italicRanks.includes(taxonSpec.rank);
 </script>
 
 <span class={classes}>
-  {#if ![TaxonRank.Species, TaxonRank.Subspecies].includes(spec.rank)}
-    <span class="taxon-rank">{spec.rank}:</span>
+  {#if ![TaxonRank.Species, TaxonRank.Subspecies].includes(taxonSpec.rank)}
+    <span class="taxon-rank">{taxonSpec.rank}:</span>
   {/if}
   {#if clickable}
-    <span class="taxon-name clickable" class:italic on:click={onClick}>{spec.name}</span
+    <span class="taxon-name clickable" class:italic on:click={onClick}
+      >{taxonSpec.name}</span
     >
   {:else}
-    <span class="taxon-name" class:italic>{spec.unique}</span>
+    <span class="taxon-name" class:italic>{taxonSpec.unique}</span>
   {/if}
-  {#if spec.author}
-    <span class="taxon-author">{spec.author}</span>
+  {#if taxonSpec.author}
+    <span class="taxon-author">{taxonSpec.author}</span>
   {/if}
 </span>
 

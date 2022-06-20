@@ -152,7 +152,7 @@
                   prefixed={false}
                   selection={selectedAncestorUniques[spec.unique]}
                   {spec}
-                  containingTaxa={containingTaxa.slice(0, i)}
+                  containingSpecNodes={containingTaxa.slice(0, i)}
                   clickable={!!spec.hasChildren && spec.unique != parentUnique}
                   {gotoTaxon}
                   addSelection={() => _addSelection(spec)}
@@ -185,7 +185,7 @@
               prefixed={false}
               selection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
               {spec}
-              {containingTaxa}
+              containingSpecNodes={containingTaxa}
               {gotoTaxon}
               addSelection={() => _addSelection(spec)}
               removeSelection={() => _removeSelection(spec)}

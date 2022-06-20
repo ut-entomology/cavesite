@@ -1,21 +1,13 @@
 <script lang="ts">
   import type { SvelteComponent } from 'svelte';
 
-  import type { TaxonSpec } from '../../shared/model';
+  import type { ModelSpec } from '../../shared/model';
   import type { ExpandableNode } from '../../frontend-core/selections_tree';
-  import SelectableTaxon from '../components/SelectableTaxon.svelte';
-  import type {
-    SpecNode,
-    AddSelection,
-    RemoveSelection
-  } from '../../frontend-core/selections_tree';
+  import type { SpecNode } from '../../frontend-core/selections_tree';
 
-  export let node: ExpandableNode<TaxonSpec>;
+  export let node: ExpandableNode<ModelSpec>;
   export let showRoot = true;
-  export let containingTaxa: SpecNode<TaxonSpec>[] = [];
-  export let gotoTaxon: (taxonUnique: string) => Promise<void>;
-  export let addSelection: AddSelection<TaxonSpec>;
-  export let removeSelection: RemoveSelection<TaxonSpec>;
+  export let containingSpecNodes: SpecNode<ModelSpec>[] = [];
 
   let parentSpec = node.spec;
   let expanded = node.expanded;
@@ -32,7 +24,7 @@
     expanded = true;
   }
 
-  function _expandNode(node: ExpandableNode<TaxonSpec>) {
+  function _expandNode(node: ExpandableNode<ModelSpec>) {
     node.children.forEach((child) => _expandNode(child));
     node.expanded = true;
   }
@@ -45,16 +37,14 @@
 
 <div class:tree-level={showRoot}>
   {#if showRoot}
-    <SelectableTaxon
-      expandable={!selection}
-      {expanded}
-      {selection}
-      spec={parentSpec}
-      {containingTaxa}
-      {gotoTaxon}
-      {addSelection}
-      {removeSelection}
-      {toggledExpansion}
+    <slot
+      config={{
+        expanded,
+        selection,
+        spec: parentSpec,
+        containingSpecNodes,
+        toggledExpansion
+      }}
     />
   {/if}
   {#if expanded}
@@ -63,11 +53,15 @@
         <svelte:self
           bind:this={childComponents[i]}
           node={childNode}
-          containingTaxa={[...containingTaxa, { spec: parentSpec, children: [] }]}
-          {gotoTaxon}
-          {addSelection}
-          {removeSelection}
-        />
+          containingSpecNodes={[
+            ...containingSpecNodes,
+            { spec: parentSpec, children: [] }
+          ]}
+        >
+          <svelte:fragment let:config>
+            <slot {config} />
+          </svelte:fragment>
+        </svelte:self>
       {/each}
     </div>
   {/if}
