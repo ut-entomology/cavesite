@@ -3,6 +3,7 @@
   import SelectionButton from '../components/SelectionButton.svelte';
   import CircleIconButton from './CircleIconButton.svelte';
   import { errorReason } from '../stores/client';
+  import type { ModelSpec } from '../../shared/model';
   import type {
     SpecNode,
     AddSelection,
@@ -10,11 +11,6 @@
     SelectionsTree
   } from '../../frontend-core/selections_tree';
   import { showNotice } from '../common/VariableNotice.svelte';
-
-  interface Spec {
-    unique: string;
-    hasChildren: boolean | null;
-  }
 
   const LOAD_DELAY_MILLIS = 333;
   const loupeIcon = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -25,30 +21,30 @@
 		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
 
   export let typeLabel: string;
-  export let selectionsTree: SelectionsTree<Spec>;
-  export let loadMatches: (partialName: string) => Promise<Spec[]>;
-  export let loadSpecIndicatingChildren: (unique: string) => Promise<Spec | null>;
+  export let selectionsTree: SelectionsTree<ModelSpec>;
+  export let loadMatches: (partialName: string) => Promise<ModelSpec[]>;
+  export let loadSpecIndicatingChildren: (unique: string) => Promise<ModelSpec | null>;
   export let getContainingSpecs: (
-    ofSpec: Spec,
+    ofSpec: ModelSpec,
     includesGivenSpec: boolean
-  ) => Promise<SpecNode<Spec>[]>;
-  export let createContainingSpecs: (spec: Spec) => Spec[];
-  export let toItemHtml: (spec: Spec, label: string) => string;
-  export let addSelection: AddSelection<Spec>;
-  export let removeSelection: RemoveSelection<Spec>;
+  ) => Promise<SpecNode<ModelSpec>[]>;
+  export let createContainingSpecs: (spec: ModelSpec) => ModelSpec[];
+  export let toItemHtml: (spec: ModelSpec, label: string) => string;
+  export let addSelection: AddSelection<ModelSpec>;
+  export let removeSelection: RemoveSelection<ModelSpec>;
   export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
 
   interface MatchedItem {
     unique: string;
-    spec: Spec;
+    spec: ModelSpec;
   }
 
-  let matchedSpecs: Spec[] = [];
+  let matchedSpecs: ModelSpec[] = [];
   let selection: string | undefined;
   let isSelectedInTree = false;
-  let selectedSpec: Spec | null = null;
-  let specsByUnique: Record<string, Spec> = {};
+  let selectedSpec: ModelSpec | null = null;
+  let specsByUnique: Record<string, ModelSpec> = {};
 
   $: if (selection && selection != '') {
     selectedSpec = matchedSpecs.find((spec) => spec.unique == selection)!;
@@ -106,7 +102,9 @@
     }
   }
 
-  async function _loadSpecIndicatingChildren(unique: string): Promise<Spec | null> {
+  async function _loadSpecIndicatingChildren(
+    unique: string
+  ): Promise<ModelSpec | null> {
     try {
       return await loadSpecIndicatingChildren(unique);
     } catch (err: any) {

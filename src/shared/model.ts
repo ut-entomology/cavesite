@@ -2,6 +2,11 @@
 
 export const MIN_LOOKUP_CHAR_LENGTH = 2;
 
+export interface ModelSpec {
+  unique: string;
+  hasChildren: boolean | null;
+}
+
 //// Taxa ////////////////////////////////////////////////////////////////////
 
 export const ROOT_TAXON = 'Animalia';
@@ -32,7 +37,7 @@ export const italicRanks = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspe
 
 export const taxonRanks = Object.values(TaxonRank);
 
-export interface TaxonSpec {
+export interface TaxonSpec extends ModelSpec {
   taxonID: number;
   rank: TaxonRank;
   name: string;
@@ -100,7 +105,7 @@ export const locationRanks = Object.values(LocationRank);
 
 export const LOCALITY_RANK_INDEX = locationRanks.indexOf(LocationRank.Locality);
 
-export interface LocationSpec {
+export interface LocationSpec extends ModelSpec {
   locationID: number;
   rank: LocationRank;
   name: string;

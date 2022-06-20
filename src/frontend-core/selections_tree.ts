@@ -5,25 +5,23 @@
  * by not including any implied selections within the tree.
  */
 
-export interface Spec {
-  unique: string;
-}
+import type { ModelSpec } from '../shared/model';
 
-export interface SpecNode<S extends Spec> {
+export interface SpecNode<S extends ModelSpec> {
   spec: S;
   children: S[];
 }
 
-export interface ExpandableNode<S extends Spec> {
+export interface ExpandableNode<S extends ModelSpec> {
   spec: S;
   children: ExpandableNode<S>[];
   expanded: boolean;
 }
 
-export type AddSelection<S extends Spec> = SelectionsTree<S>['addSelection'];
-export type RemoveSelection<S extends Spec> = SelectionsTree<S>['removeSelection'];
+export type AddSelection<S extends ModelSpec> = SelectionsTree<S>['addSelection'];
+export type RemoveSelection<S extends ModelSpec> = SelectionsTree<S>['removeSelection'];
 
-export abstract class SelectionsTree<S extends Spec> {
+export abstract class SelectionsTree<S extends ModelSpec> {
   private _rootNode: ExpandableNode<S> | null = null;
   private _selectionSpecsByUnique: Record<string, S> | null = null;
 

@@ -1,8 +1,10 @@
-import { SelectionsTree, Spec } from './selections_tree';
+import type { ModelSpec } from '../shared/model';
+import { SelectionsTree } from './selections_tree';
 
-class TestSpec implements Spec {
+class TestSpec implements ModelSpec {
   unique: string;
   containingSpecs: TestSpec[];
+  hasChildren: boolean | null = null;
 
   constructor(unique: string, containingSpecs: TestSpec[] = []) {
     this.unique = unique;
