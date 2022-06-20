@@ -11,7 +11,7 @@
   import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
-  import type { TreeNode, SpecEntry } from '../../frontend-core/selections_tree';
+  import type { ExpandableNode, SpecNode } from '../../frontend-core/selections_tree';
   import { pageName } from '../stores/pageName';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { client } from '../stores/client';
@@ -21,7 +21,7 @@
 
   let browseTaxonUnique: string | null = null;
   let rootTree: SvelteComponent;
-  let rootNode: TreeNode<TaxonSpec> | null = null;
+  let rootNode: ExpandableNode<TaxonSpec> | null = null;
   let requestClearConfirmation = false;
   let clearInput: () => void;
 
@@ -63,7 +63,7 @@
       parentUniques: containingSpecs.map((spec) => spec.unique)
     });
     const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
-    const containingTaxa: SpecEntry<TaxonSpec>[] = [];
+    const containingTaxa: SpecNode<TaxonSpec>[] = [];
     for (const containingSpec of containingSpecs) {
       containingTaxa.push({
         spec: containingSpec,
@@ -81,7 +81,7 @@
 
   function removeSelection(
     clear: boolean,
-    containingTaxa: SpecEntry<TaxonSpec>[],
+    containingTaxa: SpecNode<TaxonSpec>[],
     spec: TaxonSpec
   ) {
     if (clear) clearInput();

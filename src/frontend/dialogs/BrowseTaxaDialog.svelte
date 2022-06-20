@@ -7,7 +7,7 @@
   import { selectedTaxa } from '../stores/selectedTaxa';
   import type { TaxonSpec } from '../../shared/model';
   import type {
-    SpecEntry,
+    SpecNode,
     AddSelection,
     RemoveSelection
   } from '../../frontend-core/selections_tree';
@@ -19,7 +19,7 @@
   export let getContainingTaxa: (
     ofTaxonSpec: TaxonSpec,
     includesGivenTaxon: boolean
-  ) => Promise<SpecEntry<TaxonSpec>[]>;
+  ) => Promise<SpecNode<TaxonSpec>[]>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let onClose: () => void;
@@ -27,7 +27,7 @@
   const ANCESTOR_ITEM_LEFT_MARGIN = 1.3; // em
 
   let parentSpec: TaxonSpec;
-  let containingTaxa: SpecEntry<TaxonSpec>[] = [];
+  let containingTaxa: SpecNode<TaxonSpec>[] = [];
   let childSpecs: TaxonSpec[];
   let selectedAncestorUniques: Record<string, boolean> = {};
   let allChildrenSelected = false;
@@ -98,7 +98,7 @@
   }
 
   function _removeSelection(spec: TaxonSpec) {
-    const ancestorContainingTaxa: SpecEntry<TaxonSpec>[] = [];
+    const ancestorContainingTaxa: SpecNode<TaxonSpec>[] = [];
     for (const containingTaxon of containingTaxa) {
       if (containingTaxon.spec.unique !== spec.unique) {
         ancestorContainingTaxa.push(containingTaxon);

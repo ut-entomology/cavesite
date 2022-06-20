@@ -4,7 +4,7 @@
   import CircleIconButton from './CircleIconButton.svelte';
   import { errorReason } from '../stores/client';
   import type {
-    SpecEntry,
+    SpecNode,
     AddSelection,
     RemoveSelection,
     SelectionsTree
@@ -31,7 +31,7 @@
   export let getContainingSpecs: (
     ofSpec: Spec,
     includesGivenSpec: boolean
-  ) => Promise<SpecEntry<Spec>[]>;
+  ) => Promise<SpecNode<Spec>[]>;
   export let createContainingSpecs: (spec: Spec) => Spec[];
   export let toItemHtml: (spec: Spec, label: string) => string;
   export let addSelection: AddSelection<Spec>;

@@ -7,9 +7,9 @@
     IncludesDescendants = 1 << 4 // whether selecting the node selects its descendents
   }
 
-  export interface InteractiveTreeNode {
+  export interface InteractiveExpandableNode {
     nodeFlags: number;
-    children: InteractiveTreeNode[] | null;
+    children: InteractiveExpandableNode[] | null;
   }
 </script>
 
@@ -21,7 +21,7 @@
   const NONEXPANDABLE_SYMBOL = '&#x2981;';
 
   // Tree of nodes to display.
-  export let tree: InteractiveTreeNode;
+  export let tree: InteractiveExpandableNode;
 
   // Callback to deselect all ancestors. Internal use only.
   export let _deselect = () => {};
@@ -41,7 +41,7 @@
     }
   }
 
-  export function setExpansion(expand: (node: InteractiveTreeNode) => boolean) {
+  export function setExpansion(expand: (node: InteractiveExpandableNode) => boolean) {
     const expanded = expand(tree);
     flags = _setExpansionFlag(flags, expanded);
     tree.nodeFlags = _setExpansionFlag(tree.nodeFlags, expanded);
@@ -85,8 +85,8 @@
   }
 
   function _setHiddenDescendentExpansions(
-    node: InteractiveTreeNode,
-    expand: (node: InteractiveTreeNode) => boolean
+    node: InteractiveExpandableNode,
+    expand: (node: InteractiveExpandableNode) => boolean
   ) {
     if (node.children) {
       for (const child of node.children) {
@@ -97,7 +97,7 @@
   }
 
   function _setHiddenDescendentSelections(
-    node: InteractiveTreeNode,
+    node: InteractiveExpandableNode,
     selected: boolean
   ) {
     if (node.children) {

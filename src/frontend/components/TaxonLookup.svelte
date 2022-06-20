@@ -10,7 +10,7 @@
     createContainingTaxonSpecs
   } from '../../shared/model';
   import type {
-    SpecEntry,
+    SpecNode,
     AddSelection,
     RemoveSelection
   } from '../../frontend-core/selections_tree';
@@ -20,7 +20,7 @@
   export let getContainingTaxa: (
     ofTaxonSpec: TaxonSpec,
     includesGivenTaxon: boolean
-  ) => Promise<SpecEntry<TaxonSpec>[]>;
+  ) => Promise<SpecNode<TaxonSpec>[]>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let openTaxon: (selection: string) => Promise<void>;

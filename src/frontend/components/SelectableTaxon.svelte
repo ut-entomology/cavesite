@@ -3,7 +3,7 @@
   import TaxonText from '../components/TaxonText.svelte';
   import type { TaxonSpec } from '../../shared/model';
   import type {
-    SpecEntry,
+    SpecNode,
     AddSelection,
     RemoveSelection
   } from '../../frontend-core/selections_tree';
@@ -14,7 +14,7 @@
   export let selection: boolean;
   export let spec: TaxonSpec;
   export let clickable = spec.hasChildren || false;
-  export let containingTaxa: SpecEntry<TaxonSpec>[];
+  export let containingTaxa: SpecNode<TaxonSpec>[];
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;

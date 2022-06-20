@@ -2,17 +2,17 @@
   import type { SvelteComponent } from 'svelte';
 
   import type { TaxonSpec } from '../../shared/model';
-  import type { TreeNode } from '../../frontend-core/selections_tree';
+  import type { ExpandableNode } from '../../frontend-core/selections_tree';
   import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import type {
-    SpecEntry,
+    SpecNode,
     AddSelection,
     RemoveSelection
   } from '../../frontend-core/selections_tree';
 
-  export let node: TreeNode<TaxonSpec>;
+  export let node: ExpandableNode<TaxonSpec>;
   export let showRoot = true;
-  export let containingTaxa: SpecEntry<TaxonSpec>[] = [];
+  export let containingTaxa: SpecNode<TaxonSpec>[] = [];
   export let gotoTaxon: (taxonUnique: string) => Promise<void>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
@@ -32,7 +32,7 @@
     expanded = true;
   }
 
-  function _expandNode(node: TreeNode<TaxonSpec>) {
+  function _expandNode(node: ExpandableNode<TaxonSpec>) {
     node.children.forEach((child) => _expandNode(child));
     node.expanded = true;
   }

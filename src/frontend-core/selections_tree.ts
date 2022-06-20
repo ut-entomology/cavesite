@@ -9,14 +9,14 @@ export interface Spec {
   unique: string;
 }
 
-export interface SpecEntry<S extends Spec> {
+export interface SpecNode<S extends Spec> {
   spec: S;
   children: S[];
 }
 
-export interface TreeNode<S extends Spec> {
+export interface ExpandableNode<S extends Spec> {
   spec: S;
-  children: TreeNode<S>[];
+  children: ExpandableNode<S>[];
   expanded: boolean;
 }
 
@@ -24,7 +24,7 @@ export type AddSelection<S extends Spec> = SelectionsTree<S>['addSelection'];
 export type RemoveSelection<S extends Spec> = SelectionsTree<S>['removeSelection'];
 
 export abstract class SelectionsTree<S extends Spec> {
-  private _rootNode: TreeNode<S> | null = null;
+  private _rootNode: ExpandableNode<S> | null = null;
   private _selectionSpecsByUnique: Record<string, S> | null = null;
 
   constructor(selectedSpecs: S[]) {
@@ -60,7 +60,7 @@ export abstract class SelectionsTree<S extends Spec> {
     this._selectionSpecsByUnique = null; // invalidate cached selections
   }
 
-  getRootNode(): TreeNode<S> | null {
+  getRootNode(): ExpandableNode<S> | null {
     return this._rootNode;
   }
 
@@ -79,7 +79,7 @@ export abstract class SelectionsTree<S extends Spec> {
     return this._selectionSpecsByUnique![unique] !== undefined;
   }
 
-  removeSelection(containingSpecs: SpecEntry<S>[], spec: S): void {
+  removeSelection(containingSpecs: SpecNode<S>[], spec: S): void {
     if (!this._rootNode)
       throw Error('Attempted to remove from an empty set of selections');
     if (containingSpecs.length == 0) {
@@ -93,11 +93,11 @@ export abstract class SelectionsTree<S extends Spec> {
     this._selectionSpecsByUnique = null; // invalidate cached selections
   }
 
-  private _nodeSorter(n1: TreeNode<S>, n2: TreeNode<S>) {
+  private _nodeSorter(n1: ExpandableNode<S>, n2: ExpandableNode<S>) {
     return n1.spec.unique < n2.spec.unique ? -1 : 1;
   }
 
-  private _removeChild(fromNode: TreeNode<S>, nextChildSpec: S) {
+  private _removeChild(fromNode: ExpandableNode<S>, nextChildSpec: S) {
     const childUnique = nextChildSpec.unique;
     const childIndex = fromNode.children.findIndex((c) => c.spec.unique == childUnique);
     if (childIndex >= 0) {
@@ -106,8 +106,8 @@ export abstract class SelectionsTree<S extends Spec> {
   }
 
   private _removeFromNode(
-    containingNode: TreeNode<S>,
-    containingSpecs: SpecEntry<S>[],
+    containingNode: ExpandableNode<S>,
+    containingSpecs: SpecNode<S>[],
     leafSpecToRemove: S
   ): void {
     const containingSpec = containingSpecs.shift()!;
@@ -155,12 +155,12 @@ export abstract class SelectionsTree<S extends Spec> {
     }
   }
 
-  private _sortChildNodes(node: TreeNode<S>): void {
+  private _sortChildNodes(node: ExpandableNode<S>): void {
     node.children.sort(this._nodeSorter);
     node.children.forEach((child) => this._sortChildNodes(child));
   }
 
-  private _tallyNode(node: TreeNode<S>): void {
+  private _tallyNode(node: ExpandableNode<S>): void {
     if (node.children.length == 0) {
       const unique = node.spec.unique;
       this._selectionSpecsByUnique![unique] = node.spec;
