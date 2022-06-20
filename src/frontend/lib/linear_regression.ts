@@ -82,7 +82,6 @@ export class PowerModel extends PlottableModel {
       {
         lowerBoundScalar: 0.001,
         upperBoundScalar: 3,
-        searchSplits: 2,
         maxSearchDepth: MAX_POWER_SPLITS
       },
       dataPoints,
@@ -171,47 +170,46 @@ function _findBestScalar(
   config: {
     lowerBoundScalar: number;
     upperBoundScalar: number;
-    searchSplits: number;
     maxSearchDepth: number;
   },
   dataPoints: Point[],
-  powerXTransform: (p: number, x: number) => number[],
-  fittedYTakingPAndCoefs: (p: number, coefs: number[], y: number) => number
+  scalarXTransform: (s: number, x: number) => number[],
+  scalarFittedYTakingCoefs: (s: number, coefs: number[], y: number) => number
 ): [RegressionModel, number] {
   let lowModel: RegressionModel;
-  let middlePower: number;
+  let middleScalar: number;
   let middleModel: RegressionModel;
   let highModel: RegressionModel;
 
   lowModel = _createRegressionModel(
-    powerXTransform.bind(null, config.lowerBoundScalar),
-    fittedYTakingPAndCoefs.bind(null, config.lowerBoundScalar),
+    scalarXTransform.bind(null, config.lowerBoundScalar),
+    scalarFittedYTakingCoefs.bind(null, config.lowerBoundScalar),
     dataPoints
   );
   highModel = _createRegressionModel(
-    powerXTransform.bind(null, config.upperBoundScalar),
-    fittedYTakingPAndCoefs.bind(null, config.upperBoundScalar),
+    scalarXTransform.bind(null, config.upperBoundScalar),
+    scalarFittedYTakingCoefs.bind(null, config.upperBoundScalar),
     dataPoints
   );
 
-  let lowPower = config.lowerBoundScalar;
-  let highPower = config.upperBoundScalar;
+  let lowScalar = config.lowerBoundScalar;
+  let highScalar = config.upperBoundScalar;
   for (let i = 0; i < config.maxSearchDepth; ++i) {
-    middlePower = (lowPower + highPower) / 2;
+    middleScalar = (lowScalar + highScalar) / 2;
     middleModel = _createRegressionModel(
-      powerXTransform.bind(null, middlePower),
-      fittedYTakingPAndCoefs.bind(null, middlePower),
+      scalarXTransform.bind(null, middleScalar),
+      scalarFittedYTakingCoefs.bind(null, middleScalar),
       dataPoints
     );
     if (lowModel.rmse < highModel.rmse) {
-      highPower = middlePower;
+      highScalar = middleScalar;
       highModel = middleModel;
     } else {
-      lowPower = middlePower;
+      lowScalar = middleScalar;
       lowModel = middleModel;
     }
   }
 
   // @ts-ignore
-  return [middleModel, middlePower];
+  return [middleModel, middleScalar];
 }
