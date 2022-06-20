@@ -82,6 +82,7 @@ export class PowerModel extends PlottableModel {
       dataPoints,
       0.001,
       3,
+      MAX_POWER_SPLITS,
       (p, x) => [Math.pow(x, p), 1],
       (p, coefs, x) => coefs[0] * Math.pow(x, p) + coefs[1]
     );
@@ -167,6 +168,7 @@ function _findBestScalar(
   dataPoints: Point[],
   lowerBoundScalar: number,
   upperBoundScalar: number,
+  maxSearchSplits: number,
   powerXTransform: (p: number, x: number) => number[],
   fittedYTakingPAndCoefs: (p: number, coefs: number[], y: number) => number
 ): [RegressionModel, number] {
@@ -188,7 +190,7 @@ function _findBestScalar(
 
   let lowPower = lowerBoundScalar;
   let highPower = upperBoundScalar;
-  for (let i = 0; i < MAX_POWER_SPLITS; ++i) {
+  for (let i = 0; i < maxSearchSplits; ++i) {
     middlePower = (lowPower + highPower) / 2;
     middleModel = _createRegressionModel(
       powerXTransform.bind(null, middlePower),
