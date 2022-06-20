@@ -19,7 +19,6 @@ export interface JstatModel {
 type XTransform = (x: number) => number[];
 type FittedY = (y: number) => number;
 type FittedYTakingCoefs = (coefs: number[], y: number) => number;
-type FittedYTakingPAndCoefs = (p: number, coefs: number[], y: number) => number;
 
 interface RegressionModel {
   jstats: JstatModel;
@@ -79,49 +78,20 @@ export class PowerModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[]) {
     super('power fit', hexColor);
 
-    const powerXTransform = (p: number, x: number) => [Math.pow(x, p), 1];
-    const fittedYTakingPAndCoefs: FittedYTakingPAndCoefs = (p, coefs, x) =>
-      coefs[0] * Math.pow(x, p) + coefs[1];
-
-    let lowPower = 0.001;
-    let lowModel: RegressionModel;
-    let middlePower: number;
-    let middleModel: RegressionModel;
-    let highPower = 3;
-    let highModel: RegressionModel;
-
-    lowModel = _createRegressionModel(
-      powerXTransform.bind(null, lowPower),
-      fittedYTakingPAndCoefs.bind(null, lowPower),
-      dataPoints
+    const [model, power] = _findBestScalar(
+      dataPoints,
+      0.001,
+      3,
+      (p, x) => [Math.pow(x, p), 1],
+      (p, coefs, x) => coefs[0] * Math.pow(x, p) + coefs[1]
     );
-    highModel = _createRegressionModel(
-      powerXTransform.bind(null, highPower),
-      fittedYTakingPAndCoefs.bind(null, highPower),
-      dataPoints
-    );
-    for (let i = 0; i < MAX_POWER_SPLITS; ++i) {
-      middlePower = (lowPower + highPower) / 2;
-      middleModel = _createRegressionModel(
-        powerXTransform.bind(null, middlePower),
-        fittedYTakingPAndCoefs.bind(null, middlePower),
-        dataPoints
-      );
-      if (lowModel.rmse < highModel.rmse) {
-        highPower = middlePower;
-        highModel = middleModel;
-      } else {
-        lowPower = middlePower;
-        lowModel = middleModel;
-      }
-    }
 
     // @ts-ignore
-    this._assignModel(middleModel, dataPoints, (coefs) => [
+    this._assignModel(model, dataPoints, (coefs) => [
       _coefHtml(coefs[0], true),
       ' x<sup>',
       // @ts-ignore
-      shortenValue(middlePower, 4),
+      shortenValue(power, 4),
       '</sup> ',
       _coefHtml(coefs[1])
     ]);
@@ -140,6 +110,27 @@ function _coefHtml(coef: number, firstCoef = false) {
     return shortenValue(coef, MODEL_COEF_PRECISION);
   }
   return (coef >= 0 ? '+ ' : '- ') + shortenValue(Math.abs(coef), MODEL_COEF_PRECISION);
+}
+
+function _createRegressionModel(
+  xTransform: XTransform,
+  fittedYTakingCoefs: FittedYTakingCoefs,
+  dataPoints: Point[]
+): RegressionModel {
+  const independentValues: number[][] = [];
+  const dependentValues: number[] = [];
+  for (const point of dataPoints) {
+    independentValues.push(xTransform(point.x));
+    dependentValues.push(point.y);
+  }
+
+  const jstats: JstatModel = jstat.models.ols(dependentValues, independentValues);
+  const coefs = jstats.coef;
+  const fittedY = fittedYTakingCoefs.bind(null, coefs);
+  const residuals = _getResiduals(dataPoints, fittedY);
+  const rmse = _getRMSE(residuals);
+
+  return { jstats, fittedY, rmse, residuals };
 }
 
 function _getModelPoints(dataPoints: Point[], fittedY: FittedY) {
@@ -172,23 +163,47 @@ function _getRMSE(residuals: Point[]) {
   return Math.sqrt(sumOfSquares / residuals.length);
 }
 
-function _createRegressionModel(
-  xTransform: XTransform,
-  fittedYTakingCoefs: FittedYTakingCoefs,
-  dataPoints: Point[]
-): RegressionModel {
-  const independentValues: number[][] = [];
-  const dependentValues: number[] = [];
-  for (const point of dataPoints) {
-    independentValues.push(xTransform(point.x));
-    dependentValues.push(point.y);
+function _findBestScalar(
+  dataPoints: Point[],
+  lowerBoundScalar: number,
+  upperBoundScalar: number,
+  powerXTransform: (p: number, x: number) => number[],
+  fittedYTakingPAndCoefs: (p: number, coefs: number[], y: number) => number
+): [RegressionModel, number] {
+  let lowModel: RegressionModel;
+  let middlePower: number;
+  let middleModel: RegressionModel;
+  let highModel: RegressionModel;
+
+  lowModel = _createRegressionModel(
+    powerXTransform.bind(null, lowerBoundScalar),
+    fittedYTakingPAndCoefs.bind(null, lowerBoundScalar),
+    dataPoints
+  );
+  highModel = _createRegressionModel(
+    powerXTransform.bind(null, upperBoundScalar),
+    fittedYTakingPAndCoefs.bind(null, upperBoundScalar),
+    dataPoints
+  );
+
+  let lowPower = lowerBoundScalar;
+  let highPower = upperBoundScalar;
+  for (let i = 0; i < MAX_POWER_SPLITS; ++i) {
+    middlePower = (lowPower + highPower) / 2;
+    middleModel = _createRegressionModel(
+      powerXTransform.bind(null, middlePower),
+      fittedYTakingPAndCoefs.bind(null, middlePower),
+      dataPoints
+    );
+    if (lowModel.rmse < highModel.rmse) {
+      highPower = middlePower;
+      highModel = middleModel;
+    } else {
+      lowPower = middlePower;
+      lowModel = middleModel;
+    }
   }
 
-  const jstats: JstatModel = jstat.models.ols(dependentValues, independentValues);
-  const coefs = jstats.coef;
-  const fittedY = fittedYTakingCoefs.bind(null, coefs);
-  const residuals = _getResiduals(dataPoints, fittedY);
-  const rmse = _getRMSE(residuals);
-
-  return { jstats, fittedY, rmse, residuals };
+  // @ts-ignore
+  return [middleModel, middlePower];
 }
