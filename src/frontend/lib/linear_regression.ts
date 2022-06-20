@@ -79,10 +79,13 @@ export class PowerModel extends PlottableModel {
     super('power fit', hexColor);
 
     const [model, power] = _findBestScalar(
+      {
+        lowerBoundScalar: 0.001,
+        upperBoundScalar: 3,
+        searchSplits: 2,
+        maxSearchDepth: MAX_POWER_SPLITS
+      },
       dataPoints,
-      0.001,
-      3,
-      MAX_POWER_SPLITS,
       (p, x) => [Math.pow(x, p), 1],
       (p, coefs, x) => coefs[0] * Math.pow(x, p) + coefs[1]
     );
@@ -165,10 +168,13 @@ function _getRMSE(residuals: Point[]) {
 }
 
 function _findBestScalar(
+  config: {
+    lowerBoundScalar: number;
+    upperBoundScalar: number;
+    searchSplits: number;
+    maxSearchDepth: number;
+  },
   dataPoints: Point[],
-  lowerBoundScalar: number,
-  upperBoundScalar: number,
-  maxSearchSplits: number,
   powerXTransform: (p: number, x: number) => number[],
   fittedYTakingPAndCoefs: (p: number, coefs: number[], y: number) => number
 ): [RegressionModel, number] {
@@ -178,19 +184,19 @@ function _findBestScalar(
   let highModel: RegressionModel;
 
   lowModel = _createRegressionModel(
-    powerXTransform.bind(null, lowerBoundScalar),
-    fittedYTakingPAndCoefs.bind(null, lowerBoundScalar),
+    powerXTransform.bind(null, config.lowerBoundScalar),
+    fittedYTakingPAndCoefs.bind(null, config.lowerBoundScalar),
     dataPoints
   );
   highModel = _createRegressionModel(
-    powerXTransform.bind(null, upperBoundScalar),
-    fittedYTakingPAndCoefs.bind(null, upperBoundScalar),
+    powerXTransform.bind(null, config.upperBoundScalar),
+    fittedYTakingPAndCoefs.bind(null, config.upperBoundScalar),
     dataPoints
   );
 
-  let lowPower = lowerBoundScalar;
-  let highPower = upperBoundScalar;
-  for (let i = 0; i < maxSearchSplits; ++i) {
+  let lowPower = config.lowerBoundScalar;
+  let highPower = config.upperBoundScalar;
+  for (let i = 0; i < config.maxSearchDepth; ++i) {
     middlePower = (lowPower + highPower) / 2;
     middleModel = _createRegressionModel(
       powerXTransform.bind(null, middlePower),
