@@ -9,7 +9,7 @@
   import ExpandableSelectableTree from '../components/ExpandableSelectableTree.svelte';
   import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
-  import BrowseTaxaDialog from '../dialogs/BrowseTaxaDialog.svelte';
+  import BrowseTreeDialog from '../dialogs/BrowseTreeDialog.svelte';
   import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
   import type { ExpandableNode, SpecNode } from '../../frontend-core/selections_tree';
@@ -174,7 +174,7 @@
 {/if}
 
 {#if browseTaxonUnique !== null}
-  <BrowseTaxaDialog
+  <BrowseTreeDialog
     title="Browse and Select Taxa"
     typeLabel="taxon"
     parentUnique={browseTaxonUnique}
@@ -190,7 +190,7 @@
     let:selectableConfig
   >
     <SelectableTaxon {...selectableConfig} />
-  </BrowseTaxaDialog>
+  </BrowseTreeDialog>
 {/if}
 
 <style>
