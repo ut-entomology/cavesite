@@ -16,7 +16,7 @@
     datasets: [
       {
         label: config.pointCount + ' points',
-        data: config.points
+        data: models[0].convertDataPoints(config.points)
       },
       ...models.map((model, i) => {
         return {

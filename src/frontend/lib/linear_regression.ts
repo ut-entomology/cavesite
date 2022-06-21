@@ -62,6 +62,10 @@ export abstract class PlottableModel implements RegressionModel {
     return 'y';
   }
 
+  convertDataPoints(dataPoints: Point[]): Point[] {
+    return dataPoints;
+  }
+
   getModelPoints(pointCount: number): Point[] {
     if (!this._modelPoints || this._modelPoints.length != pointCount) {
       this._modelPoints = [];
@@ -141,6 +145,7 @@ export class PowerModel extends PlottableModel {
 
 export class BoxCoxModel extends PlottableModel {
   lambda: number;
+  yTransform: (y: number) => number;
   private _xFormula: string;
 
   constructor(
@@ -169,7 +174,14 @@ export class BoxCoxModel extends PlottableModel {
     Object.assign(this, model);
     this.name += ' w/ box-cox';
     this.lambda = lambda;
+    this.yTransform = boxCoxTransform.bind(null, lambda);
     this._xFormula = model.getXFormula();
+  }
+
+  convertDataPoints(dataPoints: Point[]): Point[] {
+    return dataPoints.map((p) => {
+      return { x: p.x, y: this.yTransform(p.y) };
+    });
   }
 
   getXFormula(): string {
