@@ -1,7 +1,6 @@
 <script lang="ts">
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
-  import SelectableTaxon from '../components/SelectableTaxon.svelte';
   import { checkmarkIcon, plusIcon } from '../components/SelectionButton.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
   import { selectedTaxa } from '../stores/selectedTaxa';
@@ -14,6 +13,7 @@
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
 
   export let title: string;
+  export let typeLabel: string;
   export let parentUnique: string;
   export let selectionsTree: TaxonSelectionsTree;
   export let getContainingTaxa: (
@@ -135,10 +135,10 @@
   <ModalDialog {title} contentClasses="taxa-browser-content">
     <div class="row info-row">
       <div class="col-auto mb-3 small">
-        This box only shows taxa having records. Click on taxon links to navigate
-        around. A plus ({@html plusIcon}) indicates a taxon that can be selected. A
-        check ({@html checkmarkIcon}) indicates a taxon that has been selected. Click {@html plusIcon}
-        or {@html checkmarkIcon} to toggle selections.
+        This box only shows {typeLabel} having records. Click on {typeLabel} links to navigate
+        around. A plus ({@html plusIcon}) indicates a {typeLabel} that can be selected. A
+        check ({@html checkmarkIcon}) indicates a {typeLabel} that has been selected. Click
+        {@html plusIcon} or {@html checkmarkIcon} to toggle selections.
       </div>
     </div>
     <div class="container-md">
@@ -146,18 +146,21 @@
         <div class="col">
           {#each containingTaxa as containingTaxon, i}
             {@const spec = containingTaxon.spec}
+            {@const selectableConfig = {
+              // svelte crashes with "TypeError: Cannot read properties of null
+              //  (reading 'type')" if I use "{{...}}" notation.
+              prefixed: false,
+              selection: selectedAncestorUniques[spec.unique],
+              spec,
+              containingSpecNodes: containingTaxa.slice(0, i),
+              clickable: !!spec.hasChildren && spec.unique != parentUnique,
+              gotoTaxon,
+              addSelection: () => _addSelection(spec),
+              removeSelection: () => _removeSelection(spec)
+            }}
             <div class="row mb-1">
               <div class="col" style="margin-left: {ANCESTOR_ITEM_LEFT_MARGIN * i}em">
-                <SelectableTaxon
-                  prefixed={false}
-                  selection={selectedAncestorUniques[spec.unique]}
-                  {spec}
-                  containingSpecNodes={containingTaxa.slice(0, i)}
-                  clickable={!!spec.hasChildren && spec.unique != parentUnique}
-                  {gotoTaxon}
-                  addSelection={() => _addSelection(spec)}
-                  removeSelection={() => _removeSelection(spec)}
-                />
+                <slot {selectableConfig} />
               </div>
             </div>
           {/each}
@@ -181,14 +184,17 @@
       <div class="child-rows">
         {#each childSpecs as spec (spec.unique)}
           <div class="row mt-1 gx-3">
-            <SelectableTaxon
-              prefixed={false}
-              selection={allChildrenSelected || selectionsTree.isSelected(spec.unique)}
-              {spec}
-              containingSpecNodes={containingTaxa}
-              {gotoTaxon}
-              addSelection={() => _addSelection(spec)}
-              removeSelection={() => _removeSelection(spec)}
+            <slot
+              selectableConfig={{
+                prefixed: false,
+                selection:
+                  allChildrenSelected || selectionsTree.isSelected(spec.unique),
+                spec,
+                containingSpecNodes: containingTaxa,
+                gotoTaxon,
+                addSelection: () => _addSelection(spec),
+                removeSelection: () => _removeSelection(spec)
+              }}
             />
           </div>
         {/each}

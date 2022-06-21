@@ -136,10 +136,10 @@
             bind:this={rootTree}
             node={rootNode}
             showRoot={false}
-            let:config
+            let:selectableConfig
           >
             <SelectableTaxon
-              {...config}
+              {...selectableConfig}
               gotoTaxon={async (unique) => openTaxonBrowser(unique)}
               addSelection={addSelection.bind(null, true)}
               removeSelection={removeSelection.bind(null, true)}
@@ -164,6 +164,7 @@
 {#if browseTaxonUnique !== null}
   <BrowseTaxaDialog
     title="Browse and Select Taxa"
+    typeLabel="taxon"
     parentUnique={browseTaxonUnique}
     {selectionsTree}
     {getContainingTaxa}
@@ -172,7 +173,10 @@
     onClose={() => {
       browseTaxonUnique = null;
     }}
-  />
+    let:selectableConfig
+  >
+    <SelectableTaxon {...selectableConfig} />
+  </BrowseTaxaDialog>
 {/if}
 
 <style>

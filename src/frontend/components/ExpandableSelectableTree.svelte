@@ -38,7 +38,7 @@
 <div class:tree-level={showRoot}>
   {#if showRoot}
     <slot
-      config={{
+      selectableConfig={{
         expanded,
         selection,
         spec: parentSpec,
@@ -58,8 +58,8 @@
             { spec: parentSpec, children: [] }
           ]}
         >
-          <svelte:fragment let:config>
-            <slot {config} />
+          <svelte:fragment let:selectableConfig>
+            <slot {selectableConfig} />
           </svelte:fragment>
         </svelte:self>
       {/each}
