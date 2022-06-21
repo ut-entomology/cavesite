@@ -156,7 +156,7 @@ export class BoxCoxModel extends PlottableModel {
       return (Math.pow(y, lambda) - 1) / lambda;
     };
 
-    const [model, lambda, xFormula] = _findBestYScalar(
+    const [model, lambda] = _findBestYScalar(
       {
         lowerBoundScalar: -3,
         upperBoundScalar: 3,
@@ -169,7 +169,7 @@ export class BoxCoxModel extends PlottableModel {
     Object.assign(this, model);
     this.name += ' w/ box-cox';
     this.lambda = lambda;
-    this._xFormula = xFormula;
+    this._xFormula = model.getXFormula();
   }
 
   getXFormula(): string {
@@ -290,7 +290,7 @@ function _findBestYScalar(
   dataPoints: Point[],
   scalarYTransform: (s: number, y: number) => number,
   modelFactory: PlottableModelFactory
-): [RegressionModel, number, string] {
+): [PlottableModel, number, string] {
   let lowModel: PlottableModel;
   let middleScalar: number;
   let middleModel: PlottableModel;
@@ -320,5 +320,5 @@ function _findBestYScalar(
   }
 
   // @ts-ignore
-  return [middleModel, middleScalar, middleModel.getXFormula()];
+  return [middleModel, middleScalar];
 }
