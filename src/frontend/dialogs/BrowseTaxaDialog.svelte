@@ -146,21 +146,22 @@
         <div class="col">
           {#each containingTaxa as containingTaxon, i}
             {@const spec = containingTaxon.spec}
-            {@const selectableConfig = {
-              // svelte crashes with "TypeError: Cannot read properties of null
-              //  (reading 'type')" if I use "{{...}}" notation.
-              prefixed: false,
-              selection: selectedAncestorUniques[spec.unique],
-              spec,
-              containingSpecNodes: containingTaxa.slice(0, i),
-              clickable: !!spec.hasChildren && spec.unique != parentUnique,
-              gotoTaxon,
-              addSelection: () => _addSelection(spec),
-              removeSelection: () => _removeSelection(spec)
-            }}
             <div class="row mb-1">
               <div class="col" style="margin-left: {ANCESTOR_ITEM_LEFT_MARGIN * i}em">
-                <slot {selectableConfig} />
+                <slot
+                  selectableConfig={{
+                    // svelte crashes with "TypeError: Cannot read properties of null
+                    //  (reading 'type')" when I use "{{...}}" notation.
+                    prefixed: false,
+                    selection: selectedAncestorUniques[spec.unique],
+                    spec,
+                    containingSpecNodes: containingTaxa.slice(0, i),
+                    clickable: !!spec.hasChildren && spec.unique != parentUnique,
+                    gotoTaxon,
+                    addSelection: () => _addSelection(spec),
+                    removeSelection: () => _removeSelection(spec)
+                  }}
+                />
               </div>
             </div>
           {/each}
