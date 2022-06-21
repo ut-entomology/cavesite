@@ -69,7 +69,7 @@ export abstract class PlottableModel implements RegressionModel {
 }
 
 export class QuadraticModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[]) {
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('quadratic fit', hexColor, dataPoints);
 
     const xTransform: XTransform = (x) => [x * x, x, 1];
@@ -78,7 +78,7 @@ export class QuadraticModel extends PlottableModel {
 
     const model = _createRegressionModel(
       xTransform,
-      identityY,
+      yTransform,
       fittedYTakingCoefs,
       dataPoints
     );
@@ -98,7 +98,9 @@ export class QuadraticModel extends PlottableModel {
 }
 
 export class PowerModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[]) {
+  power: number;
+
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('power fit', hexColor, dataPoints);
 
     const [model, power] = _findBestScalar(
@@ -109,10 +111,11 @@ export class PowerModel extends PlottableModel {
       },
       dataPoints,
       (p, x) => [Math.pow(x, p), 1],
-      (y) => y,
+      yTransform,
       (p, coefs, x) => coefs[0] * Math.pow(x, p) + coefs[1]
     );
     Object.assign(this, model);
+    this.power = power;
   }
 
   getEquation(): string {
@@ -121,7 +124,7 @@ export class PowerModel extends PlottableModel {
       _coefHtml(coefs[0], true),
       ' x<sup>',
       // @ts-ignore
-      shortenValue(power, 4),
+      shortenValue(this.power, 4),
       '</sup> ',
       _coefHtml(coefs[1])
     ].join(' ');
