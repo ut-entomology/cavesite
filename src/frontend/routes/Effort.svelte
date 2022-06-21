@@ -46,6 +46,7 @@
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
+  const POINTS_IN_MODEL_PLOT = 200;
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -221,7 +222,10 @@
                 title={graphTitle}
                 config={graphData}
                 models={[powerFit, quadraticFit]}
-                modelPlots={[powerFit.modelPoints, quadraticFit.modelPoints]}
+                modelPlots={[
+                  powerFit.getModelPoints(POINTS_IN_MODEL_PLOT),
+                  quadraticFit.getModelPoints(POINTS_IN_MODEL_PLOT)
+                ]}
               />
             </div>
           </div>

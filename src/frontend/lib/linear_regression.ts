@@ -1,7 +1,6 @@
 import * as jstat from 'jstat';
 
 const MAX_POWER_SPLITS = 15;
-const POINTS_IN_MODEL_PLOT = 200;
 const MODEL_COEF_PRECISION = 3;
 
 export interface Point {
@@ -17,8 +16,11 @@ export interface JstatModel {
 }
 
 type XTransform = (x: number) => number[];
+type YTransform = (y: number) => number;
 type FittedY = (y: number) => number;
 type FittedYTakingCoefs = (coefs: number[], y: number) => number;
+
+const identityY: YTransform = (y) => y;
 
 interface RegressionModel {
   jstats: JstatModel;
@@ -31,52 +33,73 @@ export abstract class PlottableModel implements RegressionModel {
   name: string;
   hexColor: string;
   equation!: string;
-  modelPoints!: Point[];
+  lowestX = Infinity;
+  highestX = 0;
 
   jstats!: JstatModel;
   fittedY!: FittedY;
   rmse!: number;
   residuals!: Point[];
 
-  constructor(name: string, hexColor: string) {
+  private _modelPoints: Point[] | null = null;
+
+  constructor(name: string, hexColor: string, dataPoints: Point[]) {
     this.name = name;
     this.hexColor = hexColor;
+    for (const point of dataPoints) {
+      if (point.x < this.lowestX) this.lowestX = point.x;
+      if (point.x > this.highestX) this.highestX = point.x;
+    }
   }
 
-  protected _assignModel(
-    model: RegressionModel,
-    dataPoints: Point[],
-    toTerms: (coefs: number[]) => string[]
-  ): void {
-    Object.assign(this, model);
-    // @ts-ignore
-    this.modelPoints = _getModelPoints(dataPoints, model.fittedY);
-    this.equation = toTerms(this.jstats.coef).join(' ');
+  abstract getEquation(): string;
+
+  getModelPoints(pointCount: number): Point[] {
+    if (!this._modelPoints || this._modelPoints.length != pointCount) {
+      this._modelPoints = [];
+      const deltaX = (this.highestX - this.lowestX) / pointCount;
+      let x = this.lowestX;
+      while (x <= this.highestX) {
+        this._modelPoints.push({ x, y: this.fittedY(x) });
+        x += deltaX;
+      }
+    }
+    return this._modelPoints;
   }
 }
 
 export class QuadraticModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[]) {
-    super('quadratic fit', hexColor);
+    super('quadratic fit', hexColor, dataPoints);
 
     const xTransform: XTransform = (x) => [x * x, x, 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * x * x + coefs[1] * x + coefs[2];
 
-    const model = _createRegressionModel(xTransform, fittedYTakingCoefs, dataPoints);
-    this._assignModel(model, dataPoints, (coefs) => [
+    const model = _createRegressionModel(
+      xTransform,
+      identityY,
+      fittedYTakingCoefs,
+      dataPoints
+    );
+    Object.assign(this, model);
+  }
+
+  getEquation(): string {
+    const coefs = this.jstats.coef;
+    return [
       _coefHtml(coefs[0], true),
       ' x<sup>2</sup> ',
       _coefHtml(coefs[1]),
       ' x ',
       _coefHtml(coefs[2])
-    ]);
+    ].join(' ');
   }
 }
 
 export class PowerModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[]) {
-    super('power fit', hexColor);
+    super('power fit', hexColor, dataPoints);
 
     const [model, power] = _findBestScalar(
       {
@@ -86,18 +109,22 @@ export class PowerModel extends PlottableModel {
       },
       dataPoints,
       (p, x) => [Math.pow(x, p), 1],
+      (y) => y,
       (p, coefs, x) => coefs[0] * Math.pow(x, p) + coefs[1]
     );
+    Object.assign(this, model);
+  }
 
-    // @ts-ignore
-    this._assignModel(model, dataPoints, (coefs) => [
+  getEquation(): string {
+    const coefs = this.jstats.coef;
+    return [
       _coefHtml(coefs[0], true),
       ' x<sup>',
       // @ts-ignore
       shortenValue(power, 4),
       '</sup> ',
       _coefHtml(coefs[1])
-    ]);
+    ].join(' ');
   }
 }
 
@@ -117,6 +144,7 @@ function _coefHtml(coef: number, firstCoef = false) {
 
 function _createRegressionModel(
   xTransform: XTransform,
+  yTransform: YTransform,
   fittedYTakingCoefs: FittedYTakingCoefs,
   dataPoints: Point[]
 ): RegressionModel {
@@ -124,7 +152,7 @@ function _createRegressionModel(
   const dependentValues: number[] = [];
   for (const point of dataPoints) {
     independentValues.push(xTransform(point.x));
-    dependentValues.push(point.y);
+    dependentValues.push(yTransform(point.y));
   }
 
   const jstats: JstatModel = jstat.models.ols(dependentValues, independentValues);
@@ -134,24 +162,6 @@ function _createRegressionModel(
   const rmse = _getRMSE(residuals);
 
   return { jstats, fittedY, rmse, residuals };
-}
-
-function _getModelPoints(dataPoints: Point[], fittedY: FittedY) {
-  let lowestX = Infinity;
-  let highestX = 0;
-  for (const point of dataPoints) {
-    if (point.x < lowestX) lowestX = point.x;
-    if (point.x > highestX) highestX = point.x;
-  }
-
-  const points: Point[] = [];
-  const deltaX = (highestX - lowestX) / POINTS_IN_MODEL_PLOT;
-  let x = lowestX;
-  while (x <= highestX) {
-    points.push({ x, y: fittedY(x) });
-    x += deltaX;
-  }
-  return points;
 }
 
 function _getResiduals(points: Point[], fittedY: FittedY) {
@@ -174,6 +184,7 @@ function _findBestScalar(
   },
   dataPoints: Point[],
   scalarXTransform: (s: number, x: number) => number[],
+  yTransform: (y: number) => number,
   scalarFittedYTakingCoefs: (s: number, coefs: number[], y: number) => number
 ): [RegressionModel, number] {
   let lowModel: RegressionModel;
@@ -183,11 +194,13 @@ function _findBestScalar(
 
   lowModel = _createRegressionModel(
     scalarXTransform.bind(null, config.lowerBoundScalar),
+    yTransform,
     scalarFittedYTakingCoefs.bind(null, config.lowerBoundScalar),
     dataPoints
   );
   highModel = _createRegressionModel(
     scalarXTransform.bind(null, config.upperBoundScalar),
+    yTransform,
     scalarFittedYTakingCoefs.bind(null, config.upperBoundScalar),
     dataPoints
   );
@@ -198,6 +211,7 @@ function _findBestScalar(
     middleScalar = (lowScalar + highScalar) / 2;
     middleModel = _createRegressionModel(
       scalarXTransform.bind(null, middleScalar),
+      yTransform,
       scalarFittedYTakingCoefs.bind(null, middleScalar),
       dataPoints
     );
