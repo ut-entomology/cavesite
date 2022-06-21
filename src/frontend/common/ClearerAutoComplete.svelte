@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import AutoComplete from 'simple-svelte-autocomplete';
+  import type { InputType } from 'sveltestrap/src/Input';
 
   export let inputSelector = '';
   export let value: string | undefined = undefined;
@@ -38,10 +39,16 @@
   function _inputChanged() {
     // doesn't catch changes made from JS (e.g. clearing or list selection)
     // @ts-ignore
-    const newValue = this.value;
+    const inputElem = this as HTMLInputElement;
+    const newValue = inputElem.value;
     _toggleClearButton(!!newValue);
     if (newValue.toLowerCase() != value?.toLowerCase()) {
       value = undefined;
+    }
+    // If you don't force lowercase, you have to use the built-in cleanup,
+    // which doesn't allow the user to search for punctuation.
+    if (newValue != newValue.toLowerCase()) {
+      inputElem.value = newValue.toLowerCase();
     }
   }
 

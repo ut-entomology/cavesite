@@ -15,6 +15,7 @@
     RemoveSelection
   } from '../../frontend-core/selections_tree';
   import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
+  import { noTypeCheck } from '../util/svelte_types';
 
   export let selectionsTree: TaxonSelectionsTree;
   export let getContainingTaxa: (
@@ -25,8 +26,6 @@
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let openTaxon: (selection: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
-
-  const noTypeCheck = (x: any) => x;
 
   async function loadMatches(partialName: string): Promise<TaxonSpec[]> {
     let res = await $client.post('api/taxa/match_name', { partialName });

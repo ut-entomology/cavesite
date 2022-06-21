@@ -17,6 +17,7 @@
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { client } from '../stores/client';
   import { ROOT_TAXON } from '../../shared/model';
+  import { noTypeCheck } from '../util/svelte_types';
 
   $pageName = 'Selected Taxa';
 
@@ -140,7 +141,7 @@
           >
             <SelectableTaxon
               {...selectableConfig}
-              gotoTaxon={async (unique) => openTaxonBrowser(unique)}
+              gotoUnique={async (unique) => openTaxonBrowser(unique)}
               addSelection={addSelection.bind(null, true)}
               removeSelection={removeSelection.bind(null, true)}
             />
@@ -166,8 +167,9 @@
     title="Browse and Select Taxa"
     typeLabel="taxon"
     parentUnique={browseTaxonUnique}
+    selectedSpecsStore={selectedTaxa}
     {selectionsTree}
-    {getContainingTaxa}
+    getContainingSpecNodes={noTypeCheck(getContainingTaxa)}
     addSelection={addSelection.bind(null, true)}
     removeSelection={removeSelection.bind(null, true)}
     onClose={() => {

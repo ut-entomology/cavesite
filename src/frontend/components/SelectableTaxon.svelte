@@ -15,7 +15,7 @@
   export let spec: ModelSpec;
   export let clickable = spec.hasChildren || false;
   export let containingSpecNodes: SpecNode<ModelSpec>[];
-  export let gotoTaxon: (taxonUnique: string) => Promise<void>;
+  export let gotoUnique: (taxonUnique: string) => Promise<void>;
   export let addSelection: AddSelection<ModelSpec>;
   export let removeSelection: RemoveSelection<ModelSpec>;
   export let toggledExpansion: (expanded: boolean) => void = () => {};
@@ -36,7 +36,7 @@
     class={selection ? 'selection' : ''}
     {spec}
     {clickable}
-    onClick={() => gotoTaxon(spec.unique)}
+    onClick={() => gotoUnique(spec.unique)}
   />
 </ExpandableSelectable>
 

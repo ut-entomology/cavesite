@@ -3,83 +3,84 @@
   import Notice from '../common/Notice.svelte';
   import { checkmarkIcon, plusIcon } from '../components/SelectionButton.svelte';
   import { client, errorReason, bubbleUpError } from '../stores/client';
-  import { selectedTaxa } from '../stores/selectedTaxa';
-  import type { TaxonSpec } from '../../shared/model';
+  import type { SelectedSpecsStore } from '../stores/selectedSpecs';
+  import type { ModelSpec } from '../../shared/model';
   import type {
     SpecNode,
     AddSelection,
     RemoveSelection
   } from '../../frontend-core/selections_tree';
-  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
+  import type { SelectionsTree } from '../../frontend-core/selections_tree';
 
   export let title: string;
   export let typeLabel: string;
   export let parentUnique: string;
-  export let selectionsTree: TaxonSelectionsTree;
-  export let getContainingTaxa: (
-    ofTaxonSpec: TaxonSpec,
-    includesGivenTaxon: boolean
-  ) => Promise<SpecNode<TaxonSpec>[]>;
-  export let addSelection: AddSelection<TaxonSpec>;
-  export let removeSelection: RemoveSelection<TaxonSpec>;
+  export let selectionsTree: SelectionsTree<ModelSpec>;
+  export let selectedSpecsStore: SelectedSpecsStore;
+  export let getContainingSpecNodes: (
+    ofSpec: ModelSpec,
+    includesGivenSpec: boolean
+  ) => Promise<SpecNode<ModelSpec>[]>;
+  export let addSelection: AddSelection<ModelSpec>;
+  export let removeSelection: RemoveSelection<ModelSpec>;
   export let onClose: () => void;
 
   const ANCESTOR_ITEM_LEFT_MARGIN = 1.3; // em
 
-  let parentSpec: TaxonSpec;
-  let containingTaxa: SpecNode<TaxonSpec>[] = [];
-  let childSpecs: TaxonSpec[];
+  let parentSpec: ModelSpec;
+  let containingSpecNodes: SpecNode<ModelSpec>[] = [];
+  let childSpecs: ModelSpec[];
   let selectedAncestorUniques: Record<string, boolean> = {};
   let allChildrenSelected = false;
 
   async function prepare() {
-    // Look for the target taxon among the existing containing taxa, in
-    // order to avoid unncessary API calls.
+    // Look for the target spec nodes among the existing containing
+    // spec nodes, in order to avoid unncessary API calls.
 
     let found = false;
-    for (let i = 0; !found && i < containingTaxa.length; ++i) {
-      const containingTaxon = containingTaxa[i];
-      if (parentUnique == containingTaxon.spec.unique) {
-        containingTaxa.length = i + 1;
-        parentSpec = containingTaxon.spec;
-        childSpecs = containingTaxon.children;
+    for (let i = 0; !found && i < containingSpecNodes.length; ++i) {
+      const containingSpecNode = containingSpecNodes[i];
+      if (parentUnique == containingSpecNode.spec.unique) {
+        containingSpecNodes.length = i + 1;
+        parentSpec = containingSpecNode.spec;
+        childSpecs = containingSpecNode.children;
         found = true;
       }
     }
 
-    // If the taxon is not already loaded, load it and all its ancestor
-    // taxa, even if those ancestors are already cached, mainly to keep
-    // the code simpler than it would otherwise be. API calls are
-    // necessary, regardless.
+    // If the spec node is not already loaded, load it and all its ancestor spec
+    // nodes, even if those ancestors are already cached, mainly to keep the code
+    // simpler than it would otherwise be. API calls are necessary, regardless.
 
     let res = await $client.post('api/taxa/get_list', {
       taxonUniques: [parentUnique]
     });
-    const taxonSpecs: TaxonSpec[] = res.data.taxonSpecs;
-    if (taxonSpecs.length == 0) {
+    const specs: ModelSpec[] = res.data.taxonSpecs;
+    if (specs.length == 0) {
       throw Error(`Failed to load taxon '${parentUnique}'`);
     }
-    parentSpec = taxonSpecs[0];
-    containingTaxa = await getContainingTaxa(parentSpec, true);
-    childSpecs = containingTaxa[containingTaxa.length - 1].children;
+    parentSpec = specs[0];
+    containingSpecNodes = await getContainingSpecNodes(parentSpec, true);
+    childSpecs = containingSpecNodes[containingSpecNodes.length - 1].children;
 
-    // Determine which ancestor taxa have been selected, if any.
+    // Determine which ancestor spec nodes have been selected, if any.
 
     _determineAncestorSelections();
   }
 
-  const gotoTaxon = async (taxonUnique: string) => {
-    parentUnique = taxonUnique;
+  const gotoUnique = async (unique: string) => {
+    parentUnique = unique;
     await prepare();
   };
+
   const deselectAll = () => {
     for (const childSpec of childSpecs) {
       if (allChildrenSelected || selectionsTree.isSelected(childSpec.unique)) {
-        selectionsTree.removeSelection(containingTaxa, childSpec);
+        selectionsTree.removeSelection(containingSpecNodes, childSpec);
       }
     }
     _updatedSelections(true);
-    selectedTaxa.set(selectionsTree.getSelectionSpecs());
+    selectedSpecsStore.set(selectionsTree.getSelectionSpecs());
   };
 
   const selectAll = () => {
@@ -89,24 +90,24 @@
       }
     }
     _updatedSelections(false);
-    selectedTaxa.set(selectionsTree.getSelectionSpecs());
+    selectedSpecsStore.set(selectionsTree.getSelectionSpecs());
   };
 
-  function _addSelection(spec: TaxonSpec) {
+  function _addSelection(spec: ModelSpec) {
     addSelection(spec);
     _updatedSelections(false);
   }
 
-  function _removeSelection(spec: TaxonSpec) {
-    const ancestorContainingTaxa: SpecNode<TaxonSpec>[] = [];
-    for (const containingTaxon of containingTaxa) {
-      if (containingTaxon.spec.unique !== spec.unique) {
-        ancestorContainingTaxa.push(containingTaxon);
+  function _removeSelection(spec: ModelSpec) {
+    const ancestorContainingSpecNodes: SpecNode<ModelSpec>[] = [];
+    for (const containingSpecNode of containingSpecNodes) {
+      if (containingSpecNode.spec.unique !== spec.unique) {
+        ancestorContainingSpecNodes.push(containingSpecNode);
       } else {
         break;
       }
     }
-    removeSelection(ancestorContainingTaxa, spec);
+    removeSelection(ancestorContainingSpecNodes, spec);
     _updatedSelections(true);
   }
 
@@ -121,8 +122,8 @@
   function _determineAncestorSelections() {
     selectedAncestorUniques = {};
     allChildrenSelected = false;
-    for (const containingTaxon of containingTaxa) {
-      const spec = containingTaxon.spec;
+    for (const containingSpecNode of containingSpecNodes) {
+      const spec = containingSpecNode.spec;
       if (allChildrenSelected || selectionsTree.isSelected(spec.unique)) {
         selectedAncestorUniques[spec.unique] = true;
         allChildrenSelected = true;
@@ -132,7 +133,7 @@
 </script>
 
 {#await prepare() then}
-  <ModalDialog {title} contentClasses="taxa-browser-content">
+  <ModalDialog {title} contentClasses="tree-browser-content">
     <div class="row info-row">
       <div class="col-auto mb-3 small">
         This box only shows {typeLabel} having records. Click on {typeLabel} links to navigate
@@ -144,17 +145,17 @@
     <div class="container-md">
       <div class="row gx-2 ancestors-row">
         <div class="col">
-          {#each containingTaxa as containingTaxon, i}
-            {@const spec = containingTaxon.spec}
+          {#each containingSpecNodes as containingSpecNode, i}
+            {@const spec = containingSpecNode.spec}
             {@const selectableConfig = {
               // svelte crashes with "TypeError: Cannot read properties of null
               //  (reading 'type')" if I use "{{...}}" notation.
               prefixed: false,
               selection: selectedAncestorUniques[spec.unique],
               spec,
-              containingSpecNodes: containingTaxa.slice(0, i),
+              containingSpecNodes: containingSpecNodes.slice(0, i),
               clickable: !!spec.hasChildren && spec.unique != parentUnique,
-              gotoTaxon,
+              gotoUnique,
               addSelection: () => _addSelection(spec),
               removeSelection: () => _removeSelection(spec)
             }}
@@ -190,8 +191,8 @@
                 selection:
                   allChildrenSelected || selectionsTree.isSelected(spec.unique),
                 spec,
-                containingSpecNodes: containingTaxa,
-                gotoTaxon,
+                containingSpecNodes: containingSpecNodes,
+                gotoUnique,
                 addSelection: () => _addSelection(spec),
                 removeSelection: () => _removeSelection(spec)
               }}
@@ -206,7 +207,9 @@
     <Notice
       header="ERROR"
       alert="danger"
-      message="Failed to load taxon '{parentUnique}':<br/>{errorReason(err.response)}"
+      message="Failed to load {typeLabel} '{parentUnique}':<br/>{errorReason(
+        err.response
+      )}"
       on:close={onClose}
     />
   {:else}
@@ -217,7 +220,7 @@
 <style lang="scss">
   @import '../variables.scss';
 
-  :global(.taxa-browser-content) {
+  :global(.tree-browser-content) {
     margin: 0 auto;
   }
 
