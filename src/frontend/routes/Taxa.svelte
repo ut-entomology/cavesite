@@ -16,7 +16,7 @@
   import { pageName } from '../stores/pageName';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import { client } from '../stores/client';
-  import { ROOT_TAXON } from '../../shared/model';
+  import { ROOT_TAXON_UNIQUE } from '../../shared/model';
   import { noTypeCheck } from '../util/svelte_types';
 
   $pageName = 'Selected Taxa';
@@ -121,7 +121,7 @@
         <button
           class="btn btn-major"
           type="button"
-          on:click={() => openTaxonBrowser(ROOT_TAXON)}>Browse Taxa</button
+          on:click={() => openTaxonBrowser(ROOT_TAXON_UNIQUE)}>Browse Taxa</button
         >
       </span>
     </TabHeader>
@@ -177,6 +177,7 @@
   <BrowseTreeDialog
     title="Browse and Select Taxa"
     typeLabel="taxon"
+    rootUnique={ROOT_TAXON_UNIQUE}
     parentUnique={browseTaxonUnique}
     selectedSpecsStore={selectedTaxa}
     {selectionsTree}

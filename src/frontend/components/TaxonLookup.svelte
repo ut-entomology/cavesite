@@ -3,7 +3,7 @@
   import { client } from '../stores/client';
   import {
     type ModelSpec,
-    ROOT_TAXON,
+    ROOT_TAXON_UNIQUE,
     type TaxonSpec,
     TaxonRank,
     TaxonRankIndex,
@@ -36,7 +36,9 @@
   async function loadMatches(partialName: string): Promise<TaxonSpec[]> {
     let res = await $client.post('api/taxa/match_name', { partialName });
     const matchedSpecs: TaxonSpec[] = res.data.taxonSpecs;
-    const rootSpecIndex = matchedSpecs.findIndex((spec) => spec.unique == ROOT_TAXON);
+    const rootSpecIndex = matchedSpecs.findIndex(
+      (spec) => spec.unique == ROOT_TAXON_UNIQUE
+    );
     if (rootSpecIndex >= 0) {
       matchedSpecs.splice(rootSpecIndex, 1);
     }

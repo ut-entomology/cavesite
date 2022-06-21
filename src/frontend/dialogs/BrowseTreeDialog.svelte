@@ -2,7 +2,7 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import Notice from '../common/Notice.svelte';
   import { checkmarkIcon, plusIcon } from '../components/SelectionButton.svelte';
-  import { client, errorReason, bubbleUpError } from '../stores/client';
+  import { errorReason, bubbleUpError } from '../stores/client';
   import type { SelectedSpecsStore } from '../stores/selectedSpecs';
   import type { ModelSpec } from '../../shared/model';
   import type {
@@ -14,6 +14,7 @@
 
   export let title: string;
   export let typeLabel: string;
+  export let rootUnique: string;
   export let parentUnique: string;
   export let selectionsTree: SelectionsTree<ModelSpec>;
   export let selectedSpecsStore: SelectedSpecsStore;
@@ -30,6 +31,7 @@
 
   let parentSpec: ModelSpec;
   let containingSpecNodes: SpecNode<ModelSpec>[] = [];
+  let visibleContainingSpecNodes: SpecNode<ModelSpec>[] = [];
   let childSpecs: ModelSpec[];
   let selectedAncestorUniques: Record<string, boolean> = {};
   let allChildrenSelected = false;
@@ -55,6 +57,14 @@
 
     parentSpec = await loadSpec(parentUnique);
     containingSpecNodes = await getContainingSpecNodes(parentSpec, true);
+
+    visibleContainingSpecNodes = [];
+    let foundRoot = false;
+    for (const containingSpecNode of containingSpecNodes) {
+      if (containingSpecNode.spec.unique == rootUnique) foundRoot = true;
+      if (foundRoot) visibleContainingSpecNodes.push(containingSpecNode);
+    }
+
     childSpecs = containingSpecNodes[containingSpecNodes.length - 1].children;
 
     // Determine which ancestor spec nodes have been selected, if any.
@@ -139,7 +149,7 @@
     <div class="container-md">
       <div class="row gx-2 ancestors-row">
         <div class="col">
-          {#each containingSpecNodes as containingSpecNode, i}
+          {#each visibleContainingSpecNodes as containingSpecNode, i}
             {@const spec = containingSpecNode.spec}
             {@const selectableConfig = {
               // svelte crashes with "TypeError: Cannot read properties of null

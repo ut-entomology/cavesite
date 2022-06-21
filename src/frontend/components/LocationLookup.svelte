@@ -3,7 +3,7 @@
   import { client } from '../stores/client';
   import {
     type ModelSpec,
-    ROOT_LOCATION,
+    ROOT_LOCATION_UNIQUE,
     type LocationSpec,
     LocationRank,
     LocationRankIndex,
@@ -17,6 +17,8 @@
   } from '../../frontend-core/selections_tree';
   import type { LocationSelectionsTree } from '../../frontend-core/location_selections_tree';
   import { noTypeCheck } from '../util/svelte_types';
+
+  const rootUniqueComponent = ROOT_LOCATION_UNIQUE.split('|').pop()!;
 
   export let selectionsTree: LocationSelectionsTree;
   export let getContainingLocations: (
@@ -38,7 +40,10 @@
     const matchedSpecs: LocationSpec[] = res.data.locationSpecs;
     for (let i = 0; i < matchedSpecs.length; ++i) {
       const spec = matchedSpecs[i];
-      if (spec.name == ROOT_LOCATION || !spec.parentNamePath.includes(ROOT_LOCATION)) {
+      if (
+        spec.unique == ROOT_LOCATION_UNIQUE ||
+        !spec.unique.includes(rootUniqueComponent)
+      ) {
         matchedSpecs.splice(i, 1);
         --i; // repeat this index for shortened array
       }

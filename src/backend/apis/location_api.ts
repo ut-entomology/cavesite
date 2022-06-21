@@ -18,16 +18,16 @@ const MAX_LOOKUP_MATCHES = 120;
 export const router = Router();
 
 router.post('/get_children', async (req: Request, res) => {
-  const parentGUIDs = req.body.parentGUIDs;
-  if (!Array.isArray(parentGUIDs) || parentGUIDs.length > 10) {
+  const parentUniques = req.body.parentUniques;
+  if (!Array.isArray(parentUniques) || parentUniques.length > 10) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  for (const parentGUID of parentGUIDs) {
-    if (typeof parentGUID != 'string' || parentGUID.length > 100) {
+  for (const parentUnique of parentUniques) {
+    if (typeof parentUnique != 'string' || parentUnique.length > 256) {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
-  const locations = await Location.getChildrenOf(getDB(), parentGUIDs);
+  const locations = await Location.getChildrenOf(getDB(), parentUniques);
   return res.status(StatusCodes.OK).send({
     locationSpecs: locations.map((locs) => locs.map((loc) => toLocationSpec(loc)))
   });

@@ -16,7 +16,7 @@
   import { pageName } from '../stores/pageName';
   import { selectedLocations } from '../stores/selectedLocations';
   import { client } from '../stores/client';
-  import { ROOT_LOCATION } from '../../shared/model';
+  import { type ModelSpec, ROOT_LOCATION_UNIQUE } from '../../shared/model';
   import { noTypeCheck } from '../util/svelte_types';
 
   $pageName = 'Selected Locations';
@@ -24,13 +24,27 @@
   let browseLocationUnique: string | null = null;
   let rootTree: SvelteComponent;
   let rootNode: ExpandableNode<LocationSpec> | null = null;
+  let containingSpecNodes: SpecNode<ModelSpec>[] = [];
   let requestClearConfirmation = false;
   let clearInput: () => void;
 
   const selectionsTree = new LocationSelectionsTree(
     $selectedLocations ? Object.values($selectedLocations) : []
   );
-  $: $selectedLocations, (rootNode = selectionsTree.getRootNode());
+  $: $selectedLocations,
+    (() => {
+      rootNode = selectionsTree.getRootNode();
+      if (rootNode) {
+        containingSpecNodes = [];
+        let priorSpecNode: SpecNode<ModelSpec> = { spec: rootNode.spec, children: [] };
+        while (rootNode && rootNode.spec.unique != ROOT_LOCATION_UNIQUE) {
+          containingSpecNodes.push(priorSpecNode);
+          rootNode = rootNode.children[0];
+          priorSpecNode.children.push(rootNode.spec);
+          priorSpecNode = { spec: rootNode.spec, children: [] };
+        }
+      }
+    })();
 
   const expandTree = () => rootTree.expandAll();
 
@@ -124,7 +138,8 @@
         <button
           class="btn btn-major"
           type="button"
-          on:click={() => openLocationBrowser(ROOT_LOCATION)}>Browse Locations</button
+          on:click={() => openLocationBrowser(ROOT_LOCATION_UNIQUE)}
+          >Browse Locations</button
         >
       </span>
     </TabHeader>
@@ -150,6 +165,7 @@
           <ExpandableSelectableTree
             bind:this={rootTree}
             node={rootNode}
+            {containingSpecNodes}
             showRoot={false}
             let:selectableConfig
           >
@@ -180,6 +196,7 @@
   <BrowseTreeDialog
     title="Browse and Select Locations"
     typeLabel="location"
+    rootUnique={ROOT_LOCATION_UNIQUE}
     parentUnique={browseLocationUnique}
     selectedSpecsStore={selectedLocations}
     {selectionsTree}

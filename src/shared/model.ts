@@ -9,7 +9,7 @@ export interface ModelSpec {
 
 //// Taxa ////////////////////////////////////////////////////////////////////
 
-export const ROOT_TAXON = 'Animalia';
+export const ROOT_TAXON_UNIQUE = 'Animalia';
 
 export enum TaxonRank {
   Kingdom = 'kingdom',
@@ -93,7 +93,7 @@ function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
 
 //// Location /////////////////////////////////////////////////////////////////
 
-export const ROOT_LOCATION = 'Texas';
+export const ROOT_LOCATION_UNIQUE = 'north america|united states|texas';
 
 export enum LocationRank {
   Continent = 'continent',
