@@ -23,6 +23,7 @@ type PlottableModelFactory = (
   dataPoints: Point[],
   yTransform: YTransform
 ) => PlottableModel;
+type RegressionModelFactory = (dataPoints: Point[], scalar: number) => RegressionModel;
 
 const identityY: YTransform = (y) => y;
 
@@ -115,16 +116,21 @@ export class PowerModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('power fit', hexColor, dataPoints);
 
-    const [model, power] = _findBestXScalar(
+    const [model, power] = _findBestRMSEScalar(
       {
         lowerBoundScalar: 0.001,
         upperBoundScalar: 3,
         maxSearchDepth: MAX_SEARCH_DEPTH
       },
       dataPoints,
-      (p, x) => [Math.pow(x, p), 1],
-      yTransform,
-      (p, coefs, x) => coefs[0] * Math.pow(x, p) + coefs[1]
+      (dataPoints, scalar) => {
+        return _createRegressionModel(
+          (x) => [Math.pow(x, scalar), 1],
+          yTransform,
+          (coefs, x) => coefs[0] * Math.pow(x, scalar) + coefs[1],
+          dataPoints
+        );
+      }
     );
     Object.assign(this, model);
     this.power = power;
@@ -161,21 +167,21 @@ export class BoxCoxModel extends PlottableModel {
       return (Math.pow(y, lambda) - 1) / lambda;
     };
 
-    const [model, lambda] = _findBestYScalar(
+    const [model, lambda] = _findBestRMSEScalar(
       {
         lowerBoundScalar: -3,
         upperBoundScalar: 3,
         maxSearchDepth: MAX_SEARCH_DEPTH
       },
       dataPoints,
-      boxCoxTransform,
-      baseModelFactory
+      (dataPoints, scalar) =>
+        baseModelFactory(dataPoints, boxCoxTransform.bind(null, scalar))
     );
     Object.assign(this, model);
     this.name += ' w/ box-cox';
     this.lambda = lambda;
     this.yTransform = boxCoxTransform.bind(null, lambda);
-    this._xFormula = model.getXFormula();
+    this._xFormula = (model as PlottableModel).getXFormula();
   }
 
   convertDataPoints(dataPoints: Point[]): Point[] {
@@ -241,87 +247,28 @@ function _getRMSE(residuals: Point[]) {
   return Math.sqrt(sumOfSquares / residuals.length);
 }
 
-function _findBestXScalar(
+function _findBestRMSEScalar(
   config: {
     lowerBoundScalar: number;
     upperBoundScalar: number;
     maxSearchDepth: number;
   },
   dataPoints: Point[],
-  scalarXTransform: (s: number, x: number) => number[],
-  yTransform: YTransform,
-  scalarFittedYTakingCoefs: (s: number, coefs: number[], y: number) => number
+  modelFactory: RegressionModelFactory
 ): [RegressionModel, number] {
   let lowModel: RegressionModel;
   let middleScalar: number;
   let middleModel: RegressionModel;
   let highModel: RegressionModel;
 
-  lowModel = _createRegressionModel(
-    scalarXTransform.bind(null, config.lowerBoundScalar),
-    yTransform,
-    scalarFittedYTakingCoefs.bind(null, config.lowerBoundScalar),
-    dataPoints
-  );
-  highModel = _createRegressionModel(
-    scalarXTransform.bind(null, config.upperBoundScalar),
-    yTransform,
-    scalarFittedYTakingCoefs.bind(null, config.upperBoundScalar),
-    dataPoints
-  );
+  lowModel = modelFactory(dataPoints, config.lowerBoundScalar);
+  highModel = modelFactory(dataPoints, config.upperBoundScalar);
 
   let lowScalar = config.lowerBoundScalar;
   let highScalar = config.upperBoundScalar;
   for (let i = 0; i < config.maxSearchDepth; ++i) {
     middleScalar = (lowScalar + highScalar) / 2;
-    middleModel = _createRegressionModel(
-      scalarXTransform.bind(null, middleScalar),
-      yTransform,
-      scalarFittedYTakingCoefs.bind(null, middleScalar),
-      dataPoints
-    );
-    if (lowModel.rmse < highModel.rmse) {
-      highScalar = middleScalar;
-      highModel = middleModel;
-    } else {
-      lowScalar = middleScalar;
-      lowModel = middleModel;
-    }
-  }
-
-  // @ts-ignore
-  return [middleModel, middleScalar];
-}
-
-function _findBestYScalar(
-  config: {
-    lowerBoundScalar: number;
-    upperBoundScalar: number;
-    maxSearchDepth: number;
-  },
-  dataPoints: Point[],
-  scalarYTransform: (s: number, y: number) => number,
-  modelFactory: PlottableModelFactory
-): [PlottableModel, number, string] {
-  let lowModel: PlottableModel;
-  let middleScalar: number;
-  let middleModel: PlottableModel;
-  let highModel: PlottableModel;
-
-  lowModel = modelFactory(
-    dataPoints,
-    scalarYTransform.bind(null, config.lowerBoundScalar)
-  );
-  highModel = modelFactory(
-    dataPoints,
-    scalarYTransform.bind(null, config.upperBoundScalar)
-  );
-
-  let lowScalar = config.lowerBoundScalar;
-  let highScalar = config.upperBoundScalar;
-  for (let i = 0; i < config.maxSearchDepth; ++i) {
-    middleScalar = (lowScalar + highScalar) / 2;
-    middleModel = modelFactory(dataPoints, scalarYTransform.bind(null, middleScalar));
+    middleModel = modelFactory(dataPoints, middleScalar);
     if (lowModel.rmse < highModel.rmse) {
       highScalar = middleScalar;
       highModel = middleModel;
