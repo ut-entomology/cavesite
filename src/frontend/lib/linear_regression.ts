@@ -1,6 +1,6 @@
 import * as jstat from 'jstat';
 
-const MAX_POWER_SPLITS = 15;
+const MAX_SEARCH_DEPTH = 15;
 const MODEL_COEF_PRECISION = 3;
 
 export interface Point {
@@ -19,6 +19,10 @@ type XTransform = (x: number) => number[];
 type YTransform = (y: number) => number;
 type FittedY = (y: number) => number;
 type FittedYTakingCoefs = (coefs: number[], y: number) => number;
+type PlottableModelFactory = (
+  dataPoints: Point[],
+  yTransform: YTransform
+) => PlottableModel;
 
 const identityY: YTransform = (y) => y;
 
@@ -52,7 +56,11 @@ export abstract class PlottableModel implements RegressionModel {
     }
   }
 
-  abstract getEquation(): string;
+  abstract getXFormula(): string;
+
+  getYFormula(): string {
+    return 'y';
+  }
 
   getModelPoints(pointCount: number): Point[] {
     if (!this._modelPoints || this._modelPoints.length != pointCount) {
@@ -85,7 +93,7 @@ export class QuadraticModel extends PlottableModel {
     Object.assign(this, model);
   }
 
-  getEquation(): string {
+  getXFormula(): string {
     const coefs = this.jstats.coef;
     return [
       _coefHtml(coefs[0], true),
@@ -103,11 +111,11 @@ export class PowerModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('power fit', hexColor, dataPoints);
 
-    const [model, power] = _findBestScalar(
+    const [model, power] = _findBestXScalar(
       {
         lowerBoundScalar: 0.001,
         upperBoundScalar: 3,
-        maxSearchDepth: MAX_POWER_SPLITS
+        maxSearchDepth: MAX_SEARCH_DEPTH
       },
       dataPoints,
       (p, x) => [Math.pow(x, p), 1],
@@ -118,7 +126,7 @@ export class PowerModel extends PlottableModel {
     this.power = power;
   }
 
-  getEquation(): string {
+  getXFormula(): string {
     const coefs = this.jstats.coef;
     return [
       _coefHtml(coefs[0], true),
@@ -128,6 +136,47 @@ export class PowerModel extends PlottableModel {
       '</sup> ',
       _coefHtml(coefs[1])
     ].join(' ');
+  }
+}
+
+export class BoxCoxModel extends PlottableModel {
+  lambda: number;
+  private _xFormula: string;
+
+  constructor(
+    hexColor: string,
+    dataPoints: Point[],
+    baseModelFactory: PlottableModelFactory
+  ) {
+    // The name will get copied over within _findBestYScalar().
+    super('' /* deferred */, hexColor, dataPoints);
+
+    const boxCoxTransform = (lambda: number, y: number) => {
+      if (lambda == 0) return Math.log(y);
+      return (Math.pow(y, lambda) - 1) / lambda;
+    };
+
+    const [model, lambda, xFormula] = _findBestYScalar(
+      {
+        lowerBoundScalar: -3,
+        upperBoundScalar: 3,
+        maxSearchDepth: MAX_SEARCH_DEPTH
+      },
+      dataPoints,
+      boxCoxTransform,
+      baseModelFactory
+    );
+    Object.assign(this, model);
+    this.lambda = lambda;
+    this._xFormula = xFormula;
+  }
+
+  getXFormula(): string {
+    return this._xFormula;
+  }
+
+  getYFormula(): string {
+    return `bc(y, ${shortenValue(this.lambda, 3)})`;
   }
 }
 
@@ -179,7 +228,7 @@ function _getRMSE(residuals: Point[]) {
   return Math.sqrt(sumOfSquares / residuals.length);
 }
 
-function _findBestScalar(
+function _findBestXScalar(
   config: {
     lowerBoundScalar: number;
     upperBoundScalar: number;
@@ -187,7 +236,7 @@ function _findBestScalar(
   },
   dataPoints: Point[],
   scalarXTransform: (s: number, x: number) => number[],
-  yTransform: (y: number) => number,
+  yTransform: YTransform,
   scalarFittedYTakingCoefs: (s: number, coefs: number[], y: number) => number
 ): [RegressionModel, number] {
   let lowModel: RegressionModel;
@@ -229,4 +278,46 @@ function _findBestScalar(
 
   // @ts-ignore
   return [middleModel, middleScalar];
+}
+
+function _findBestYScalar(
+  config: {
+    lowerBoundScalar: number;
+    upperBoundScalar: number;
+    maxSearchDepth: number;
+  },
+  dataPoints: Point[],
+  scalarYTransform: (s: number, y: number) => number,
+  modelFactory: PlottableModelFactory
+): [RegressionModel, number, string] {
+  let lowModel: PlottableModel;
+  let middleScalar: number;
+  let middleModel: PlottableModel;
+  let highModel: PlottableModel;
+
+  lowModel = modelFactory(
+    dataPoints,
+    scalarYTransform.bind(null, config.lowerBoundScalar)
+  );
+  highModel = modelFactory(
+    dataPoints,
+    scalarYTransform.bind(null, config.upperBoundScalar)
+  );
+
+  let lowScalar = config.lowerBoundScalar;
+  let highScalar = config.upperBoundScalar;
+  for (let i = 0; i < config.maxSearchDepth; ++i) {
+    middleScalar = (lowScalar + highScalar) / 2;
+    middleModel = modelFactory(dataPoints, scalarYTransform.bind(null, middleScalar));
+    if (lowModel.rmse < highModel.rmse) {
+      highScalar = middleScalar;
+      highModel = middleModel;
+    } else {
+      lowScalar = middleScalar;
+      lowModel = middleModel;
+    }
+  }
+
+  // @ts-ignore
+  return [middleModel, middleScalar, middleModel.getXFormula()];
 }

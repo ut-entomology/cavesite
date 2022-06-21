@@ -7,7 +7,7 @@
 <div class="row mt-1 stats">
   <div class="col-1" />
   <div class="col-4">
-    <span style="color: #{model.hexColor}">y</span> = {@html model.getEquation()}
+    <span style="color: #{model.hexColor}">{@html model.getYFormula()}</span> = {@html model.getXFormula()}
   </div>
   <div class="col">p-value {shortenValue(model.jstats.f.pvalue, 2)}</div>
   <div class="col">RMSE {shortenValue(model.rmse, 3)}</div>
