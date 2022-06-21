@@ -36,17 +36,26 @@
     ComparedTaxa
   } from '../../shared/model';
   import { client } from '../stores/client';
-  import { QuadraticModel, PowerModel } from '../lib/linear_regression';
+  import {
+    PlottableModel,
+    QuadraticModel,
+    PowerModel,
+    BoxCoxModel
+  } from '../lib/linear_regression';
   import { pageName } from '../stores/pageName';
 
   $pageName = 'Collection Effort';
 
-  const MAX_CLUSTERS = 12;
+  const MAX_CLUSTERS = 2;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
+  const USE_BOX_COX = false;
+
+  const POWER_HEXCOLOR = 'FF0088';
+  const QUADRATIC_HEXCOLOR = '00DCD8';
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -65,7 +74,8 @@
     determiningSeeds,
     sortingClusters,
     loadingPoints,
-    processing,
+    fittingModels,
+    generatingPlotData,
     ready
   }
 
@@ -77,6 +87,35 @@
 
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
+  let modelsByCluster: PlottableModel[][] = [];
+
+  $: if ($clusterStore) {
+    loadState = LoadState.fittingModels;
+    modelsByCluster = [];
+    for (let i = 0; i < $clusterStore.length; ++i) {
+      const clusterData = $clusterStore[i];
+      const graphData = _getGraphData(datasetID, clusterData);
+      const models: PlottableModel[] = [];
+      if (graphData.points.length >= MIN_POINTS_TO_REGRESS) {
+        if (USE_BOX_COX) {
+          models.push(
+            new BoxCoxModel(graphData.points, (dataPoints, yTransform) => {
+              return new PowerModel(POWER_HEXCOLOR, dataPoints, yTransform);
+            })
+          );
+          models.push(
+            new BoxCoxModel(graphData.points, (dataPoints, yTransform) => {
+              return new QuadraticModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
+            })
+          );
+        } else {
+          models.push(new PowerModel(POWER_HEXCOLOR, graphData.points));
+          models.push(new QuadraticModel(QUADRATIC_HEXCOLOR, graphData.points));
+        }
+      }
+      modelsByCluster[i] = models;
+    }
+  }
 
   async function loadData() {
     try {
@@ -103,7 +142,7 @@
 
       // Process the loaded data.
 
-      loadState = LoadState.processing;
+      loadState = LoadState.generatingPlotData;
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
         clusterDataByCluster.push({
@@ -210,32 +249,32 @@
     {:else}
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
+        {@const models = modelsByCluster[i]}
         {@const graphData = _getGraphData(datasetID, clusterData)}
         {@const graphTitle =
           (multipleClusters ? `#${i + 1}: ` : '') + graphData.graphTitle}
         {#if graphData.points.length >= MIN_POINTS_TO_REGRESS}
-          {@const powerFit = new PowerModel('FF0088', graphData.points)}
-          {@const quadraticFit = new QuadraticModel('00DCD8', graphData.points)}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
               <EffortGraph
                 title={graphTitle}
                 config={graphData}
-                models={[powerFit, quadraticFit]}
-                modelPlots={[
-                  powerFit.getModelPoints(POINTS_IN_MODEL_PLOT),
-                  quadraticFit.getModelPoints(POINTS_IN_MODEL_PLOT)
-                ]}
-                yFormula={powerFit.getYFormula(/* same for all models */)}
+                {models}
+                modelPlots={models.map((model) =>
+                  model.getModelPoints(POINTS_IN_MODEL_PLOT)
+                )}
+                yFormula={models[0].getYFormula(/* same for all models */)}
               />
             </div>
           </div>
           <div class="row mb-3 gx-0 ms-4">
-            <div class="col-sm-6"><ResidualsPlot model={powerFit} /></div>
-            <div class="col-sm-6"><ResidualsPlot model={quadraticFit} /></div>
+            {#each models as model}
+              <div class="col-sm-6"><ResidualsPlot {model} /></div>
+            {/each}
           </div>
-          <ModelStats model={powerFit} />
-          <ModelStats model={quadraticFit} />
+          {#each models as model}
+            <ModelStats {model} />
+          {/each}
         {:else}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
@@ -258,7 +297,9 @@
     <BusyMessage message="Sorting clusters..." />
   {:else if loadState == LoadState.loadingPoints}
     <BusyMessage message="Loading points..." />
-  {:else if loadState == LoadState.processing}
-    <BusyMessage message="Processing points..." />
+  {:else if loadState == LoadState.generatingPlotData}
+    <BusyMessage message="Generating plot data..." />
+  {:else if loadState == LoadState.fittingModels}
+    <BusyMessage message="Fitting models..." />
   {/if}
 {/if}

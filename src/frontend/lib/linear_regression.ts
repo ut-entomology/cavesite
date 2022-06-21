@@ -154,13 +154,9 @@ export class BoxCoxModel extends PlottableModel {
   yTransform: (y: number) => number;
   private _xFormula: string;
 
-  constructor(
-    hexColor: string,
-    dataPoints: Point[],
-    baseModelFactory: PlottableModelFactory
-  ) {
-    // The name will get copied over within _findBestYScalar().
-    super('' /* deferred */, hexColor, dataPoints);
+  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
+    // Deffered properties get copied over within _findBestYScalar().
+    super('' /* deferred */, '' /* deferred */, dataPoints);
 
     const boxCoxTransform = (lambda: number, y: number) => {
       if (lambda == 0) return Math.log(y);
@@ -200,7 +196,7 @@ export class BoxCoxModel extends PlottableModel {
 }
 
 export function shortenValue(value: number, precision: number) {
-  if (value != 0 && Math.abs(value) < 0.0001) {
+  if (value != 0 && Math.abs(value) < 0.001) {
     return value.toExponential(precision - 1);
   }
   return value.toPrecision(precision);
