@@ -5,6 +5,7 @@
     ROOT_TAXON,
     type TaxonSpec,
     TaxonRank,
+    TaxonRankIndex,
     taxonRanks,
     italicRanks,
     createContainingTaxonSpecs
@@ -24,7 +25,7 @@
   ) => Promise<SpecNode<TaxonSpec>[]>;
   export let addSelection: AddSelection<TaxonSpec>;
   export let removeSelection: RemoveSelection<TaxonSpec>;
-  export let openTaxon: (selection: string) => Promise<void>;
+  export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
 
   async function loadMatches(partialName: string): Promise<TaxonSpec[]> {
@@ -57,7 +58,9 @@
     if ([TaxonRank.Phylum, TaxonRank.Class].includes(spec.rank)) {
       return html;
     } else {
-      const containingTaxa = spec.parentNamePath.split('|').slice(2, rankIndex);
+      const containingTaxa = spec.parentNamePath
+        .split('|')
+        .slice(TaxonRankIndex.Class, rankIndex);
       if (containingTaxa.length == 1) {
         return html;
       }
@@ -76,6 +79,6 @@
   toItemHtml={noTypeCheck(toItemHtml)}
   {addSelection}
   {removeSelection}
-  openUnique={openTaxon}
+  {openUnique}
   {setClearer}
 />

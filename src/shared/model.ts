@@ -93,12 +93,22 @@ function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
 
 //// Location /////////////////////////////////////////////////////////////////
 
+export const ROOT_LOCATION = 'Texas';
+
 export enum LocationRank {
   Continent = 'continent',
   Country = 'country',
   StateProvince = 'state_province',
   County = 'county',
   Locality = 'locality'
+}
+
+export enum LocationRankIndex {
+  Continent,
+  Country,
+  StateProvince,
+  County,
+  Locality
 }
 
 export const locationRanks = Object.values(LocationRank);

@@ -132,7 +132,7 @@
         {getContainingTaxa}
         addSelection={addSelection.bind(null, false)}
         removeSelection={removeSelection.bind(null, false)}
-        openTaxon={async (unique) => openTaxonBrowser(unique)}
+        openUnique={async (unique) => openTaxonBrowser(unique)}
         setClearer={(clearer) => (clearInput = clearer)}
       />
     </div>
