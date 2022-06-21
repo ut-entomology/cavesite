@@ -75,6 +75,17 @@
     return containingTaxa;
   }
 
+  async function loadSpec(unique: string): Promise<TaxonSpec> {
+    let res = await $client.post('api/taxa/get_list', {
+      taxonUniques: [unique]
+    });
+    const specs: TaxonSpec[] = res.data.taxonSpecs;
+    if (specs.length == 0) {
+      throw Error(`Failed to load taxon '${unique}'`);
+    }
+    return specs[0];
+  }
+
   function addSelection(clear: boolean, spec: TaxonSpec) {
     if (clear) clearInput();
     selectionsTree.addSelection(spec);
@@ -169,6 +180,7 @@
     parentUnique={browseTaxonUnique}
     selectedSpecsStore={selectedTaxa}
     {selectionsTree}
+    {loadSpec}
     getContainingSpecNodes={noTypeCheck(getContainingTaxa)}
     addSelection={addSelection.bind(null, true)}
     removeSelection={removeSelection.bind(null, true)}

@@ -17,6 +17,7 @@
   export let parentUnique: string;
   export let selectionsTree: SelectionsTree<ModelSpec>;
   export let selectedSpecsStore: SelectedSpecsStore;
+  export let loadSpec: (unique: string) => Promise<ModelSpec>;
   export let getContainingSpecNodes: (
     ofSpec: ModelSpec,
     includesGivenSpec: boolean
@@ -48,18 +49,11 @@
       }
     }
 
-    // If the spec node is not already loaded, load it and all its ancestor spec
-    // nodes, even if those ancestors are already cached, mainly to keep the code
-    // simpler than it would otherwise be. API calls are necessary, regardless.
+    // Load the parent spec node and all its ancestor spec nodes, even if those
+    // ancestors are already cached, mainly to keep the code simpler than it
+    // would otherwise be. API calls are necessary, regardless.
 
-    let res = await $client.post('api/taxa/get_list', {
-      taxonUniques: [parentUnique]
-    });
-    const specs: ModelSpec[] = res.data.taxonSpecs;
-    if (specs.length == 0) {
-      throw Error(`Failed to load taxon '${parentUnique}'`);
-    }
-    parentSpec = specs[0];
+    parentSpec = await loadSpec(parentUnique);
     containingSpecNodes = await getContainingSpecNodes(parentSpec, true);
     childSpecs = containingSpecNodes[containingSpecNodes.length - 1].children;
 
