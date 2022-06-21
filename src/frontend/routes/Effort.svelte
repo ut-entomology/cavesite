@@ -226,6 +226,7 @@
                   powerFit.getModelPoints(POINTS_IN_MODEL_PLOT),
                   quadraticFit.getModelPoints(POINTS_IN_MODEL_PLOT)
                 ]}
+                yFormula={powerFit.getYFormula(/* same for all models */)}
               />
             </div>
           </div>

@@ -167,6 +167,7 @@ export class BoxCoxModel extends PlottableModel {
       baseModelFactory
     );
     Object.assign(this, model);
+    this.name += ' w/ box-cox';
     this.lambda = lambda;
     this._xFormula = xFormula;
   }

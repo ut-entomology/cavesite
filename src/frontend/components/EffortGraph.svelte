@@ -8,6 +8,7 @@
   export let config: EffortGraphSpec;
   export let models: PlottableModel[] = [];
   export let modelPlots: Point[][] = [];
+  export let yFormula: string | null = null;
 </script>
 
 <Scatter
@@ -40,7 +41,7 @@
       y: {
         title: {
           display: true,
-          text: config.yAxisLabel + ' (y)',
+          text: yFormula ? config.yAxisLabel + ` (${yFormula})` : null,
           font: { size: 16 }
         }
       }
