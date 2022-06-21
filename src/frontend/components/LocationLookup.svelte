@@ -2,6 +2,7 @@
   import SelectableLookup from '../components/SelectableLookup.svelte';
   import { client } from '../stores/client';
   import {
+    type ModelSpec,
     ROOT_LOCATION,
     type LocationSpec,
     LocationRank,
@@ -26,6 +27,11 @@
   export let removeSelection: RemoveSelection<LocationSpec>;
   export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
+
+  function createMatchedItem(spec: ModelSpec) {
+    const locationSpec = spec as LocationSpec;
+    return { unique: locationSpec.unique, name: locationSpec.name, spec };
+  }
 
   async function loadMatches(partialName: string): Promise<LocationSpec[]> {
     let res = await $client.post('api/location/match_name', { partialName });
@@ -56,10 +62,10 @@
     if (spec.rank == LocationRank.County) {
       return html;
     } else {
-      const containingTaxa = spec.parentNamePath
+      const containingLocations = spec.parentNamePath
         .split('|')
         .slice(LocationRankIndex.County, rankIndex);
-      return `${html} <span>(${containingTaxa.join(' ')})</span>`;
+      return `${html} <span>(${containingLocations.join(' ')})</span>`;
     }
   }
 </script>
@@ -71,6 +77,7 @@
   {loadSpecIndicatingChildren}
   getContainingSpecs={noTypeCheck(getContainingLocations)}
   createContainingSpecs={noTypeCheck(createContainingLocationSpecs)}
+  {createMatchedItem}
   toItemHtml={noTypeCheck(toItemHtml)}
   {addSelection}
   {removeSelection}

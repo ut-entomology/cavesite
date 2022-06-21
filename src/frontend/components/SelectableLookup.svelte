@@ -1,3 +1,11 @@
+<script lang="ts" context="module">
+  export interface MatchedItem {
+    unique: string;
+    name: string;
+    spec: ModelSpec;
+  }
+</script>
+
 <script lang="ts">
   import ClearerAutoComplete from '../common/ClearerAutoComplete.svelte';
   import SelectionButton from '../components/SelectionButton.svelte';
@@ -29,16 +37,12 @@
     includesGivenSpec: boolean
   ) => Promise<SpecNode<ModelSpec>[]>;
   export let createContainingSpecs: (spec: ModelSpec) => ModelSpec[];
+  export let createMatchedItem: (spec: ModelSpec) => MatchedItem;
   export let toItemHtml: (spec: ModelSpec, label: string) => string;
   export let addSelection: AddSelection<ModelSpec>;
   export let removeSelection: RemoveSelection<ModelSpec>;
   export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
-
-  interface MatchedItem {
-    unique: string;
-    spec: ModelSpec;
-  }
 
   let matchedSpecs: ModelSpec[] = [];
   let selection: string | undefined;
@@ -76,9 +80,7 @@
       }
     }
     return matchedSpecs
-      .map((spec) => {
-        return { unique: spec.unique, spec };
-      })
+      .map((spec) => createMatchedItem(spec))
       .sort((a, b) => (a.unique < b.unique ? -1 : 1));
   }
 
@@ -142,7 +144,7 @@
       searchFunction={_loadMatches}
       delay={LOAD_DELAY_MILLIS}
       valueFieldName="unique"
-      labelFieldName="unique"
+      labelFieldName="name"
       placeholder="Type a {typeLabel} to look up"
       minCharactersToSearch={2}
       hideArrow={true}

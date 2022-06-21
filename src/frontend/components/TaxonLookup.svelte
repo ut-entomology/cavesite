@@ -2,6 +2,7 @@
   import SelectableLookup from '../components/SelectableLookup.svelte';
   import { client } from '../stores/client';
   import {
+    type ModelSpec,
     ROOT_TAXON,
     type TaxonSpec,
     TaxonRank,
@@ -27,6 +28,10 @@
   export let removeSelection: RemoveSelection<TaxonSpec>;
   export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
+
+  function createMatchedItem(spec: ModelSpec) {
+    return { unique: spec.unique, name: spec.unique, spec };
+  }
 
   async function loadMatches(partialName: string): Promise<TaxonSpec[]> {
     let res = await $client.post('api/taxa/match_name', { partialName });
@@ -76,6 +81,7 @@
   {loadSpecIndicatingChildren}
   getContainingSpecs={noTypeCheck(getContainingTaxa)}
   createContainingSpecs={noTypeCheck(createContainingTaxonSpecs)}
+  {createMatchedItem}
   toItemHtml={noTypeCheck(toItemHtml)}
   {addSelection}
   {removeSelection}
