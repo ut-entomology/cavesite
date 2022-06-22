@@ -30,7 +30,7 @@
 
   :global(.selector) {
     display: inline-block;
-    margin-top: -0.05rem;
+    margin-top: -0.07rem;
     margin-right: 0.5rem;
     width: 1.4rem;
     height: 1.4rem;
