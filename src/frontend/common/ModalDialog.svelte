@@ -9,8 +9,8 @@
   export let contentClasses = '';
 </script>
 
-<Modal {contentClasses}>
+<Modal {contentClasses} let:scrollToModelTop>
   <Dialog {title} class={dialogClasses}>
-    <slot />
+    <slot {scrollToModelTop} />
   </Dialog>
 </Modal>

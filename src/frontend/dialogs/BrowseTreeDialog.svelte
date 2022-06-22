@@ -72,9 +72,10 @@
     _determineAncestorSelections();
   }
 
-  const gotoUnique = async (unique: string) => {
+  const gotoUnique = async (scrollToModalTop: () => void, unique: string) => {
     parentUnique = unique;
     await prepare();
+    scrollToModalTop();
   };
 
   const deselectAll = () => {
@@ -137,7 +138,7 @@
 </script>
 
 {#await prepare() then}
-  <ModalDialog {title} contentClasses="tree-browser-content">
+  <ModalDialog {title} contentClasses="tree-browser-content" let:scrollToModelTop>
     <div class="row info-row">
       <div class="col-auto mb-3 small">
         This box only shows {typeLabel} having records. Click on {typeLabel} links to navigate
@@ -159,7 +160,7 @@
               spec,
               containingSpecNodes: containingSpecNodes.slice(0, i),
               clickable: !!spec.hasChildren && spec.unique != parentUnique,
-              gotoUnique,
+              gotoUnique: gotoUnique.bind(null, scrollToModelTop),
               addSelection: () => _addSelection(spec),
               removeSelection: () => _removeSelection(spec)
             }}
@@ -196,7 +197,7 @@
                   allChildrenSelected || selectionsTree.isSelected(spec.unique),
                 spec,
                 containingSpecNodes: containingSpecNodes,
-                gotoUnique,
+                gotoUnique: gotoUnique.bind(null, scrollToModelTop),
                 addSelection: () => _addSelection(spec),
                 removeSelection: () => _removeSelection(spec)
               }}

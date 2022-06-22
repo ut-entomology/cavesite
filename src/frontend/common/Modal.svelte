@@ -10,6 +10,7 @@
   export let dialogClasses = '';
   export let contentClasses = '';
 
+  let modalElement: HTMLElement;
   let triggeringElement: Element | null;
   try {
     triggeringElement = document.activeElement;
@@ -26,9 +27,18 @@
       }
     }
   });
+
+  function scrollToModelTop() {
+    modalElement.scrollTop = 0;
+  }
 </script>
 
-<div class="modal fade show" role="dialog" style="display: block">
+<div
+  class="modal fade show"
+  role="dialog"
+  style="display: block"
+  bind:this={modalElement}
+>
   <div
     class="modal-dialog {dialogClasses}"
     role="document"
@@ -36,7 +46,7 @@
     out:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION, easing: quintOut }}
   >
     <div class="modal-content {contentClasses}">
-      <slot />
+      <slot {scrollToModelTop} />
     </div>
   </div>
 </div>
