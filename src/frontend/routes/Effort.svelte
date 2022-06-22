@@ -46,13 +46,13 @@
 
   $pageName = 'Collection Effort';
 
-  const MAX_CLUSTERS = 2;
+  const MAX_CLUSTERS = 12;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
-  const USE_BOX_COX = false;
+  const USE_BOX_COX = true;
 
   const POWER_HEXCOLOR = 'FF0088';
   const QUADRATIC_HEXCOLOR = '00DCD8';

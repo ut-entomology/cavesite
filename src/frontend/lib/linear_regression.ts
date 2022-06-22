@@ -1,6 +1,5 @@
 import * as jstat from 'jstat';
 
-const MAX_SEARCH_DEPTH = 15;
 const MODEL_COEF_PRECISION = 3;
 
 export interface Point {
@@ -13,6 +12,11 @@ export interface JstatModel {
   R2: number;
   t: { p: number[] };
   f: { pvalue: number };
+}
+interface ModelSearchConfig {
+  lowerBoundScalar: number;
+  upperBoundScalar: number;
+  maxSearchDepth: number;
 }
 
 type XTransform = (x: number) => number[];
@@ -81,6 +85,46 @@ export abstract class PlottableModel implements RegressionModel {
   }
 }
 
+export class PowerModel extends PlottableModel {
+  power: number;
+
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
+    super('power fit', hexColor, dataPoints);
+
+    const [model, power] = _findBestRMSEScalar_nAry(
+      {
+        lowerBoundScalar: 0.001,
+        upperBoundScalar: 3,
+        initialPartitions: 8,
+        maxSearchDepth: 8
+      },
+      dataPoints,
+      (dataPoints, scalar) => {
+        return _createRegressionModel(
+          (x) => [Math.pow(x, scalar), 1],
+          yTransform,
+          (coefs, x) => coefs[0] * Math.pow(x, scalar) + coefs[1],
+          dataPoints
+        );
+      }
+    );
+    Object.assign(this, model);
+    this.power = power;
+  }
+
+  getXFormula(): string {
+    const coefs = this.jstats.coef;
+    return [
+      _coefHtml(coefs[0], true),
+      ' x<sup>',
+      // @ts-ignore
+      shortenValue(this.power, 4),
+      '</sup> ',
+      _coefHtml(coefs[1])
+    ].join(' ');
+  }
+}
+
 export class QuadraticModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('quadratic fit', hexColor, dataPoints);
@@ -110,45 +154,6 @@ export class QuadraticModel extends PlottableModel {
   }
 }
 
-export class PowerModel extends PlottableModel {
-  power: number;
-
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('power fit', hexColor, dataPoints);
-
-    const [model, power] = _findBestRMSEScalar(
-      {
-        lowerBoundScalar: 0.001,
-        upperBoundScalar: 3,
-        maxSearchDepth: MAX_SEARCH_DEPTH
-      },
-      dataPoints,
-      (dataPoints, scalar) => {
-        return _createRegressionModel(
-          (x) => [Math.pow(x, scalar), 1],
-          yTransform,
-          (coefs, x) => coefs[0] * Math.pow(x, scalar) + coefs[1],
-          dataPoints
-        );
-      }
-    );
-    Object.assign(this, model);
-    this.power = power;
-  }
-
-  getXFormula(): string {
-    const coefs = this.jstats.coef;
-    return [
-      _coefHtml(coefs[0], true),
-      ' x<sup>',
-      // @ts-ignore
-      shortenValue(this.power, 4),
-      '</sup> ',
-      _coefHtml(coefs[1])
-    ].join(' ');
-  }
-}
-
 export class BoxCoxModel extends PlottableModel {
   lambda: number;
   yTransform: (y: number) => number;
@@ -163,11 +168,12 @@ export class BoxCoxModel extends PlottableModel {
       return (Math.pow(y, lambda) - 1) / lambda;
     };
 
-    const [model, lambda] = _findBestRMSEScalar(
+    const [model, lambda] = _findBestRMSEScalar_nAry(
       {
         lowerBoundScalar: -3,
         upperBoundScalar: 3,
-        maxSearchDepth: MAX_SEARCH_DEPTH
+        initialPartitions: 24,
+        maxSearchDepth: 6
       },
       dataPoints,
       (dataPoints, scalar) =>
@@ -243,12 +249,8 @@ function _getRMSE(residuals: Point[]) {
   return Math.sqrt(sumOfSquares / residuals.length);
 }
 
-function _findBestRMSEScalar(
-  config: {
-    lowerBoundScalar: number;
-    upperBoundScalar: number;
-    maxSearchDepth: number;
-  },
+function _findBestRMSEScalar_binary(
+  config: ModelSearchConfig,
   dataPoints: Point[],
   modelFactory: RegressionModelFactory
 ): [RegressionModel, number] {
@@ -276,4 +278,48 @@ function _findBestRMSEScalar(
 
   // @ts-ignore
   return [middleModel, middleScalar];
+}
+function _findBestRMSEScalar_nAry(
+  config: ModelSearchConfig & {
+    initialPartitions: number;
+  },
+  dataPoints: Point[],
+  modelFactory: RegressionModelFactory
+): [RegressionModel, number] {
+  const models: RegressionModel[] = [];
+  const scalars: number[] = [];
+  const scalarIncrement =
+    (config.upperBoundScalar - config.lowerBoundScalar) / config.initialPartitions;
+
+  for (
+    let scalar = config.lowerBoundScalar;
+    scalar <= config.upperBoundScalar;
+    scalar += scalarIncrement
+  ) {
+    models.push(modelFactory(dataPoints, scalar));
+    scalars.push(scalar);
+  }
+
+  let lowestRMSE = Infinity;
+  let lowestRMSEIndex = 0;
+  for (let i = 0; i < models.length; ++i) {
+    if (models[i].rmse < lowestRMSE) {
+      lowestRMSEIndex = i;
+      lowestRMSE = models[i].rmse;
+    }
+  }
+
+  const nestedConfig = Object.assign({}, config);
+  if (lowestRMSEIndex == 0) {
+    nestedConfig.upperBoundScalar = scalars[1];
+  } else if (lowestRMSEIndex == models.length - 1) {
+    nestedConfig.lowerBoundScalar = scalars[models.length - 2];
+  } else if (models[lowestRMSEIndex - 1] < models[lowestRMSEIndex + 1]) {
+    nestedConfig.lowerBoundScalar = scalars[lowestRMSEIndex - 1];
+    nestedConfig.upperBoundScalar = scalars[lowestRMSEIndex];
+  } else {
+    nestedConfig.lowerBoundScalar = scalars[lowestRMSEIndex];
+    nestedConfig.upperBoundScalar = scalars[lowestRMSEIndex + 1];
+  }
+  return _findBestRMSEScalar_binary(nestedConfig, dataPoints, modelFactory);
 }
