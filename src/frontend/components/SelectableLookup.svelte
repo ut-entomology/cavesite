@@ -74,7 +74,7 @@
       specsByUnique = {};
       for (const spec of matchedSpecs!) {
         specsByUnique[spec.unique] = spec;
-        if (spec.unique.toLocaleLowerCase() == partialName.toLocaleLowerCase()) {
+        if (spec.unique.toLowerCase() == partialName.toLowerCase()) {
           selection = spec.unique;
         }
       }
