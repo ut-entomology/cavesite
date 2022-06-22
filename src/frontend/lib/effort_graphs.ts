@@ -11,6 +11,7 @@ export abstract class EffortGraphSpec {
   points: Point[] = [];
 
   protected _priorY = 0;
+  protected _cumulativePercentChange = 0;
 
   constructor(
     clusterEffortData: EffortData[],
@@ -25,6 +26,7 @@ export abstract class EffortGraphSpec {
 
     for (const effortData of clusterEffortData) {
       this._priorY = 0; // reset at the start of each cave
+      this._cumulativePercentChange = 0;
       for (const point of this._getPoints(effortData)) {
         if (point.x >= lowerBoundX && point.x <= upperBoundX) {
           this._addPoint(point);
@@ -48,9 +50,15 @@ export abstract class EffortGraphSpec {
     return point;
   }
 
-  protected _getPercentChange(point: Point): Point | null {
+  protected _getPercentChangePoint(point: Point): Point | null {
     if (this._priorY == 0) return null;
     return { x: point.x, y: (100 * (point.y - this._priorY)) / this._priorY };
+  }
+
+  protected _getCumuPercentChangePoint(point: Point): Point | null {
+    if (this._priorY == 0) return null;
+    this._cumulativePercentChange += (100 * (point.y - this._priorY)) / this._priorY;
+    return { x: point.x, y: this._cumulativePercentChange };
   }
 }
 
@@ -83,7 +91,23 @@ export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
   }
 
   protected _transformPoint(point: Point): Point | null {
-    return this._getPercentChange(point);
+    return this._getPercentChangePoint(point);
+  }
+}
+
+export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
+  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+    super(
+      clusterEffortData,
+      'Cumulative % change in species across days',
+      minDays,
+      maxDays
+    );
+    this.yAxisLabel = 'cumu. % change in species';
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getCumuPercentChangePoint(point);
   }
 }
 
@@ -111,12 +135,28 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
 
 export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
   constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+    super(
+      clusterEffortData,
+      'Cumulative % change in species across visits',
+      minDays,
+      maxDays
+    );
+    this.yAxisLabel = 'cumu. % change in species';
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getPercentChangePoint(point);
+  }
+}
+
+export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
+  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
     super(clusterEffortData, '% change in species across visits', minDays, maxDays);
     this.yAxisLabel = '% change in species';
   }
 
   protected _transformPoint(point: Point): Point | null {
-    return this._getPercentChange(point);
+    return this._getCumuPercentChangePoint(point);
   }
 }
 
@@ -163,6 +203,22 @@ export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpe
   }
 
   protected _transformPoint(point: Point): Point | null {
-    return this._getPercentChange(point);
+    return this._getPercentChangePoint(point);
+  }
+}
+
+export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
+  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+    super(
+      clusterEffortData,
+      'Cumulative % change in species across person-visits',
+      minDays,
+      maxDays
+    );
+    this.yAxisLabel = 'cumu. % change in species';
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getCumuPercentChangePoint(point);
   }
 }

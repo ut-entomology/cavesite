@@ -6,10 +6,13 @@
     type EffortGraphSpec,
     SpeciesByDaysGraphSpec,
     PercentChangeByDaysGraphSpec,
+    CumuPercentChangeByDaysGraphSpec,
     SpeciesByVisitsGraphSpec,
     PercentChangeByVisitsGraphSpec,
+    CumuPercentChangeByVisitsGraphSpec,
     SpeciesByPersonVisitsGraphSpec,
-    PercentChangeByPersonVisitsGraphSpec
+    PercentChangeByPersonVisitsGraphSpec,
+    CumuPercentChangeByPersonVisitsGraphSpec
   } from '../lib/effort_graphs';
 
   interface ClusterData {
@@ -51,7 +54,8 @@
 
   enum YAxisType {
     totalSpecies = 'total species',
-    percentChange = 'percent change'
+    percentChange = 'percent change',
+    cumuPercentChange = 'cumulative percent change'
   }
 
   const yAxisType = YAxisType.totalSpecies;
@@ -154,46 +158,7 @@
       loadState = LoadState.generatingPlotData;
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
-        // @ts-ignore
-        if (yAxisType == YAxisType.totalSpecies) {
-          clusterDataByCluster.push({
-            locationCount: effortData.length,
-            perDayTotalsGraph: new SpeciesByDaysGraphSpec(
-              effortData,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X
-            ),
-            perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
-              effortData,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X
-            ),
-            perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
-              effortData,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X
-            )
-          });
-        } else {
-          clusterDataByCluster.push({
-            locationCount: effortData.length,
-            perDayTotalsGraph: new PercentChangeByDaysGraphSpec(
-              effortData,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X
-            ),
-            perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
-              effortData,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X
-            ),
-            perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
-              effortData,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X
-            )
-          });
-        }
+        clusterDataByCluster.push(_getClusterData(yAxisType, effortData));
       }
       clusterDataByCluster.sort((a, b) => {
         const aPointCount = a.perVisitTotalsGraph.points.length;
@@ -213,6 +178,74 @@
     effortStore.set(null);
     clusterStore.set(null);
     location.reload();
+  }
+
+  function _getClusterData(
+    yAxisType: YAxisType,
+    effortData: EffortData[]
+  ): ClusterData {
+    switch (yAxisType) {
+      case YAxisType.totalSpecies:
+        return {
+          locationCount: effortData.length,
+          perDayTotalsGraph: new SpeciesByDaysGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          )
+        };
+        break;
+      case YAxisType.percentChange:
+        return {
+          locationCount: effortData.length,
+          perDayTotalsGraph: new PercentChangeByDaysGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          )
+        };
+        break;
+      case YAxisType.cumuPercentChange:
+        return {
+          locationCount: effortData.length,
+          perDayTotalsGraph: new CumuPercentChangeByDaysGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perVisitTotalsGraph: new CumuPercentChangeByVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          ),
+          perPersonVisitTotalsGraph: new CumuPercentChangeByPersonVisitsGraphSpec(
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X
+          )
+        };
+        break;
+    }
   }
 
   function _getGraphData(datasetID: DatasetID, clusterData: ClusterData) {
