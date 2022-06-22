@@ -29,6 +29,11 @@
   export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
 
+  function checkNameEquivalence(spec: ModelSpec, name: string): boolean {
+    const taxonSpec = spec as TaxonSpec;
+    return taxonSpec.unique.toLowerCase() == name.toLowerCase();
+  }
+
   function createMatchedItem(spec: ModelSpec) {
     return { unique: spec.unique, name: spec.unique, spec };
   }
@@ -85,6 +90,7 @@
   createContainingSpecs={noTypeCheck(createContainingTaxonSpecs)}
   {createMatchedItem}
   toItemHtml={noTypeCheck(toItemHtml)}
+  {checkNameEquivalence}
   {addSelection}
   {removeSelection}
   {openUnique}

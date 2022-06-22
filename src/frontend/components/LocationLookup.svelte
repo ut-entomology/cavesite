@@ -30,6 +30,11 @@
   export let openUnique: (selectedUnique: string) => Promise<void>;
   export let setClearer: (clearer: () => void) => void;
 
+  function checkNameEquivalence(spec: ModelSpec, name: string): boolean {
+    const locationSpec = spec as LocationSpec;
+    return locationSpec.name.toLowerCase() == name.toLowerCase();
+  }
+
   function createMatchedItem(spec: ModelSpec) {
     const locationSpec = spec as LocationSpec;
     return { unique: locationSpec.unique, name: locationSpec.name, spec };
@@ -84,6 +89,7 @@
   createContainingSpecs={noTypeCheck(createContainingLocationSpecs)}
   {createMatchedItem}
   toItemHtml={noTypeCheck(toItemHtml)}
+  {checkNameEquivalence}
   {addSelection}
   {removeSelection}
   {openUnique}

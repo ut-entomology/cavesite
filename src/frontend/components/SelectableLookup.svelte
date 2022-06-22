@@ -39,6 +39,7 @@
   export let createContainingSpecs: (spec: ModelSpec) => ModelSpec[];
   export let createMatchedItem: (spec: ModelSpec) => MatchedItem;
   export let toItemHtml: (spec: ModelSpec, label: string) => string;
+  export let checkNameEquivalence: (spec: ModelSpec, name: string) => boolean;
   export let addSelection: AddSelection<ModelSpec>;
   export let removeSelection: RemoveSelection<ModelSpec>;
   export let openUnique: (selectedUnique: string) => Promise<void>;
@@ -72,11 +73,18 @@
       return [];
     } else {
       specsByUnique = {};
+      let equivalentNamesCount = 0;
+      let equivalentSelection = '';
       for (const spec of matchedSpecs!) {
         specsByUnique[spec.unique] = spec;
-        if (spec.unique.toLowerCase() == partialName.toLowerCase()) {
-          selection = spec.unique;
+        if (checkNameEquivalence(spec, partialName)) {
+          ++equivalentNamesCount;
+          equivalentSelection = spec.unique;
         }
+      }
+      // Only show controls if the partialName matches exactly one list item.
+      if (equivalentNamesCount == 1) {
+        selection = equivalentSelection;
       }
     }
     return matchedSpecs
