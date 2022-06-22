@@ -154,7 +154,8 @@ test('adding, removing, and clearing via autocomplete controls', async ({ page }
 test('selecting from the autocompletion list', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
-  const araneidaeID = '.autocomplete-list-item:has-text("Araneidae (")';
+  const araneidaeID =
+    '.autocomplete-list-item:has-text("Araneidae (Arachnida Araneae)")';
 
   // Type 'ara' into the autocompletion box.
 
