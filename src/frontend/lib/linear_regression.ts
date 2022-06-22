@@ -286,7 +286,7 @@ function _findBestRMSEScalar_nAry(
   dataPoints: Point[],
   modelFactory: RegressionModelFactory
 ): [RegressionModel, number] {
-  const models: RegressionModel[] = [];
+  let models: RegressionModel[] = [];
   const scalars: number[] = [];
   const scalarIncrement =
     (config.upperBoundScalar - config.lowerBoundScalar) / config.initialPartitions;
@@ -321,5 +321,7 @@ function _findBestRMSEScalar_nAry(
     nestedConfig.lowerBoundScalar = scalars[lowestRMSEIndex];
     nestedConfig.upperBoundScalar = scalars[lowestRMSEIndex + 1];
   }
+  models = []; // clear memory
+  // TODO: improve performance by passing in boundary models
   return _findBestRMSEScalar_binary(nestedConfig, dataPoints, modelFactory);
 }

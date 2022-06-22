@@ -5,8 +5,11 @@
   import {
     type EffortGraphSpec,
     SpeciesByDaysGraphSpec,
+    PercentChangeByDaysGraphSpec,
     SpeciesByVisitsGraphSpec,
-    SpeciesByPersonVisitsGraphSpec
+    PercentChangeByVisitsGraphSpec,
+    SpeciesByPersonVisitsGraphSpec,
+    PercentChangeByPersonVisitsGraphSpec
   } from '../lib/effort_graphs';
 
   interface ClusterData {
@@ -46,13 +49,19 @@
 
   $pageName = 'Collection Effort';
 
+  enum YAxisType {
+    totalSpecies = 'total species',
+    percentChange = 'percent change'
+  }
+
+  const yAxisType = YAxisType.totalSpecies;
   const MAX_CLUSTERS = 12;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
-  const USE_BOX_COX = true;
+  const USE_BOX_COX = false;
 
   const POWER_HEXCOLOR = 'FF0088';
   const QUADRATIC_HEXCOLOR = '00DCD8';
@@ -113,7 +122,7 @@
           models.push(new QuadraticModel(QUADRATIC_HEXCOLOR, graphData.points));
         }
       }
-      modelsByCluster[i] = models;
+      modelsByCluster[i] = models; // must place by cluster index
     }
   }
 
@@ -145,24 +154,46 @@
       loadState = LoadState.generatingPlotData;
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
-        clusterDataByCluster.push({
-          locationCount: effortData.length,
-          perDayTotalsGraph: new SpeciesByDaysGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X
-          ),
-          perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X
-          ),
-          perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X
-          )
-        });
+        // @ts-ignore
+        if (yAxisType == YAxisType.totalSpecies) {
+          clusterDataByCluster.push({
+            locationCount: effortData.length,
+            perDayTotalsGraph: new SpeciesByDaysGraphSpec(
+              effortData,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X
+            ),
+            perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
+              effortData,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X
+            ),
+            perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
+              effortData,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X
+            )
+          });
+        } else {
+          clusterDataByCluster.push({
+            locationCount: effortData.length,
+            perDayTotalsGraph: new PercentChangeByDaysGraphSpec(
+              effortData,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X
+            ),
+            perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
+              effortData,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X
+            ),
+            perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
+              effortData,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X
+            )
+          });
+        }
       }
       clusterDataByCluster.sort((a, b) => {
         const aPointCount = a.perVisitTotalsGraph.points.length;
@@ -263,7 +294,7 @@
                 modelPlots={models.map((model) =>
                   model.getModelPoints(POINTS_IN_MODEL_PLOT)
                 )}
-                yFormula={models[0].getYFormula(/* same for all models */)}
+                yFormula={models ? models[0].getYFormula() : 'y'}
               />
             </div>
           </div>

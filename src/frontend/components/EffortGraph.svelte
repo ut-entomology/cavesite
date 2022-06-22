@@ -16,7 +16,8 @@
     datasets: [
       {
         label: config.pointCount + ' points',
-        data: models[0].convertDataPoints(config.points)
+        data:
+          models.length > 0 ? models[0].convertDataPoints(config.points) : config.points
       },
       ...models.map((model, i) => {
         return {
@@ -41,7 +42,7 @@
       y: {
         title: {
           display: true,
-          text: yFormula ? config.yAxisLabel + ` (${yFormula})` : null,
+          text: yFormula ? config.yAxisLabel + ` (${yFormula})` : config.yAxisLabel,
           font: { size: 16 }
         }
       }
