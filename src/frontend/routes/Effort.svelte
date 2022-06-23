@@ -71,7 +71,7 @@
   }
 
   const yAxisType = YAxisType.totalSpecies;
-  const yAxisModel = YAxisModel.boxCox;
+  const yAxisModel = YAxisModel.none;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
