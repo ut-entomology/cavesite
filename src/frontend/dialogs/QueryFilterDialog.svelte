@@ -311,20 +311,20 @@
       <span class="form-check form-check-inline ms-2">
         <input
           type="checkbox"
-          bind:checked={filterLocations}
-          class="form-check-input"
-          aria-label="filter by locations"
-        />
-        <label class="form-check-label" for="locationFilterSwitch">locations</label>
-      </span>
-      <span class="form-check form-check-inline">
-        <input
-          type="checkbox"
           bind:checked={filterTaxa}
           class="form-check-input"
           aria-label="filter by taxa"
         />
         <label class="form-check-label" for="taxonFilterSwitch">taxa</label>
+      </span>
+      <span class="form-check form-check-inline">
+        <input
+          type="checkbox"
+          bind:checked={filterLocations}
+          class="form-check-input"
+          aria-label="filter by locations"
+        />
+        <label class="form-check-label" for="locationFilterSwitch">locations</label>
       </span>
     </div>
   </div>
