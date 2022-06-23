@@ -1327,7 +1327,7 @@ test('adding ancestor of already-selected taxa via taxon tree', async ({ page })
     page.locator(toTreeRowSelectorID('Latrodectus mactans') + '.selection')
   ).toBeVisible();
 
-  // Add 'Araneae' via the autocompletion box.
+  // Add 'Araneae' via the taxon tree selector.
 
   await page.click(toTreeRowSelectorID('Araneae'));
 
