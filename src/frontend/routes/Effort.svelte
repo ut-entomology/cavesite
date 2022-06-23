@@ -44,9 +44,9 @@
   import { client } from '../stores/client';
   import {
     PlottableModel,
-    QuadraticModel,
-    PowerModel,
-    BoxCoxModel
+    QuadraticXModel,
+    PowerXModel,
+    BoxCoxYModel
   } from '../lib/linear_regression';
   import { pageName } from '../stores/pageName';
 
@@ -112,18 +112,18 @@
       if (graphData.points.length >= MIN_POINTS_TO_REGRESS) {
         if (USE_BOX_COX) {
           models.push(
-            new BoxCoxModel(graphData.points, (dataPoints, yTransform) => {
-              return new PowerModel(POWER_HEXCOLOR, dataPoints, yTransform);
+            new BoxCoxYModel(graphData.points, (dataPoints, yTransform) => {
+              return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
             })
           );
           models.push(
-            new BoxCoxModel(graphData.points, (dataPoints, yTransform) => {
-              return new QuadraticModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
+            new BoxCoxYModel(graphData.points, (dataPoints, yTransform) => {
+              return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
             })
           );
         } else {
-          models.push(new PowerModel(POWER_HEXCOLOR, graphData.points));
-          models.push(new QuadraticModel(QUADRATIC_HEXCOLOR, graphData.points));
+          models.push(new PowerXModel(POWER_HEXCOLOR, graphData.points));
+          models.push(new QuadraticXModel(QUADRATIC_HEXCOLOR, graphData.points));
         }
       }
       modelsByCluster[i] = models; // must place by cluster index

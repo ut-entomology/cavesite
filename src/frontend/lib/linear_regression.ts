@@ -85,7 +85,7 @@ export abstract class PlottableModel implements RegressionModel {
   }
 }
 
-export class PowerModel extends PlottableModel {
+export class PowerXModel extends PlottableModel {
   power: number;
 
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
@@ -125,7 +125,7 @@ export class PowerModel extends PlottableModel {
   }
 }
 
-export class QuadraticModel extends PlottableModel {
+export class QuadraticXModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('quadratic fit', hexColor, dataPoints);
 
@@ -154,7 +154,7 @@ export class QuadraticModel extends PlottableModel {
   }
 }
 
-export class BoxCoxModel extends PlottableModel {
+export class BoxCoxYModel extends PlottableModel {
   lambda: number;
   yTransform: (y: number) => number;
   private _xFormula: string;
