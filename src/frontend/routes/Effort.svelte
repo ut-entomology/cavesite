@@ -64,7 +64,7 @@
   }
 
   enum YAxisModel {
-    none = 'none',
+    none = 'y',
     logY = 'log(y)',
     powerY = 'y^p',
     boxCox = 'box-cox'
@@ -73,17 +73,10 @@
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const MAX_CLUSTERS = 12;
-  const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
-  const USE_BOX_COX = false;
-
-  const LOG_HEXCOLOR = '880000';
-  const ORDER3_HEXCOLOR = '35FF45';
-  const POWER_HEXCOLOR = 'FF0088';
-  const QUADRATIC_HEXCOLOR = '00DCD8';
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -96,6 +89,13 @@
     minSpecies: 0,
     maxSpecies: 10000
   };
+  const PLOTTED_COMPARED_TAXA = CLUSTER_SPEC.comparedTaxa!;
+
+  const MIN_POINTS_TO_REGRESS = 3;
+  const LOG_HEXCOLOR = 'A95CFF';
+  const ORDER3_HEXCOLOR = '00D40E';
+  const POWER_HEXCOLOR = 'FF0088';
+  const QUADRATIC_HEXCOLOR = '00DCD8';
 
   enum LoadState {
     idle,
@@ -117,9 +117,36 @@
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
 
+  // TODO: This data should be per-model. What do I really want to do?
+  let bestPValue: number;
+  let weightedPValue: number;
+  let averagePValue: number;
+  let worstPValue: number;
+  let bestRMSE: number;
+  let weightedRMSE: number;
+  let averageRMSE: number;
+  let worstRMSE: number;
+  let bestR2: number;
+  let weightedR2: number;
+  let averageR2: number;
+  let worstR2: number;
+
   $: if ($clusterStore) {
     loadState = LoadState.fittingModels;
     modelsByCluster = [];
+    bestPValue = Infinity;
+    worstPValue = 0;
+    averagePValue = 0;
+    weightedPValue = 0;
+    bestRMSE = Infinity;
+    worstRMSE = 0;
+    averageRMSE = 0;
+    weightedRMSE = 0;
+    bestR2 = 0;
+    worstR2 = 1;
+    averageR2 = 0;
+    weightedR2 = 0;
+
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
       const graphData = _getGraphData(datasetID, clusterData);
@@ -148,7 +175,7 @@
       loadState = LoadState.loadingPoints;
       const effortDataByCluster = await loadPoints(
         $client,
-        CLUSTER_SPEC.comparedTaxa!,
+        PLOTTED_COMPARED_TAXA,
         locationIDsByClusterIndex,
         MIN_PERSON_VISITS
       );
@@ -358,6 +385,40 @@
     {#if $clusterStore === null}
       <button class="btn btn-major" type="button" on:click={loadData}>Load Data</button>
     {:else}
+      <div class="summary_info">
+        <div class="row mt-3">
+          <div class="col"><span>{MAX_CLUSTERS} clusters max</span></div>
+          <div class="col">comparing: <span>{CLUSTER_SPEC.comparedTaxa}</span></div>
+          <div class="col">y-axis: <span>{yAxisType} {yAxisModel}</span></div>
+        </div>
+        <div class="row">
+          <div class="col"><span>{CLUSTER_SPEC.metric.basis}</span></div>
+          <div class="col">
+            subgenera:
+            <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
+          </div>
+          <div class="col">
+            regressed <span>{LOWER_BOUND_X} &lt;= x &lt;= {UPPER_BOUND_X}</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            metric transform: <span>{CLUSTER_SPEC.metric.transform}</span>
+          </div>
+          <div class="col">
+            min <span>{CLUSTER_SPEC.minSpecies}</span> max
+            <span>{CLUSTER_SPEC.maxSpecies}</span> species
+          </div>
+          <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
+        </div>
+        <div class="row">
+          <div class="col">
+            metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
+          </div>
+          <div class="col">plotting <span>{PLOTTED_COMPARED_TAXA}</span></div>
+          <div class="col" />
+        </div>
+      </div>
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
         {@const models = modelsByCluster[i]}
@@ -414,3 +475,13 @@
     <BusyMessage message="Fitting models..." />
   {/if}
 {/if}
+
+<style>
+  .summary_info {
+    font-size: 0.85rem;
+    color: #999;
+  }
+  .summary_info span {
+    color: #000;
+  }
+</style>
