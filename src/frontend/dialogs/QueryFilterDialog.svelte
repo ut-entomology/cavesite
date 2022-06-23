@@ -307,32 +307,25 @@
 
   <div class="row justify-content-center mt-3 mb-2">
     <div class="col-auto">
-      <div class="form-check form-switch">
+      Restrict results to selected:
+      <span class="form-check form-check-inline ms-2">
         <input
           type="checkbox"
           bind:checked={filterLocations}
           class="form-check-input"
-          id="locationFilterSwitch"
+          aria-label="filter by locations"
         />
-        <label class="form-check-label" for="locationFilterSwitch"
-          >Filter locations &ndash; restrict to the selected locations</label
-        >
-      </div>
-    </div>
-  </div>
-  <div class="row justify-content-center mt-3 mb-2">
-    <div class="col-auto">
-      <div class="form-check form-switch">
+        <label class="form-check-label" for="locationFilterSwitch">locations</label>
+      </span>
+      <span class="form-check form-check-inline">
         <input
           type="checkbox"
           bind:checked={filterTaxa}
           class="form-check-input"
-          id="taxonFilterSwitch"
+          aria-label="filter by taxa"
         />
-        <label class="form-check-label" for="taxonFilterSwitch"
-          >Filter taxa &ndash; restrict to the selected taxa</label
-        >
-      </div>
+        <label class="form-check-label" for="taxonFilterSwitch">taxa</label>
+      </span>
     </div>
   </div>
 
