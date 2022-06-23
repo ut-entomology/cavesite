@@ -12,6 +12,7 @@ import { locationRanks } from '../../shared/model';
 import {
   QueryColumnID,
   type QueryColumnSpec,
+  type QueryLocationFilter,
   type QueryTaxonFilter,
   type QueryRow
 } from '../../shared/user_query';
@@ -558,6 +559,7 @@ export class Specimen {
   static async generalQuery(
     db: DB,
     columnSpecs: QueryColumnSpec[],
+    locationFilter: QueryLocationFilter | null,
     taxonFilter: QueryTaxonFilter | null,
     skip: number,
     limit: number
@@ -565,6 +567,7 @@ export class Specimen {
     let groupCountTerm: string | null = null;
     let selectDistinctResults = true;
     const selectedColumns: string[] = [];
+    const whereComponents: string[] = [];
     const nullChecks: string[] = [];
     const columnOrders: string[] = [];
 
@@ -605,12 +608,27 @@ export class Specimen {
         }
       }
     }
+    if (nullChecks.length > 0) {
+      whereComponents.push(nullChecks.join(' and '));
+    }
 
     if (selectedColumns.length == 0) return [[], 0];
 
-    let taxaConditionsPrefix = '';
-    let taxaConditions: string[] = [];
+    if (locationFilter !== null) {
+      let locationConditions: string[] = [];
+      _collectInIntegerList(locationConditions, 'county_id', locationFilter.countyIDs);
+      _collectInIntegerList(
+        locationConditions,
+        'locality_id',
+        locationFilter.localityIDs
+      );
+      if (locationConditions.length > 0) {
+        whereComponents.push(locationConditions.join(' or '));
+      }
+    }
+
     if (taxonFilter !== null) {
+      let taxaConditions: string[] = [];
       _collectInIntegerList(taxaConditions, 'phylum_id', taxonFilter.phylumIDs);
       _collectInIntegerList(taxaConditions, 'class_id', taxonFilter.classIDs);
       _collectInIntegerList(taxaConditions, 'order_id', taxonFilter.orderIDs);
@@ -618,17 +636,13 @@ export class Specimen {
       _collectInIntegerList(taxaConditions, 'genus_id', taxonFilter.genusIDs);
       _collectInIntegerList(taxaConditions, 'species_id', taxonFilter.speciesIDs);
       _collectInIntegerList(taxaConditions, 'subspecies_id', taxonFilter.subspeciesIDs);
-      if (nullChecks.length > 0) taxaConditionsPrefix = ' and ';
+      if (taxaConditions.length > 0) {
+        whereComponents.push(taxaConditions.join(' or '));
+      }
     }
 
-    let whereClause = '';
-    if (nullChecks.length > 0 || taxaConditions.length > 0) {
-      whereClause = `where ${nullChecks.join(' and ')}${
-        taxaConditions.length == 0
-          ? ''
-          : taxaConditionsPrefix + taxaConditions.join(' or ')
-      }`;
-    }
+    const whereClause =
+      whereComponents.length == 0 ? '' : 'where ' + whereComponents.join(' and ');
 
     let selectionClause = selectedColumns.join(', ');
     let countedClause = selectionClause;

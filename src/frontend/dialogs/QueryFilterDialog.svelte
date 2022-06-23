@@ -4,9 +4,14 @@
 
   import ModalDialog from '../common/ModalDialog.svelte';
   import CircleIconButton from '../components/CircleIconButton.svelte';
-  import { TaxonRank } from '../../shared/model';
+  import { LocationRank, TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
-  import type { QueryTaxonFilter, GeneralQuery } from '../../shared/user_query';
+  import type {
+    QueryLocationFilter,
+    QueryTaxonFilter,
+    GeneralQuery
+  } from '../../shared/user_query';
+  import { selectedLocations } from '../stores/selectedLocations';
   import { selectedTaxa } from '../stores/selectedTaxa';
 
   type DraggableItem = Item & {
@@ -33,6 +38,7 @@
   export let onQuery: (query: GeneralQuery) => void;
 
   let filterTaxa = initialQuery.taxonFilter !== null;
+  let filterLocations = initialQuery.locationFilter !== null;
   let includedItems: DraggableItem[] = [];
   let excludedItems: DraggableItem[] = [];
   let nullSelections: NullOption[] = [];
@@ -53,6 +59,26 @@
     }
   }
 
+  function getLocationFilter(): QueryLocationFilter | null {
+    if ($selectedLocations === null) return null;
+
+    const filter: QueryLocationFilter = {
+      countyIDs: null,
+      localityIDs: null
+    };
+    for (const spec of Object.values($selectedLocations)) {
+      switch (spec.rank) {
+        case LocationRank.County:
+          filter.countyIDs = appendFilteredID(filter.countyIDs, spec.locationID);
+          break;
+        case LocationRank.Locality:
+          filter.localityIDs = appendFilteredID(filter.localityIDs, spec.locationID);
+          break;
+      }
+    }
+    return filter;
+  }
+
   function getTaxonFilter(): QueryTaxonFilter | null {
     if ($selectedTaxa === null) return null;
 
@@ -68,32 +94,32 @@
     for (const spec of Object.values($selectedTaxa)) {
       switch (spec.rank) {
         case TaxonRank.Phylum:
-          filter.phylumIDs = appendTaxonID(filter.phylumIDs, spec.taxonID);
+          filter.phylumIDs = appendFilteredID(filter.phylumIDs, spec.taxonID);
           break;
         case TaxonRank.Class:
-          filter.classIDs = appendTaxonID(filter.classIDs, spec.taxonID);
+          filter.classIDs = appendFilteredID(filter.classIDs, spec.taxonID);
           break;
         case TaxonRank.Order:
-          filter.orderIDs = appendTaxonID(filter.orderIDs, spec.taxonID);
+          filter.orderIDs = appendFilteredID(filter.orderIDs, spec.taxonID);
           break;
         case TaxonRank.Family:
-          filter.familyIDs = appendTaxonID(filter.familyIDs, spec.taxonID);
+          filter.familyIDs = appendFilteredID(filter.familyIDs, spec.taxonID);
           break;
         case TaxonRank.Genus:
-          filter.genusIDs = appendTaxonID(filter.genusIDs, spec.taxonID);
+          filter.genusIDs = appendFilteredID(filter.genusIDs, spec.taxonID);
           break;
         case TaxonRank.Species:
-          filter.speciesIDs = appendTaxonID(filter.speciesIDs, spec.taxonID);
+          filter.speciesIDs = appendFilteredID(filter.speciesIDs, spec.taxonID);
           break;
         case TaxonRank.Subspecies:
-          filter.subspeciesIDs = appendTaxonID(filter.subspeciesIDs, spec.taxonID);
+          filter.subspeciesIDs = appendFilteredID(filter.subspeciesIDs, spec.taxonID);
           break;
       }
     }
     return filter;
   }
 
-  function appendTaxonID(toList: number[] | null, taxonID: number): number[] {
+  function appendFilteredID(toList: number[] | null, taxonID: number): number[] {
     if (toList === null) return [taxonID];
     toList.push(taxonID);
     return toList;
@@ -140,6 +166,7 @@
 
         return { columnID, nullValues, ascending };
       }),
+      locationFilter: filterLocations ? getLocationFilter() : null,
       taxonFilter: filterTaxa ? getTaxonFilter() : null
     });
   };
@@ -278,6 +305,21 @@
     </div>
   </div>
 
+  <div class="row justify-content-center mt-3 mb-2">
+    <div class="col-auto">
+      <div class="form-check form-switch">
+        <input
+          type="checkbox"
+          bind:checked={filterLocations}
+          class="form-check-input"
+          id="locationFilterSwitch"
+        />
+        <label class="form-check-label" for="locationFilterSwitch"
+          >Filter locations &ndash; restrict to the selected locations</label
+        >
+      </div>
+    </div>
+  </div>
   <div class="row justify-content-center mt-3 mb-2">
     <div class="col-auto">
       <div class="form-check form-switch">

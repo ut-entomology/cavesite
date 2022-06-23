@@ -39,6 +39,11 @@ export interface QueryColumnSpec {
   nullValues: boolean | null; // null => null or not
 }
 
+export interface QueryLocationFilter {
+  countyIDs: number[] | null;
+  localityIDs: number[] | null;
+}
+
 export interface QueryTaxonFilter {
   phylumIDs: number[] | null;
   classIDs: number[] | null;
@@ -51,6 +56,7 @@ export interface QueryTaxonFilter {
 
 export interface GeneralQuery {
   columnSpecs: QueryColumnSpec[];
+  locationFilter: QueryLocationFilter | null;
   taxonFilter: QueryTaxonFilter | null;
 }
 

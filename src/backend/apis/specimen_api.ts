@@ -30,6 +30,14 @@ router.post('/query', async (req: Request, res) => {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
+  if (query.locationFilter !== null) {
+    if (
+      !checkIntegerList(query.locationFilter.countyIDs, true) ||
+      !checkIntegerList(query.locationFilter.localityIDs, true)
+    ) {
+      return res.status(StatusCodes.BAD_REQUEST).send();
+    }
+  }
   if (query.taxonFilter !== null) {
     if (
       !checkIntegerList(query.taxonFilter.phylumIDs, true) ||
@@ -50,6 +58,7 @@ router.post('/query', async (req: Request, res) => {
   const result: [QueryRow[], number | null] = await Specimen.generalQuery(
     getDB(),
     query.columnSpecs,
+    query.locationFilter,
     query.taxonFilter,
     skip,
     limit

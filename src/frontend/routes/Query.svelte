@@ -83,6 +83,7 @@
     if (templateQuery === null) {
       templateQuery = {
         columnSpecs: [],
+        locationFilter: null,
         taxonFilter: null
       };
       for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
