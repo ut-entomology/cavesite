@@ -19,6 +19,8 @@ const autocompleteListItemID = '.autocomplete-list-item';
 const selectAllButtonID = 'button:has-text("Select All")';
 const deselectAllButtonID = 'button:has-text("Deselect All")';
 
+const toAutoListItemID = (location: string) =>
+  `.autocomplete-list-item:has-text("${location}")`;
 const toTreeRowNameID = (location: string) =>
   `.tree-row .location-name:has-text("${location}")`;
 const toTreeRowSelectorID = (location: string) =>
@@ -86,6 +88,12 @@ test('test increasingly specific autocomplete', async ({ page }) => {
   await expect(list).toContainText('Wheat Cave (Edwards County)');
   let items = page.locator(autocompleteListItemID);
   await expect(items).toHaveCount(1);
+  await expect(page.locator(autoSelectorID)).not.toBeVisible();
+  await expect(page.locator(autoLoupeID)).not.toBeVisible();
+  await expect(page.locator(autocompleteClearButton)).toBeVisible();
+
+  await page.fill(autocompleteInputID, 'wheat cave');
+  await expect(list).toContainText('Wheat Cave (Edwards County)');
   await expect(page.locator(autoSelectorID)).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
@@ -95,7 +103,19 @@ test('test increasingly specific autocomplete', async ({ page }) => {
   await expect(page.locator(clearLocationsButtonID)).not.toBeVisible();
 });
 
-test("inabiltiy to select 'North America' via autocomplete", async ({ page }) => {
+test('absence of controls for duplicate location names', async ({ page }) => {
+  await page.goto(URL);
+
+  await page.fill(autocompleteInputID, 'cricket cave');
+  let list = page.locator(autocompleteListID);
+  await expect(list).toContainText('Cricket Cave (Kendall County)');
+  await expect(list).toContainText('Cricket Cave (Williamson County)');
+  await expect(page.locator(autoSelectorID)).not.toBeVisible();
+  await expect(page.locator(autoLoupeID)).not.toBeVisible();
+  await expect(page.locator(autocompleteClearButton)).toBeVisible();
+});
+
+test("inability to select 'North America' via autocomplete", async ({ page }) => {
   await page.goto(URL);
   await page.fill(autocompleteInputID, 'north america');
   let list = page.locator(autocompleteListID);
@@ -105,7 +125,7 @@ test("inabiltiy to select 'North America' via autocomplete", async ({ page }) =>
   await expect(page.locator(autoLoupeID)).not.toBeVisible();
 });
 
-test("inabiltiy to select 'United States' via autocomplete", async ({ page }) => {
+test("inability to select 'United States' via autocomplete", async ({ page }) => {
   await page.goto(URL);
   await page.fill(autocompleteInputID, 'united states');
   let list = page.locator(autocompleteListID);
@@ -115,7 +135,7 @@ test("inabiltiy to select 'United States' via autocomplete", async ({ page }) =>
   await expect(page.locator(autoLoupeID)).not.toBeVisible();
 });
 
-test("inabiltiy to select 'Texas' via autocomplete", async ({ page }) => {
+test("inability to select 'Texas' via autocomplete", async ({ page }) => {
   await page.goto(URL);
   await page.fill(autocompleteInputID, 'texas');
   let list = page.locator(autocompleteListID);
@@ -129,29 +149,28 @@ test('adding, removing, and clearing via autocomplete controls', async ({ page }
   await page.goto(URL);
   const main = page.locator('main');
 
-  // Add 'arachnida' via the autocompletion box
+  // Add 'amber cave' via the autocompletion box
 
-  await page.fill(autocompleteInputID, 'arachnida');
+  await page.fill(autocompleteInputID, 'amber cave');
   await expect(page.locator(autoSelectorID)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
   await page.click(autoSelectorID);
   await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
-  await expect(main).not.toContainText('Animalia');
-  await expect(main).toContainText('phylum: Arthropoda');
-  await expect(main).toContainText('class: Arachnida');
-  expect(await page.inputValue(autocompleteInputID)).toEqual('arachnida');
+  await expect(main).not.toContainText('Texas');
+  await expect(page.locator(toTreeRowNameID('Travis County'))).toBeVisible();
+  expect(await page.inputValue(autocompleteInputID)).toEqual('amber cave');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
   await expect(page.locator(clearLocationsButtonID)).toBeVisible();
 
-  // Remove 'arachnida' via the autocompletion box.
+  // Remove 'amber cave' via the autocompletion box.
 
   await page.click(autoSelectorID);
   await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
   await expect(page.locator(autoSelectorID)).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
-  expect(await page.inputValue(autocompleteInputID)).toEqual('arachnida');
+  expect(await page.inputValue(autocompleteInputID)).toEqual('amber cave');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
   await expect(main).toContainText(NO_LOCATIONS_SELECTED);
   await expect(page.locator(clearLocationsButtonID)).not.toBeVisible();
@@ -165,69 +184,18 @@ test('adding, removing, and clearing via autocomplete controls', async ({ page }
   expect(await page.inputValue(autocompleteInputID)).toBeFalsy();
 });
 
-test('selecting from the autocompletion list', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-  const araneidaeID =
-    '.autocomplete-list-item:has-text("Araneidae (Arachnida Araneae)")';
-
-  // Type 'ara' into the autocompletion box.
-
-  await page.fill(autocompleteInputID, 'ara');
-  let list = page.locator(autocompleteListID);
-  await expect(list).toBeVisible();
-  await expect(page.locator(araneidaeID)).toBeVisible();
-
-  // Click on 'Araneidae' in the autocompletion list.
-
-  await page.click(araneidaeID);
-  await expect(page.locator(araneidaeID)).not.toBeVisible();
-  await expect(list).not.toBeVisible();
-  await expect(page.locator(autoSelectorID)).toBeVisible();
-  await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
-  await expect(page.locator(autoLoupeID)).toBeVisible();
-
-  // Add 'Araneidae' to the selected taxa.
-
-  await page.click(autoSelectorID);
-  await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
-  await expect(page.locator(autoLoupeID)).toBeVisible();
-
-  await expect(main).toContainText('Arthropoda');
-  await expect(page.locator(toTreeRowSelectorID('Arthropoda'))).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Arthropoda') + '.selection')
-  ).not.toBeVisible();
-
-  await expect(main).toContainText('Arachnida');
-  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-
-  await expect(main).toContainText('Araneae');
-  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
-  ).not.toBeVisible();
-
-  await expect(main).toContainText('Araneidae');
-  await expect(
-    page.locator(toTreeRowSelectorID('Araneidae') + '.selection')
-  ).toBeVisible();
-});
-
 test('clears taxon selections tree on confirmation', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 
-  // Add 'arachnida' via the autocompletion box.
+  // Add 'Amber Cave' via the autocompletion box.
 
-  await page.fill(autocompleteInputID, 'arachnida');
+  await page.fill(autocompleteInputID, 'amber cave');
+  await page.click(toAutoListItemID('Amber Cave'));
   await page.click(autoSelectorID);
-  await expect(main).toContainText('class: Arachnida');
+  await expect(page.locator(toTreeRowNameID('Amber Cave'))).toBeVisible();
 
-  // Open the clear taxa confirmation dialog.
+  // Open the clear locations confirmation dialog.
 
   await expect(page.locator(noticeContainerID)).not.toBeVisible();
   await page.click(clearLocationsButtonID);
@@ -237,14 +205,15 @@ test('clears taxon selections tree on confirmation', async ({ page }) => {
 
   await page.click(cancelButtonID);
   await expect(page.locator(noticeContainerID)).not.toBeVisible();
-  await expect(main).toContainText('class: Arachnida');
+  await expect(page.locator(toTreeRowNameID('Amber Cave'))).toBeVisible();
 
   // Then do it again, this time confirming clearing selections.
 
   await page.click(clearLocationsButtonID);
   await page.click(confirmClearLocationsButtonID);
   await expect(main).not.toContainText('CAUTION');
-  await expect(main).not.toContainText('class: Arachnida');
+  await expect(page.locator(toTreeRowNameID('Travis County'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Amber Cave'))).not.toBeVisible();
   await expect(main).toContainText(NO_LOCATIONS_SELECTED);
 
   const initialInput = await page.inputValue(autocompleteInputID);
@@ -254,73 +223,86 @@ test('clears taxon selections tree on confirmation', async ({ page }) => {
   await expect(page.locator(autocompleteClearButton)).not.toBeVisible();
 });
 
-test('interaction of autocompletion box and taxon tree', async ({ page }) => {
+test('interaction of autocompletion box and location tree', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 
   // Add taxon via autocompletion box and remove via taxon tree.
 
-  await page.fill(autocompleteInputID, 'arachnida');
+  await page.fill(autocompleteInputID, 'amber cave');
   await page.click(autoSelectorID);
-  await page.click(toTreeRowSelectorID('Arachnida'));
+  await page.click(toTreeRowSelectorID('Amber Cave'));
   // tree operations clear box in order to simplify the code
   await expect(page.locator(autoSelectorID)).not.toBeVisible();
   await expect(page.locator(autoLoupeID)).not.toBeVisible();
   await expect(main).toContainText(NO_LOCATIONS_SELECTED);
 
-  // Add multiple taxa via the autocompletion box and check for proper
-  // autocompletion controls for each added taxon.
+  // Add multiple locations via the autocompletion box and check for proper
+  // autocompletion controls for each added location.
 
-  await page.fill(autocompleteInputID, 'araneae');
+  await page.fill(autocompleteInputID, 'amber cave');
+  await page.click(toAutoListItemID('Amber Cave'));
   await page.click(autoSelectorID);
-  await page.fill(autocompleteInputID, 'orthoptera');
+  await page.fill(autocompleteInputID, 'apache');
+  await page.click(toAutoListItemID('Apache Cave'));
+  await page.click(autoSelectorID);
+  await page.fill(autocompleteInputID, 'blanco');
+  await page.click(toAutoListItemID('Blanco County'));
   await page.click(autoSelectorID);
 
-  await expect(main).toContainText('class: Arachnida');
-  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Travis County'))).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
+    page.locator(toTreeRowSelectorID('Travis County') + '.selection')
   ).not.toBeVisible();
-  await page.fill(autocompleteInputID, 'arachnida');
+  await page.fill(autocompleteInputID, 'travis county');
+  await page.click(toAutoListItemID('Travis County'));
   await expect(page.locator(autoSelectorID)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
 
-  await expect(main).toContainText('order: Araneae');
+  await expect(page.locator(toTreeRowSelectorID('Amber Cave'))).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+    page.locator(toTreeRowSelectorID('Amber Cave') + '.selection')
   ).toBeVisible();
-  await page.fill(autocompleteInputID, 'araneae');
+  await page.fill(autocompleteInputID, 'amber cave');
+  await page.click(toAutoListItemID('Amber Cave'));
   await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
 
-  await expect(main).toContainText('class: Insecta');
-  await expect(page.locator(toTreeRowSelectorID('Insecta'))).toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Blanco County'))).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Insecta') + '.selection')
+    page.locator(toTreeRowSelectorID('Blanco County') + '.selection')
+  ).toBeVisible();
+  await page.fill(autocompleteInputID, 'blanco county');
+  await page.click(toAutoListItemID('Blanco County'));
+  await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
+  await expect(page.locator(autoLoupeID)).toBeVisible();
+
+  await expect(page.locator(toTreeRowSelectorID('Williamson County'))).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Williamson County') + '.selection')
   ).not.toBeVisible();
-  await page.fill(autocompleteInputID, 'insecta');
+  await page.fill(autocompleteInputID, 'williamson county');
+  await page.click(toAutoListItemID('Williamson County'));
   await expect(page.locator(autoSelectorID)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
 
-  await expect(main).toContainText('order: Orthoptera');
+  await expect(page.locator(toTreeRowSelectorID('Apache Cave'))).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Orthoptera') + '.selection')
+    page.locator(toTreeRowSelectorID('Apache Cave') + '.selection')
   ).toBeVisible();
-  await page.fill(autocompleteInputID, 'Orthoptera');
+  await page.fill(autocompleteInputID, 'apache cave');
+  await page.click(toAutoListItemID('Apache Cave'));
   await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
 
-  // Add 'Arachnida' to selections via the taxon tree.
+  // Add 'Travis County' to selections via the taxon tree.
 
-  await page.click(toTreeRowSelectorID('Arachnida'));
-  await expect(main).toContainText('class: Arachnida');
-  await expect(main).not.toContainText('order: Araneae');
-  await expect(main).toContainText('class: Insecta');
-  await expect(main).toContainText('order: Orthoptera');
+  await page.click(toTreeRowSelectorID('Travis County'));
+  await expect(page.locator(toTreeRowSelectorID('Amber Cave'))).not.toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
+    page.locator(toTreeRowSelectorID('Travis County') + '.selection')
   ).toBeVisible();
 
   let input = await page.inputValue(autocompleteInputID);
@@ -329,14 +311,24 @@ test('interaction of autocompletion box and taxon tree', async ({ page }) => {
   await expect(page.locator(autoLoupeID)).not.toBeVisible();
   await expect(page.locator(autocompleteClearButton)).not.toBeVisible();
 
-  // Remove 'Orthoptera' from the selections tree.
+  await page.fill(autocompleteInputID, 'travis county');
+  await page.click(toAutoListItemID('Travis County'));
+  await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
+  await expect(page.locator(autoLoupeID)).toBeVisible();
 
-  await page.fill(autocompleteInputID, 'Orthoptera');
-  await page.click(toTreeRowSelectorID('order: Orthoptera'));
-  await expect(main).toContainText('phylum: Arthropoda');
-  await expect(main).toContainText('class: Arachnida');
-  await expect(main).not.toContainText('class: Insecta');
-  await expect(main).not.toContainText('order: Orthoptera');
+  // Remove 'Travis County' from the selections tree.
+
+  await page.click(toTreeRowSelectorID('Travis County'));
+  await expect(page.locator(toTreeRowSelectorID('Travis County'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Amber Cave'))).not.toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Blanco County') + '.selection')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Williamson County'))).toBeVisible();
+  await expect(
+    page.locator(toTreeRowSelectorID('Williamson County') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Apache Cave'))).toBeVisible();
 
   input = await page.inputValue(autocompleteInputID);
   expect(input).toBeFalsy();
@@ -345,99 +337,22 @@ test('interaction of autocompletion box and taxon tree', async ({ page }) => {
   await expect(page.locator(autocompleteClearButton)).not.toBeVisible();
 });
 
-test('removing descendant of selection (via autocompletion) selects peripheral taxa', async ({
-  page
-}) => {
+test('removing county from location tree removes location tree', async ({ page }) => {
   await page.goto(URL);
   const main = page.locator('main');
 
-  // Add 'Arachnida' to selections
-
-  await page.fill(autocompleteInputID, 'arachnida');
+  await page.fill(autocompleteInputID, 'travis county');
+  await page.click(toAutoListItemID('Travis County'));
   await page.click(autoSelectorID);
-  await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
-  ).toBeVisible();
-  await expect(main).not.toContainText('Latrodectus mactans');
-
-  // Remove 'Latrodectus hesperus' from selections.
-
-  await page.fill(autocompleteInputID, 'latrodectus hesperus');
-  await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
-  await page.click(autoSelectorID);
-  await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
-  await expect(page.locator(autoSelectorID)).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Ixodida') + '.selection')
-  ).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('Theridiidae') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Theridiidae'))).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Gnaphosidae') + '.selection')
-  ).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('genus: Latrodectus') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('genus: Latrodectus'))).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('genus: Steatoda') + '.selection')
-  ).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('Latrodectus hesperus'))
-  ).not.toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Latrodectus mactans') + '.selection')
-  ).toBeVisible();
-});
-
-test('taxon tree supports multiple root-level phyla', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-
-  await page.fill(autocompleteInputID, 'arthropoda');
-  await page.click(autoSelectorID);
-  await page.fill(autocompleteInputID, 'mollusca');
+  await page.fill(autocompleteInputID, 'blanco county');
+  await page.click(toAutoListItemID('Blanco County'));
   await page.click(autoSelectorID);
 
-  await expect(
-    page.locator(toTreeRowSelectorID('Arthropoda') + '.selection')
-  ).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Mollusca') + '.selection')
-  ).toBeVisible();
-  await expect(main).not.toContainText('Animalia');
-});
+  await page.locator(toTreeRowSelectorID('Travis County')).click();
+  await page.locator(toTreeRowSelectorID('Blanco County')).click();
 
-test('removing phyla from taxon tree removes taxon tree', async ({ page }) => {
-  await page.goto(URL);
-  const main = page.locator('main');
-
-  await page.fill(autocompleteInputID, 'arthropoda');
-  await page.click(autoSelectorID);
-  await page.fill(autocompleteInputID, 'mollusca');
-  await page.click(autoSelectorID);
-
-  await page.locator(toTreeRowSelectorID('Arthropoda')).click();
-  await page.locator(toTreeRowSelectorID('Mollusca')).click();
-
-  await expect(main).not.toContainText('Animalia');
-  await expect(main).not.toContainText('phylum: Arthropoda');
-  await expect(main).not.toContainText('phylum: Mollusca');
+  await expect(page.locator(toTreeRowSelectorID('Travis County'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Blanco County'))).not.toBeVisible();
   await expect(main).toContainText(NO_LOCATIONS_SELECTED);
 });
 
@@ -445,276 +360,184 @@ test('removing only nested selection eliminates taxon tree', async ({ page }) =>
   await page.goto(URL);
   const main = page.locator('main');
 
-  // Add 'Latrodectus mactans' via the autocompletion box.
+  // Add 'Amber Cave' via the autocompletion box.
 
-  await page.fill(autocompleteInputID, 'latrodectus mactans');
+  await page.fill(autocompleteInputID, 'amber cave');
+  await page.click(toAutoListItemID('Amber Cave'));
   await page.click(autoSelectorID);
 
   await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
+    page.locator(toTreeRowSelectorID('Travis County') + '.selection')
   ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Travis County'))).toBeVisible();
 
   await expect(
-    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Araneae'))).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('Theridiidae') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Theridiidae'))).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('genus: Latrodectus') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('genus: Latrodectus'))).toBeVisible();
-
-  await expect(
-    page.locator(toTreeRowSelectorID('Latrodectus mactans') + '.selection')
+    page.locator(toTreeRowSelectorID('Amber Cave') + '.selection')
   ).toBeVisible();
 
-  // Remove 'Latrodectus mactans' via the autocompletion box.
+  // Remove 'Amber Cave' via the autocompletion box.
 
   await page.click(autoSelectorID);
-  await expect(
-    page.locator(toTreeRowSelectorID('Latrodectus mactans'))
-  ).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Travis County'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Amber Cave'))).not.toBeVisible();
   await expect(main).toContainText(NO_LOCATIONS_SELECTED);
 
-  // Re-add 'Latrodectus mactans' and remove via the taxon tree.
+  // Re-add 'Amber Cave' and remove via the taxon tree.
 
   await page.click(autoSelectorID);
   await expect(
-    page.locator(toTreeRowSelectorID('mactans') + '.selection')
+    page.locator(toTreeRowSelectorID('Amber Cave') + '.selection')
   ).toBeVisible();
   await expect(main).not.toContainText(NO_LOCATIONS_SELECTED);
 
-  await page.click(toTreeRowSelectorID('mactans'));
-  await expect(
-    page.locator(toTreeRowSelectorID('mactans') + '.selection')
-  ).not.toBeVisible();
+  await page.click(toTreeRowSelectorID('Amber Cave'));
+  await expect(page.locator(toTreeRowSelectorID('Amber Cave'))).not.toBeVisible();
   await expect(main).toContainText(NO_LOCATIONS_SELECTED);
 });
 
-test('opening and closing taxon browser via autocompletion', async ({ page }) => {
+test('opening and closing location browser via autocompletion', async ({ page }) => {
   await page.goto(URL);
 
-  // Enter 'Araneae' into the autocompletion box and browse via the loupe.
+  // Enter 'Travis County' into the autocompletion box and browse via the loupe.
 
-  await page.fill(autocompleteInputID, 'Araneae');
-  await expect(page.locator(toTreeRowNameID('Araneae'))).not.toBeVisible();
+  await page.fill(autocompleteInputID, 'travis county');
+  await page.click(toAutoListItemID('Travis County'));
+  await expect(page.locator(toTreeRowNameID('Travis County'))).not.toBeVisible();
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
   await page.click(autoLoupeID);
   await expect(page.locator(browseLocationsDialogID)).toBeVisible();
 
-  // Verify ancestors shown for 'Araneae'.
+  // Verify ancestors shown for 'Travis County'.
 
   await expect(
-    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
+    page.locator(toAncestorRowSelectorID('Travis County') + '.selection')
   ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Araneae'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Travis County'))).toBeVisible();
   await expect(
-    page.locator(toAncestorRowNameID('Araneae') + '.clickable')
-  ).not.toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arachnida'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arthropoda'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Animalia') + '.selection')
+    page.locator(toAncestorRowNameID('Travis County') + '.clickable')
   ).not.toBeVisible();
   await expect(
-    page.locator(toAncestorRowNameID('Animalia') + '.clickable')
-  ).toBeVisible();
+    page.locator(toAncestorRowSelectorID('Texas') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Texas') + '.clickable')).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('United States'))
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toAncestorRowSelectorID('North America'))
+  ).not.toBeVisible();
 
-  // Verify some children of 'Araneae'.
+  // Verify some children of 'Travis County'.
 
   await expect(
-    page.locator(toChildRowSelectorID('Agelenidae') + '.selection')
+    page.locator(toChildRowSelectorID('Amber Cave') + '.selection')
   ).not.toBeVisible();
-  await expect(page.locator(toChildRowSelectorID('Agelenidae'))).toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Amber Cave'))).toBeVisible();
   await expect(
-    page.locator(toChildRowNameID('Agelenidae') + '.clickable')
-  ).toBeVisible();
-  await expect(
-    page.locator(toChildRowSelectorID('Lycosidae') + '.selection')
+    page.locator(toChildRowNameID('Amber Cave') + '.clickable')
   ).not.toBeVisible();
-  await expect(page.locator(toChildRowSelectorID('Lycosidae'))).toBeVisible();
   await expect(
-    page.locator(toChildRowNameID('Lycosidae') + '.clickable')
-  ).toBeVisible();
+    page.locator(toChildRowSelectorID('Whirlpool Cave') + '.selection')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Whirlpool Cave'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Whirlpool Cave') + '.clickable')
+  ).not.toBeVisible();
 
-  // Close taxon browser and confirm nothing has changed.
+  // Close location browser and confirm nothing has changed.
 
   await page.locator(closeButtonID).click();
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
-  expect(await page.inputValue(autocompleteInputID)).toEqual('araneae');
+  expect(await page.inputValue(autocompleteInputID)).toEqual('Travis County');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
   await expect(page.locator(autoSelectorID)).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
-  await expect(page.locator(toTreeRowNameID('Araneae'))).not.toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Travis County'))).not.toBeVisible();
 });
 
-test('opening and closing taxon browser via tab button', async ({ page }) => {
+test('opening and closing location browser via tab button', async ({ page }) => {
   await page.goto(URL);
   await page.click(browseLocationsButtonID);
   await expect(page.locator(browseLocationsDialogID)).toBeVisible();
 
   await expect(
-    page.locator(toAncestorRowSelectorID('Animalia') + '.selection')
+    page.locator(toAncestorRowSelectorID('Texas') + '.selection')
   ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Animalia'))).not.toBeVisible();
-  await expect(page.locator(toAncestorRowNameID('Animalia'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Texas'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Texas'))).toBeVisible();
   await expect(
-    page.locator(toAncestorRowNameID('Animalia') + '.clickable')
+    page.locator(toAncestorRowNameID('Texas') + '.clickable')
   ).not.toBeVisible();
 
-  await expect(page.locator(toChildRowSelectorID('Arthropoda'))).toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Travis County'))).toBeVisible();
   await expect(
-    page.locator(toChildRowNameID('Arthropoda') + '.clickable')
+    page.locator(toChildRowNameID('Travis County') + '.clickable')
   ).toBeVisible();
-  await expect(page.locator(toChildRowSelectorID('Mollusca'))).toBeVisible();
-  await expect(page.locator(toChildRowNameID('Mollusca') + '.clickable')).toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Blanco County'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Blanco County') + '.clickable')
+  ).toBeVisible();
 
   await page.locator(closeButtonID).click();
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
 });
 
-test('opening and closing taxon browser via selection tree links', async ({ page }) => {
+test('opening and closing location browser via selection tree links', async ({
+  page
+}) => {
   await page.goto(URL);
 
-  // Add 'Araneae' to selections.
+  // Add 'Travis County' to selections.
 
-  await page.fill(autocompleteInputID, 'Araneae');
+  await page.fill(autocompleteInputID, 'travis county');
   await page.click(autoSelectorID);
   await expect(
-    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+    page.locator(toTreeRowSelectorID('Travis County') + '.selection')
   ).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
 
-  // Browse 'Araneae' via taxon tree link.
+  // Browse 'Travis County' via taxon tree link.
 
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
-  await expect(page.locator(toTreeRowNameID('Araneae'))).toBeVisible();
-  await page.click(toTreeRowNameID('Araneae'));
+  await page.click(toTreeRowNameID('Travis County'));
   await expect(page.locator(browseLocationsDialogID)).toBeVisible();
 
-  // Verify ancestors shown for 'Araneae'.
+  // Verify ancestors shown for 'Travis County'.
 
-  await expect(
-    page.locator(toAncestorRowSelectorID('Araneae') + '.selection')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Araneae') + '.clickable')
-  ).not.toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arachnida'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arthropoda'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Animalia') + '.selection')
-  ).not.toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Animalia') + '.clickable')
-  ).toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Texas'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Texas'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Texas') + '.clickable')).toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('United States'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('North America'))).not.toBeVisible();
 
-  // Verify some children of 'Araneae'.
+  // Verify some children of 'Travis County'.
 
+  await expect(page.locator(toChildRowSelectorID('Amber Cave'))).toBeVisible();
   await expect(
-    page.locator(toChildRowSelectorID('Agelenidae') + '.selection')
+    page.locator(toChildRowSelectorID('Amber Cave') + '.selection')
   ).toBeVisible();
   await expect(
-    page.locator(toChildRowNameID('Agelenidae') + '.clickable')
+    page.locator(toChildRowNameID('Amber Cave') + '.clickable')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Whirlpool Cave'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Whirlpool Cave') + '.selection')
   ).toBeVisible();
   await expect(
-    page.locator(toChildRowSelectorID('Lycosidae') + '.selection')
-  ).toBeVisible();
-  await expect(
-    page.locator(toChildRowNameID('Lycosidae') + '.clickable')
-  ).toBeVisible();
+    page.locator(toChildRowNameID('Whirlpool Cave') + '.clickable')
+  ).not.toBeVisible();
 
-  // Close taxon browser and confirm nothing has changed.
+  // Close location browser and confirm nothing has changed.
 
   await page.locator(closeButtonID).click();
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
-  expect(await page.inputValue(autocompleteInputID)).toEqual('araneae');
+  expect(await page.inputValue(autocompleteInputID)).toEqual('travis county');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Araneae') + '.selection')
+    page.locator(toTreeRowSelectorID('Travis County') + '.selection')
   ).toBeVisible();
-  await expect(
-    page.locator(toTreeRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('Arachnida'))).toBeVisible();
-
-  // Browse 'Arachnida' via taxon tree link.
-
-  await page.click(toTreeRowNameID('Arachnida'));
-  await expect(page.locator(browseLocationsDialogID)).toBeVisible();
-
-  // Verify ancestors shown for 'Arachnida'.
-
-  await expect(page.locator(toAncestorRowNameID('Araneae'))).not.toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arachnida'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
-  ).not.toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arthropoda'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowSelectorID('Animalia') + '.selection')
-  ).not.toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Animalia') + '.clickable')
-  ).toBeVisible();
-
-  // Verify some children of 'Arachnida'.
-
-  await expect(
-    page.locator(toChildRowSelectorID('Araneae') + '.selection')
-  ).toBeVisible();
-  await expect(page.locator(toChildRowNameID('Araneae') + '.clickable')).toBeVisible();
-  await expect(
-    page.locator(toChildRowSelectorID('Ixodida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toChildRowNameID('Ixodida') + '.clickable')).toBeVisible();
-
-  await page.locator(closeButtonID).click();
 });
 
 test('navigating to children and selecting via the taxon browser', async ({ page }) => {
@@ -722,61 +545,53 @@ test('navigating to children and selecting via the taxon browser', async ({ page
 
   // Enter 'Araneae' into the autocompletion box and browse via the loupe.
 
-  await page.fill(autocompleteInputID, 'Araneae');
-  await page.click(autoLoupeID);
+  await page.click(browseLocationsButtonID);
   await expect(page.locator(browseLocationsDialogID)).toBeVisible();
 
+  await expect(page.locator(toAncestorRowNameID('Texas'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Texas'))).not.toBeVisible();
   await expect(
-    page.locator(toChildRowNameID('Agelenidae') + '.clickable')
-  ).toBeVisible();
+    page.locator(toAncestorRowNameID('Texas') + '.clickable')
+  ).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('United States'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('North America'))).not.toBeVisible();
 
-  // Click the child 'Agelenidae' to browse there.
+  // Click the child 'Travis County' to browse there.
 
-  await page.click(toChildRowNameID('Agelenidae'));
+  await page.click(toChildRowNameID('Travis County'));
 
-  await expect(page.locator(toAncestorRowNameID('Animalia'))).toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Animalia'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Texas'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Texas'))).not.toBeVisible();
+  await expect(page.locator(toAncestorRowNameID('Texas') + '.clickable')).toBeVisible();
 
-  await expect(page.locator(toAncestorRowNameID('Agelenidae'))).toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Agelenidae'))).toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Amber Cave'))).toBeVisible();
   await expect(
-    page.locator(toAncestorRowNameID('Agelenidae') + '.clickable')
+    page.locator(toChildRowSelectorID('Amber Cave') + '.selection')
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Amber Cave') + '.clickable')
+  ).not.toBeVisible();
+  await expect(page.locator(toChildRowSelectorID('Whirlpool Cave'))).toBeVisible();
+  await expect(
+    page.locator(toChildRowSelectorID('Whirlpool Cave') + '.selection')
+  ).not.toBeVisible();
+  await expect(
+    page.locator(toChildRowNameID('Whirlpool Cave') + '.clickable')
   ).not.toBeVisible();
 
-  await expect(page.locator(toChildRowSelectorID('Agelenopsis'))).toBeVisible();
+  // Verify inability to browse to a locality name.
+
+  await page.click(toChildRowNameID('Whirlpool Cave'));
+  await expect(page.locator(toChildRowNameID('Whirlpool Cave'))).toBeVisible();
+
+  // Add 'Whirlpool Cave' to the selected taxa.
+
   await expect(
-    page.locator(toChildRowNameID('Agelenopsis') + '.clickable')
-  ).toBeVisible();
-
-  // Click 'Agelenopsis' to browse there.
-
-  await page.click(toChildRowNameID('Agelenopsis'));
-
-  await expect(page.locator(toAncestorRowNameID('Agelenidae'))).toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Agelenidae'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Agelenidae') + '.clickable')
-  ).toBeVisible();
-
-  await expect(page.locator(toAncestorRowNameID('Agelenopsis'))).toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Agelenopsis'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Agelenopsis') + '.clickable')
+    page.locator(toChildRowSelectorID('Whirlpool Cave') + '.selection')
   ).not.toBeVisible();
-
-  await expect(page.locator(toChildRowSelectorID('Agelenopsis aperta'))).toBeVisible();
+  await page.click(toChildRowSelectorID('Whirlpool Cave'));
   await expect(
-    page.locator(toChildRowNameID('Agelenopsis aperta') + '.clickable')
-  ).not.toBeVisible();
-
-  // Add 'Agelenopsis aperta' to the selected taxa.
-
-  await expect(
-    page.locator(toChildRowSelectorID('Agelenopsis aperta') + '.selection')
-  ).not.toBeVisible();
-  await page.click(toChildRowSelectorID('Agelenopsis aperta'));
-  await expect(
-    page.locator(toChildRowSelectorID('Agelenopsis aperta') + '.selection')
+    page.locator(toChildRowSelectorID('Whirlpool Cave') + '.selection')
   ).toBeVisible();
 
   // Close the taxon browser and check the taxon tree.
@@ -784,15 +599,15 @@ test('navigating to children and selecting via the taxon browser', async ({ page
   await page.click(closeButtonID);
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Agelenopsis aperta') + '.selection')
+    page.locator(toTreeRowSelectorID('Whirlpool Cave') + '.selection')
   ).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('Agelenopsis aperta') + '.clickable')
+    page.locator(toTreeRowSelectorID('Whirlpool Cave') + '.clickable')
   ).not.toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('genus: Agelenopsis') + '.selection')
+    page.locator(toTreeRowSelectorID('Travis County') + '.selection')
   ).not.toBeVisible();
-  await expect(page.locator(toTreeRowSelectorID('genus: Agelenopsis'))).toBeVisible();
+  await expect(page.locator(toTreeRowSelectorID('Travis County'))).toBeVisible();
 });
 
 test('navigating to ancestors and selecting via the taxon browser', async ({
@@ -800,75 +615,66 @@ test('navigating to ancestors and selecting via the taxon browser', async ({
 }) => {
   await page.goto(URL);
 
-  // Enter 'Araneae' into the autocompletion box and browse via the loupe.
+  // Enter 'amber cave' into the autocompletion box and browse via the loupe.
 
-  await page.fill(autocompleteInputID, 'Araneae');
+  await page.fill(autocompleteInputID, 'amber cave');
   await page.click(autoLoupeID);
   await expect(page.locator(browseLocationsDialogID)).toBeVisible();
 
+  await expect(page.locator(toAncestorRowNameID('Texas') + '.clickable')).toBeVisible();
   await expect(
-    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
-  ).toBeVisible();
-
-  // Click the ancestor 'Arachnida' to browse there.
-
-  await page.click(toAncestorRowNameID('Arachnida'));
-
-  await expect(page.locator(toChildRowSelectorID('Araneae'))).toBeVisible();
-  await expect(page.locator(toChildRowNameID('Araneae') + '.clickable')).toBeVisible();
-
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
-  ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arachnida'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
+    page.locator(toAncestorRowNameID('Travis County') + '.clickable')
   ).not.toBeVisible();
 
+  // Click the ancestor 'Texas' to browse there.
+
+  await page.click(toAncestorRowNameID('Texas'));
+
+  await expect(page.locator(toChildRowSelectorID('Travis County'))).toBeVisible();
+
+  await expect(page.locator(toAncestorRowNameID('Texas'))).toBeVisible();
+  await expect(page.locator(toAncestorRowSelectorID('Texas'))).not.toBeVisible();
+
+  // Traverse into 'Blanco County'.
+
+  await page.click(toChildRowSelectorID('Blanco County'));
+  // TODO: Next line hangs.
+  await expect(page.locator(toChildRowSelectorID('Trash Cave'))).toBeVisible();
+
+  // Add 'Blanco Coounty' to the selected locations via the ancestor selector.
+
+  await page.click(toAncestorRowSelectorID('Blanco County'));
+
   await expect(
-    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
+    page.locator(toAncestorRowSelectorID('Blanco County') + '.selection')
+  ).toBeVisible();
+  await expect(
+    page.locator(toAncestorRowNameID('Blanco County') + '.clickable')
   ).not.toBeVisible();
-  await expect(page.locator(toAncestorRowSelectorID('Arthropoda'))).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
-  ).toBeVisible();
 
-  // Add 'Arthropoda' to the selected taxa via the ancestor selector.
-
-  await page.click(toAncestorRowSelectorID('Arthropoda'));
-
+  await expect(page.locator(toAncestorRowSelectorID('Texas'))).not.toBeVisible();
   await expect(
-    page.locator(toAncestorRowSelectorID('Arthropoda') + '.selection')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arthropoda') + '.clickable')
-  ).toBeVisible();
-
-  await expect(
-    page.locator(toAncestorRowSelectorID('Arachnida') + '.selection')
-  ).toBeVisible();
-  await expect(
-    page.locator(toAncestorRowNameID('Arachnida') + '.clickable')
+    page.locator(toAncestorRowNameID('Texas') + '.clickable')
   ).not.toBeVisible();
 
   await expect(
-    page.locator(toChildRowSelectorID('Araneae') + '.selection')
+    page.locator(toChildRowSelectorID('Trash Cave') + '.selection')
   ).toBeVisible();
   await expect(
-    page.locator(toChildRowSelectorID('Ixodida') + '.selection')
+    page.locator(toChildRowSelectorID('Winkler Bat Cave') + '.selection')
   ).toBeVisible();
 
-  // Close the taxon browser and check the taxon tree.
+  // Close the location browser and check the location tree.
 
   await page.click(closeButtonID);
   await expect(page.locator(browseLocationsDialogID)).not.toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('phylum: Arthropoda') + '.selection')
+    page.locator(toTreeRowSelectorID('Blanco County') + '.selection')
   ).toBeVisible();
   await expect(
-    page.locator(toTreeRowSelectorID('phylum: Arthropoda') + '.clickable')
-  ).not.toBeVisible();
-  await expect(page.locator(toTreeRowNameID('class: Arachnida'))).not.toBeVisible();
+    page.locator(toTreeRowSelectorID('Blanco County') + '.clickable')
+  ).toBeVisible();
+  await expect(page.locator(toTreeRowNameID('Texas'))).not.toBeVisible();
 });
 
 test('removing directly selected child via the taxon browser', async ({ page }) => {
