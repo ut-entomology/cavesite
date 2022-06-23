@@ -71,7 +71,7 @@
   }
 
   const yAxisType = YAxisType.totalSpecies;
-  const yAxisModel = YAxisModel.none;
+  const yAxisModel = YAxisModel.boxCox;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
@@ -287,13 +287,13 @@
       return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
     });
     modelFactories.push((dataPoints, yTransform) => {
-      return new LogXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+      return new LogXModel(LOG_HEXCOLOR, dataPoints, yTransform);
     });
     modelFactories.push((dataPoints, yTransform) => {
-      return new QuadraticXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+      return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
     });
     modelFactories.push((dataPoints, yTransform) => {
-      return new Order3XModel(POWER_HEXCOLOR, dataPoints, yTransform);
+      return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
     });
 
     switch (yAxisModel) {

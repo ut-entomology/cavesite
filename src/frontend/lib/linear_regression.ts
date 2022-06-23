@@ -309,7 +309,7 @@ export class PowerYModel extends YModel {
   }
 
   getYFormula(): string {
-    return `y<sup>${shortenValue(this.power, 3)}</sup>`;
+    return `y^${shortenValue(this.power, 3)}`;
   }
 }
 
@@ -391,6 +391,7 @@ function _findBestRMSEScalar_binary(
   // @ts-ignore
   return [middleModel, middleScalar];
 }
+
 function _findBestRMSEScalar_nAry(
   config: ModelSearchConfig & {
     initialPartitions: number;
