@@ -154,14 +154,87 @@ export class QuadraticXModel extends PlottableModel {
   }
 }
 
-export class BoxCoxYModel extends PlottableModel {
+export class LogXModel extends PlottableModel {
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
+    super('log fit', hexColor, dataPoints);
+
+    const xTransform: XTransform = (x) => [Math.log(x), 1];
+    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
+      coefs[0] * Math.log(x) + coefs[1];
+
+    const model = _createRegressionModel(
+      xTransform,
+      yTransform,
+      fittedYTakingCoefs,
+      dataPoints
+    );
+    Object.assign(this, model);
+  }
+
+  getXFormula(): string {
+    const coefs = this.jstats.coef;
+    return [_coefHtml(coefs[0], true), ' ln(x) ', _coefHtml(coefs[1])].join(' ');
+  }
+}
+
+export class Order3XModel extends PlottableModel {
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
+    super('3rd order fit', hexColor, dataPoints);
+
+    const xTransform: XTransform = (x) => [x * x * x, x * x, x, 1];
+    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
+      coefs[0] * x * x * x + coefs[1] * x * x + coefs[2] * x + coefs[3];
+
+    const model = _createRegressionModel(
+      xTransform,
+      yTransform,
+      fittedYTakingCoefs,
+      dataPoints
+    );
+    Object.assign(this, model);
+  }
+
+  getXFormula(): string {
+    const coefs = this.jstats.coef;
+    return [
+      _coefHtml(coefs[0], true),
+      ' x<sup>3</sup> ',
+      _coefHtml(coefs[1]),
+      ' x<sup>2</sup> ',
+      _coefHtml(coefs[2]),
+      ' x ',
+      _coefHtml(coefs[3])
+    ].join(' ');
+  }
+}
+
+export abstract class YModel extends PlottableModel {
+  yTransform!: (y: number) => number;
+  protected _xFormula!: string;
+
+  constructor(dataPoints: Point[]) {
+    // Deferred properties get copied over within _findBestYScalar().
+    super('' /* deferred */, '' /* deferred */, dataPoints);
+  }
+
+  convertDataPoints(dataPoints: Point[]): Point[] {
+    return dataPoints.map((p) => {
+      return { x: p.x, y: this.yTransform(p.y) };
+    });
+  }
+
+  getXFormula(): string {
+    return this._xFormula;
+  }
+
+  abstract getYFormula(): string;
+}
+
+export class BoxCoxYModel extends YModel {
   lambda: number;
-  yTransform: (y: number) => number;
-  private _xFormula: string;
 
   constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
-    // Deffered properties get copied over within _findBestYScalar().
-    super('' /* deferred */, '' /* deferred */, dataPoints);
+    super(dataPoints);
 
     const boxCoxTransform = (lambda: number, y: number) => {
       if (lambda == 0) return Math.log(y);
@@ -186,18 +259,57 @@ export class BoxCoxYModel extends PlottableModel {
     this._xFormula = (model as PlottableModel).getXFormula();
   }
 
-  convertDataPoints(dataPoints: Point[]): Point[] {
-    return dataPoints.map((p) => {
-      return { x: p.x, y: this.yTransform(p.y) };
-    });
+  getYFormula(): string {
+    return `bc(y, ${shortenValue(this.lambda, 3)})`;
   }
+}
 
-  getXFormula(): string {
-    return this._xFormula;
+export class LogYModel extends YModel {
+  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
+    super(dataPoints);
+
+    this.yTransform = (y: number) => Math.log(y);
+
+    const model = baseModelFactory(dataPoints, this.yTransform);
+    Object.assign(this, model);
+
+    this.name += ' vs. ln(y)';
+    this._xFormula = (model as PlottableModel).getXFormula();
   }
 
   getYFormula(): string {
-    return `bc(y, ${shortenValue(this.lambda, 3)})`;
+    return `log(y)`;
+  }
+}
+
+export class PowerYModel extends YModel {
+  power: number;
+
+  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
+    super(dataPoints);
+
+    const powerTransform = (power: number, y: number) => Math.pow(y, power);
+
+    const [model, power] = _findBestRMSEScalar_nAry(
+      {
+        lowerBoundScalar: -3,
+        upperBoundScalar: 3,
+        initialPartitions: 24,
+        maxSearchDepth: 6
+      },
+      dataPoints,
+      (dataPoints, scalar) =>
+        baseModelFactory(dataPoints, powerTransform.bind(null, scalar))
+    );
+    Object.assign(this, model);
+    this.name += ' vs. y^n';
+    this.power = power;
+    this.yTransform = powerTransform.bind(null, power);
+    this._xFormula = (model as PlottableModel).getXFormula();
+  }
+
+  getYFormula(): string {
+    return `y<sup>${shortenValue(this.power, 3)}</sup>`;
   }
 }
 

@@ -43,9 +43,14 @@
   } from '../../shared/model';
   import { client } from '../stores/client';
   import {
+    Point,
     PlottableModel,
+    LogXModel,
+    Order3XModel,
     QuadraticXModel,
     PowerXModel,
+    LogYModel,
+    PowerYModel,
     BoxCoxYModel
   } from '../lib/linear_regression';
   import { pageName } from '../stores/pageName';
@@ -58,7 +63,15 @@
     cumuPercentChange = 'cumulative percent change'
   }
 
+  enum YAxisModel {
+    none = 'none',
+    logY = 'log(y)',
+    powerY = 'y^p',
+    boxCox = 'box-cox'
+  }
+
   const yAxisType = YAxisType.totalSpecies;
+  const yAxisModel = YAxisModel.none;
   const MAX_CLUSTERS = 12;
   const MIN_POINTS_TO_REGRESS = 3;
   const MIN_PERSON_VISITS = 0;
@@ -67,6 +80,8 @@
   const POINTS_IN_MODEL_PLOT = 200;
   const USE_BOX_COX = false;
 
+  const LOG_HEXCOLOR = '880000';
+  const ORDER3_HEXCOLOR = '35FF45';
   const POWER_HEXCOLOR = 'FF0088';
   const QUADRATIC_HEXCOLOR = '00DCD8';
 
@@ -108,23 +123,9 @@
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
       const graphData = _getGraphData(datasetID, clusterData);
-      const models: PlottableModel[] = [];
+      let models: PlottableModel[] = [];
       if (graphData.points.length >= MIN_POINTS_TO_REGRESS) {
-        if (USE_BOX_COX) {
-          models.push(
-            new BoxCoxYModel(graphData.points, (dataPoints, yTransform) => {
-              return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
-            })
-          );
-          models.push(
-            new BoxCoxYModel(graphData.points, (dataPoints, yTransform) => {
-              return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
-            })
-          );
-        } else {
-          models.push(new PowerXModel(POWER_HEXCOLOR, graphData.points));
-          models.push(new QuadraticXModel(QUADRATIC_HEXCOLOR, graphData.points));
-        }
+        models = _generateModels(yAxisModel, graphData.points);
       }
       modelsByCluster[i] = models; // must place by cluster index
     }
@@ -246,6 +247,52 @@
         };
         break;
     }
+  }
+
+  function _generateModels(yAxisModel: YAxisModel, points: Point[]) {
+    const models: PlottableModel[] = [];
+    const modelFactories: ((
+      dataPoints: Point[],
+      yTransform: (y: number) => number
+    ) => PlottableModel)[] = [];
+
+    modelFactories.push((dataPoints, yTransform) => {
+      return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+    });
+    modelFactories.push((dataPoints, yTransform) => {
+      return new LogXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+    });
+    modelFactories.push((dataPoints, yTransform) => {
+      return new QuadraticXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+    });
+    modelFactories.push((dataPoints, yTransform) => {
+      return new Order3XModel(POWER_HEXCOLOR, dataPoints, yTransform);
+    });
+
+    switch (yAxisModel) {
+      case YAxisModel.none:
+        models.push(new PowerXModel(POWER_HEXCOLOR, points));
+        models.push(new LogXModel(LOG_HEXCOLOR, points));
+        models.push(new QuadraticXModel(QUADRATIC_HEXCOLOR, points));
+        models.push(new Order3XModel(ORDER3_HEXCOLOR, points));
+        break;
+      case YAxisModel.logY:
+        for (const modelFactory of modelFactories) {
+          models.push(new LogYModel(points, modelFactory));
+        }
+        break;
+      case YAxisModel.powerY:
+        for (const modelFactory of modelFactories) {
+          models.push(new PowerYModel(points, modelFactory));
+        }
+        break;
+      case YAxisModel.boxCox:
+        for (const modelFactory of modelFactories) {
+          models.push(new BoxCoxYModel(points, modelFactory));
+        }
+        break;
+    }
+    return models;
   }
 
   function _getGraphData(datasetID: DatasetID, clusterData: ClusterData) {
