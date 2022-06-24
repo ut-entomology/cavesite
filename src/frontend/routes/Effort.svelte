@@ -58,6 +58,7 @@
   } from '../lib/linear_regression';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
+  import Input from '../common/forms/Input.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -376,7 +377,7 @@
         <div class="row mt-3">
           <div class="col"><span>{MAX_CLUSTERS} clusters max</span></div>
           <div class="col">comparing: <span>{CLUSTER_SPEC.comparedTaxa}</span></div>
-          <div class="col">y-axis: <span>{yAxisType} {yAxisModel}</span></div>
+          <div class="col"><span>{yAxisModel}</span>: <span>{yAxisType}</span></div>
         </div>
         <div class="row">
           <div class="col"><span>{CLUSTER_SPEC.metric.basis}</span></div>
@@ -385,7 +386,11 @@
             <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
           </div>
           <div class="col">
-            regressed: <span>{LOWER_BOUND_X} &lt;= x &lt;= {UPPER_BOUND_X}</span>
+            regressed: <span
+              >{LOWER_BOUND_X} &lt;= x &lt;= {@html UPPER_BOUND_X == Infinity
+                ? '&infin;'
+                : UPPER_BOUND_X}</span
+            >
           </div>
         </div>
         <div class="row">
