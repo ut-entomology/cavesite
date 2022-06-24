@@ -107,6 +107,9 @@ columnInfoMap[QueryColumnID.TaxonUnique] = {
   // genus_id needed for italics determination
   column2: 'taxon_author, taxon_id, genus_id'
 };
+columnInfoMap[QueryColumnID.Obligate] = {
+  column1: 'obligate'
+};
 columnInfoMap[QueryColumnID.County] = {
   column1: 'county_name',
   column2: 'county_id'

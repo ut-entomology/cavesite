@@ -1,3 +1,4 @@
+import { CAVE_OBLIGATE_DESIGNATION } from '../../shared/model';
 import { QueryColumnID, QueryRow } from '../../shared/user_query';
 
 export interface QueryColumnInfo {
@@ -258,6 +259,18 @@ setColumnInfo({
     const name = row.genusID ? _toItalic(row.taxonUnique) : row.taxonUnique!;
     return name + (row.taxonAuthor ? ' ' + row.taxonAuthor : '');
   }
+});
+setColumnInfo({
+  columnID: QueryColumnID.Obligate,
+  fullName: 'Cave Obligate',
+  abbrName: null,
+  description: 'Whether the taxon is cave obligate',
+  defaultSelection: false,
+  nullable: true,
+  defaultEmWidth: 8,
+  columnClass: 'center',
+  getValue: (row: QueryRow) =>
+    row.obligate == CAVE_OBLIGATE_DESIGNATION ? 'Yes' : 'No'
 });
 setColumnInfo({
   columnID: QueryColumnID.County,

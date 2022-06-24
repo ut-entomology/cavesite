@@ -20,6 +20,7 @@ export enum QueryColumnID {
   Genus,
   Species,
   Subspecies,
+  Obligate,
   SpecimenCount,
   Latitude,
   Longitude,
@@ -118,6 +119,8 @@ export interface QueryRow {
   taxonUnique?: string;
   taxonID?: number;
   taxonAuthor?: string | null;
+
+  obligate?: string | null;
 
   countyName?: string | null;
   countyID?: number | null;
