@@ -183,7 +183,6 @@
   }
 
   function _setDateRange(from: Date, thru: Date): void {
-    console.log('setDateRange:', from.toLocaleDateString(), thru.toLocaleDateString());
     fromDate = from;
     throughDate = thru;
   }
@@ -212,8 +211,9 @@
   </div>
   <DateRangeInput
     classes="justify-content-center mb-4"
-    {fromDate}
-    {throughDate}
+    from={fromDate}
+    through={throughDate}
+    earliestDate={EARLIEST_RECORD_DATE}
     setDateRange={_setDateRange}
   />
   <div class="included_columns">

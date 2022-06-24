@@ -2,32 +2,39 @@
   import { localToInputDate, inputToLocalDate } from '../util/conversion';
 
   export let classes = '';
-  export let fromDate: Date;
-  export let throughDate: Date;
+  export let from: Date;
+  export let through: Date;
+  export let earliestDate: Date;
   export let setDateRange: (fromDate: Date, throughDate: Date) => void;
 
-  let fromDateStr = localToInputDate(fromDate);
-  let throughDateStr = localToInputDate(throughDate);
+  let fromStr = localToInputDate(from);
+  let throughStr = localToInputDate(through);
+  let fromDate: Date;
+  let throughDate: Date;
+  let earliestStr = localToInputDate(earliestDate);
+  let latestStr = localToInputDate(new Date('2040-12-31'));
 
-  $: fromDate = inputToLocalDate(fromDateStr);
-  $: throughDate = inputToLocalDate(throughDateStr);
+  $: fromDate = inputToLocalDate(fromStr);
+  $: throughDate = inputToLocalDate(throughStr);
 
-  console.log('initial date range:', fromDateStr, throughDateStr);
-
-  function onFromChanged(_event: Event): void {
-    console.log('from changed:', fromDateStr);
-    if (fromDate.getTime() > throughDate.getTime()) {
+  function onFromBlur(_event: Event): void {
+    if (fromStr == '') {
+      fromStr = localToInputDate(from);
+      fromDate = from;
+    } else if (fromDate.getTime() > throughDate.getTime()) {
       throughDate = fromDate;
-      throughDateStr = fromDateStr;
+      throughStr = fromStr;
     }
     setDateRange(fromDate, throughDate);
   }
 
-  function onThroughChanged(_event: Event): void {
-    console.log('through changed:', throughDateStr);
-    if (throughDate.getTime() < fromDate.getTime()) {
+  function onThroughBlur(_event: Event): void {
+    if (throughStr == '') {
+      throughStr = localToInputDate(through);
+      throughDate = through;
+    } else if (throughDate.getTime() < fromDate.getTime()) {
       fromDate = throughDate;
-      fromDateStr = throughDateStr;
+      fromStr = throughStr;
     }
     setDateRange(fromDate, throughDate);
   }
@@ -40,8 +47,10 @@
       type="date"
       class="form-control date_picker"
       required={true}
-      bind:value={fromDateStr}
-      on:change={onFromChanged}
+      min={earliestStr}
+      max={latestStr}
+      bind:value={fromStr}
+      on:blur={onFromBlur}
     />
   </div>
   <div class="col-auto">through</div>
@@ -50,8 +59,10 @@
       type="date"
       class="form-control date_picker"
       required={true}
-      bind:value={throughDateStr}
-      on:change={onThroughChanged}
+      min={earliestStr}
+      max={latestStr}
+      bind:value={throughStr}
+      on:blur={onThroughBlur}
     />
   </div>
 </div>
