@@ -9,28 +9,27 @@
   let fromDateStr = localToInputDate(fromDate);
   let throughDateStr = localToInputDate(throughDate);
 
+  $: fromDate = inputToLocalDate(fromDateStr);
+  $: throughDate = inputToLocalDate(throughDateStr);
+
   console.log('initial date range:', fromDateStr, throughDateStr);
 
   function onFromChanged(_event: Event): void {
     console.log('from changed:', fromDateStr);
-    let from = inputToLocalDate(fromDateStr);
-    let thru = inputToLocalDate(throughDateStr);
-    if (from.getTime() > thru.getTime()) {
-      thru = from;
+    if (fromDate.getTime() > throughDate.getTime()) {
+      throughDate = fromDate;
       throughDateStr = fromDateStr;
     }
-    setDateRange(from, thru);
+    setDateRange(fromDate, throughDate);
   }
 
   function onThroughChanged(_event: Event): void {
     console.log('through changed:', throughDateStr);
-    let from = inputToLocalDate(fromDateStr);
-    let thru = inputToLocalDate(throughDateStr);
-    if (thru.getTime() < from.getTime()) {
-      from = thru;
+    if (throughDate.getTime() < fromDate.getTime()) {
+      fromDate = throughDate;
       fromDateStr = throughDateStr;
     }
-    setDateRange(from, thru);
+    setDateRange(fromDate, throughDate);
   }
 </script>
 
