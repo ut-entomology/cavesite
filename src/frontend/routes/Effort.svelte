@@ -51,8 +51,12 @@
     PowerXModel,
     LogYModel,
     PowerYModel,
-    BoxCoxYModel
+    BoxCoxYModel,
+    shortenPValue,
+    shortenRMSE,
+    shortenR2
   } from '../lib/linear_regression';
+  import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
 
   $pageName = 'Collection Effort';
@@ -116,36 +120,12 @@
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
-
-  // TODO: This data should be per-model. What do I really want to do?
-  let bestPValue: number;
-  let weightedPValue: number;
-  let averagePValue: number;
-  let worstPValue: number;
-  let bestRMSE: number;
-  let weightedRMSE: number;
-  let averageRMSE: number;
-  let worstRMSE: number;
-  let bestR2: number;
-  let weightedR2: number;
-  let averageR2: number;
-  let worstR2: number;
+  let modelSummaries: ModelSummary[] = [];
+  let localityCountByCluster: number[] = [];
 
   $: if ($clusterStore) {
     loadState = LoadState.fittingModels;
     modelsByCluster = [];
-    bestPValue = Infinity;
-    worstPValue = 0;
-    averagePValue = 0;
-    weightedPValue = 0;
-    bestRMSE = Infinity;
-    worstRMSE = 0;
-    averageRMSE = 0;
-    weightedRMSE = 0;
-    bestR2 = 0;
-    worstR2 = 1;
-    averageR2 = 0;
-    weightedR2 = 0;
 
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
@@ -155,7 +135,9 @@
         models = _generateModels(yAxisModel, graphData.points);
       }
       modelsByCluster[i] = models; // must place by cluster index
+      localityCountByCluster[i] = clusterData.locationCount;
     }
+    modelSummaries = summarizeModels(modelsByCluster, localityCountByCluster);
   }
 
   async function loadData() {
@@ -385,7 +367,7 @@
     {#if $clusterStore === null}
       <button class="btn btn-major" type="button" on:click={loadData}>Load Data</button>
     {:else}
-      <div class="summary_info">
+      <div class="cluster_summary_info">
         <div class="row mt-3">
           <div class="col"><span>{MAX_CLUSTERS} clusters max</span></div>
           <div class="col">comparing: <span>{CLUSTER_SPEC.comparedTaxa}</span></div>
@@ -419,6 +401,36 @@
           <div class="col" />
         </div>
       </div>
+
+      <div class="model_summary_info">
+        <div class="row mt-3">
+          <div class="col-4 text-center">best/avg/avg-per-cave</div>
+          <div class="col"><span>p-value</span></div>
+          <div class="col"><span>RMSE</span></div>
+          <div class="col"><span>R2</span></div>
+        </div>
+        {#each modelSummaries as summary}
+          <div class="row">
+            <div class="col-4"><span>{summary.modelName}</span></div>
+            <div class="col">
+              {shortenPValue(summary.bestPValue)}<span>/</span>{shortenPValue(
+                summary.averagePValue
+              )}<span>/</span>{shortenPValue(summary.weightedPValue)}
+            </div>
+            <div class="col">
+              {shortenRMSE(summary.bestRMSE)}<span>/</span>{shortenRMSE(
+                summary.averageRMSE
+              )}<span>/</span>{shortenRMSE(summary.weightedRMSE)}
+            </div>
+            <div class="col">
+              {shortenR2(summary.bestR2)}<span>/</span>{shortenR2(
+                summary.averageR2
+              )}<span>/</span>{shortenR2(summary.weightedR2)}
+            </div>
+          </div>
+        {/each}
+      </div>
+
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
         {@const models = modelsByCluster[i]}
@@ -477,11 +489,22 @@
 {/if}
 
 <style>
-  .summary_info {
+  .cluster_summary_info {
     font-size: 0.85rem;
     color: #999;
   }
-  .summary_info span {
+  .cluster_summary_info span {
     color: #000;
+  }
+
+  .model_summary_info {
+    font-size: 0.85rem;
+    color: #000;
+  }
+  .model_summary_info span {
+    color: #999;
+  }
+  .model_summary_info .row > div + div {
+    text-align: center;
   }
 </style>

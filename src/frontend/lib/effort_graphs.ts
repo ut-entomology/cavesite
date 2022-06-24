@@ -21,7 +21,7 @@ export abstract class EffortGraphSpec {
     upperBoundX: number
   ) {
     this.locationCount = clusterEffortData.length;
-    this.graphTitle = `${title} (${this.locationCount})`;
+    this.graphTitle = `${title} (${this.locationCount} caves)`;
     this.xAxisLabel = xAxisLabel;
 
     for (const effortData of clusterEffortData) {

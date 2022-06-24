@@ -313,11 +313,23 @@ export class PowerYModel extends YModel {
   }
 }
 
-export function shortenValue(value: number, precision: number) {
+export function shortenValue(value: number, precision: number): string {
   if (value != 0 && Math.abs(value) < 0.001) {
     return value.toExponential(precision - 1);
   }
   return value.toPrecision(precision);
+}
+
+export function shortenPValue(pValue: number) {
+  return shortenValue(pValue, 2);
+}
+
+export function shortenRMSE(rmse: number) {
+  return shortenValue(rmse, 3);
+}
+
+export function shortenR2(r2: number) {
+  return shortenValue(r2, 2);
 }
 
 function _coefHtml(coef: number, firstCoef = false) {

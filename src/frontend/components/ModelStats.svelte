@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { type PlottableModel, shortenValue } from '../lib/linear_regression';
+  import {
+    type PlottableModel,
+    shortenPValue,
+    shortenRMSE,
+    shortenR2
+  } from '../lib/linear_regression';
 
   export let model: PlottableModel;
 </script>
@@ -9,9 +14,9 @@
   <div class="col-6">
     <span style="color: #{model.hexColor}">{@html model.getYFormula()}</span> = {@html model.getXFormula()}
   </div>
-  <div class="col-2">p-value {shortenValue(model.jstats.f.pvalue, 2)}</div>
-  <div class="col">RMSE {shortenValue(model.rmse, 3)}</div>
-  <div class="col">R<sup>2</sup> {shortenValue(model.jstats.R2, 2)}</div>
+  <div class="col-2">p-value {shortenPValue(model.jstats.f.pvalue)}</div>
+  <div class="col">RMSE {shortenRMSE(model.rmse)}</div>
+  <div class="col">R<sup>2</sup> {shortenR2(model.jstats.R2)}</div>
 </div>
 
 <style>
