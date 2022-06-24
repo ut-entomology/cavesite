@@ -81,6 +81,7 @@
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
+  const MIN_CAVES_PER_SUMMARY = 20;
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -137,7 +138,11 @@
       modelsByCluster[i] = models; // must place by cluster index
       localityCountByCluster[i] = clusterData.locationCount;
     }
-    modelSummaries = summarizeModels(modelsByCluster, localityCountByCluster);
+    modelSummaries = summarizeModels(
+      MIN_CAVES_PER_SUMMARY,
+      modelsByCluster,
+      localityCountByCluster
+    );
   }
 
   async function loadData() {
@@ -380,7 +385,7 @@
             <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
           </div>
           <div class="col">
-            regressed <span>{LOWER_BOUND_X} &lt;= x &lt;= {UPPER_BOUND_X}</span>
+            regressed: <span>{LOWER_BOUND_X} &lt;= x &lt;= {UPPER_BOUND_X}</span>
           </div>
         </div>
         <div class="row">
@@ -397,14 +402,16 @@
           <div class="col">
             metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
           </div>
-          <div class="col">plotting <span>{PLOTTED_COMPARED_TAXA}</span></div>
-          <div class="col" />
+          <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
+          <div class="col">
+            min. caves/summary: <span>{MIN_CAVES_PER_SUMMARY}</span>
+          </div>
         </div>
       </div>
 
       <div class="model_summary_info">
         <div class="row mt-3">
-          <div class="col-4 text-center">best/avg/avg-per-cave</div>
+          <div class="col-4 text-center">best/avg/weighted-avg</div>
           <div class="col"><span>p-value</span></div>
           <div class="col"><span>RMSE</span></div>
           <div class="col"><span>R2</span></div>

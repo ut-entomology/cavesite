@@ -16,6 +16,7 @@ export interface ModelSummary {
 }
 
 export function summarizeModels(
+  minCavesAllowed: number,
   modelsByCluster: PlottableModel[][],
   localityCountByCluster: number[]
 ): ModelSummary[] {
@@ -37,40 +38,44 @@ export function summarizeModels(
     })
   );
 
-  for (const models of modelsByCluster) {
+  for (let i = 0; i < modelsByCluster.length; ++i) {
+    const models = modelsByCluster[i];
+    const localityCount = localityCountByCluster[i];
+
     if (models !== undefined) {
-      for (let i = 0; i < models.length; ++i) {
-        const localityCount = localityCountByCluster[i];
-        const model = models[i];
-        const summary = summaries[i];
+      for (let j = 0; j < models.length; ++j) {
+        if (localityCount >= minCavesAllowed) {
+          const model = models[j];
+          const summary = summaries[j];
 
-        summary.modelName = model.name;
+          summary.modelName = model.name;
 
-        if (
-          !isNaN(model.jstats.f.pvalue) &&
-          !isNaN(model.rmse) &&
-          !isNaN(model.jstats.R2)
-        ) {
-          if (model.jstats.f.pvalue < summary.bestPValue) {
-            summary.bestPValue = model.jstats.f.pvalue;
+          if (
+            !isNaN(model.jstats.f.pvalue) &&
+            !isNaN(model.rmse) &&
+            !isNaN(model.jstats.R2)
+          ) {
+            if (model.jstats.f.pvalue < summary.bestPValue) {
+              summary.bestPValue = model.jstats.f.pvalue;
+            }
+            summary.averagePValue += model.jstats.f.pvalue;
+            summary.weightedPValue += localityCount * model.jstats.f.pvalue;
+
+            if (model.rmse < summary.bestRMSE) {
+              summary.bestRMSE = model.rmse;
+            }
+            summary.averageRMSE += model.rmse;
+            summary.weightedRMSE += localityCount * model.rmse;
+
+            if (model.jstats.R2 > summary.bestR2) {
+              summary.bestR2 = model.jstats.R2;
+            }
+            summary.averageR2 += model.jstats.R2;
+            summary.weightedR2 += localityCount * model.jstats.R2;
+
+            summary.totalClusters += 1;
+            summary.totalLocalities += localityCount;
           }
-          summary.averagePValue += model.jstats.f.pvalue;
-          summary.weightedPValue += localityCount * model.jstats.f.pvalue;
-
-          if (model.rmse < summary.bestRMSE) {
-            summary.bestRMSE = model.rmse;
-          }
-          summary.averageRMSE += model.rmse;
-          summary.weightedRMSE += localityCount * model.rmse;
-
-          if (model.jstats.R2 > summary.bestR2) {
-            summary.bestR2 = model.jstats.R2;
-          }
-          summary.averageR2 += model.jstats.R2;
-          summary.weightedR2 += localityCount * model.jstats.R2;
-
-          summary.totalClusters += 1;
-          summary.totalLocalities += localityCount;
         }
       }
     }
