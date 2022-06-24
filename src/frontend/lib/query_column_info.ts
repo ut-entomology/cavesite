@@ -160,9 +160,9 @@ setColumnInfo({
 });
 setColumnInfo({
   columnID: QueryColumnID.Problems,
-  fullName: 'Problems with the Record',
-  abbrName: 'Problems',
-  description: 'Problems encountered parsing the data record',
+  fullName: 'Import Problems',
+  abbrName: null,
+  description: 'Problems encountered importing the data from GBIF',
   defaultSelection: false,
   nullable: true,
   defaultEmWidth: 16,
