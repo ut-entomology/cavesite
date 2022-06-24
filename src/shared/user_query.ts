@@ -2,6 +2,8 @@
  * Support for conveying general queries and query results between client and server
  */
 
+export const EARLIEST_RECORD_DATE = new Date('1/1/1930');
+
 export enum QueryColumnID {
   // in default order of appearance
   CatalogNumber,

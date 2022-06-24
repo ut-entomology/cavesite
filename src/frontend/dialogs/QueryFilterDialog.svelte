@@ -3,13 +3,15 @@
   import { flip } from 'svelte/animate';
 
   import ModalDialog from '../common/ModalDialog.svelte';
+  import DateRangeInput from '../components/DateRangeInput.svelte';
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import { LocationRank, TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
-  import type {
-    QueryLocationFilter,
-    QueryTaxonFilter,
-    GeneralQuery
+  import {
+    EARLIEST_RECORD_DATE,
+    type QueryLocationFilter,
+    type QueryTaxonFilter,
+    type GeneralQuery
   } from '../../shared/user_query';
   import { selectedLocations } from '../stores/selectedLocations';
   import { selectedTaxa } from '../stores/selectedTaxa';
@@ -37,6 +39,8 @@
   export let onClose: () => void;
   export let onQuery: (query: GeneralQuery) => void;
 
+  let fromDate = EARLIEST_RECORD_DATE;
+  let throughDate = new Date();
   let filterTaxa = initialQuery.taxonFilter !== null;
   let filterLocations = initialQuery.locationFilter !== null;
   let includedItems: DraggableItem[] = [];
@@ -178,6 +182,12 @@
     return whenNull ? 'Blank' : 'Non-Blank';
   }
 
+  function _setDateRange(from: Date, thru: Date): void {
+    console.log('setDateRange:', from.toLocaleDateString(), thru.toLocaleDateString());
+    fromDate = from;
+    throughDate = thru;
+  }
+
   function _toNullOption(nullValues: boolean | null) {
     if (nullValues === null) return NullOption.AnyValue;
     return nullValues ? NullOption.OnlyNull : NullOption.NonNull;
@@ -194,12 +204,18 @@
   contentClasses="query-filter-content"
   dialogClasses="query-filter-dialog"
 >
-  <div class="row mb-4">
+  <div class="row mb-3">
     <div class="col">
       Drag and drop the values you want in the query results and order them, or click
       '&times;' and '&plus;'. Sorted values sort results in order of appearance.
     </div>
   </div>
+  <DateRangeInput
+    classes="justify-content-center mb-4"
+    {fromDate}
+    {throughDate}
+    setDateRange={_setDateRange}
+  />
   <div class="included_columns">
     <div class="drag_area_title">Included in Query</div>
     <div
