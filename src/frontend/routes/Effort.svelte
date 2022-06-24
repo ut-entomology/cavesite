@@ -325,7 +325,7 @@
 
 <DataTabRoute activeTab="Effort">
   <div class="container-fluid">
-    <TabHeader title={$pageName} instructions="Instructions TBD">
+    <TabHeader title={$pageName}>
       <span slot="main-buttons">
         {#if $clusterStore != null}
           <button class="btn btn-minor" type="button" on:click={clearData}
