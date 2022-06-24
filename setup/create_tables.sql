@@ -65,6 +65,7 @@ create table taxa (
     unique_name text not null, -- genus unique includes subgenus; species uniques do not
     -- extracted from GBIF scientificName
     author text,
+    obligate text, -- 'cave', else null if not specified
     parent_id integer references taxa, -- locally generated
 
     -- these allow for fast non-recursive taxon queries/autocompletion:

@@ -10,7 +10,13 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
+import {
+  TaxonRank,
+  TaxonSpec,
+  createContainingTaxonSpecs,
+  CAVE_OBLIGATE_DESIGNATION
+} from '../../shared/model';
+import { getCaveObligatesMap } from '../effort/cave_obligates';
 import { ImportFailure } from './import_failure';
 
 const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
@@ -31,13 +37,13 @@ export interface TaxonSource {
 
 export type TaxonData = DataOf<Taxon>;
 
-// TODO: Add uniqueName for binomials.
 export class Taxon {
   taxonID = 0;
   taxonRank: TaxonRank;
   taxonName: string;
   uniqueName: string;
   author: string | null; // null => not retrieved from GBIF
+  obligate: string | null; // null => not specified
   parentID: number | null;
   parentIDPath: string;
   parentNamePath: string;
@@ -51,6 +57,7 @@ export class Taxon {
     this.taxonName = data.taxonName;
     this.uniqueName = data.uniqueName;
     this.author = data.author;
+    this.obligate = data.obligate;
     this.parentID = data.parentID;
     this.parentIDPath = data.parentIDPath;
     this.parentNamePath = data.parentNamePath;
@@ -63,14 +70,15 @@ export class Taxon {
     if (this.taxonID === 0) {
       const result = await db.query(
         `insert into taxa(
-            taxon_rank, taxon_name, unique_name, author,
+            taxon_rank, taxon_name, unique_name, author, obligate,
             parent_id, parent_id_path, parent_name_path
-          ) values ($1, $2, $3, $4, $5, $6, $7) returning taxon_id`,
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8) returning taxon_id`,
         [
           this.taxonRank,
           this.taxonName,
           this.uniqueName,
           this.author,
+          this.obligate,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath
@@ -80,14 +88,15 @@ export class Taxon {
     } else {
       const result = await db.query(
         `update taxa set
-            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4,
-            parent_id=$5, parent_id_path=$6, parent_name_path=$7
-          where taxon_id=$8`,
+            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4, obligate=$5,
+            parent_id=$6, parent_id_path=$7, parent_name_path=$8
+          where taxon_id=$9`,
         [
           this.taxonRank,
           this.taxonName,
           this.uniqueName,
           this.author,
+          this.obligate,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath,
@@ -193,6 +202,7 @@ export class Taxon {
       name: taxonName,
       unique: '',
       author: Taxon._extractAuthor(source.scientificName),
+      obligate: null, // don't have the unique yet for making this determination
       parentNamePath,
       hasChildren: null
     };
@@ -237,6 +247,7 @@ export class Taxon {
         taxonName: spec.name,
         uniqueName: spec.unique,
         author: spec.author,
+        obligate: taxon?.obligate || _caveObligateValue(spec.unique) || null,
         parentID: taxon?.taxonID || null,
         hasChildren: spec.hasChildren || null
       });
@@ -332,6 +343,10 @@ export class Taxon {
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     return [taxonNames, taxonRank];
   }
+}
+
+function _caveObligateValue(taxonName: string): string | null {
+  return getCaveObligatesMap()[taxonName] ? CAVE_OBLIGATE_DESIGNATION : null;
 }
 
 function _toTaxonData(row: any): TaxonData {

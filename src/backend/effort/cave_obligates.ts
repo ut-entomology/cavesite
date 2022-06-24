@@ -1,10 +1,7 @@
-import { type DB } from '../integrations/postgres';
-import { Taxon } from '../model/taxon';
-
 export type TaxonPathsByUniqueMap = Record<string, string[]>;
 
 const caveObligateTaxa = [
-  // Genera that are entirely cave obligate (possibly restricted to subgenus)
+  // Genera that are entirely cave obligate (possibly restricted to subgenus).
 
   'Brackenridgia',
   'Cicurina (Cicurella)',
@@ -13,7 +10,7 @@ const caveObligateTaxa = [
   'Texamaurops',
   'Texoreddellia',
 
-  // Species that are cave obligate.
+  // Species that are cave obligate not necessarily in cave-obligate genera.
 
   'Agastoschizomus n. sp.',
   'Agastoschizomus texanus',
@@ -53,9 +50,6 @@ const caveObligateTaxa = [
   'Bicornucandona fineganensis',
   'Brachycoelium longleyi',
   'Brachydopsis n. sp.',
-  'Brackenridgia cavernarum',
-  'Brackenridgia n. sp.',
-  'Brackenridgia reddelli',
   'Caecidotea bilineata',
   'Caecidotea reddelli',
   'Calathaemon holthuisi',
@@ -235,17 +229,6 @@ const caveObligateTaxa = [
   'Seborgia relicta',
   'Simplexia longicrus',
   'Speocirolana hardeni',
-  'Speodesmus bicornourus',
-  'Speodesmus castellanus',
-  'Speodesmus ehinourus',
-  'Speodesmus falcatus',
-  'Speodesmus ivyi',
-  'Speodesmus n. sp. 1',
-  'Speodesmus n. sp. 2',
-  'Speodesmus n. sp. 3',
-  'Speodesmus reddelli',
-  'Speorthus reyesi',
-  'Speorthus tuganbius',
   'Sphalloplana mohri',
   'Stygmomonia n. sp.',
   'Stygobromus alabamensis occidentalis',
@@ -287,7 +270,6 @@ const caveObligateTaxa = [
   'Tayshaneta vidreo',
   'Tayshaneta whitei',
   'Tethysbaena texana',
-  'Texamaurops reddelli',
   'Texanobathynella aaronswinki',
   'Texanobathynella bowmani',
   'Texanobathynella coloradoensis',
@@ -305,12 +287,6 @@ const caveObligateTaxa = [
   'Texicerberus schoetteae',
   'Texiweckelia texensis',
   'Texiweckeliopsis insolita',
-  'Texoreddellia aquilonalis',
-  'Texoreddellia capitesquameo',
-  'Texoreddellia coahuilensis',
-  'Texoreddellia media',
-  'Texoreddellia occasus',
-  'Texoreddellia texensis',
   'Theatops phanus',
   'Trogloglanis pattersoni',
   'Typhloelmis caroline',
@@ -331,7 +307,13 @@ export function getCaveObligatesMap(): Record<string, boolean> {
   for (const taxonName of caveObligateTaxa) {
     // Exclude new species because they don't correspond to those in the database.
     if (!taxonName.includes('n.')) {
-      caveObligatesMap[taxonName] = true;
+      if (taxonName.length - taxonName.replaceAll(' ', '').length == 2) {
+        // record species when only subspecies are given
+        const lastSpace = taxonName.lastIndexOf(' ');
+        caveObligatesMap[taxonName.substring(0, lastSpace)] = true;
+      } else {
+        caveObligatesMap[taxonName] = true;
+      }
     }
   }
   return caveObligatesMap;
@@ -349,21 +331,4 @@ export function getCaveContainingGeneraMap(): Record<string, boolean> {
     caveContainingGeneraMap[genus] = true;
   }
   return caveContainingGeneraMap;
-}
-
-// TODO: Do I still need this?
-export async function loadCaveObligateTaxonPathMap(
-  db: DB
-): Promise<TaxonPathsByUniqueMap> {
-  const taxonPathsByUniqueMap: TaxonPathsByUniqueMap = {};
-  const taxa = await Taxon.getByUniqueNames(db, caveObligateTaxa);
-  for (const taxon of taxa) {
-    // Exclude new species because they don't correspond to those in the database.
-    if (!taxon.uniqueName.includes('n.')) {
-      const taxonNames = taxon.parentNamePath.split('|');
-      taxonNames.push(taxon.uniqueName);
-      taxonPathsByUniqueMap[taxon.uniqueName] = taxonNames;
-    }
-  }
-  return taxonPathsByUniqueMap;
 }

@@ -25,6 +25,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName,
       uniqueName: taxonName,
       author: null,
+      obligate: null,
       parentID: null,
       hasChildren: null
     };
@@ -51,6 +52,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName,
       uniqueName: taxonName,
       author: null,
+      obligate: null,
       parentID: 1,
       hasChildren: null
     };
@@ -93,6 +95,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Arachnida',
       uniqueName: 'Arachnida',
       author: null,
+      obligate: null,
       parentID: 2,
       parentIDPath: '1,2',
       parentNamePath: 'Animalia|Arthropoda',
@@ -119,6 +122,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Araneae',
       uniqueName: 'Araneae',
       author: null,
+      obligate: null,
       parentID: 3,
       parentIDPath: '1,2,3',
       parentNamePath: 'Animalia|Arthropoda|Arachnida',
@@ -130,6 +134,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Thomisidae',
       uniqueName: 'Thomisidae',
       author: null,
+      obligate: null,
       parentID: 4,
       parentIDPath: '1,2,3,4',
       parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
@@ -141,6 +146,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Mecaphesa',
       uniqueName: 'Mecaphesa',
       author: null,
+      obligate: null,
       parentID: 5,
       parentIDPath: '1,2,3,4,5',
       parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae',
@@ -153,6 +159,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'dubia',
       uniqueName: 'Mecaphesa dubia',
       author: '(Keyserling, 1880)',
+      obligate: null,
       parentID: 6,
       parentIDPath: '1,2,3,4,5,6',
       parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa',
@@ -203,6 +210,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Philodromidae',
       uniqueName: 'Philodromidae',
       author: null,
+      obligate: null,
       parentID: 4,
       parentIDPath: '1,2,3,4',
       parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
@@ -214,6 +222,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Philodromus',
       uniqueName: 'Philodromus',
       author: null,
+      obligate: null,
       parentID: 8,
       parentIDPath: '1,2,3,4,8',
       parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae',
@@ -225,6 +234,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'rufus',
       uniqueName: 'Philodromus rufus',
       author: null,
+      obligate: null,
       parentID: 9,
       parentIDPath: '1,2,3,4,8,9',
       parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Philodromidae|Philodromus',
@@ -237,6 +247,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'jenningsi',
       uniqueName: 'Philodromus rufus jenningsi',
       author: 'Author',
+      obligate: null,
       parentID: 10,
       parentIDPath: '1,2,3,4,8,9,10',
       parentNamePath:
@@ -265,6 +276,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Chordata',
       uniqueName: 'Chordata',
       author: null,
+      obligate: null,
       parentID: 1,
       parentIDPath: '1',
       parentNamePath: 'Animalia',
@@ -276,6 +288,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Amphibia',
       uniqueName: 'Amphibia',
       author: null,
+      obligate: null,
       parentID: 12,
       parentIDPath: '1,12',
       parentNamePath: 'Animalia|Chordata',
@@ -287,6 +300,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Urodela',
       uniqueName: 'Urodela',
       author: null,
+      obligate: null,
       parentID: 13,
       parentIDPath: '1,12,13',
       parentNamePath: 'Animalia|Chordata|Amphibia',
@@ -298,6 +312,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Plethodontidae',
       uniqueName: 'Plethodontidae',
       author: null,
+      obligate: null,
       parentID: 14,
       parentIDPath: '1,12,13,14',
       parentNamePath: 'Animalia|Chordata|Amphibia|Urodela',
@@ -309,6 +324,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'Eurycea',
       uniqueName: 'Eurycea',
       author: null,
+      obligate: null,
       parentID: 15,
       parentIDPath: '1,12,13,14,15',
       parentNamePath: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae',
@@ -321,6 +337,7 @@ test('sequentially dependent taxa tests', async () => {
       taxonName: 'rathbuni',
       uniqueName: 'Eurycea rathbuni',
       author: '(Stejneger, 1896)',
+      obligate: 'cave',
       parentID: 16,
       parentIDPath: '1,12,13,14,15,16',
       parentNamePath: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea',
@@ -497,6 +514,7 @@ test('taxa with subgenera', async () => {
     taxonName: 'Araneae',
     uniqueName: 'Araneae',
     author: null,
+    obligate: null,
     parentID: 3,
     parentIDPath: '1,2,3',
     parentNamePath: 'Animalia|Arthropoda|Arachnida',
@@ -508,6 +526,7 @@ test('taxa with subgenera', async () => {
     taxonName: 'Thomisidae',
     uniqueName: 'Thomisidae',
     author: null,
+    obligate: null,
     parentID: 4,
     parentIDPath: '1,2,3,4',
     parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
@@ -519,6 +538,7 @@ test('taxa with subgenera', async () => {
     taxonName: 'Mecaphesa (Madeup)',
     uniqueName: 'Mecaphesa (Madeup)',
     author: null,
+    obligate: null,
     parentID: 5,
     parentIDPath: '1,2,3,4,5',
     parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae',
@@ -530,6 +550,7 @@ test('taxa with subgenera', async () => {
     taxonName: 'dubia',
     uniqueName: 'Mecaphesa dubia',
     author: null,
+    obligate: null,
     parentID: 6,
     parentIDPath: '1,2,3,4,5,6',
     parentNamePath:
@@ -543,6 +564,7 @@ test('taxa with subgenera', async () => {
     taxonName: 'notreal',
     uniqueName: 'Mecaphesa dubia notreal',
     author: '(Keyserling, 1880)',
+    obligate: null,
     parentID: 7,
     parentIDPath: '1,2,3,4,5,6,7',
     parentNamePath:
@@ -550,6 +572,244 @@ test('taxa with subgenera', async () => {
     hasChildren: null
   });
   expect(createdTaxon).toEqual(readTaxon);
+});
+
+test('create a cave-obligate genus and species, no subgenus', async () => {
+  await Taxon.dropAll(db);
+
+  let createdTaxon = await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta',
+    order: 'Zygentoma',
+    family: 'Nicoletiidae',
+    genus: 'Texoreddellia',
+    scientificName: 'Texoreddellia Wygodzinsky, 1973'
+  });
+  await Taxon.commit(db);
+  expect(await Taxon.getByID(db, 4)).toEqual({
+    taxonID: 4,
+    taxonRank: TaxonRank.Order,
+    taxonName: 'Zygentoma',
+    uniqueName: 'Zygentoma',
+    author: null,
+    obligate: null,
+    parentID: 3,
+    parentIDPath: '1,2,3',
+    parentNamePath: 'Animalia|Arthropoda|Insecta',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 5)).toEqual({
+    taxonID: 5,
+    taxonRank: TaxonRank.Family,
+    taxonName: 'Nicoletiidae',
+    uniqueName: 'Nicoletiidae',
+    author: null,
+    obligate: null,
+    parentID: 4,
+    parentIDPath: '1,2,3,4',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Zygentoma',
+    hasChildren: null
+  });
+  let readTaxon = await Taxon.getByID(db, 6);
+  expect(readTaxon).toEqual({
+    taxonID: 6,
+    taxonRank: TaxonRank.Genus,
+    taxonName: 'Texoreddellia',
+    uniqueName: 'Texoreddellia',
+    author: 'Wygodzinsky, 1973',
+    obligate: 'cave',
+    parentID: 5,
+    parentIDPath: '1,2,3,4,5',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Zygentoma|Nicoletiidae',
+    hasChildren: null
+  });
+  expect(createdTaxon).toEqual(readTaxon);
+
+  createdTaxon = await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta',
+    order: 'Zygentoma',
+    family: 'Nicoletiidae',
+    genus: 'Texoreddellia',
+    specificEpithet: 'aquilonalis',
+    scientificName: 'Texoreddellia aquilonalis'
+  });
+  await Taxon.commit(db);
+  readTaxon = await Taxon.getByID(db, 13);
+  expect(readTaxon).toEqual({
+    taxonID: 13,
+    taxonRank: TaxonRank.Species,
+    taxonName: 'aquilonalis',
+    uniqueName: 'Texoreddellia aquilonalis',
+    author: null,
+    obligate: 'cave',
+    parentID: 12,
+    parentIDPath: '7,8,9,10,11,12',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Zygentoma|Nicoletiidae|Texoreddellia',
+    hasChildren: null
+  });
+  expect(createdTaxon).toEqual(readTaxon);
+});
+
+test('create a species in a cave-obligate genus with subgenus', async () => {
+  await Taxon.dropAll(db);
+  let createdTaxon = await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Arachnida',
+    order: 'Araneae',
+    family: 'Hahniidae',
+    genus: 'Cicurina',
+    subgenus: 'Cicurella',
+    specificEpithet: 'bandera',
+    scientificName: 'Cicurina bandera Gertsch'
+  });
+  await Taxon.commit(db);
+  expect(await Taxon.getByID(db, 4)).toEqual({
+    taxonID: 4,
+    taxonRank: TaxonRank.Order,
+    taxonName: 'Araneae',
+    uniqueName: 'Araneae',
+    author: null,
+    obligate: null,
+    parentID: 3,
+    parentIDPath: '1,2,3',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 5)).toEqual({
+    taxonID: 5,
+    taxonRank: TaxonRank.Family,
+    taxonName: 'Hahniidae',
+    uniqueName: 'Hahniidae',
+    author: null,
+    obligate: null,
+    parentID: 4,
+    parentIDPath: '1,2,3,4',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 6)).toEqual({
+    taxonID: 6,
+    taxonRank: TaxonRank.Genus,
+    taxonName: 'Cicurina (Cicurella)',
+    uniqueName: 'Cicurina (Cicurella)',
+    author: null,
+    obligate: 'cave',
+    parentID: 5,
+    parentIDPath: '1,2,3,4,5',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Hahniidae',
+    hasChildren: null
+  });
+  let readTaxon = await Taxon.getByID(db, 7);
+  expect(readTaxon).toEqual({
+    taxonID: 7,
+    taxonRank: TaxonRank.Species,
+    taxonName: 'bandera',
+    uniqueName: 'Cicurina bandera',
+    author: 'Gertsch',
+    obligate: 'cave',
+    parentID: 6,
+    parentIDPath: '1,2,3,4,5,6',
+    parentNamePath:
+      'Animalia|Arthropoda|Arachnida|Araneae|Hahniidae|Cicurina (Cicurella)',
+    hasChildren: null
+  });
+  expect(createdTaxon).toEqual(readTaxon);
+});
+
+test('create a cave-obligate species and subspecies not in a cave-obligate genus', async () => {
+  await Taxon.dropAll(db);
+  let createdTaxon = await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta',
+    order: 'Coleoptera',
+    family: 'Carabidae',
+    genus: 'Rhadine',
+    specificEpithet: 'infernalis',
+    scientificName: 'Rhadine infernalis (Barr)'
+  });
+  await Taxon.commit(db);
+  expect(await Taxon.getByID(db, 4)).toEqual({
+    taxonID: 4,
+    taxonRank: TaxonRank.Order,
+    taxonName: 'Coleoptera',
+    uniqueName: 'Coleoptera',
+    author: null,
+    obligate: null,
+    parentID: 3,
+    parentIDPath: '1,2,3',
+    parentNamePath: 'Animalia|Arthropoda|Insecta',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 5)).toEqual({
+    taxonID: 5,
+    taxonRank: TaxonRank.Family,
+    taxonName: 'Carabidae',
+    uniqueName: 'Carabidae',
+    author: null,
+    obligate: null,
+    parentID: 4,
+    parentIDPath: '1,2,3,4',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Coleoptera',
+    hasChildren: null
+  });
+  expect(await Taxon.getByID(db, 6)).toEqual({
+    taxonID: 6,
+    taxonRank: TaxonRank.Genus,
+    taxonName: 'Rhadine',
+    uniqueName: 'Rhadine',
+    author: null,
+    obligate: null,
+    parentID: 5,
+    parentIDPath: '1,2,3,4,5',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Coleoptera|Carabidae',
+    hasChildren: null
+  });
+  let readTaxon = await Taxon.getByID(db, 7);
+  expect(readTaxon).toEqual({
+    taxonID: 7,
+    taxonRank: TaxonRank.Species,
+    taxonName: 'infernalis',
+    uniqueName: 'Rhadine infernalis',
+    author: '(Barr)',
+    obligate: 'cave',
+    parentID: 6,
+    parentIDPath: '1,2,3,4,5,6',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Coleoptera|Carabidae|Rhadine',
+    hasChildren: null
+  });
+  expect(createdTaxon).toEqual(readTaxon);
+
+  createdTaxon = await Taxon.getOrCreate(db, {
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta',
+    order: 'Coleoptera',
+    family: 'Carabidae',
+    genus: 'Rhadine',
+    specificEpithet: 'infernalis',
+    infraspecificEpithet: 'ewersi',
+    scientificName: 'Rhadine infernalis ewersi (Barr)'
+  });
+  readTaxon = await Taxon.getByID(db, 15);
+  expect(readTaxon).toEqual({
+    taxonID: 15,
+    taxonRank: TaxonRank.Subspecies,
+    taxonName: 'ewersi',
+    uniqueName: 'Rhadine infernalis ewersi',
+    author: '(Barr)',
+    obligate: 'cave',
+    parentID: 14,
+    parentIDPath: '8,9,10,11,12,13,14',
+    parentNamePath:
+      'Animalia|Arthropoda|Insecta|Coleoptera|Carabidae|Rhadine|infernalis',
+    hasChildren: null
+  });
+  await Taxon.commit(db);
 });
 
 test('poorly sourced taxa', async () => {
