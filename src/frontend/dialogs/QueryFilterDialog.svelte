@@ -171,6 +171,13 @@
     });
   };
 
+  function _nullLabel(info: QueryColumnInfo, whenNull: boolean): string {
+    if (Array.isArray(info.nullable)) {
+      return info.nullable[whenNull ? 0 : 1];
+    }
+    return whenNull ? 'Blank' : 'Non-Blank';
+  }
+
   function _toNullOption(nullValues: boolean | null) {
     if (nullValues === null) return NullOption.AnyValue;
     return nullValues ? NullOption.OnlyNull : NullOption.NonNull;
@@ -230,8 +237,12 @@
                 aria-label=".form-select-sm example"
               >
                 <option value={NullOption.AnyValue}>Any value</option>
-                <option value={NullOption.NonNull}>Non-blank</option>
-                <option value={NullOption.OnlyNull}>Blank</option>
+                <option value={NullOption.NonNull}
+                  >{_nullLabel(item.info, false)}</option
+                >
+                <option value={NullOption.OnlyNull}
+                  >{_nullLabel(item.info, true)}</option
+                >
               </select>
             </div>
           {/if}

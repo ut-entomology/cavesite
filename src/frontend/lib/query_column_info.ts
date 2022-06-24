@@ -7,7 +7,7 @@ export interface QueryColumnInfo {
   abbrName: string | null; // name to display for column in column header
   description: string; // information about the column
   defaultSelection: boolean; // whether query requests the column by default
-  nullable: boolean; // whether column can be null
+  nullable: boolean | string[]; // whether can be null, or [null, not-null] labels
   defaultEmWidth: number; // default width of the column in em,
   columnClass: string | null; // CSS class for query column cells
   getValue: (row: QueryRow) => string | number;
@@ -266,7 +266,7 @@ setColumnInfo({
   abbrName: null,
   description: 'Whether the taxon is cave obligate',
   defaultSelection: false,
-  nullable: true,
+  nullable: ['No', 'Yes'],
   defaultEmWidth: 8,
   columnClass: 'center',
   getValue: (row: QueryRow) =>
