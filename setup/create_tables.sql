@@ -163,6 +163,7 @@ create table specimens (
     subspecies_id integer references taxa,
     taxon_unique text not null, -- only genus uniques include the subgenus
     taxon_author text, -- author of taxon_unique
+    obligate text, -- 'cave', else null if not specified
 
     -- values cached from locations table
 

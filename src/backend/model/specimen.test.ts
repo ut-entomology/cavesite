@@ -65,6 +65,9 @@ beforeAll(async () => {
 
 describe('basic specimen methods', () => {
   test('missing catalog number', async () => {
+    await Specimen.dropAll(db);
+    await Taxon.dropAll(db);
+
     {
       const source = Object.assign({}, baseSource);
       source.catalogNumber = '';
@@ -93,6 +96,9 @@ describe('basic specimen methods', () => {
   });
 
   test('creating a fully-specified specimen', async () => {
+    await Specimen.dropAll(db);
+    await Taxon.dropAll(db);
+
     // test creating a fully-specified specimen
 
     {
@@ -132,6 +138,7 @@ describe('basic specimen methods', () => {
         subspeciesID: null,
         taxonUnique: 'Argiope aurantia',
         taxonAuthor: 'Lucas, 1833',
+        obligate: null,
         countyName: 'Travis County',
         countyID: 4,
         localityName: 'My backyard',
@@ -213,6 +220,7 @@ describe('basic specimen methods', () => {
         subspeciesID: null,
         taxonUnique: 'Thomisidae',
         taxonAuthor: null,
+        obligate: null,
         countyName: null,
         countyID: null,
         localityName: 'Their backyard',
@@ -351,6 +359,7 @@ describe('basic specimen methods', () => {
       subspeciesID: null,
       taxonUnique: 'Argiope aurantia',
       taxonAuthor: 'Lucas, 1833',
+      obligate: null,
       countyName: 'Travis County',
       countyID: 4,
       localityName: 'My backyard',
@@ -421,6 +430,7 @@ describe('basic specimen methods', () => {
       subspeciesID: null,
       taxonUnique: 'Argiope n. sp. A',
       taxonAuthor: null,
+      obligate: null,
       countyName: 'Travis County',
       countyID: 4,
       localityName: 'My backyard',
@@ -441,6 +451,63 @@ describe('basic specimen methods', () => {
       baseSource.catalogNumber,
       false
     );
+    expect(readSpecimen).toEqual(specimen);
+  });
+
+  test('creating a cave obligate specimen', async () => {
+    await Specimen.dropAll(db);
+    await Taxon.dropAll(db);
+
+    const specimen = await _createSpecimen4(db);
+    expect(specimen).toEqual({
+      catalogNumber: 'Q4',
+      occurrenceGuid: 'GQ4',
+      taxonID: 7,
+      localityID: 5,
+      collectionStartDate: startDate,
+      collectionEndDate: null,
+      collectors: 'Some One',
+      normalizedCollectors: 'one',
+      determinationYear: null,
+      determiners: null,
+      collectionRemarks: null,
+      occurrenceRemarks: null,
+      determinationRemarks: null,
+      typeStatus: baseSource.typeStatus,
+      specimenCount: null,
+      problems: null,
+      kingdomName: 'Animalia',
+      kingdomID: 1,
+      phylumName: 'Arthropoda',
+      phylumID: 2,
+      className: 'Insecta',
+      classID: 3,
+      orderName: 'Zygentoma',
+      orderID: 4,
+      familyName: 'Nicoletiidae',
+      familyID: 5,
+      genusName: 'Texoreddellia',
+      genusID: 6,
+      speciesName: 'aquilonalis',
+      speciesID: 7,
+      subspeciesName: null,
+      subspeciesID: null,
+      taxonUnique: 'Texoreddellia aquilonalis',
+      taxonAuthor: null,
+      obligate: 'cave',
+      countyName: 'Travis County',
+      countyID: 4,
+      localityName: 'My backyard',
+      publicLatitude: 23.45,
+      publicLongitude: -93.21
+    });
+    expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
+    expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
+    expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Nicoletiidae');
+    expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Texoreddellia');
+    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aquilonalis');
+
+    const readSpecimen = await Specimen.getByCatNum(db, specimen!.catalogNumber, false);
     expect(readSpecimen).toEqual(specimen);
   });
 
@@ -1383,6 +1450,36 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
     organismQuantity: '3'
   };
   return await Specimen.create(db, source3);
+}
+
+async function _createSpecimen4(db: DB): Promise<Specimen | null> {
+  const source4 = {
+    catalogNumber: 'Q4',
+    occurrenceID: 'GQ4',
+
+    kingdom: 'Animalia',
+    phylum: 'Arthropoda',
+    class: 'Insecta',
+    order: 'Zygentoma',
+    family: 'Nicoletiidae',
+    genus: 'Texoreddellia',
+    specificEpithet: 'aquilonalis',
+    // no infraspecificEpithet
+    scientificName: 'Texoreddellia aquilonalis',
+
+    continent: 'North America',
+    country: 'United States',
+    stateProvince: 'Texas',
+    county: 'Travis County',
+    locality: 'My backyard',
+    decimalLatitude: '23.45',
+    decimalLongitude: '-93.21',
+
+    startDate: startDate.toISOString(),
+    collectors: 'Some One',
+    typeStatus: 'normal'
+  };
+  return await Specimen.create(db, source4);
 }
 
 async function _getLocationByID(db: DB, locationID: number): Promise<Location | null> {
