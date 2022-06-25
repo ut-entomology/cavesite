@@ -17,7 +17,7 @@
   $: fromDate = inputToLocalDate(fromStr);
   $: throughDate = inputToLocalDate(throughStr);
 
-  function onFromBlur(_event: Event): void {
+  function onFromBlur(): void {
     if (fromStr == '') {
       fromStr = localToInputDate(from);
       fromDate = from;
@@ -28,7 +28,7 @@
     setDateRange(fromDate, throughDate);
   }
 
-  function onThroughBlur(_event: Event): void {
+  function onThroughBlur(): void {
     if (throughStr == '') {
       throughStr = localToInputDate(through);
       throughDate = through;
@@ -37,6 +37,13 @@
       fromStr = throughStr;
     }
     setDateRange(fromDate, throughDate);
+  }
+
+  function resetDates() {
+    fromDate = earliestDate;
+    fromStr = localToInputDate(earliestDate);
+    throughDate = new Date();
+    throughStr = localToInputDate(throughDate);
   }
 </script>
 
@@ -65,6 +72,14 @@
       on:blur={onThroughBlur}
     />
   </div>
+  <div class="col-auto reset_icon">
+    <img
+      src="/icons8-reset-24.png"
+      title="Reset dates"
+      alt="Reset dates"
+      on:click={resetDates}
+    />
+  </div>
 </div>
 
 <style lang="scss">
@@ -76,5 +91,13 @@
     padding: 0.1rem 0.4rem;
     text-align: center;
     color: $blueLinkForeColor;
+  }
+
+  .reset_icon img {
+    margin-top: -0.05rem;
+    margin-left: 0.2rem;
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
   }
 </style>
