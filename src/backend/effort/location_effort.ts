@@ -309,7 +309,6 @@ export class LocationEffort {
         tallies[countsField] = visit[countsField]!;
       } else {
         const tallyTaxa = tallyTaxonSeries.split('|');
-        const tallyCounts = tallies[countsField]!;
         const visitTaxa = visitTaxonSeries.split('|');
         const visitCounts = visit[countsField]!;
 
@@ -326,8 +325,11 @@ export class LocationEffort {
             if (tallyIndex < 0) {
               tallies[namesField] += '|' + visitTaxon;
               tallies[countsField] += '0';
-            } else if (tallyCounts[tallyIndex] == '1') {
-              tallies[countsField] = setTaxonCounts(tallyCounts, tallyIndex, '0');
+            } else {
+              const taxonCounts = tallies[countsField]!;
+              if (taxonCounts[tallyIndex] == '1') {
+                tallies[countsField] = setTaxonCounts(taxonCounts, tallyIndex, '0');
+              }
             }
           } else {
             // When the visit count is 1, the visit provides no more specificity,
