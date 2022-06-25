@@ -77,12 +77,13 @@
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const zeroYBaseline = false;
-  const MAX_CLUSTERS = 1;
+  const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 0;
+  const LOWER_BOUND_X = 8;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
-  const MIN_CAVES_PER_SUMMARY = 20;
+  const MIN_CAVES_PER_SUMMARY = 10;
+  const MIN_POINTS_PER_SUMMARY = 50;
 
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
@@ -141,6 +142,7 @@
     }
     modelSummaries = summarizeModels(
       MIN_CAVES_PER_SUMMARY,
+      MIN_POINTS_PER_SUMMARY,
       modelsByCluster,
       localityCountByCluster
     );
@@ -414,7 +416,8 @@
           </div>
           <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
           <div class="col">
-            min. caves/summary: <span>{MIN_CAVES_PER_SUMMARY}</span>
+            min. caves<span>/</span>pts/sum:
+            <span>{MIN_CAVES_PER_SUMMARY}/{MIN_POINTS_PER_SUMMARY}</span>
           </div>
         </div>
       </div>

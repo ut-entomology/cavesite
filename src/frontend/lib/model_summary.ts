@@ -17,6 +17,7 @@ export interface ModelSummary {
 
 export function summarizeModels(
   minCavesAllowed: number,
+  minPointsAllowed: number,
   modelsByCluster: PlottableModel[][],
   localityCountByCluster: number[]
 ): ModelSummary[] {
@@ -42,10 +43,10 @@ export function summarizeModels(
     const models = modelsByCluster[i];
     const localityCount = localityCountByCluster[i];
 
-    if (models !== undefined) {
+    if (models !== undefined && localityCount >= minCavesAllowed) {
       for (let j = 0; j < models.length; ++j) {
-        if (localityCount >= minCavesAllowed) {
-          const model = models[j];
+        const model = models[j];
+        if (model.residuals.length >= minPointsAllowed) {
           const summary = summaries[j];
 
           summary.modelName = model.name;
