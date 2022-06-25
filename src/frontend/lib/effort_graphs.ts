@@ -67,12 +67,16 @@ export abstract class EffortGraphSpec {
 
   protected _getPercentChangePoint(point: Point): Point | null {
     if (this._priorY == 0) return null;
-    return { x: point.x, y: (100 * (point.y - this._priorY)) / this._priorY };
+    return {
+      x: point.x,
+      y: (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline)
+    };
   }
 
   protected _getCumuPercentChangePoint(point: Point): Point | null {
     if (this._priorY == 0) return null;
-    this._cumulativePercentChange += (100 * (point.y - this._priorY)) / this._priorY;
+    this._cumulativePercentChange +=
+      (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline);
     return { x: point.x, y: this._cumulativePercentChange };
   }
 }
@@ -121,14 +125,19 @@ export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
 }
 
 export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
-  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+  constructor(
+    clusterEffortData: EffortData[],
+    minDays: number,
+    maxDays: number,
+    useZeroBaseline: boolean
+  ) {
     super(
       clusterEffortData,
       '% change in species across days',
       '% change in species',
       minDays,
       maxDays,
-      false
+      useZeroBaseline
     );
   }
 
@@ -138,14 +147,19 @@ export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
 }
 
 export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
-  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+  constructor(
+    clusterEffortData: EffortData[],
+    minDays: number,
+    maxDays: number,
+    useZeroBaseline: boolean
+  ) {
     super(
       clusterEffortData,
       'Cumulative % change in species across days',
       'cumu. % change in species',
       minDays,
       maxDays,
-      false
+      useZeroBaseline
     );
   }
 
@@ -198,14 +212,19 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
 }
 
 export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
-  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+  constructor(
+    clusterEffortData: EffortData[],
+    minDays: number,
+    maxDays: number,
+    useZeroBaseline: boolean
+  ) {
     super(
       clusterEffortData,
       'Cumulative % change in species across visits',
       'cumu. % change in species',
       minDays,
       maxDays,
-      false
+      useZeroBaseline
     );
   }
 
@@ -215,14 +234,19 @@ export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
 }
 
 export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
-  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+  constructor(
+    clusterEffortData: EffortData[],
+    minDays: number,
+    maxDays: number,
+    useZeroBaseline: boolean
+  ) {
     super(
       clusterEffortData,
       '% change in species across visits',
       '% change in species',
       minDays,
       maxDays,
-      false
+      useZeroBaseline
     );
   }
 
@@ -275,14 +299,19 @@ export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
 }
 
 export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
-  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+  constructor(
+    clusterEffortData: EffortData[],
+    minDays: number,
+    maxDays: number,
+    useZeroBaseline: boolean
+  ) {
     super(
       clusterEffortData,
       '% change in species across person-visits',
       '% change in species',
       minDays,
       maxDays,
-      false
+      useZeroBaseline
     );
   }
 
@@ -292,14 +321,19 @@ export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpe
 }
 
 export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
-  constructor(clusterEffortData: EffortData[], minDays: number, maxDays: number) {
+  constructor(
+    clusterEffortData: EffortData[],
+    minDays: number,
+    maxDays: number,
+    useZeroBaseline: boolean
+  ) {
     super(
       clusterEffortData,
       'Cumulative % change in species across person-visits',
       'cumu. % change in species',
       minDays,
       maxDays,
-      false
+      useZeroBaseline
     );
   }
 

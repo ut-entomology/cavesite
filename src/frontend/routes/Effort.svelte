@@ -76,7 +76,7 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const zeroYBaseline = false;
+  const zeroYBaseline = true;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 8;
@@ -232,17 +232,20 @@
           perDayTotalsGraph: new PercentChangeByDaysGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           ),
           perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           ),
           perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           )
         };
         break;
@@ -252,17 +255,20 @@
           perDayTotalsGraph: new CumuPercentChangeByDaysGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           ),
           perVisitTotalsGraph: new CumuPercentChangeByVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           ),
           perPersonVisitTotalsGraph: new CumuPercentChangeByPersonVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           )
         };
         break;
