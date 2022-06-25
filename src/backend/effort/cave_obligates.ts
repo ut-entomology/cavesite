@@ -111,7 +111,7 @@ const caveObligateTaxa = [
   'Cicurina vespera',
   'Cicurina vibora',
   'Cicurina watersi',
-  'Cirolanides texensis texensis',
+  'Cirolanides texensis',
   'Cirolanides wassenichae',
   'Clathroperchon n. sp.',
   'Comalcandona gibsoni',
@@ -181,15 +181,14 @@ const caveObligateTaxa = [
   'Phreatodrobia conica',
   'Phreatodrobia coronae',
   'Phreatodrobia micra',
-  'Phreatodrobia nugax imitata',
-  'Phreatodrobia nugax nugax',
+  'Phreatodrobia nugax',
   'Phreatodrobia plana',
   'Phreatodrobia punctata',
   'Phreatodrobia rotunda',
   'Phreatodrobia spica',
   'Podocampa n. sp.',
   'Prietella phreatophila',
-  'Protolimnesia Protolimnesia ventriplacophora',
+  'Protolimnesia ventriplacophora',
   'Pseudocandona lordi',
   'Psychopomporus felipi',
   'Pygmarrhopalites texensis',
@@ -198,9 +197,7 @@ const caveObligateTaxa = [
   'Rhadine bull',
   'Rhadine exilis',
   'Rhadine grubbsi',
-  'Rhadine infernalis ewersi',
-  'Rhadine infernalis infernalis',
-  'Rhadine infernalis n. subsp.',
+  'Rhadine infernalis',
   'Rhadine insolita',
   'Rhadine ivyi',
   'Rhadine koepkei koepkei',
@@ -214,14 +211,10 @@ const caveObligateTaxa = [
   'Rhadine persephone',
   'Rhadine reyesi',
   'Rhadine russelli',
-  'Rhadine specum crinicollis',
-  'Rhadine specum gentilis',
-  'Rhadine specum specum',
+  'Rhadine specum',
   'Rhadine sprousei',
-  'Rhadine subterranea mitchelli',
-  'Rhadine subterranea subterranea',
-  'Rhadine tenebrosa mckenziei',
-  'Rhadine tenebrosa tenebrosa',
+  'Rhadine subterranea',
+  'Rhadine tenebrosa',
   'Rugosuscandona scharfi',
   'Satan eurystomus',
   'Schornikovdona bellensis',
@@ -231,7 +224,7 @@ const caveObligateTaxa = [
   'Speocirolana hardeni',
   'Sphalloplana mohri',
   'Stygmomonia n. sp.',
-  'Stygobromus alabamensis occidentalis',
+  'Stygobromus alabamensis',
   'Stygobromus bakeri',
   'Stygobromus balconis',
   'Stygobromus bifurcatus',
@@ -307,13 +300,7 @@ export function getCaveObligatesMap(): Record<string, boolean> {
   for (const taxonName of caveObligateTaxa) {
     // Exclude new species because they don't correspond to those in the database.
     if (!taxonName.includes('n.')) {
-      if (taxonName.length - taxonName.replaceAll(' ', '').length == 2) {
-        // record species when only subspecies are given
-        const lastSpace = taxonName.lastIndexOf(' ');
-        caveObligatesMap[taxonName.substring(0, lastSpace)] = true;
-      } else {
-        caveObligatesMap[taxonName] = true;
-      }
+      caveObligatesMap[taxonName] = true;
     }
   }
   return caveObligatesMap;
