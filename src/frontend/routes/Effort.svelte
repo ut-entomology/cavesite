@@ -45,7 +45,7 @@
   import {
     Point,
     PlottableModel,
-    LogXModel,
+    LinearXModel,
     Order3XModel,
     QuadraticXModel,
     PowerXModel,
@@ -74,12 +74,12 @@
     boxCox = 'box-cox'
   }
 
-  const yAxisType = YAxisType.cumuPercentChange;
+  const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const zeroYBaseline = true;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 8;
+  const LOWER_BOUND_X = 5;
   const UPPER_BOUND_X = Infinity;
   const POINTS_IN_MODEL_PLOT = 200;
   const MIN_CAVES_PER_SUMMARY = 10;
@@ -286,7 +286,7 @@
       return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
     });
     modelFactories.push((dataPoints, yTransform) => {
-      return new LogXModel(LOG_HEXCOLOR, dataPoints, yTransform);
+      return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
     });
     modelFactories.push((dataPoints, yTransform) => {
       return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
@@ -298,7 +298,7 @@
     switch (yAxisModel) {
       case YAxisModel.none:
         models.push(new PowerXModel(POWER_HEXCOLOR, points));
-        models.push(new LogXModel(LOG_HEXCOLOR, points));
+        models.push(new LinearXModel(LOG_HEXCOLOR, points));
         models.push(new QuadraticXModel(QUADRATIC_HEXCOLOR, points));
         models.push(new Order3XModel(ORDER3_HEXCOLOR, points));
         break;

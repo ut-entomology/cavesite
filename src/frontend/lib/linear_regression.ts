@@ -127,6 +127,29 @@ export class PowerXModel extends PlottableModel {
   }
 }
 
+export class LinearXModel extends PlottableModel {
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
+    super('linear fit', hexColor, dataPoints);
+
+    const xTransform: XTransform = (x) => [x, 1];
+    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
+      coefs[0] * x + coefs[1];
+
+    const model = _createRegressionModel(
+      xTransform,
+      yTransform,
+      fittedYTakingCoefs,
+      dataPoints
+    );
+    Object.assign(this, model);
+  }
+
+  getXFormula(): string {
+    const coefs = this.jstats.coef;
+    return [_coefHtml(coefs[0], true), ' x ', _coefHtml(coefs[1])].join(' ');
+  }
+}
+
 export class QuadraticXModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('quadratic fit', hexColor, dataPoints);
