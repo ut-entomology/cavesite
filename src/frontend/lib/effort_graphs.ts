@@ -10,7 +10,8 @@ export abstract class EffortGraphSpec {
   pointCount = 0;
   points: Point[] = [];
 
-  protected _priorY = 0;
+  protected _priorY = 0; // these value reset for each locality
+  protected _yBaseline = 0;
   protected _cumulativePercentChange = 0;
 
   constructor(
@@ -34,17 +35,13 @@ export abstract class EffortGraphSpec {
     for (const effortData of clusterEffortData) {
       this._priorY = 0; // reset at the start of each cave
       this._cumulativePercentChange = 0;
-      let yBaseline = 0;
+      this._yBaseline = 0;
       for (const point of this._getPoints(effortData)) {
         if (point.x >= lowerBoundX && point.x <= upperBoundX) {
-          if (useZeroBaseline) {
-            if (yBaseline == 0) {
-              yBaseline = point.y;
-            }
-            this._addPoint({ x: point.x, y: point.y - yBaseline });
-          } else {
-            this._addPoint(point);
+          if (useZeroBaseline && this._yBaseline == 0) {
+            this._yBaseline = point.y;
           }
+          this._addPoint(point);
         }
         this._priorY = point.y;
       }
@@ -62,6 +59,9 @@ export abstract class EffortGraphSpec {
   }
 
   protected _transformPoint(point: Point): Point | null {
+    if (this._yBaseline != 0) {
+      return { x: point.x, y: point.y - this._yBaseline };
+    }
     return point;
   }
 
