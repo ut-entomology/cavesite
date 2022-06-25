@@ -58,7 +58,6 @@
   } from '../lib/linear_regression';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
-  import Input from '../common/forms/Input.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -77,7 +76,7 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const MAX_CLUSTERS = 12;
+  const MAX_CLUSTERS = 1;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
@@ -324,7 +323,7 @@
 </script>
 
 <DataTabRoute activeTab="Effort">
-  <div class="container-fluid">
+  <div class="container-fluid mb-3">
     <TabHeader title={$pageName}>
       <span slot="main-buttons">
         {#if $clusterStore != null}
@@ -398,8 +397,10 @@
             metric transform: <span>{CLUSTER_SPEC.metric.transform}</span>
           </div>
           <div class="col">
-            min <span>{CLUSTER_SPEC.minSpecies}</span> max
-            <span>{CLUSTER_SPEC.maxSpecies}</span> species
+            <span
+              >{CLUSTER_SPEC.minSpecies} &lt;= species &lt;=
+              {CLUSTER_SPEC.maxSpecies}</span
+            >
           </div>
           <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
         </div>
@@ -416,14 +417,14 @@
 
       <div class="model_summary_info">
         <div class="row mt-3">
-          <div class="col-4 text-center">best/avg/weighted-avg</div>
+          <div class="col-3 text-center">best/avg/weighted-avg</div>
           <div class="col"><span>p-value</span></div>
           <div class="col"><span>RMSE</span></div>
           <div class="col"><span>R2</span></div>
         </div>
         {#each modelSummaries as summary}
           <div class="row">
-            <div class="col-4"><span>{summary.modelName}</span></div>
+            <div class="col-3"><span>{summary.modelName}</span></div>
             <div class="col">
               {shortenPValue(summary.bestPValue)}<span>/</span>{shortenPValue(
                 summary.averagePValue
