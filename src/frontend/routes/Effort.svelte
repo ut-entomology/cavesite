@@ -63,8 +63,8 @@
 
   enum YAxisType {
     totalSpecies = 'total species',
-    percentChange = 'percent change',
-    cumuPercentChange = 'cumulative percent change'
+    percentChange = '% change',
+    cumuPercentChange = 'cumulative % change'
   }
 
   enum YAxisModel {
@@ -74,7 +74,7 @@
     boxCox = 'box-cox'
   }
 
-  const yAxisType = YAxisType.totalSpecies;
+  const yAxisType = YAxisType.cumuPercentChange;
   const yAxisModel = YAxisModel.none;
   const zeroYBaseline = true;
   const MAX_CLUSTERS = 12;

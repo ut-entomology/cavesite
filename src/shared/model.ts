@@ -205,19 +205,19 @@ export interface DissimilarityMetric {
 
 export enum DissimilarityBasis {
   // dissimilarity = -1 * no. of taxa the test cave has in common with the mode
-  minusCommonTaxa = 'minus common taxa',
+  minusCommonTaxa = '- common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   //  minus no. of taxa the test cave has in common with the mode
-  diffMinusCommonTaxa = 'test diff minus common taxa',
+  diffMinusCommonTaxa = 'test diff - common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   //  plus no. of taxa in the mode but not in the test cave
   //  minus no. of taxa the test cave has in common with the mode
-  bothDiffsMinusCommonTaxa = 'both diffs minus common taxa',
+  bothDiffsMinusCommonTaxa = 'both diffs - common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   diffTaxa = 'test diff taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   //  plus no. of taxa in the mode but not in the test cave
-  bothDiffTaxa = 'minus both diff taxa'
+  bothDiffTaxa = '- both diff taxa'
 }
 
 export enum DissimilarityTransform {
