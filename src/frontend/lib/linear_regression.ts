@@ -346,15 +346,15 @@ export function shortenValue(value: number, precision: number): string {
   return value.toPrecision(precision);
 }
 
-export function shortenPValue(pValue: number) {
-  return shortenValue(pValue, 2);
+export function shortenPValue(pValue: number): string {
+  return pValue < 0.001 ? '0.0' : shortenValue(pValue, 2);
 }
 
-export function shortenRMSE(rmse: number) {
+export function shortenRMSE(rmse: number): string {
   return shortenValue(rmse, 3);
 }
 
-export function shortenR2(r2: number) {
+export function shortenR2(r2: number): string {
   return shortenValue(r2, 2);
 }
 

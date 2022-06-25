@@ -21,6 +21,7 @@ export abstract class EffortGraphSpec {
     yAxisLabel: string,
     lowerBoundX: number,
     upperBoundX: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     if (useZeroBaseline) {
@@ -33,11 +34,20 @@ export abstract class EffortGraphSpec {
     this.yAxisLabel = yAxisLabel;
 
     for (const effortData of clusterEffortData) {
+      let unchangedYCount = 0;
+      let collecting = minUnchangedY == 0;
       this._priorY = 0; // reset at the start of each cave
       this._cumulativePercentChange = 0;
       this._yBaseline = 0;
       for (const point of this._getPoints(effortData)) {
-        if (point.x >= lowerBoundX && point.x <= upperBoundX) {
+        if (!collecting && minUnchangedY > 0) {
+          if (point.y == this._priorY) {
+            if (++unchangedYCount == minUnchangedY) collecting = true;
+          } else {
+            unchangedYCount = 0;
+          }
+        }
+        if (collecting && point.x >= lowerBoundX && point.x <= upperBoundX) {
           if (useZeroBaseline && this._yBaseline == 0) {
             this._yBaseline = this._getBaselineY(point);
           }
@@ -94,6 +104,7 @@ export abstract class ByDaysGraphSpec extends EffortGraphSpec {
     yAxisLabel: string,
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -103,6 +114,7 @@ export abstract class ByDaysGraphSpec extends EffortGraphSpec {
       yAxisLabel,
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -117,6 +129,7 @@ export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -125,6 +138,7 @@ export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
       'cumulative species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -135,6 +149,7 @@ export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -143,6 +158,7 @@ export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
       '% change in species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -161,6 +177,7 @@ export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -169,6 +186,7 @@ export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
       'cumu. % change in species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -189,6 +207,7 @@ export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
     yAxisLabel: string,
     minVisits: number,
     maxVisits: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -198,6 +217,7 @@ export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
       yAxisLabel,
       minVisits,
       maxVisits,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -212,6 +232,7 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
     clusterEffortData: EffortData[],
     minVisits: number,
     maxVisits: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -220,6 +241,7 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
       'cumulative species',
       minVisits,
       maxVisits,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -230,6 +252,7 @@ export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -238,6 +261,7 @@ export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
       'cumu. % change in species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -256,6 +280,7 @@ export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -264,6 +289,7 @@ export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
       '% change in species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -284,6 +310,7 @@ export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
     yAxisLabel: string,
     minPersonVisits: number,
     maxPersonVisits: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -293,6 +320,7 @@ export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
       yAxisLabel,
       minPersonVisits,
       maxPersonVisits,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -307,6 +335,7 @@ export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
     clusterEffortData: EffortData[],
     minPersonVisits: number,
     maxPersonVisits: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -315,6 +344,7 @@ export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
       'cumulative species',
       minPersonVisits,
       maxPersonVisits,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -325,6 +355,7 @@ export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpe
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -333,6 +364,7 @@ export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpe
       '% change in species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }
@@ -351,6 +383,7 @@ export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGrap
     clusterEffortData: EffortData[],
     minDays: number,
     maxDays: number,
+    minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
@@ -359,6 +392,7 @@ export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGrap
       'cumu. % change in species',
       minDays,
       maxDays,
+      minUnchangedY,
       useZeroBaseline
     );
   }

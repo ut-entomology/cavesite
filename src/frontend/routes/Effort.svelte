@@ -76,11 +76,12 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const zeroYBaseline = true;
-  const MAX_CLUSTERS = 12;
+  const zeroYBaseline = false;
+  const MAX_CLUSTERS = 10;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 5;
+  const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
+  const MIN_UNCHANGED_Y = 4;
   const POINTS_IN_MODEL_PLOT = 200;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
@@ -88,15 +89,15 @@
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
-      transform: DissimilarityTransform.none,
-      weight: TaxonWeight.weighted
+      transform: DissimilarityTransform.to1_5,
+      weight: TaxonWeight.unweighted
     },
-    comparedTaxa: ComparedTaxa.all,
+    comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000
   };
-  const PLOTTED_COMPARED_TAXA = CLUSTER_SPEC.comparedTaxa!;
+  const PLOTTED_COMPARED_TAXA = ComparedTaxa.caveObligates;
 
   const MIN_POINTS_TO_REGRESS = 3;
   const LOG_HEXCOLOR = 'A95CFF';
@@ -107,7 +108,7 @@
   enum LoadState {
     idle,
     determiningSeeds,
-    sortingClusters,
+    sortingIntoClusters,
     loadingPoints,
     fittingModels,
     generatingPlotData,
@@ -155,7 +156,7 @@
       loadState = LoadState.determiningSeeds;
       const seedLocations = await loadSeeds($client, CLUSTER_SPEC, MAX_CLUSTERS);
 
-      loadState = LoadState.sortingClusters;
+      loadState = LoadState.sortingIntoClusters;
       const locationIDsByClusterIndex = await sortClusters(
         $client,
         CLUSTER_SPEC,
@@ -210,18 +211,21 @@
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           ),
           perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           ),
           perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           )
         };
@@ -233,18 +237,21 @@
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           ),
           perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           ),
           perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           )
         };
@@ -256,18 +263,21 @@
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           ),
           perVisitTotalsGraph: new CumuPercentChangeByVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           ),
           perPersonVisitTotalsGraph: new CumuPercentChangeByPersonVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
             zeroYBaseline
           )
         };
@@ -426,6 +436,13 @@
             <span>{MIN_CAVES_PER_SUMMARY}/{MIN_POINTS_PER_SUMMARY}</span>
           </div>
         </div>
+        <div class="row">
+          <div class="col" />
+          <div class="col" />
+          <div class="col">
+            min. unchanged y: <span>{MIN_UNCHANGED_Y}</span>
+          </div>
+        </div>
       </div>
 
       <div class="model_summary_info">
@@ -503,8 +520,8 @@
 {#if $clusterStore === null}
   {#if loadState == LoadState.determiningSeeds}
     <BusyMessage message="Determining seed locations..." />
-  {:else if loadState == LoadState.sortingClusters}
-    <BusyMessage message="Sorting clusters..." />
+  {:else if loadState == LoadState.sortingIntoClusters}
+    <BusyMessage message="Sorting into clusters..." />
   {:else if loadState == LoadState.loadingPoints}
     <BusyMessage message="Loading points..." />
   {:else if loadState == LoadState.generatingPlotData}

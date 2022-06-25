@@ -208,13 +208,13 @@ export enum DissimilarityBasis {
   minusCommonTaxa = '- common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   //  minus no. of taxa the test cave has in common with the mode
-  diffMinusCommonTaxa = 'test diff - common taxa',
+  diffMinusCommonTaxa = 'cave diff - common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   //  plus no. of taxa in the mode but not in the test cave
   //  minus no. of taxa the test cave has in common with the mode
   bothDiffsMinusCommonTaxa = 'both diffs - common taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
-  diffTaxa = 'test diff taxa',
+  diffTaxa = 'cave diff taxa',
   // dissimilarity = no. of taxa in the test cave but not in the mode
   //  plus no. of taxa in the mode but not in the test cave
   bothDiffTaxa = '- both diff taxa'
