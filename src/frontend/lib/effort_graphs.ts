@@ -39,7 +39,7 @@ export abstract class EffortGraphSpec {
       for (const point of this._getPoints(effortData)) {
         if (point.x >= lowerBoundX && point.x <= upperBoundX) {
           if (useZeroBaseline && this._yBaseline == 0) {
-            this._yBaseline = point.y;
+            this._yBaseline = this._getBaselineY(point);
           }
           this._addPoint(point);
         }
@@ -58,6 +58,10 @@ export abstract class EffortGraphSpec {
     }
   }
 
+  protected _getBaselineY(point: Point): number {
+    return point.y;
+  }
+
   protected _transformPoint(point: Point): Point | null {
     if (this._yBaseline != 0) {
       return { x: point.x, y: point.y - this._yBaseline };
@@ -66,7 +70,9 @@ export abstract class EffortGraphSpec {
   }
 
   protected _getPercentChangePoint(point: Point): Point | null {
-    if (this._priorY == 0) return null;
+    if (this._priorY == this._yBaseline) return null;
+    if (this._priorY < this._yBaseline)
+      console.log('priorY', this._priorY, '< _yBaseline', this._yBaseline);
     return {
       x: point.x,
       y: (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline)
@@ -74,7 +80,7 @@ export abstract class EffortGraphSpec {
   }
 
   protected _getCumuPercentChangePoint(point: Point): Point | null {
-    if (this._priorY == 0) return null;
+    if (this._priorY == this._yBaseline) return null;
     this._cumulativePercentChange +=
       (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline);
     return { x: point.x, y: this._cumulativePercentChange };
@@ -141,6 +147,10 @@ export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
     );
   }
 
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
   protected _transformPoint(point: Point): Point | null {
     return this._getPercentChangePoint(point);
   }
@@ -161,6 +171,10 @@ export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
       maxDays,
       useZeroBaseline
     );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
   }
 
   protected _transformPoint(point: Point): Point | null {
@@ -228,6 +242,10 @@ export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
     );
   }
 
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
   protected _transformPoint(point: Point): Point | null {
     return this._getPercentChangePoint(point);
   }
@@ -248,6 +266,10 @@ export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
       maxDays,
       useZeroBaseline
     );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
   }
 
   protected _transformPoint(point: Point): Point | null {
@@ -315,6 +337,10 @@ export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpe
     );
   }
 
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
   protected _transformPoint(point: Point): Point | null {
     return this._getPercentChangePoint(point);
   }
@@ -335,6 +361,10 @@ export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGrap
       maxDays,
       useZeroBaseline
     );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
   }
 
   protected _transformPoint(point: Point): Point | null {
