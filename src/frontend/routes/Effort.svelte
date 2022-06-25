@@ -58,7 +58,6 @@
   } from '../lib/linear_regression';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
-  import Input from '../common/forms/Input.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -77,6 +76,7 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
+  const zeroYBaseline = false;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
@@ -207,17 +207,20 @@
           perDayTotalsGraph: new SpeciesByDaysGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           ),
           perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           ),
           perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
             effortData,
             LOWER_BOUND_X,
-            UPPER_BOUND_X
+            UPPER_BOUND_X,
+            zeroYBaseline
           )
         };
         break;

@@ -77,7 +77,9 @@ export abstract class PlottableModel implements RegressionModel {
       const deltaX = (this.highestX - this.lowestX) / pointCount;
       let x = this.lowestX;
       while (x <= this.highestX) {
-        this._modelPoints.push({ x, y: this.fittedY(x) });
+        const y = this.fittedY(x);
+        // Don't plot model points for y < 0.
+        if (y >= 0) this._modelPoints.push({ x, y });
         x += deltaX;
       }
     }
@@ -231,6 +233,7 @@ export abstract class YModel extends PlottableModel {
 }
 
 export class BoxCoxYModel extends YModel {
+  // This is not box-cox. I optimized RMSE rather than error distribution.
   lambda: number;
 
   constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
