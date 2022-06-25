@@ -4,7 +4,7 @@ import { getReasonPhrase } from 'http-status-codes';
 
 import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
-const REST_API_TIMEOUT_MILLIS = 2000;
+const REST_API_TIMEOUT_MILLIS = 10000;
 
 const originalOrigin = window.location.origin;
 
