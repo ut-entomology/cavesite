@@ -22,10 +22,13 @@ export abstract class EffortGraphSpec {
     upperBoundX: number,
     useZeroBaseline: boolean
   ) {
+    if (useZeroBaseline) {
+      title = 'Baselined ' + title[0].toLowerCase() + title.substring(1);
+      yAxisLabel = 'baselined ' + yAxisLabel;
+    }
     this.locationCount = clusterEffortData.length;
     this.graphTitle = `${title} (${this.locationCount} caves)`;
     this.xAxisLabel = xAxisLabel;
-    if (useZeroBaseline) yAxisLabel = 'baselined ' + yAxisLabel;
     this.yAxisLabel = yAxisLabel;
 
     for (const effortData of clusterEffortData) {
