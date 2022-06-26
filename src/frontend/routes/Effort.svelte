@@ -187,23 +187,6 @@
 
   function _generateModels(yAxisModel: YAxisModel, points: Point[]) {
     const models: PlottableModel[] = [];
-    const modelFactories: ((
-      dataPoints: Point[],
-      yTransform: (y: number) => number
-    ) => PlottableModel)[] = [];
-
-    modelFactories.push((dataPoints, yTransform) => {
-      return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
-    });
-    modelFactories.push((dataPoints, yTransform) => {
-      return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
-    });
-    modelFactories.push((dataPoints, yTransform) => {
-      return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
-    });
-    modelFactories.push((dataPoints, yTransform) => {
-      return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
-    });
 
     switch (yAxisModel) {
       case YAxisModel.none:
@@ -213,6 +196,23 @@
         models.push(new Order3XModel(ORDER3_HEXCOLOR, points));
         break;
       case YAxisModel.logY:
+        const modelFactories: ((
+          dataPoints: Point[],
+          yTransform: (y: number) => number
+        ) => PlottableModel)[] = [];
+
+        modelFactories.push((dataPoints, yTransform) => {
+          return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+        });
+        modelFactories.push((dataPoints, yTransform) => {
+          return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
+        });
+        modelFactories.push((dataPoints, yTransform) => {
+          return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
+        });
+        modelFactories.push((dataPoints, yTransform) => {
+          return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
+        });
         for (const modelFactory of modelFactories) {
           models.push(new LogYModel(points, modelFactory));
         }
