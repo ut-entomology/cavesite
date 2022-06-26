@@ -9,6 +9,7 @@
   import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
   import {
     EARLIEST_RECORD_DATE,
+    type QueryDateFilter,
     type QueryLocationFilter,
     type QueryTaxonFilter,
     type GeneralQuery
@@ -61,6 +62,13 @@
       nullSelections[columnID] = NullOption.AnyValue; // default value
       sortSelections[columnID] = SortOption.Unsorted; // default value
     }
+  }
+
+  function getDateFilter(): QueryDateFilter {
+    return {
+      fromDate: fromDate.getTime(),
+      throughDate: throughDate.getTime()
+    };
   }
 
   function getLocationFilter(): QueryLocationFilter | null {
@@ -170,6 +178,7 @@
 
         return { columnID, nullValues, ascending };
       }),
+      dateFilter: getDateFilter(),
       locationFilter: filterLocations ? getLocationFilter() : null,
       taxonFilter: filterTaxa ? getTaxonFilter() : null
     });

@@ -30,6 +30,14 @@ router.post('/query', async (req: Request, res) => {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
+  if (query.dateFilter !== null) {
+    if (
+      !checkInteger(query.dateFilter.fromDate, true) ||
+      !checkInteger(query.dateFilter.throughDate, true)
+    ) {
+      return res.status(StatusCodes.BAD_REQUEST).send();
+    }
+  }
   if (query.locationFilter !== null) {
     if (
       !checkIntegerList(query.locationFilter.countyIDs, true) ||
@@ -58,6 +66,7 @@ router.post('/query', async (req: Request, res) => {
   const result: [QueryRow[], number | null] = await Specimen.generalQuery(
     getDB(),
     query.columnSpecs,
+    query.dateFilter,
     query.locationFilter,
     query.taxonFilter,
     skip,

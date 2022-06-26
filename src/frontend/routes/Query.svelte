@@ -83,6 +83,7 @@
     if (templateQuery === null) {
       templateQuery = {
         columnSpecs: [],
+        dateFilter: null,
         locationFilter: null,
         taxonFilter: null
       };

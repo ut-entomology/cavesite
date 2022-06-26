@@ -46,7 +46,7 @@ export function checkBoolean(value: boolean | null, nullable = false): boolean {
 /**
  * Checks whether the value is an integer. May be null if nullable is true.
  */
-export function checkInteger(value: number, nullable = false): boolean {
+export function checkInteger(value: number | null, nullable = false): boolean {
   if (nullable && value === null) return true;
   return typeof value == 'number' && Math.floor(value) == value;
 }
