@@ -44,6 +44,25 @@ export function toEffortData(effortResult: EffortResult): EffortData {
   };
 }
 
+export function toEffortDataByCluster(
+  resultsByCluster: EffortResult[][],
+  minPersonVisits: number
+): EffortData[][] {
+  const effortDataByCluster: EffortData[][] = [];
+  for (const clusterResults of resultsByCluster) {
+    const clusterEffortData: EffortData[] = [];
+    for (const effortResult of clusterResults) {
+      if (effortResult.perVisitPoints.length >= minPersonVisits) {
+        clusterEffortData.push(toEffortData(effortResult));
+      }
+    }
+    if (clusterEffortData.length > 0) {
+      effortDataByCluster.push(clusterEffortData);
+    }
+  }
+  return effortDataByCluster;
+}
+
 function _pairToPoint(pair: number[]) {
   return { x: pair[0], y: pair[1] };
 }

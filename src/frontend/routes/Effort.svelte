@@ -1,28 +1,8 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import { type EffortData, toEffortData } from '../lib/effort_data';
-  import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
-  import {
-    type EffortGraphSpec,
-    SpeciesByDaysGraphSpec,
-    PercentChangeByDaysGraphSpec,
-    CumuPercentChangeByDaysGraphSpec,
-    SpeciesByVisitsGraphSpec,
-    PercentChangeByVisitsGraphSpec,
-    CumuPercentChangeByVisitsGraphSpec,
-    SpeciesByPersonVisitsGraphSpec,
-    PercentChangeByPersonVisitsGraphSpec,
-    CumuPercentChangeByPersonVisitsGraphSpec
-  } from '../lib/effort_graphs';
-
-  interface ClusterData {
-    locationCount: number;
-    perDayTotalsGraph: EffortGraphSpec;
-    perVisitTotalsGraph: EffortGraphSpec;
-    perPersonVisitTotalsGraph: EffortGraphSpec;
-  }
-
+  import { type EffortData, toEffortDataByCluster } from '../lib/effort_data';
+  import { YAxisType, type ClusterData, toClusterData } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
   const clusterStore = createSessionStore<ClusterData[] | null>('cluster_data', null);
 </script>
@@ -43,6 +23,7 @@
     ComparedTaxa
   } from '../../shared/model';
   import { client } from '../stores/client';
+  import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import {
     Point,
     PlottableModel,
@@ -62,12 +43,6 @@
 
   $pageName = 'Collection Effort';
 
-  enum YAxisType {
-    totalSpecies = 'total species',
-    percentChange = '% change',
-    cumuPercentChange = 'cumulative % change'
-  }
-
   enum YAxisModel {
     none = 'y',
     logY = 'log(y)',
@@ -77,7 +52,7 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const zeroYBaseline = false;
+  const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
@@ -175,23 +150,24 @@
 
       loadState = LoadState.generatingPlotData;
 
-      const effortDataByCluster: EffortData[][] = [];
-      for (const clusterResults of resultsByCluster) {
-        const clusterEffortData: EffortData[] = [];
-        for (const effortResult of clusterResults) {
-          if (effortResult.perVisitPoints.length >= MIN_PERSON_VISITS) {
-            clusterEffortData.push(toEffortData(effortResult));
-          }
-        }
-        if (clusterEffortData.length > 0) {
-          effortDataByCluster.push(clusterEffortData);
-        }
-      }
+      const effortDataByCluster = toEffortDataByCluster(
+        resultsByCluster,
+        MIN_PERSON_VISITS
+      );
       effortStore.set(effortDataByCluster);
 
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
-        clusterDataByCluster.push(_getClusterData(yAxisType, effortData));
+        clusterDataByCluster.push(
+          toClusterData(
+            yAxisType,
+            effortData,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
+            USE_ZERO_Y_BASELINE
+          )
+        );
       }
       clusterDataByCluster.sort((a, b) => {
         const aPointCount = a.perVisitTotalsGraph.points.length;
@@ -211,92 +187,6 @@
     effortStore.set(null);
     clusterStore.set(null);
     location.reload();
-  }
-
-  function _getClusterData(
-    yAxisType: YAxisType,
-    effortData: EffortData[]
-  ): ClusterData {
-    switch (yAxisType) {
-      case YAxisType.totalSpecies:
-        return {
-          locationCount: effortData.length,
-          perDayTotalsGraph: new SpeciesByDaysGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          ),
-          perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          ),
-          perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          )
-        };
-        break;
-      case YAxisType.percentChange:
-        return {
-          locationCount: effortData.length,
-          perDayTotalsGraph: new PercentChangeByDaysGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          ),
-          perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          ),
-          perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          )
-        };
-        break;
-      case YAxisType.cumuPercentChange:
-        return {
-          locationCount: effortData.length,
-          perDayTotalsGraph: new CumuPercentChangeByDaysGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          ),
-          perVisitTotalsGraph: new CumuPercentChangeByVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          ),
-          perPersonVisitTotalsGraph: new CumuPercentChangeByPersonVisitsGraphSpec(
-            effortData,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            zeroYBaseline
-          )
-        };
-        break;
-    }
   }
 
   function _generateModels(yAxisModel: YAxisModel, points: Point[]) {
