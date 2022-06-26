@@ -43,8 +43,8 @@ export interface QueryColumnSpec {
 }
 
 export interface QueryDateFilter {
-  fromDate: Date | null;
-  throughDate: Date | null;
+  fromDate: number | null; // UNIX time millis
+  throughDate: number | null; // UNIX time millis
 }
 
 export interface QueryLocationFilter {

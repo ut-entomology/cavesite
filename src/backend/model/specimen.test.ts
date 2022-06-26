@@ -1126,7 +1126,7 @@ describe('general specimen query', () => {
     await _createSpecimen4(db); // 2020-01-01
 
     let dateFilter: QueryDateFilter = {
-      fromDate: new Date('2021-01-01'),
+      fromDate: new Date('2021-01-01').getTime(),
       throughDate: null
     };
     // prettier-ignore
@@ -1143,7 +1143,7 @@ describe('general specimen query', () => {
 
     dateFilter = {
       fromDate: null,
-      throughDate: new Date('2021-01-01')
+      throughDate: new Date('2021-01-01').getTime()
     };
     // prettier-ignore
     results = await Specimen.generalQuery(
@@ -1159,8 +1159,8 @@ describe('general specimen query', () => {
     // Test bracketing start dates.
 
     dateFilter = {
-      fromDate: new Date('2020-01-02'),
-      throughDate: new Date('2021-01-02')
+      fromDate: new Date('2020-01-02').getTime(),
+      throughDate: new Date('2021-01-02').getTime()
     };
     // prettier-ignore
     results = await Specimen.generalQuery(
@@ -1172,7 +1172,7 @@ describe('general specimen query', () => {
     // Test filtering before end date.
 
     dateFilter = {
-      fromDate: new Date('2021-01-02'),
+      fromDate: new Date('2021-01-02').getTime(),
       throughDate: null
     };
     // prettier-ignore
@@ -1188,8 +1188,8 @@ describe('general specimen query', () => {
     // Test bracketing between start and end dates.
 
     dateFilter = {
-      fromDate: new Date('2021-01-02'),
-      throughDate: new Date('2021-01-02')
+      fromDate: new Date('2021-01-02').getTime(),
+      throughDate: new Date('2021-01-02').getTime()
     };
     // prettier-ignore
     results = await Specimen.generalQuery(

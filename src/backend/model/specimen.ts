@@ -582,7 +582,7 @@ export class Specimen {
 
     if (dateFilter !== null) {
       if (dateFilter.fromDate !== null) {
-        const fromDate = toPostgresDate(dateFilter.fromDate);
+        const fromDate = toPostgresDate(new Date(dateFilter.fromDate));
         whereComponents.push(
           `(collection_start_date >= ${fromDate} or
             (collection_end_date is not null and
@@ -590,7 +590,7 @@ export class Specimen {
         );
       }
       if (dateFilter.throughDate !== null) {
-        const throughDate = toPostgresDate(dateFilter.throughDate);
+        const throughDate = toPostgresDate(new Date(dateFilter.throughDate));
         whereComponents.push(`collection_start_date <= ${throughDate}`);
       }
     }
