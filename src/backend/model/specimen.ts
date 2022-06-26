@@ -3,7 +3,7 @@
  */
 
 import type { DataOf } from '../../shared/data_of';
-import { type DB, toCamelRow } from '../integrations/postgres';
+import { type DB, toCamelRow, toPostgresDate } from '../integrations/postgres';
 import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
@@ -12,6 +12,7 @@ import { locationRanks } from '../../shared/model';
 import {
   QueryColumnID,
   type QueryColumnSpec,
+  type QueryDateFilter,
   type QueryLocationFilter,
   type QueryTaxonFilter,
   type QueryRow
@@ -566,6 +567,7 @@ export class Specimen {
   static async generalQuery(
     db: DB,
     columnSpecs: QueryColumnSpec[],
+    dateFilter: QueryDateFilter | null,
     locationFilter: QueryLocationFilter | null,
     taxonFilter: QueryTaxonFilter | null,
     skip: number,
@@ -577,6 +579,21 @@ export class Specimen {
     const whereComponents: string[] = [];
     const nullChecks: string[] = [];
     const columnOrders: string[] = [];
+
+    if (dateFilter !== null) {
+      if (dateFilter.fromDate !== null) {
+        const fromDate = toPostgresDate(dateFilter.fromDate);
+        whereComponents.push(
+          `(collection_start_date >= ${fromDate} or
+            (collection_end_date is not null and
+              collection_end_date >= ${fromDate}))`
+        );
+      }
+      if (dateFilter.throughDate !== null) {
+        const throughDate = toPostgresDate(dateFilter.throughDate);
+        whereComponents.push(`collection_start_date <= ${throughDate}`);
+      }
+    }
 
     for (const columnSpec of columnSpecs) {
       const columnID = columnSpec.columnID;

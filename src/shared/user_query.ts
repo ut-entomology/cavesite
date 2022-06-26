@@ -42,6 +42,11 @@ export interface QueryColumnSpec {
   nullValues: boolean | null; // null => null or not
 }
 
+export interface QueryDateFilter {
+  fromDate: Date | null;
+  throughDate: Date | null;
+}
+
 export interface QueryLocationFilter {
   countyIDs: number[] | null;
   localityIDs: number[] | null;
@@ -59,6 +64,7 @@ export interface QueryTaxonFilter {
 
 export interface GeneralQuery {
   columnSpecs: QueryColumnSpec[];
+  dateFilter: QueryDateFilter | null;
   locationFilter: QueryLocationFilter | null;
   taxonFilter: QueryTaxonFilter | null;
 }

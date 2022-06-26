@@ -126,6 +126,15 @@ export function toLocalDate(date: Date): Date {
 }
 
 /**
+ * Converts a date into the format Postgres expects.
+ */
+export function toPostgresDate(date: Date): string {
+  // from https://stackoverflow.com/a/57712188
+  const parts = date.toISOString().split('T')[0].split('-');
+  return `'${parts[1]}-${parts[2]}-${parts[0]}'`;
+}
+
+/**
  * Returns conjunction of 'where' conditions with possible null values.
  */
 export function wherePossiblyNull(nameValueMap: Record<string, any>): string {
