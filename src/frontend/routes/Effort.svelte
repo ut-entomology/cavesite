@@ -160,11 +160,11 @@
       effortStore.set(effortDataByCluster);
 
       const clusterDataByCluster: JumbledClusterData[] = [];
-      for (const effortData of effortDataByCluster) {
+      for (const effortDataSet of effortDataByCluster) {
         clusterDataByCluster.push(
           toJumbledJumbledClusterData(
             yAxisType,
-            effortData,
+            effortDataSet,
             LOWER_BOUND_X,
             UPPER_BOUND_X,
             MIN_UNCHANGED_Y,
