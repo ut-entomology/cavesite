@@ -255,41 +255,6 @@ export abstract class YModel extends PlottableModel {
   abstract getYFormula(): string;
 }
 
-export class BoxCoxYModel extends YModel {
-  // This is not box-cox. I optimized RMSE rather than error distribution.
-  lambda: number;
-
-  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
-    super(dataPoints);
-
-    const boxCoxTransform = (lambda: number, y: number) => {
-      if (lambda == 0) return Math.log(y);
-      return (Math.pow(y, lambda) - 1) / lambda;
-    };
-
-    const [model, lambda] = _findBestRMSEScalar_nAry(
-      {
-        lowerBoundScalar: -3,
-        upperBoundScalar: 3,
-        initialPartitions: 24,
-        maxSearchDepth: 6
-      },
-      dataPoints,
-      (dataPoints, scalar) =>
-        baseModelFactory(dataPoints, boxCoxTransform.bind(null, scalar))
-    );
-    Object.assign(this, model);
-    this.name += ' w/ box-cox';
-    this.lambda = lambda;
-    this.yTransform = boxCoxTransform.bind(null, lambda);
-    this._xFormula = (model as PlottableModel).getXFormula();
-  }
-
-  getYFormula(): string {
-    return `bc(y, ${shortenValue(this.lambda, 3)})`;
-  }
-}
-
 export class LogYModel extends YModel {
   constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
     super(dataPoints);
@@ -305,37 +270,6 @@ export class LogYModel extends YModel {
 
   getYFormula(): string {
     return `log(y)`;
-  }
-}
-
-export class PowerYModel extends YModel {
-  power: number;
-
-  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
-    super(dataPoints);
-
-    const powerTransform = (power: number, y: number) => Math.pow(y, power);
-
-    const [model, power] = _findBestRMSEScalar_nAry(
-      {
-        lowerBoundScalar: -3,
-        upperBoundScalar: 3,
-        initialPartitions: 24,
-        maxSearchDepth: 6
-      },
-      dataPoints,
-      (dataPoints, scalar) =>
-        baseModelFactory(dataPoints, powerTransform.bind(null, scalar))
-    );
-    Object.assign(this, model);
-    this.name += ' vs. y^n';
-    this.power = power;
-    this.yTransform = powerTransform.bind(null, power);
-    this._xFormula = (model as PlottableModel).getXFormula();
-  }
-
-  getYFormula(): string {
-    return `y^${shortenValue(this.power, 3)}`;
   }
 }
 

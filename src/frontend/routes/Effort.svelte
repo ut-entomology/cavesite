@@ -32,8 +32,6 @@
     QuadraticXModel,
     PowerXModel,
     LogYModel,
-    PowerYModel,
-    BoxCoxYModel,
     shortenPValue,
     shortenRMSE,
     shortenR2
@@ -45,9 +43,7 @@
 
   enum YAxisModel {
     none = 'y',
-    logY = 'log(y)',
-    powerY = 'y^p',
-    boxCox = 'box-cox'
+    logY = 'log(y)'
   }
 
   const yAxisType = YAxisType.totalSpecies;
@@ -219,16 +215,6 @@
       case YAxisModel.logY:
         for (const modelFactory of modelFactories) {
           models.push(new LogYModel(points, modelFactory));
-        }
-        break;
-      case YAxisModel.powerY:
-        for (const modelFactory of modelFactories) {
-          models.push(new PowerYModel(points, modelFactory));
-        }
-        break;
-      case YAxisModel.boxCox:
-        for (const modelFactory of modelFactories) {
-          models.push(new BoxCoxYModel(points, modelFactory));
         }
         break;
     }
