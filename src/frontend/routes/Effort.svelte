@@ -2,9 +2,15 @@
   import { createSessionStore } from '../util/session_store';
 
   import { type EffortData, toEffortDataByCluster } from '../lib/effort_data';
-  import { type ClusterData, toClusterData } from '../lib/cluster_data';
+  import {
+    type JumbledClusterData,
+    toJumbledJumbledClusterData
+  } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
-  const clusterStore = createSessionStore<ClusterData[] | null>('cluster_data', null);
+  const clusterStore = createSessionStore<JumbledClusterData[] | null>(
+    'cluster_data',
+    null
+  );
 </script>
 
 <script lang="ts">
@@ -52,7 +58,7 @@
   const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 5;
+  const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const MIN_UNCHANGED_Y = 0;
   const POINTS_IN_MODEL_PLOT = 200;
@@ -70,7 +76,7 @@
       weight: TaxonWeight.weighted
     }
   };
-  const PLOTTED_COMPARED_TAXA = ComparedTaxa.generaHavingCaveObligates;
+  const PLOTTED_COMPARED_TAXA = ComparedTaxa.all;
 
   const MIN_POINTS_TO_REGRESS = 3;
   const LOG_HEXCOLOR = 'A95CFF';
@@ -153,10 +159,10 @@
       );
       effortStore.set(effortDataByCluster);
 
-      const clusterDataByCluster: ClusterData[] = [];
+      const clusterDataByCluster: JumbledClusterData[] = [];
       for (const effortData of effortDataByCluster) {
         clusterDataByCluster.push(
-          toClusterData(
+          toJumbledJumbledClusterData(
             yAxisType,
             effortData,
             LOWER_BOUND_X,
@@ -222,7 +228,7 @@
     return models;
   }
 
-  function _getGraphData(datasetID: DatasetID, clusterData: ClusterData) {
+  function _getGraphData(datasetID: DatasetID, clusterData: JumbledClusterData) {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:

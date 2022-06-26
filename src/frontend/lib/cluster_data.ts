@@ -5,19 +5,19 @@ import {
   createMultiEffortGraphSpec
 } from '../lib/effort_graphs';
 
-export interface ClusterData {
+export interface JumbledClusterData {
   locationCount: number;
   multiSpec: MultiEffortGraphSpec;
 }
 
-export function toClusterData(
+export function toJumbledJumbledClusterData(
   yAxisType: YAxisType,
   effortDataSet: EffortData[],
   lowerBoundX: number,
   upperBoundX: number,
   minUnchangedY: number,
   zeroYBaseline: boolean
-): ClusterData {
+): JumbledClusterData {
   let clusterMultiSpec: MultiEffortGraphSpec | null = null;
   for (const effortData of effortDataSet) {
     const multiSpec = createMultiEffortGraphSpec(
