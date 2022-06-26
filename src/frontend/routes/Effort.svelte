@@ -1,7 +1,8 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import { EffortData, loadSeeds, sortClusters, loadPoints } from '../lib/effort_data';
+  import { type EffortData, toEffortData } from '../lib/effort_data';
+  import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import {
     type EffortGraphSpec,
     SpeciesByDaysGraphSpec,
@@ -77,11 +78,11 @@
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const zeroYBaseline = false;
-  const MAX_CLUSTERS = 10;
+  const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
-  const MIN_UNCHANGED_Y = 4;
+  const MIN_UNCHANGED_Y = 0;
   const POINTS_IN_MODEL_PLOT = 200;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
@@ -89,15 +90,15 @@
   const CLUSTER_SPEC: ClusterSpec = {
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
-      transform: DissimilarityTransform.to1_5,
-      weight: TaxonWeight.unweighted
+      transform: DissimilarityTransform.none,
+      weight: TaxonWeight.weighted
     },
-    comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
+    comparedTaxa: ComparedTaxa.all,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000
   };
-  const PLOTTED_COMPARED_TAXA = ComparedTaxa.caveObligates;
+  const PLOTTED_COMPARED_TAXA = ComparedTaxa.all;
 
   const MIN_POINTS_TO_REGRESS = 3;
   const LOG_HEXCOLOR = 'A95CFF';
@@ -157,24 +158,37 @@
       const seedLocations = await loadSeeds($client, CLUSTER_SPEC, MAX_CLUSTERS);
 
       loadState = LoadState.sortingIntoClusters;
-      const locationIDsByClusterIndex = await sortClusters(
+      const locationIDsByClusterIndex = await sortIntoClusters(
         $client,
         CLUSTER_SPEC,
         seedLocations
       );
 
       loadState = LoadState.loadingPoints;
-      const effortDataByCluster = await loadPoints(
+      const resultsByCluster = await loadPoints(
         $client,
         PLOTTED_COMPARED_TAXA,
-        locationIDsByClusterIndex,
-        MIN_PERSON_VISITS
+        locationIDsByClusterIndex
       );
-      effortStore.set(effortDataByCluster);
 
       // Process the loaded data.
 
       loadState = LoadState.generatingPlotData;
+
+      const effortDataByCluster: EffortData[][] = [];
+      for (const clusterResults of resultsByCluster) {
+        const clusterEffortData: EffortData[] = [];
+        for (const effortResult of clusterResults) {
+          if (effortResult.perVisitPoints.length >= MIN_PERSON_VISITS) {
+            clusterEffortData.push(toEffortData(effortResult));
+          }
+        }
+        if (clusterEffortData.length > 0) {
+          effortDataByCluster.push(clusterEffortData);
+        }
+      }
+      effortStore.set(effortDataByCluster);
+
       const clusterDataByCluster: ClusterData[] = [];
       for (const effortData of effortDataByCluster) {
         clusterDataByCluster.push(_getClusterData(yAxisType, effortData));
