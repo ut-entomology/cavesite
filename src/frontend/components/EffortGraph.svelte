@@ -15,7 +15,7 @@
   data={{
     datasets: [
       {
-        label: config.pointCount + ' points',
+        label: config.points.length + ' points',
         data:
           models.length > 0 ? models[0].convertDataPoints(config.points) : config.points
       },

@@ -1,13 +1,109 @@
 import type { Point } from '../lib/linear_regression';
 import type { EffortData } from '../lib/effort_data';
 
+export enum YAxisType {
+  totalSpecies = 'total species',
+  percentChange = '% change',
+  cumuPercentChange = 'cumulative % change'
+}
+
+export interface MultiEffortGraphSpec {
+  perDayTotalsGraph: EffortGraphSpec;
+  perVisitTotalsGraph: EffortGraphSpec;
+  perPersonVisitTotalsGraph: EffortGraphSpec;
+}
+
+export function createMultiEffortGraphSpec(
+  yAxisType: YAxisType,
+  effortData: EffortData,
+  lowerBoundX: number,
+  upperBoundX: number,
+  minUnchangedY: number,
+  zeroYBaseline: boolean
+): MultiEffortGraphSpec {
+  switch (yAxisType) {
+    case YAxisType.totalSpecies:
+      return {
+        perDayTotalsGraph: new SpeciesByDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
+    case YAxisType.percentChange:
+      return {
+        perDayTotalsGraph: new PercentChangeByDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new PercentChangeByVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new PercentChangeByPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
+    case YAxisType.cumuPercentChange:
+      return {
+        perDayTotalsGraph: new CumuPercentChangeByDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new CumuPercentChangeByVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new CumuPercentChangeByPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
+  }
+}
+
 export abstract class EffortGraphSpec {
+  graphTitle: string;
   xAxisLabel!: string;
   yAxisLabel!: string;
-
-  graphTitle: string;
-  locationCount: number;
-  pointCount = 0;
   points: Point[] = [];
 
   protected _priorY = 0; // these value reset for each locality
@@ -15,7 +111,7 @@ export abstract class EffortGraphSpec {
   protected _cumulativePercentChange = 0;
 
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     title: string,
     xAxisLabel: string,
     yAxisLabel: string,
@@ -28,33 +124,30 @@ export abstract class EffortGraphSpec {
       title = 'Baselined ' + title[0].toLowerCase() + title.substring(1);
       yAxisLabel = 'baselined ' + yAxisLabel;
     }
-    this.locationCount = clusterEffortData.length;
-    this.graphTitle = `${title} (${this.locationCount} caves)`;
+    this.graphTitle = title;
     this.xAxisLabel = xAxisLabel;
     this.yAxisLabel = yAxisLabel;
 
-    for (const effortData of clusterEffortData) {
-      let unchangedYCount = 0;
-      let collecting = minUnchangedY == 0;
-      this._priorY = 0; // reset at the start of each cave
-      this._cumulativePercentChange = 0;
-      this._yBaseline = 0;
-      for (const point of this._getPoints(effortData)) {
-        if (!collecting && minUnchangedY > 0) {
-          if (point.y == this._priorY) {
-            if (++unchangedYCount == minUnchangedY) collecting = true;
-          } else {
-            unchangedYCount = 0;
-          }
+    let unchangedYCount = 0;
+    let collecting = minUnchangedY == 0;
+    this._priorY = 0; // reset at the start of each cave
+    this._cumulativePercentChange = 0;
+    this._yBaseline = 0;
+    for (const point of this._getPoints(effortData)) {
+      if (!collecting && minUnchangedY > 0) {
+        if (point.y == this._priorY) {
+          if (++unchangedYCount == minUnchangedY) collecting = true;
+        } else {
+          unchangedYCount = 0;
         }
-        if (collecting && point.x >= lowerBoundX && point.x <= upperBoundX) {
-          if (useZeroBaseline && this._yBaseline == 0) {
-            this._yBaseline = this._getBaselineY(point);
-          }
-          this._addPoint(point);
-        }
-        this._priorY = point.y;
       }
+      if (collecting && point.x >= lowerBoundX && point.x <= upperBoundX) {
+        if (useZeroBaseline && this._yBaseline == 0) {
+          this._yBaseline = this._getBaselineY(point);
+        }
+        this._addPoint(point);
+      }
+      this._priorY = point.y;
     }
   }
 
@@ -64,7 +157,6 @@ export abstract class EffortGraphSpec {
     const transformedPoint = this._transformPoint(point);
     if (transformedPoint !== null) {
       this.points.push(transformedPoint);
-      ++this.pointCount;
     }
   }
 
@@ -99,7 +191,7 @@ export abstract class EffortGraphSpec {
 
 export abstract class ByDaysGraphSpec extends EffortGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     title: string,
     yAxisLabel: string,
     minDays: number,
@@ -108,7 +200,7 @@ export abstract class ByDaysGraphSpec extends EffortGraphSpec {
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       title,
       'days',
       yAxisLabel,
@@ -126,14 +218,14 @@ export abstract class ByDaysGraphSpec extends EffortGraphSpec {
 
 export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       'Cumulative species across days',
       'cumulative species',
       minDays,
@@ -146,14 +238,14 @@ export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
 
 export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       '% change in species across days',
       '% change in species',
       minDays,
@@ -174,14 +266,14 @@ export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
 
 export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       'Cumulative % change in species across days',
       'cumu. % change in species',
       minDays,
@@ -202,7 +294,7 @@ export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
 
 export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     title: string,
     yAxisLabel: string,
     minVisits: number,
@@ -211,7 +303,7 @@ export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       title,
       'visits',
       yAxisLabel,
@@ -229,14 +321,14 @@ export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
 
 export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minVisits: number,
     maxVisits: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       'Cumulative species across visits',
       'cumulative species',
       minVisits,
@@ -249,14 +341,14 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
 
 export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       'Cumulative % change in species across visits',
       'cumu. % change in species',
       minDays,
@@ -277,14 +369,14 @@ export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
 
 export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       '% change in species across visits',
       '% change in species',
       minDays,
@@ -305,7 +397,7 @@ export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
 
 export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     title: string,
     yAxisLabel: string,
     minPersonVisits: number,
@@ -314,7 +406,7 @@ export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       title,
       'person-visits',
       yAxisLabel,
@@ -332,14 +424,14 @@ export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
 
 export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minPersonVisits: number,
     maxPersonVisits: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       'Cumulative species across person-visits',
       'cumulative species',
       minPersonVisits,
@@ -352,14 +444,14 @@ export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
 
 export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       '% change in species across person-visits',
       '% change in species',
       minDays,
@@ -380,14 +472,14 @@ export class PercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpe
 
 export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
   constructor(
-    clusterEffortData: EffortData[],
+    effortData: EffortData,
     minDays: number,
     maxDays: number,
     minUnchangedY: number,
     useZeroBaseline: boolean
   ) {
     super(
-      clusterEffortData,
+      effortData,
       'Cumulative % change in species across person-visits',
       'cumu. % change in species',
       minDays,

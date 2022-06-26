@@ -2,7 +2,7 @@
   import { createSessionStore } from '../util/session_store';
 
   import { type EffortData, toEffortDataByCluster } from '../lib/effort_data';
-  import { YAxisType, type ClusterData, toClusterData } from '../lib/cluster_data';
+  import { type ClusterData, toClusterData } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
   const clusterStore = createSessionStore<ClusterData[] | null>('cluster_data', null);
 </script>
@@ -36,6 +36,7 @@
     shortenRMSE,
     shortenR2
   } from '../lib/linear_regression';
+  import { YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
 
@@ -51,7 +52,7 @@
   const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 0;
+  const LOWER_BOUND_X = 5;
   const UPPER_BOUND_X = Infinity;
   const MIN_UNCHANGED_Y = 0;
   const POINTS_IN_MODEL_PLOT = 200;
@@ -59,17 +60,17 @@
   const MIN_POINTS_PER_SUMMARY = 50;
 
   const CLUSTER_SPEC: ClusterSpec = {
+    comparedTaxa: ComparedTaxa.all,
+    ignoreSubgenera: false,
+    minSpecies: 0,
+    maxSpecies: 10000,
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
       transform: DissimilarityTransform.none,
       weight: TaxonWeight.weighted
-    },
-    comparedTaxa: ComparedTaxa.all,
-    ignoreSubgenera: false,
-    minSpecies: 0,
-    maxSpecies: 10000
+    }
   };
-  const PLOTTED_COMPARED_TAXA = ComparedTaxa.all;
+  const PLOTTED_COMPARED_TAXA = ComparedTaxa.generaHavingCaveObligates;
 
   const MIN_POINTS_TO_REGRESS = 3;
   const LOG_HEXCOLOR = 'A95CFF';
@@ -166,8 +167,8 @@
         );
       }
       clusterDataByCluster.sort((a, b) => {
-        const aPointCount = a.perVisitTotalsGraph.points.length;
-        const bPointCount = b.perVisitTotalsGraph.points.length;
+        const aPointCount = a.multiSpec.perVisitTotalsGraph.points.length;
+        const bPointCount = b.multiSpec.perVisitTotalsGraph.points.length;
         if (aPointCount == bPointCount) return 0;
         return bPointCount - aPointCount; // sort most points first
       });
@@ -225,11 +226,11 @@
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:
-        return clusterData.perDayTotalsGraph;
+        return clusterData.multiSpec.perDayTotalsGraph;
       case DatasetID.visits:
-        return clusterData.perVisitTotalsGraph;
+        return clusterData.multiSpec.perVisitTotalsGraph;
       case DatasetID.personVisits:
-        return clusterData.perPersonVisitTotalsGraph;
+        return clusterData.multiSpec.perPersonVisitTotalsGraph;
     }
   }
 </script>
