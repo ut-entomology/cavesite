@@ -13,7 +13,7 @@
       Welcome to a preview of the <u><b>Texas Underground</b></u> website. This site provides
       access to the Biospeleological Collection at the University of Texas at Austin, restricted
       to the specimens collected in Texas. Maintained by James R. Reddell, this collection
-      is the largest collection in the world dedicated to cave invertebrates.
+      is the largest in the world dedicated to cave invertebrates.
     </p>
     <p>This preview allows you to do the following:</p>
     <ul>
@@ -26,7 +26,7 @@
       <li>Login access to exact coordinates</li>
       <li>Range and location maps</li>
       <li>History and seasonality graphs</li>
-      <li>Predictions of effort required to find new taxa</li>
+      <li>Predictions of effort required to find more taxa</li>
     </ul>
     <p>
       <b>EXPECT BUGS</b> (of all kinds). The site is still under development. Please report
