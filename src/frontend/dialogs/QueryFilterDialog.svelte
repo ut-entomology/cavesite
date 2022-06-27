@@ -4,7 +4,6 @@
 
   import ModalDialog from '../common/ModalDialog.svelte';
   import DateRangeInput from '../components/DateRangeInput.svelte';
-  import CircleIconButton from '../components/CircleIconButton.svelte';
   import { LocationRank, TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../../shared/general_query';
   import {
@@ -219,7 +218,7 @@
     >
       {#each includedItems as item (item.id)}
         <div
-          class="column_spec row mb-1 gx-2"
+          class="column_spec row mb-1 gx-2 included"
           style="margin: 0"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
@@ -259,13 +258,13 @@
             </select>
           </div>
           <div class="col-auto">
-            <CircleIconButton
+            <div
               class="column_toggle"
               on:click={() => removeQueryColumn(item)}
               label="Remove field from query"
             >
               <div>&times;</div>
-            </CircleIconButton>
+            </div>
           </div>
         </div>
       {/each}
@@ -274,8 +273,7 @@
   <div class="excluded_columns">
     <div class="drag_area_title">Excluded from Query</div>
     <div
-      class="row drag_area"
-      style="margin: 0"
+      class="row drag_area gx-2"
       use:dndzone={{
         items: excludedItems,
         flipDurationMs: FLIP_DURATION_MILLIS,
@@ -286,11 +284,10 @@
     >
       {#each excludedItems as item (item.id)}
         <div
-          class="col-md-6 column_spec mb-1 gx-2"
-          style="margin: 0"
+          class="col-md-6 mb-1 gx-2 excluded"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
-          <div class="row mb-1 gx-2" style="margin: 0">
+          <div class="row column_spec gx-2" style="margin: 0">
             <div class="col-auto">
               <img
                 class="non_skid_icon"
@@ -303,13 +300,13 @@
               {item.info.fullName}
             </div>
             <div class="col-auto">
-              <CircleIconButton
+              <div
                 class="column_toggle"
                 on:click={() => addQueryColumn(item)}
                 label="Add field to query"
               >
                 <div>&plus;</div>
-              </CircleIconButton>
+              </div>
             </div>
           </div>
         </div>
@@ -383,21 +380,25 @@
     opacity: 0.4;
   }
 
-  :global(.column_toggle) {
-    margin-top: -0.1rem;
+  .column_toggle {
+    margin-top: -0.3rem;
     font-size: 1.3rem;
-    width: 1.3rem;
-    height: 1.3rem;
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
   }
 
-  :global(.column_toggle div) {
-    margin-top: -0.45rem;
+  .column_toggle div {
+    color: $blueLinkBackColor;
+    text-align: center;
   }
 
-  .column_spec:nth-child(even) {
+  .column_spec.included:nth-child(even),
+  .excluded:nth-child(even) .column_spec {
     background-color: #eaeaea;
   }
-  .column_spec:nth-child(odd) {
+  .column_spec.included:nth-child(odd),
+  .excluded:nth-child(odd) .column_spec {
     background-color: #f4f4f4;
   }
 
