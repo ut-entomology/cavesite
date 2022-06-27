@@ -3,11 +3,16 @@
 
   import { type EffortData, toEffortDataByCluster } from '../lib/effort_data';
   import {
-    type JumbledClusterData,
-    toJumbledJumbledClusterData
+    YAxisModel,
+    type ModelFactory,
+    type SizedEffortGraphSpec,
+    type PerLocationClusterData,
+    type PerLocationModelSet,
+    toPerLocationClusterData,
+    toPerLocationModel
   } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
-  const clusterStore = createSessionStore<JumbledClusterData[] | null>(
+  const clusterStore = createSessionStore<PerLocationClusterData[] | null>(
     'cluster_data',
     null
   );
@@ -47,11 +52,6 @@
   import { pageName } from '../stores/pageName';
 
   $pageName = 'Collection Effort';
-
-  enum YAxisModel {
-    none = 'y',
-    logY = 'log(y)'
-  }
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
@@ -100,6 +100,20 @@
     personVisits = 'per-person-visit-set'
   }
 
+  const modelFactories: ModelFactory[] = [];
+  modelFactories.push((dataPoints, yTransform) => {
+    return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
+  });
+
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
@@ -113,12 +127,24 @@
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
       const graphData = _getGraphData(datasetID, clusterData);
-      let models: PlottableModel[] = [];
-      if (graphData.points.length >= MIN_POINTS_TO_REGRESS) {
-        models = _generateModels(yAxisModel, graphData.points);
+      let models: PerLocationModel[] = [];
+      if (graphData.pointCount >= MIN_POINTS_TO_REGRESS) {
+        models = toPerLocationModel(modelFactories, yAxisModel, graphData);
       }
       modelsByCluster[i] = models; // must place by cluster index
-      localityCountByCluster[i] = clusterData.locationCount;
+      switch (datasetID) {
+        case DatasetID.days:
+          localityCountByCluster[i] = clusterData.perDayTotalsGraphs.graphSpecs.length;
+          break;
+        case DatasetID.visits:
+          localityCountByCluster[i] =
+            clusterData.perVisitTotalsGraphs.graphSpecs.length;
+          break;
+        case DatasetID.personVisits:
+          localityCountByCluster[i] =
+            clusterData.perPersonVisitTotalsGraphs.graphSpecs.length;
+          break;
+      }
     }
     modelSummaries = summarizeModels(
       MIN_CAVES_PER_SUMMARY,
@@ -159,10 +185,10 @@
       );
       effortStore.set(effortDataByCluster);
 
-      const clusterDataByCluster: JumbledClusterData[] = [];
+      const clusterDataByCluster: PerLocationClusterData[] = [];
       for (const effortDataSet of effortDataByCluster) {
         clusterDataByCluster.push(
-          toJumbledJumbledClusterData(
+          toPerLocationClusterData(
             yAxisType,
             effortDataSet,
             LOWER_BOUND_X,
@@ -173,8 +199,8 @@
         );
       }
       clusterDataByCluster.sort((a, b) => {
-        const aPointCount = a.multiSpec.perVisitTotalsGraph.points.length;
-        const bPointCount = b.multiSpec.perVisitTotalsGraph.points.length;
+        const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
+        const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
         if (aPointCount == bPointCount) return 0;
         return bPointCount - aPointCount; // sort most points first
       });
@@ -192,51 +218,15 @@
     location.reload();
   }
 
-  function _generateModels(yAxisModel: YAxisModel, points: Point[]) {
-    const models: PlottableModel[] = [];
-
-    switch (yAxisModel) {
-      case YAxisModel.none:
-        models.push(new PowerXModel(POWER_HEXCOLOR, points));
-        models.push(new LinearXModel(LOG_HEXCOLOR, points));
-        models.push(new QuadraticXModel(QUADRATIC_HEXCOLOR, points));
-        models.push(new Order3XModel(ORDER3_HEXCOLOR, points));
-        break;
-      case YAxisModel.logY:
-        const modelFactories: ((
-          dataPoints: Point[],
-          yTransform: (y: number) => number
-        ) => PlottableModel)[] = [];
-
-        modelFactories.push((dataPoints, yTransform) => {
-          return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
-        });
-        modelFactories.push((dataPoints, yTransform) => {
-          return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
-        });
-        modelFactories.push((dataPoints, yTransform) => {
-          return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
-        });
-        modelFactories.push((dataPoints, yTransform) => {
-          return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
-        });
-        for (const modelFactory of modelFactories) {
-          models.push(new LogYModel(points, modelFactory));
-        }
-        break;
-    }
-    return models;
-  }
-
-  function _getGraphData(datasetID: DatasetID, clusterData: JumbledClusterData) {
+  function _getGraphData(datasetID: DatasetID, clusterData: PerLocationClusterData) {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:
-        return clusterData.multiSpec.perDayTotalsGraph;
+        return clusterData.perDayTotalsGraphs;
       case DatasetID.visits:
-        return clusterData.multiSpec.perVisitTotalsGraph;
+        return clusterData.perVisitTotalsGraphs;
       case DatasetID.personVisits:
-        return clusterData.multiSpec.perPersonVisitTotalsGraph;
+        return clusterData.perPersonVisitTotalsGraphs;
     }
   }
 </script>
@@ -375,8 +365,7 @@
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
         {@const models = modelsByCluster[i]}
         {@const graphData = _getGraphData(datasetID, clusterData)}
-        {@const graphTitle =
-          (multipleClusters ? `#${i + 1}: ` : '') + graphData.graphTitle}
+        {@const graphTitle = (multipleClusters ? `#${i + 1}: ` : '') + 'title'}
         {#if graphData.points.length >= MIN_POINTS_TO_REGRESS}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
