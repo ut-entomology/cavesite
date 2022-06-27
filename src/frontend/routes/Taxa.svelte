@@ -160,6 +160,13 @@
         </div>
       {/if}
     </div>
+    <div class="row mt-4 small footnote">
+      <div class="col">
+        <u>Note</u>: For genera that include subgenera, to select an entire genus, you
+        must select all genus/subgenus combinations of the genus. Subgenera appear in
+        parentheses.
+      </div>
+    </div>
   </div>
 </DataTabRoute>
 
@@ -206,5 +213,10 @@
 
   :global(.tree_area .taxon_selector) {
     margin-right: 0;
+  }
+
+  .footnote {
+    text-align: center;
+    color: #777;
   }
 </style>
