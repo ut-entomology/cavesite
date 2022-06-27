@@ -31,8 +31,8 @@
     <p>
       <b>EXPECT BUGS</b> (of all kinds). The site is still under development. Please report
       any problems you have, along with your suggestions for improvement and feature requests.
-      And we are still cleaning and converting the data, so please also report anything odd
-      you notice with the data itself.
+      We are also still cleaning and converting the data, so please also report anything
+      odd you notice with the data itself.
     </p>
     <p>
       For issues related to site functionality or data, please email the developer <a
