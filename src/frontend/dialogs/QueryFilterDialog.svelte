@@ -6,26 +6,20 @@
   import DateRangeInput from '../components/DateRangeInput.svelte';
   import CircleIconButton from '../components/CircleIconButton.svelte';
   import { LocationRank, TaxonRank } from '../../shared/model';
-  import { columnInfoMap, type QueryColumnInfo } from '../lib/query_column_info';
+  import { columnInfoMap, type QueryColumnInfo } from '../../shared/general_query';
   import {
     EARLIEST_RECORD_DATE,
     type QueryDateFilter,
     type QueryLocationFilter,
     type QueryTaxonFilter,
     type GeneralQuery
-  } from '../../shared/user_query';
+  } from '../../shared/general_query';
   import { selectedLocations } from '../stores/selectedLocations';
   import { selectedTaxa } from '../stores/selectedTaxa';
 
   type DraggableItem = Item & {
     info: QueryColumnInfo;
   };
-
-  enum NullOption {
-    AnyValue = 'any-value',
-    NonNull = 'non-null',
-    OnlyNull = 'null-only'
-  }
 
   enum SortOption {
     Unsorted = 'unsorted',
@@ -46,21 +40,23 @@
   let filterLocations = initialQuery.locationFilter !== null;
   let includedItems: DraggableItem[] = [];
   let excludedItems: DraggableItem[] = [];
-  let nullSelections: NullOption[] = [];
+  let chosenOptions: (string | null)[] = [];
   let sortSelections: SortOption[] = [];
 
+  // Load previous query selections.
   for (const columnSpec of initialQuery.columnSpecs) {
     const columnID = columnSpec.columnID;
     includedItems.push({ id: columnID, info: columnInfoMap[columnID] });
-    nullSelections[columnID] = _toNullOption(columnSpec.nullValues);
+    chosenOptions[columnID] = columnSpec.optionText;
     sortSelections[columnID] = _toSortOption(columnSpec.ascending);
   }
+  // Provide defaults for any remaining query columns.
   for (const columnInfo of Object.values(columnInfoMap)) {
     const columnID = columnInfo.columnID;
     if (!initialQuery.columnSpecs.find((spec) => spec.columnID == columnID)) {
       excludedItems.push({ id: columnID, info: columnInfo });
-      nullSelections[columnID] = NullOption.AnyValue; // default value
-      sortSelections[columnID] = SortOption.Unsorted; // default value
+      chosenOptions[columnID] = columnInfo.options ? columnInfo.options[0].text : null;
+      sortSelections[columnID] = SortOption.Unsorted;
     }
   }
 
@@ -164,11 +160,7 @@
       columnSpecs: includedItems.map((item) => {
         const columnID = item.info.columnID;
 
-        const nullOption = nullSelections[columnID];
-        let nullValues: boolean | null = null;
-        if (nullOption != NullOption.AnyValue) {
-          nullValues = nullOption == NullOption.OnlyNull;
-        }
+        const optionText = chosenOptions[columnID] || null;
 
         const sortOption = sortSelections[columnID];
         let ascending: boolean | null = null;
@@ -176,7 +168,7 @@
           ascending = sortOption == SortOption.Ascending;
         }
 
-        return { columnID, nullValues, ascending };
+        return { columnID, optionText, ascending };
       }),
       dateFilter: getDateFilter(),
       locationFilter: filterLocations ? getLocationFilter() : null,
@@ -184,21 +176,9 @@
     });
   };
 
-  function _nullLabel(info: QueryColumnInfo, whenNull: boolean): string {
-    if (Array.isArray(info.nullable)) {
-      return info.nullable[whenNull ? 0 : 1];
-    }
-    return whenNull ? 'Blank' : 'Non-Blank';
-  }
-
   function _setDateRange(from: Date, thru: Date): void {
     fromDate = from;
     throughDate = thru;
-  }
-
-  function _toNullOption(nullValues: boolean | null) {
-    if (nullValues === null) return NullOption.AnyValue;
-    return nullValues ? NullOption.OnlyNull : NullOption.NonNull;
   }
 
   function _toSortOption(ascending: boolean | null) {
@@ -254,20 +234,16 @@
           <div class="col" title={item.info.description}>
             {item.info.fullName}
           </div>
-          {#if item.info.nullable}
+          {#if item.info.options}
             <div class="col-auto">
               <select
-                bind:value={nullSelections[item.id]}
+                bind:value={chosenOptions[item.id]}
                 class="form-select form-select-sm item_select"
                 aria-label=".form-select-sm example"
               >
-                <option value={NullOption.AnyValue}>Any value</option>
-                <option value={NullOption.NonNull}
-                  >{_nullLabel(item.info, false)}</option
-                >
-                <option value={NullOption.OnlyNull}
-                  >{_nullLabel(item.info, true)}</option
-                >
+                {#each item.info.options as option}
+                  <option value={option.text}>{option.text}</option>
+                {/each}
               </select>
             </div>
           {/if}

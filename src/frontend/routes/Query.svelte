@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
-  import { GeneralQuery, QueryColumnID, QueryRow } from '../../shared/user_query';
+  import { GeneralQuery, QueryColumnID, QueryRow } from '../../shared/general_query';
 
   interface CachedResults {
     query: GeneralQuery;
@@ -30,7 +30,7 @@
   } from '../components/RowControls.svelte';
   import ColumnResizer from '../components/ColumnResizer.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
-  import { columnInfoMap } from '../lib/query_column_info';
+  import { columnInfoMap } from '../../shared/general_query';
   import { client, errorReason } from '../stores/client';
 
   $pageName = 'Query Results';
@@ -93,7 +93,7 @@
           templateQuery.columnSpecs.push({
             columnID: columnInfo.columnID,
             ascending: null,
-            nullValues: null
+            optionText: columnInfo.options ? columnInfo.options[0].text : null
           });
         }
       }

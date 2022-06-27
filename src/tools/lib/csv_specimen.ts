@@ -37,7 +37,7 @@ export class CsvSpecimen {
   determinationRemarks: string;
   typeStatus: string;
   sex: string;
-  stage: string;
+  lifeStage: string;
   coaRemarks: string;
   storageLocation: string;
 
@@ -71,7 +71,7 @@ export class CsvSpecimen {
     this.determinationRemarks = row['Determination Remarks'];
     this.typeStatus = row['Type Status'];
     this.sex = row['CoA Sex'];
-    this.stage = row['CoA Stage'];
+    this.lifeStage = row['CoA Stage'];
     this.coaRemarks = row['CoA Remarks'];
     this.storageLocation = row['Storage Location'];
 

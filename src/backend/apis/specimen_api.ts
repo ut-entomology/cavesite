@@ -2,13 +2,18 @@ import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
-import { checkBoolean, checkInteger, checkIntegerList } from '../util/http_util';
+import {
+  checkBoolean,
+  checkInteger,
+  checkIntegerList,
+  checkString
+} from '../util/http_util';
 import { Specimen } from '../model/specimen';
 import {
   QueryColumnID,
   type GeneralQuery,
   type QueryRow
-} from '../../shared/user_query';
+} from '../../shared/general_query';
 
 export const router = Router();
 
@@ -25,7 +30,7 @@ router.post('/query', async (req: Request, res) => {
       columnSpec.columnID < 0 ||
       columnSpec.columnID >= QueryColumnID._LENGTH ||
       !checkBoolean(columnSpec.ascending, true) ||
-      !checkBoolean(columnSpec.nullValues, true)
+      !checkString(columnSpec.optionText, true)
     ) {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }

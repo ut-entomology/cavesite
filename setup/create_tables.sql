@@ -10,15 +10,20 @@
 -- location need not have a county or state, only a country and continent.
 
 -- The database allows for but does not require assigning GUIDs to locations.
--- A location must have a GUID to be assigned private coordinates. In order for
--- two different localities to have the same name in the same containing location,
--- both localities must have GUIDs; otherwise they are treated as the same.
+-- A location must have a GUID to be assigned private coordinates. However,
+-- GUIDs are not used to distinguish locations, but rather a normalization of
+-- the three most specific location names provided for the location.
 
+-- TODO: Revisit whether I should switch private coordinate GUIDs to location uniques.
 -- TODO: We need to provide the following Specify-to-GBIF field mappings:
+-- * Change map of collectionobject.Remarks => occurrenceRemarks to
+--    collectionobject.(CollectionObjectAttributeID).Remarks => occurrenceRemarks;
+--    Alex is not using the former field, only the latter
 -- * accession.AccessionNumber "002022c" => GBIF collectionCode "Biospeleology"
 -- * preparation.CountAmt => GBIF organismQuantity (if non-zero/non-null)
 -- * "specimens" => GBIF organismQuantityType (if prep.CountAmt non-zero/non-null)
 -- * locality.GUID => GBIF locationID
+-- * collectionobject.(CollectionObjectAttributeID).Text4 => GBIF lifeStage
 
 create table users (
     -- None of these fields are in GBIF.
@@ -140,6 +145,8 @@ create table specimens (
     type_status text,
     -- GBIF organismQuantity
     specimen_count integer,
+    -- GBIF lifeStage,
+    life_stage text,
     -- generated at import
     problems text,
 

@@ -10,12 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import {
-  TaxonRank,
-  TaxonSpec,
-  createContainingTaxonSpecs,
-  CAVE_OBLIGATE_DESIGNATION
-} from '../../shared/model';
+import { TaxonRank, TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
 import { getCaveObligatesMap } from '../effort/cave_obligates';
 import { ImportFailure } from './import_failure';
 
@@ -346,7 +341,7 @@ export class Taxon {
 }
 
 function _caveObligateValue(taxonName: string): string | null {
-  return getCaveObligatesMap()[taxonName] ? CAVE_OBLIGATE_DESIGNATION : null;
+  return getCaveObligatesMap()[taxonName] ? 'cave' : null;
 }
 
 function _toTaxonData(row: any): TaxonData {

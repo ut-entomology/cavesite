@@ -70,7 +70,8 @@ async function loadDB() {
       occurrenceRemarks: record.coaRemarks,
       determinationRemarks: record.determinationRemarks,
       typeStatus: record.typeStatus,
-      organismQuantity: record.count
+      organismQuantity: record.count,
+      lifeStage: record.lifeStage
     };
     try {
       const specimen = await Specimen.create(db, specimenSource);

@@ -8,7 +8,7 @@ import {
   type QueryDateFilter,
   type QueryLocationFilter,
   type QueryTaxonFilter
-} from '../../shared/user_query';
+} from '../../shared/general_query';
 import { Location } from './location';
 import { Taxon } from './taxon';
 import { Logs, LogType } from './logs';
@@ -120,6 +120,7 @@ describe('basic specimen methods', () => {
         determinationRemarks: baseSource.determinationRemarks,
         typeStatus: baseSource.typeStatus,
         specimenCount: 1,
+        lifeStage: null,
         problems: null,
         kingdomName: 'Animalia',
         kingdomID: 1,
@@ -202,6 +203,7 @@ describe('basic specimen methods', () => {
         determinationRemarks: null,
         typeStatus: null,
         specimenCount: null,
+        lifeStage: null,
         problems: null,
         kingdomName: 'Animalia',
         kingdomID: 1,
@@ -341,6 +343,7 @@ describe('basic specimen methods', () => {
       determinationRemarks: null,
       typeStatus: baseSource.typeStatus,
       specimenCount: 1,
+      lifeStage: null,
       problems: null,
       kingdomName: 'Animalia',
       kingdomID: 1,
@@ -412,6 +415,7 @@ describe('basic specimen methods', () => {
       determinationRemarks: 'big one',
       typeStatus: baseSource.typeStatus,
       specimenCount: 1,
+      lifeStage: null,
       problems: null,
       kingdomName: 'Animalia',
       kingdomID: 1,
@@ -476,6 +480,7 @@ describe('basic specimen methods', () => {
       determinationRemarks: null,
       typeStatus: baseSource.typeStatus,
       specimenCount: null,
+      lifeStage: null,
       problems: null,
       kingdomName: 'Animalia',
       kingdomID: 1,
@@ -994,7 +999,7 @@ describe('general specimen query', () => {
     results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber),
-        _toColumnSpec(QueryColumnID.CollectionEndDate, null, true)
+        _toColumnSpec(QueryColumnID.CollectionEndDate, null, 'Blank')
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
       { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
@@ -1005,7 +1010,7 @@ describe('general specimen query', () => {
     results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber),
-        _toColumnSpec(QueryColumnID.CollectionEndDate, null, false)
+        _toColumnSpec(QueryColumnID.CollectionEndDate, null, 'Non-blank')
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
       { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 }
@@ -1438,7 +1443,7 @@ describe('general specimen query', () => {
     let results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber, true),
-        _toColumnSpec(QueryColumnID.CollectionRemarks, null, false)
+        _toColumnSpec(QueryColumnID.CollectionRemarks, null, 'Non-blank')
       ], null, null, taxonFilter, 0, 10);
     expect(results[0]).toEqual([
       {
@@ -1456,7 +1461,7 @@ describe('general specimen query', () => {
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
-      db, [_toColumnSpec(QueryColumnID.Phylum, null, true)],
+      db, [_toColumnSpec(QueryColumnID.Phylum, null, 'Blank')],
       null, null, null, 0, 10);
     expect(results).toEqual([[], 0]);
 
@@ -1467,7 +1472,7 @@ describe('general specimen query', () => {
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [_toColumnSpec(QueryColumnID.ResultCount, null, true)], 
+      db, [_toColumnSpec(QueryColumnID.ResultCount, null, 'Blank')], 
       null, null, null, 0, 10);
     expect(results).toEqual([[], 0]);
   });
@@ -1618,7 +1623,7 @@ async function _getLocationByID(db: DB, locationID: number): Promise<Location | 
 function _toColumnSpec(
   columnID: QueryColumnID,
   ascending: boolean | null = null,
-  nullValues: boolean | null = null
+  optionText: string = 'Any value'
 ): QueryColumnSpec {
-  return { columnID, ascending, nullValues };
+  return { columnID, ascending, optionText };
 }

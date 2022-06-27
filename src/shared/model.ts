@@ -10,7 +10,6 @@ export interface ModelSpec {
 //// Taxa ////////////////////////////////////////////////////////////////////
 
 export const ROOT_TAXON_UNIQUE = 'Animalia';
-export const CAVE_OBLIGATE_DESIGNATION = 'cave';
 
 export enum TaxonRank {
   Kingdom = 'kingdom',

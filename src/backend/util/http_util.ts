@@ -59,3 +59,11 @@ export function checkIntegerList(value: number[] | null, nullable = false): bool
   if (!Array.isArray(value)) return false;
   return INTEGER_LIST_CHARS_REGEX.test(value.join(','));
 }
+
+/**
+ * Checks whether a vlue is a string. May be null if nullable is true.
+ */
+export function checkString(value: string | null, nullable = false): boolean {
+  if (nullable && value === null) return true;
+  return typeof value == 'string';
+}

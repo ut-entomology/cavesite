@@ -2,6 +2,8 @@
  * Class representing a vial of specimens all of the same taxon.
  */
 
+// TODO: Revisit use of GUIDs and location uniques for specimens and private coords.
+
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow, toPostgresDate } from '../integrations/postgres';
 import { Taxon, type TaxonSource } from './taxon';
@@ -15,8 +17,9 @@ import {
   type QueryDateFilter,
   type QueryLocationFilter,
   type QueryTaxonFilter,
-  type QueryRow
-} from '../../shared/user_query';
+  type QueryRow,
+  columnInfoMap
+} from '../../shared/general_query';
 
 export type SpecimenData = DataOf<Specimen>;
 
@@ -26,107 +29,6 @@ const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 const CAVEDATA_REGEX = /CAVEDATA\[([^\]]*)\]/;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
-
-interface ColumnInfo {
-  column1: string;
-  column2?: string;
-  asName?: string;
-}
-
-const columnInfoMap: Record<number, ColumnInfo> = [];
-columnInfoMap[QueryColumnID.ResultCount] = {
-  column1: 'count(*)',
-  asName: 'result_count'
-};
-columnInfoMap[QueryColumnID.CatalogNumber] = {
-  column1: 'catalog_number',
-  column2: 'occurrence_guid'
-};
-columnInfoMap[QueryColumnID.CollectionStartDate] = {
-  column1: 'collection_start_date'
-};
-columnInfoMap[QueryColumnID.CollectionEndDate] = {
-  column1: 'collection_end_date'
-};
-columnInfoMap[QueryColumnID.Collectors] = {
-  column1: 'collectors'
-};
-columnInfoMap[QueryColumnID.Determiners] = {
-  column1: 'determiners'
-};
-columnInfoMap[QueryColumnID.DeterminationYear] = {
-  column1: 'determination_year'
-};
-columnInfoMap[QueryColumnID.CollectionRemarks] = {
-  column1: 'collection_remarks'
-};
-columnInfoMap[QueryColumnID.OccurrenceRemarks] = {
-  column1: 'occurrence_remarks'
-};
-columnInfoMap[QueryColumnID.DeterminationRemarks] = {
-  column1: 'determination_remarks'
-};
-columnInfoMap[QueryColumnID.TypeStatus] = {
-  column1: 'type_status'
-};
-columnInfoMap[QueryColumnID.SpecimenCount] = {
-  column1: 'specimen_count'
-};
-columnInfoMap[QueryColumnID.Problems] = {
-  column1: 'problems'
-};
-columnInfoMap[QueryColumnID.Phylum] = {
-  column1: 'phylum_name',
-  column2: 'phylum_id'
-};
-columnInfoMap[QueryColumnID.Class] = {
-  column1: 'class_name',
-  column2: 'class_id'
-};
-columnInfoMap[QueryColumnID.Order] = {
-  column1: 'order_name',
-  column2: 'order_id'
-};
-columnInfoMap[QueryColumnID.Family] = {
-  column1: 'family_name',
-  column2: 'family_id'
-};
-columnInfoMap[QueryColumnID.Genus] = {
-  column1: 'genus_name',
-  column2: 'genus_id'
-};
-columnInfoMap[QueryColumnID.Species] = {
-  column1: 'species_name',
-  column2: 'species_id'
-};
-columnInfoMap[QueryColumnID.Subspecies] = {
-  column1: 'subspecies_name',
-  column2: 'subspecies_id'
-};
-columnInfoMap[QueryColumnID.TaxonUnique] = {
-  column1: 'taxon_unique',
-  // genus_id needed for italics determination
-  column2: 'taxon_author, taxon_id, genus_id'
-};
-columnInfoMap[QueryColumnID.Obligate] = {
-  column1: 'obligate'
-};
-columnInfoMap[QueryColumnID.County] = {
-  column1: 'county_name',
-  column2: 'county_id'
-};
-columnInfoMap[QueryColumnID.Locality] = {
-  column1: 'locality_name',
-  column2: 'locality_id'
-};
-columnInfoMap[QueryColumnID.Latitude] = {
-  column1: 'public_latitude',
-  asName: 'latitude'
-};
-columnInfoMap[QueryColumnID.Longitude] = {
-  column1: 'public_longitude',
-  asName: 'longitude'
-};
 
 export interface SpecimenSource {
   // GBIF field names
@@ -161,6 +63,7 @@ export interface SpecimenSource {
   determinationRemarks?: string;
   typeStatus?: string;
   organismQuantity?: string;
+  lifeStage?: string;
 }
 
 export class Specimen {
@@ -180,6 +83,7 @@ export class Specimen {
   determinationRemarks: string | null;
   typeStatus: string | null;
   specimenCount: number | null;
+  lifeStage: string | null;
   problems: string | null;
 
   // values cached from the taxa table
@@ -230,6 +134,7 @@ export class Specimen {
     this.determinationRemarks = data.determinationRemarks;
     this.typeStatus = data.typeStatus;
     this.specimenCount = data.specimenCount;
+    this.lifeStage = data.lifeStage;
     this.problems = data.problems;
     this.kingdomName = data.kingdomName;
     this.kingdomID = data.kingdomID;
@@ -411,7 +316,7 @@ export class Specimen {
       }
     }
 
-    // Parse the speciment count.
+    // Parse the specimen count.
 
     let specimenCount: number | null = null;
     if (source.organismQuantity) {
@@ -420,6 +325,13 @@ export class Specimen {
         problemList.push('Invalid specimen count; assuming no specimen count');
         specimenCount = null;
       }
+    }
+
+    // Parse the life stage.
+
+    let lifeStage: string | null = null;
+    if (source.lifeStage) {
+      lifeStage = source.lifeStage.toLowerCase();
     }
 
     // Normalize the list of collectors.
@@ -452,6 +364,7 @@ export class Specimen {
       determinationRemarks: detRemarks || null,
       typeStatus: source.typeStatus || null,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
+      lifeStage: lifeStage || null,
       problems: problemList.length > 0 ? problemList.join('|') : null,
       kingdomName: getRankedName(taxonNames, 0, taxon.taxonName)!,
       kingdomID: getRankedID(taxonIDs, 0, taxon.taxonID)!,
@@ -487,14 +400,14 @@ export class Specimen {
           collection_start_date, collection_end_date,
           collectors, normalized_collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
-          type_status, specimen_count, problems, kingdom_name, kingdom_id,
+          type_status, specimen_count, life_stage, problems, kingdom_name, kingdom_id,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author, obligate,
           county_name, county_id, locality_name, public_latitude, public_longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
           $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-          $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)`,
+          $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -511,6 +424,7 @@ export class Specimen {
         specimen.determinationRemarks,
         specimen.typeStatus,
         specimen.specimenCount,
+        specimen.lifeStage,
         specimen.problems,
         specimen.kingdomName,
         specimen.kingdomID,
@@ -577,7 +491,6 @@ export class Specimen {
     let selectDistinctResults = true;
     const selectedColumns: string[] = [];
     const whereComponents: string[] = [];
-    const nullChecks: string[] = [];
     const columnOrders: string[] = [];
 
     if (dateFilter !== null) {
@@ -614,12 +527,12 @@ export class Specimen {
       if (columnInfo.column2 !== undefined) {
         selectedColumns.push(columnInfo.column2);
       }
-      if (columnSpec.nullValues !== null) {
-        // postgres won't crash checking for null on non-nullables
-        if (columnSpec.nullValues) {
-          nullChecks.push(columnInfo.column1 + ' is null');
-        } else {
-          nullChecks.push(columnInfo.column1 + ' is not null');
+      if (columnSpec.optionText && columnInfo.options) {
+        const option = columnInfo.options.find(
+          (opt) => opt.text == columnSpec.optionText
+        );
+        if (option && option.sql) {
+          whereComponents.push(option.sql.replace('X', columnInfo.column1));
         }
       }
       if (columnID != QueryColumnID.ResultCount) {
@@ -631,9 +544,6 @@ export class Specimen {
           }
         }
       }
-    }
-    if (nullChecks.length > 0) {
-      whereComponents.push(nullChecks.join(' and '));
     }
 
     if (selectedColumns.length == 0) return [[], 0];
