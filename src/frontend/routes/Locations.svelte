@@ -124,7 +124,7 @@
   <div class="container-fluid">
     <TabHeader
       title={$pageName}
-      instructions="This tab shows the locations that you have selected for use in other tabs. Your selections are <b>{checkmarkIcon} checked and bold</b>. You may click on the {plusIcon} or {checkmarkIcon} to toggle selections, but this view is mainly useful for removing selections by clicking on the {checkmarkIcon}. Click on a locations link or on [Browse Locations] to browse and add locations. Type locations in the box for autocompletion assistance and fast selection."
+      instructions="This tab shows the locations that you have selected for use in other tabs. Selections appear <b>checked {checkmarkIcon} and bolded</b>. Click on the {plusIcon} or {checkmarkIcon} to toggle selections. Click on a location link or on [Browse Locations] to browse, add, and remove locations. Type locations in the box for autocompletion assistance and fast selection."
     >
       <span slot="main-buttons">
         {#if rootNode}

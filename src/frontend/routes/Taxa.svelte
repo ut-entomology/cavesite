@@ -107,7 +107,7 @@
   <div class="container-fluid">
     <TabHeader
       title={$pageName}
-      instructions="This tab shows the taxa that you have selected for use in other tabs. Your selections are <b>{checkmarkIcon} checked and bold</b>. You may click on the {plusIcon} or {checkmarkIcon} to toggle selections, but this view is mainly useful for removing selections by clicking on the {checkmarkIcon}. Click on a taxon link or on [Browse Taxa] to browse and add taxa. Type taxa in the box for autocompletion assistance and fast selection."
+      instructions="This tab shows the taxa that you have selected for use in other tabs. Selections appear <b>checked {checkmarkIcon} and bolded</b>. Click on the {plusIcon} or {checkmarkIcon} to toggle selections. Click on a taxon link or on [Browse Taxa] to browse, add, and remove taxa. Type taxa in the box for autocompletion assistance and fast selection."
     >
       <span slot="main-buttons">
         {#if rootNode}
@@ -162,9 +162,10 @@
     </div>
     <div class="row mt-4 small footnote">
       <div class="col">
-        <u>Note</u>: For genera that include subgenera, to select an entire genus, you
-        must select all genus/subgenus combinations of the genus. Subgenera appear in
-        parentheses.
+        <u>Note</u>: Some genera are divided into subgenera so that you can select each
+        subgenus separately, with the subgenus appearing in parentheses after the genus.
+        To select the entire genus of one of these genera, select all genus/subgenus
+        combinations of the genus.
       </div>
     </div>
   </div>
