@@ -10,16 +10,17 @@ import { Specimen } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 
-const CSV_FILEPATH = path.join(
-  __dirname,
-  '../../../ut-cave-data/output/uploadable.csv'
-);
+if (process.argv.length != 3) {
+  console.log('Please provide the path to the uploadable CSV');
+  process.exit(1);
+}
+const csvFilepath = path.join(process.cwd(), process.argv[2]);
 
 const records: CsvSpecimen[] = [];
 
 async function loadCSV() {
   return new Promise<void>((resolve, reject) => {
-    fs.createReadStream(CSV_FILEPATH)
+    fs.createReadStream(csvFilepath)
       .pipe(parseCSV({ headers: true }))
       .on('data', (row) => {
         const record = new CsvSpecimen(row);
