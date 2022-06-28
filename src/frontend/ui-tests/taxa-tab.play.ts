@@ -545,7 +545,7 @@ test('opening and closing taxon browser via autocompletion', async ({ page }) =>
 
   await page.locator(closeButtonID).click();
   await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
-  expect(await page.inputValue(autocompleteInputID)).toEqual('araneae');
+  expect(await page.inputValue(autocompleteInputID)).toEqual('Araneae');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).not.toBeVisible();
   await expect(page.locator(autoSelectorID)).toBeVisible();
@@ -648,7 +648,7 @@ test('opening and closing taxon browser via selection tree links', async ({ page
 
   await page.locator(closeButtonID).click();
   await expect(page.locator(browseTaxaDialogID)).not.toBeVisible();
-  expect(await page.inputValue(autocompleteInputID)).toEqual('araneae');
+  expect(await page.inputValue(autocompleteInputID)).toEqual('Araneae');
   await expect(page.locator(autocompleteClearButton)).toBeVisible();
   await expect(page.locator(autoSelectorID + '.selection')).toBeVisible();
   await expect(page.locator(autoLoupeID)).toBeVisible();
