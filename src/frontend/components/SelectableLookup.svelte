@@ -150,6 +150,7 @@
       inputClassName="form-control"
       bind:value={selection}
       searchFunction={_loadMatches}
+      localFiltering={false}
       delay={LOAD_DELAY_MILLIS}
       valueFieldName="unique"
       labelFieldName="name"
