@@ -7,20 +7,20 @@ export enum YAxisType {
   cumuPercentChange = 'cumulative % change'
 }
 
-export interface MultiEffortGraphSpec {
+export interface EffortGraphSpecPerXUnit {
   perDayTotalsGraph: EffortGraphSpec;
   perVisitTotalsGraph: EffortGraphSpec;
   perPersonVisitTotalsGraph: EffortGraphSpec;
 }
 
-export function createMultiEffortGraphSpec(
+export function createEffortGraphSpecPerXUnit(
   yAxisType: YAxisType,
   effortData: EffortData,
   lowerBoundX: number,
   upperBoundX: number,
   minUnchangedY: number,
   zeroYBaseline: boolean
-): MultiEffortGraphSpec {
+): EffortGraphSpecPerXUnit {
   switch (yAxisType) {
     case YAxisType.totalSpecies:
       return {

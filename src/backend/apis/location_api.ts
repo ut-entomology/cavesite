@@ -7,7 +7,7 @@ import { Location } from '../model/location';
 import { LocationEffort } from '../effort/location_effort';
 import {
   type LocationSpec,
-  type EffortResult,
+  type RawEffortData,
   ComparedTaxa,
   checkComparedTaxa,
   MIN_LOOKUP_CHAR_LENGTH
@@ -46,7 +46,7 @@ router.post('/get_effort', async (req: Request, res) => {
   );
   return res
     .status(StatusCodes.OK)
-    .send({ efforts: efforts.map((effort) => _toEffortResult(effort)) });
+    .send({ efforts: efforts.map((effort) => _toRawEffortData(effort)) });
 });
 
 router.post('/get_list', async (req: Request, res) => {
@@ -93,7 +93,7 @@ export function toLocationSpec(location: Location): LocationSpec {
   };
 }
 
-function _toEffortResult(effort: LocationEffort): EffortResult {
+function _toRawEffortData(effort: LocationEffort): RawEffortData {
   return {
     locationID: effort.locationID,
     startDate: effort.startDate,

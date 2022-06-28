@@ -1,15 +1,14 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import { type EffortData, toEffortDataByCluster } from '../lib/effort_data';
+  import { type EffortData, toEffortDataSetByCluster } from '../lib/effort_data';
   import {
     YAxisModel,
     type ModelFactory,
-    type SizedEffortGraphSpec,
     type PerLocationClusterData,
     type PerLocationModelSet,
     toPerLocationClusterData,
-    toPerLocationModel
+    toPerLocationModelSet
   } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
   const clusterStore = createSessionStore<PerLocationClusterData[] | null>(
@@ -78,7 +77,6 @@
   };
   const PLOTTED_COMPARED_TAXA = ComparedTaxa.all;
 
-  const MIN_POINTS_TO_REGRESS = 3;
   const LOG_HEXCOLOR = 'A95CFF';
   const ORDER3_HEXCOLOR = '00D40E';
   const POWER_HEXCOLOR = 'FF0088';
@@ -116,40 +114,26 @@
 
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-  let modelsByCluster: PlottableModel[][] = [];
+  let modelSetByCluster: PerLocationModelSet[] = [];
   let modelSummaries: ModelSummary[] = [];
   let localityCountByCluster: number[] = [];
 
   $: if ($clusterStore) {
     loadState = LoadState.fittingModels;
-    modelsByCluster = [];
+    modelSetByCluster = [];
 
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
       const graphData = _getGraphData(datasetID, clusterData);
-      let models: PerLocationModel[] = [];
-      if (graphData.pointCount >= MIN_POINTS_TO_REGRESS) {
-        models = toPerLocationModel(modelFactories, yAxisModel, graphData);
-      }
-      modelsByCluster[i] = models; // must place by cluster index
-      switch (datasetID) {
-        case DatasetID.days:
-          localityCountByCluster[i] = clusterData.perDayTotalsGraphs.graphSpecs.length;
-          break;
-        case DatasetID.visits:
-          localityCountByCluster[i] =
-            clusterData.perVisitTotalsGraphs.graphSpecs.length;
-          break;
-        case DatasetID.personVisits:
-          localityCountByCluster[i] =
-            clusterData.perPersonVisitTotalsGraphs.graphSpecs.length;
-          break;
-      }
+      let modelSet = toPerLocationModelSet(modelFactories, yAxisModel, graphData);
+
+      modelSetByCluster[i] = modelSet; // must place by cluster index
+      localityCountByCluster[i] = clusterData.locationCount;
     }
     modelSummaries = summarizeModels(
       MIN_CAVES_PER_SUMMARY,
       MIN_POINTS_PER_SUMMARY,
-      modelsByCluster,
+      modelSetByCluster,
       localityCountByCluster
     );
   }
@@ -169,24 +153,22 @@
       );
 
       loadState = LoadState.loadingPoints;
-      const resultsByCluster = await loadPoints(
+      const rawEffortDataSetByCluster = await loadPoints(
         $client,
         PLOTTED_COMPARED_TAXA,
         locationIDsByClusterIndex
       );
+      const effortDataSetByCluster = toEffortDataSetByCluster(
+        rawEffortDataSetByCluster,
+        MIN_PERSON_VISITS
+      );
+      effortStore.set(effortDataSetByCluster);
 
       // Process the loaded data.
 
       loadState = LoadState.generatingPlotData;
-
-      const effortDataByCluster = toEffortDataByCluster(
-        resultsByCluster,
-        MIN_PERSON_VISITS
-      );
-      effortStore.set(effortDataByCluster);
-
       const clusterDataByCluster: PerLocationClusterData[] = [];
-      for (const effortDataSet of effortDataByCluster) {
+      for (const effortDataSet of effortDataSetByCluster) {
         clusterDataByCluster.push(
           toPerLocationClusterData(
             yAxisType,
@@ -363,10 +345,15 @@
 
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
-        {@const models = modelsByCluster[i]}
-        {@const graphData = _getGraphData(datasetID, clusterData)}
-        {@const graphTitle = (multipleClusters ? `#${i + 1}: ` : '') + 'title'}
-        {#if graphData.points.length >= MIN_POINTS_TO_REGRESS}
+        {@const sizedEffortGraphSpec = _getGraphData(datasetID, clusterData)}
+        {@const modelSet = modelSetByCluster[i]}
+        {@const models = modelSet.models}
+        {@const pointSets = modelSet.pointSets}
+        {@const graphTitle =
+          (multipleClusters ? `#${i + 1}: ` : '') +
+          sizedEffortGraphSpec.graphSpecs[0].graphTitle +
+          ` (${clusterData.locationCount} caves)`}
+        {#if models.length > 0}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
               <EffortGraph

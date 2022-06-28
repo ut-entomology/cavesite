@@ -2,10 +2,12 @@ import type { EffortData } from './effort_data';
 import {
   type YAxisType,
   type EffortGraphSpec,
-  type MultiEffortGraphSpec,
-  createMultiEffortGraphSpec
+  type EffortGraphSpecPerXUnit,
+  createEffortGraphSpecPerXUnit
 } from '../lib/effort_graphs';
 import { Point, PlottableModel, LogYModel } from '../lib/linear_regression';
+
+const MIN_POINTS_TO_REGRESS = 3;
 
 export enum YAxisModel {
   none = 'y',
@@ -19,18 +21,19 @@ export type ModelFactory = (
 
 export interface JumbledClusterData {
   locationCount: number;
-  multiSpec: MultiEffortGraphSpec;
+  graphSpecPerXUnit: EffortGraphSpecPerXUnit;
+}
+
+export interface PerLocationClusterData {
+  locationCount: number;
+  perDayTotalsGraphs: SizedEffortGraphSpec;
+  perVisitTotalsGraphs: SizedEffortGraphSpec;
+  perPersonVisitTotalsGraphs: SizedEffortGraphSpec;
 }
 
 export interface SizedEffortGraphSpec {
   pointCount: number;
   graphSpecs: EffortGraphSpec[];
-}
-
-export interface PerLocationClusterData {
-  perDayTotalsGraphs: SizedEffortGraphSpec;
-  perVisitTotalsGraphs: SizedEffortGraphSpec;
-  perPersonVisitTotalsGraphs: SizedEffortGraphSpec;
 }
 
 export interface PerLocationModelSet {
@@ -46,9 +49,9 @@ export function toJumbledClusterData(
   minUnchangedY: number,
   zeroYBaseline: boolean
 ): JumbledClusterData {
-  let clusterMultiSpec: MultiEffortGraphSpec | null = null;
+  let effortGraphSpecPerUnitX: EffortGraphSpecPerXUnit | null = null;
   for (const effortData of effortDataSet) {
-    const multiSpec = createMultiEffortGraphSpec(
+    const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
       yAxisType,
       effortData,
       lowerBoundX,
@@ -56,23 +59,23 @@ export function toJumbledClusterData(
       minUnchangedY,
       zeroYBaseline
     );
-    if (!clusterMultiSpec) {
-      clusterMultiSpec = multiSpec;
+    if (!effortGraphSpecPerUnitX) {
+      effortGraphSpecPerUnitX = graphSpecPerXUnit;
     } else {
-      clusterMultiSpec.perDayTotalsGraph.points.push(
-        ...multiSpec.perDayTotalsGraph.points
+      effortGraphSpecPerUnitX.perDayTotalsGraph.points.push(
+        ...graphSpecPerXUnit.perDayTotalsGraph.points
       );
-      clusterMultiSpec.perVisitTotalsGraph.points.push(
-        ...multiSpec.perVisitTotalsGraph.points
+      effortGraphSpecPerUnitX.perVisitTotalsGraph.points.push(
+        ...graphSpecPerXUnit.perVisitTotalsGraph.points
       );
-      clusterMultiSpec.perPersonVisitTotalsGraph.points.push(
-        ...multiSpec.perPersonVisitTotalsGraph.points
+      effortGraphSpecPerUnitX.perPersonVisitTotalsGraph.points.push(
+        ...graphSpecPerXUnit.perPersonVisitTotalsGraph.points
       );
     }
   }
   return {
     locationCount: effortDataSet.length,
-    multiSpec: clusterMultiSpec!
+    graphSpecPerXUnit: effortGraphSpecPerUnitX!
   };
 }
 
@@ -85,12 +88,13 @@ export function toPerLocationClusterData(
   zeroYBaseline: boolean
 ): PerLocationClusterData {
   let clusterData: PerLocationClusterData = {
+    locationCount: effortDataSet.length,
     perDayTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perPersonVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] }
   };
   for (const effortData of effortDataSet) {
-    const multiSpec = createMultiEffortGraphSpec(
+    const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
       yAxisType,
       effortData,
       lowerBoundX,
@@ -98,17 +102,20 @@ export function toPerLocationClusterData(
       minUnchangedY,
       zeroYBaseline
     );
-    _addGraphSpec(clusterData.perDayTotalsGraphs, multiSpec.perDayTotalsGraph);
-    _addGraphSpec(clusterData.perVisitTotalsGraphs, multiSpec.perVisitTotalsGraph);
+    _addGraphSpec(clusterData.perDayTotalsGraphs, graphSpecPerXUnit.perDayTotalsGraph);
+    _addGraphSpec(
+      clusterData.perVisitTotalsGraphs,
+      graphSpecPerXUnit.perVisitTotalsGraph
+    );
     _addGraphSpec(
       clusterData.perPersonVisitTotalsGraphs,
-      multiSpec.perPersonVisitTotalsGraph
+      graphSpecPerXUnit.perPersonVisitTotalsGraph
     );
   }
   return clusterData;
 }
 
-export function toPerLocationModel(
+export function toPerLocationModelSet(
   modelFactories: ModelFactory[],
   yAxisModel: YAxisModel,
   sizedGraphSpec: SizedEffortGraphSpec
@@ -129,24 +136,37 @@ export function toPerLocationModel(
   }
 
   for (const modelFactory of modelFactories) {
-    const coefSums: number[] = [];
-    let model: PlottableModel | null = null;
+    const weightedCoefSums: number[] = [];
+    let totalPoints = 0;
+    let baseModel: PlottableModel | null = null;
+
+    // Loop for each graph spec at one per location in the cluster.
 
     for (const graphSpec of sizedGraphSpec.graphSpecs) {
-      const tempModel = createModel(modelFactory, graphSpec.points);
-      const coefs = tempModel.jstats.coef;
-      if (coefSums.length == 0) {
-        coefSums.forEach((coef) => coefs.push(coef));
-      } else {
-        coefSums.forEach((coef, i) => (coefs[i] += coef));
+      if (graphSpec.points.length >= MIN_POINTS_TO_REGRESS) {
+        const locationModel = createModel(modelFactory, graphSpec.points);
+        const pointCount = graphSpec.points.length;
+        const coefs = locationModel.jstats.coef;
+        if (coefs.length == 0) {
+          // TypeScript wierdly "can't find" coefs in a for loop here.
+          coefs.forEach((coef) => weightedCoefSums.push(pointCount * coef));
+        } else {
+          // TypeScript wierdly "can't find" coefs in a for loop here.
+          coefs.forEach((coef, i) => (weightedCoefSums[i] += pointCount * coef));
+        }
+        totalPoints += pointCount;
+        if (baseModel === null) baseModel = locationModel;
       }
-      if (model === null) model = tempModel;
     }
 
-    coefSums.forEach(
-      (sum, i) => (model!.jstats.coef[i] = sum / sizedGraphSpec.graphSpecs.length)
-    );
-    perLocationModelSet.models.push(model!);
+    // Combine the models if we were able to generate at least one model.
+
+    if (baseModel !== null) {
+      for (let i = 0; i < weightedCoefSums.length; ++i) {
+        baseModel.jstats.coef[i] = weightedCoefSums[i] / totalPoints;
+      }
+      perLocationModelSet.models.push(baseModel);
+    }
   }
   for (const graphSpec of sizedGraphSpec.graphSpecs) {
     perLocationModelSet.pointSets.push(graphSpec.points);
