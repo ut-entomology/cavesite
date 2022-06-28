@@ -224,6 +224,14 @@ create table private_coordinates (
     uncertainty_meters float8
 );
 
+create table key_data (
+    user_id integer references users,
+    data_key text not null,
+    permission_required integer not null, -- ignored when user_id non-null
+    data_value text not null
+);
+create index on key_data(user_id, data_key);
+
 create table logs (
     -- column names must be identical in snakecase and camelcase
     id serial primary key,

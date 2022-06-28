@@ -7,6 +7,7 @@ drop table if exists all_taxa_for_visits;
 drop table if exists cave_genera_for_visits;
 drop table if exists cave_obligates_for_visits;
 drop table if exists logs;
+drop table if exists key_data;
 drop table if exists private_coordinates;
 drop table if exists specimens;
 drop table if exists locations;
