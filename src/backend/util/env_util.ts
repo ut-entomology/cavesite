@@ -101,6 +101,7 @@ CAVESITE_SUBTITLE* - Subtitle to display for website.
 CAVESITE_SENDER_NAME* - Name of person emails appear to come from.
 CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
+CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.

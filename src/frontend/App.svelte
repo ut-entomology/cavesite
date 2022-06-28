@@ -28,7 +28,7 @@
 
   // Initialize client-side routes.
 
-  const routes = {
+  const routes: Record<string, typeof SvelteComponent> = {
     '/': Welcome,
     '/taxa': Taxa,
     '/locations': Locations,
@@ -72,12 +72,14 @@
       const loginInfo: LoginInfo = res.data;
       appInfo.set({
         appTitle: loginInfo.appTitle,
-        appSubtitle: loginInfo.appSubtitle
+        appSubtitle: loginInfo.appSubtitle,
+        hiddenRoutes: loginInfo.hiddenRoutes
       });
       if (loginInfo.userInfo && loginInfo.expiration) {
         $userInfo = loginInfo.userInfo;
         setExpiration(loginInfo.expiration);
       }
+      $appInfo.hiddenRoutes.forEach((route) => delete routes[route]);
     }
 
     // Handle a password reset request.

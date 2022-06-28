@@ -134,10 +134,19 @@ router.post('/reset-password', async (req, res) => {
 
 let appInfo: AppInfo;
 function getAppInfo() {
+  const hiddenRoutes: string[] = [];
+  if (process.env.CAVESITE_HIDDEN_TABS) {
+    const rawHiddenTabs = process.env.CAVESITE_HIDDEN_TABS.split(',');
+    for (const hiddenTab of rawHiddenTabs) {
+      hiddenRoutes.push('/' + hiddenTab.trim().toLowerCase());
+    }
+  }
+
   if (!appInfo) {
     appInfo = {
       appTitle: process.env.CAVESITE_TITLE!,
-      appSubtitle: process.env.CAVESITE_SUBTITLE!
+      appSubtitle: process.env.CAVESITE_SUBTITLE!,
+      hiddenRoutes
     };
   }
   return appInfo;

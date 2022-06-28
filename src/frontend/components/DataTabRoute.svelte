@@ -1,5 +1,6 @@
 <script lang="ts">
   import RouteTab, { type Tab } from './RouteTab.svelte';
+  import { appInfo } from '../stores/app_info';
 
   export let activeTab: string;
 
@@ -29,6 +30,11 @@
       route: '/query'
     }
   ];
+
+  for (const hiddenRoute of $appInfo.hiddenRoutes) {
+    const hiddenTabIndex = tabs.findIndex((tab) => tab.route == hiddenRoute);
+    if (hiddenTabIndex >= 0) tabs.splice(hiddenTabIndex, 1);
+  }
 </script>
 
 <RouteTab {tabs} {activeTab}>
