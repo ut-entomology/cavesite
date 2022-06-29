@@ -33,6 +33,7 @@ const identityY: YTransform = (y) => y;
 
 interface RegressionModel {
   jstats: JstatModel;
+  fittedYTakingCoefs: FittedYTakingCoefs;
   fittedY: FittedY;
   rmse: number;
   residuals: Point[];
@@ -46,6 +47,7 @@ export abstract class PlottableModel implements RegressionModel {
   highestX = 0;
 
   jstats!: JstatModel;
+  fittedYTakingCoefs!: FittedYTakingCoefs;
   fittedY!: FittedY;
   rmse!: number;
   residuals!: Point[];
@@ -83,6 +85,7 @@ export abstract class PlottableModel implements RegressionModel {
         x += deltaX;
       }
     }
+    // console.log('**** _modelPoints', this._modelPoints);
     return this._modelPoints;
   }
 }
@@ -318,7 +321,7 @@ function _createRegressionModel(
   const residuals = _getResiduals(dataPoints, fittedY);
   const rmse = _getRMSE(residuals);
 
-  return { jstats, fittedY, rmse, residuals };
+  return { jstats, fittedYTakingCoefs, fittedY, rmse, residuals };
 }
 
 function _getResiduals(points: Point[], fittedY: FittedY) {

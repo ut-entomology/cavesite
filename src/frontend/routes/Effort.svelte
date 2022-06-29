@@ -6,9 +6,8 @@
     YAxisModel,
     type ModelFactory,
     type PerLocationClusterData,
-    type PerLocationModelSet,
     toPerLocationClusterData,
-    toPerLocationModelSet
+    toPerLocationModels
   } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
   const clusterStore = createSessionStore<PerLocationClusterData[] | null>(
@@ -35,13 +34,11 @@
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import {
-    Point,
     PlottableModel,
     LinearXModel,
     Order3XModel,
     QuadraticXModel,
     PowerXModel,
-    LogYModel,
     shortenPValue,
     shortenRMSE,
     shortenR2
@@ -60,7 +57,6 @@
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const MIN_UNCHANGED_Y = 0;
-  const POINTS_IN_MODEL_PLOT = 200;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
 
@@ -114,26 +110,26 @@
 
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-  let modelSetByCluster: PerLocationModelSet[] = [];
+  let modelsByCluster: PlottableModel[][] = [];
   let modelSummaries: ModelSummary[] = [];
   let localityCountByCluster: number[] = [];
 
   $: if ($clusterStore) {
     loadState = LoadState.fittingModels;
-    modelSetByCluster = [];
+    modelsByCluster = [];
 
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
       const graphData = _getGraphData(datasetID, clusterData);
-      let modelSet = toPerLocationModelSet(modelFactories, yAxisModel, graphData);
+      let models = toPerLocationModels(modelFactories, yAxisModel, graphData);
 
-      modelSetByCluster[i] = modelSet; // must place by cluster index
+      modelsByCluster[i] = models; // must place by cluster index
       localityCountByCluster[i] = clusterData.locationCount;
     }
     modelSummaries = summarizeModels(
       MIN_CAVES_PER_SUMMARY,
       MIN_POINTS_PER_SUMMARY,
-      modelSetByCluster,
+      modelsByCluster,
       localityCountByCluster
     );
   }
@@ -346,9 +342,7 @@
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
         {@const sizedEffortGraphSpec = _getGraphData(datasetID, clusterData)}
-        {@const modelSet = modelSetByCluster[i]}
-        {@const models = modelSet.models}
-        {@const pointSets = modelSet.pointSets}
+        {@const models = modelsByCluster[i]}
         {@const graphTitle =
           (multipleClusters ? `#${i + 1}: ` : '') +
           sizedEffortGraphSpec.graphSpecs[0].graphTitle +
@@ -358,11 +352,8 @@
             <div class="col" style="height: 350px">
               <EffortGraph
                 title={graphTitle}
-                config={graphData}
+                config={sizedEffortGraphSpec}
                 {models}
-                modelPlots={models.map((model) =>
-                  model.getModelPoints(POINTS_IN_MODEL_PLOT)
-                )}
                 yFormula={models ? models[0].getYFormula() : 'y'}
               />
             </div>
@@ -378,7 +369,7 @@
         {:else}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
-              <EffortGraph title={graphTitle} config={graphData} />
+              <EffortGraph title={graphTitle} config={sizedEffortGraphSpec} />
             </div>
           </div>
           <div class="row mb-3 gx-0 ms-4">

@@ -36,11 +36,6 @@ export interface SizedEffortGraphSpec {
   graphSpecs: EffortGraphSpec[];
 }
 
-export interface PerLocationModelSet {
-  models: PlottableModel[];
-  pointSets: Point[][];
-}
-
 export function toJumbledClusterData(
   yAxisType: YAxisType,
   effortDataSet: EffortData[],
@@ -115,15 +110,12 @@ export function toPerLocationClusterData(
   return clusterData;
 }
 
-export function toPerLocationModelSet(
+export function toPerLocationModels(
   modelFactories: ModelFactory[],
   yAxisModel: YAxisModel,
   sizedGraphSpec: SizedEffortGraphSpec
-): PerLocationModelSet {
-  const perLocationModelSet: PerLocationModelSet = {
-    models: [],
-    pointSets: []
-  };
+): PlottableModel[] {
+  const models: PlottableModel[] = [];
 
   let createModel: (factory: ModelFactory, points: Point[]) => PlottableModel;
   switch (yAxisModel) {
@@ -139,6 +131,8 @@ export function toPerLocationModelSet(
     const weightedCoefSums: number[] = [];
     let totalPoints = 0;
     let baseModel: PlottableModel | null = null;
+    let lowestX = Infinity;
+    let highestX = 0;
 
     // Loop for each graph spec at one per location in the cluster.
 
@@ -156,6 +150,8 @@ export function toPerLocationModelSet(
         }
         totalPoints += pointCount;
         if (baseModel === null) baseModel = locationModel;
+        if (locationModel.lowestX < lowestX) lowestX = locationModel.lowestX;
+        if (locationModel.highestX > highestX) highestX = locationModel.highestX;
       }
     }
 
@@ -165,13 +161,12 @@ export function toPerLocationModelSet(
       for (let i = 0; i < weightedCoefSums.length; ++i) {
         baseModel.jstats.coef[i] = weightedCoefSums[i] / totalPoints;
       }
-      perLocationModelSet.models.push(baseModel);
+      baseModel.lowestX = lowestX;
+      baseModel.highestX = highestX;
+      models.push(baseModel);
     }
   }
-  for (const graphSpec of sizedGraphSpec.graphSpecs) {
-    perLocationModelSet.pointSets.push(graphSpec.points);
-  }
-  return perLocationModelSet;
+  return models;
 }
 
 function _addGraphSpec(sizedSpec: SizedEffortGraphSpec, spec: EffortGraphSpec): void {

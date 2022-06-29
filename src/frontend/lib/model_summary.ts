@@ -1,5 +1,4 @@
 import type { PlottableModel } from './linear_regression';
-import type { PerLocationModelSet } from './cluster_data';
 
 export interface ModelSummary {
   modelName: string;
@@ -19,11 +18,11 @@ export interface ModelSummary {
 export function summarizeModels(
   minCavesAllowed: number,
   minPointsAllowed: number,
-  modelSetByCluster: PerLocationModelSet[],
+  modelsByCluster: PlottableModel[][],
   localityCountByCluster: number[]
 ): ModelSummary[] {
   const summaries: ModelSummary[] = [];
-  modelSetByCluster[0].models.forEach((_) =>
+  modelsByCluster[0].forEach((_) =>
     summaries.push({
       modelName: '',
       bestPValue: Infinity,
@@ -40,13 +39,13 @@ export function summarizeModels(
     })
   );
 
-  for (let i = 0; i < modelSetByCluster.length; ++i) {
-    const modelSet = modelSetByCluster[i].models;
+  for (let i = 0; i < modelsByCluster.length; ++i) {
+    const models = modelsByCluster[i];
     const localityCount = localityCountByCluster[i];
 
-    if (modelSet !== undefined && localityCount >= minCavesAllowed) {
-      for (let j = 0; j < modelSet.length; ++j) {
-        const model = modelSet[j];
+    if (models !== undefined && localityCount >= minCavesAllowed) {
+      for (let j = 0; j < models.length; ++j) {
+        const model = models[j];
         if (model.residuals.length >= minPointsAllowed) {
           const summary = summaries[j];
 

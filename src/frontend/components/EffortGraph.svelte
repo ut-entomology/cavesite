@@ -1,29 +1,39 @@
 <script lang="ts">
-  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
+  import Line from 'svelte-chartjs/src/Line.svelte';
 
-  import type { Point, PlottableModel } from '../lib/linear_regression';
-  import type { EffortGraphSpec } from '../lib/effort_graphs';
+  import type { PlottableModel } from '../lib/linear_regression';
+  import type { SizedEffortGraphSpec } from '../lib/cluster_data';
+
+  const POINTS_IN_MODEL_PLOT = 200;
 
   export let title: string;
-  export let config: EffortGraphSpec;
+  export let config: SizedEffortGraphSpec;
   export let models: PlottableModel[] = [];
-  export let modelPlots: Point[][] = [];
   export let yFormula: string | null = null;
+
+  function _legendFilter(item: any) {
+    // Show a legend for the first line and then one for each model.
+    return item.datasetIndex == 0 || item.datasetIndex >= config.graphSpecs.length;
+  }
 </script>
 
-<Scatter
+<Line
   data={{
     datasets: [
-      {
-        label: config.points.length + ' points',
-        data:
-          models.length > 0 ? models[0].convertDataPoints(config.points) : config.points
-      },
-      ...models.map((model, i) => {
+      ...config.graphSpecs.map((graphSpec) => {
         return {
-          type: 'line',
+          label: config.pointCount + ' points',
+          data:
+            models.length > 0
+              ? models[0].convertDataPoints(graphSpec.points)
+              : graphSpec.points,
+          backgroundColor: '#dddddd'
+        };
+      }),
+      ...models.map((model) => {
+        return {
           label: model.name,
-          data: modelPlots[i],
+          data: model.getModelPoints(POINTS_IN_MODEL_PLOT),
           backgroundColor: '#' + model.hexColor
         };
       })
@@ -35,14 +45,16 @@
       x: {
         title: {
           display: true,
-          text: config.xAxisLabel + ' (x)',
+          text: config.graphSpecs[0].xAxisLabel + ' (x)',
           font: { size: 16 }
         }
       },
       y: {
         title: {
           display: true,
-          text: yFormula ? config.yAxisLabel + ` (${yFormula})` : config.yAxisLabel,
+          text: yFormula
+            ? config.graphSpecs[0].yAxisLabel + ` (${yFormula})`
+            : config.graphSpecs[0].yAxisLabel,
           font: { size: 16 }
         }
       }
@@ -52,6 +64,9 @@
         display: true,
         text: title,
         font: { size: 17 }
+      },
+      legend: {
+        labels: { filter: _legendFilter }
       }
     },
     animation: {
