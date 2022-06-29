@@ -4,15 +4,13 @@
 
   import ModalDialog from '../common/ModalDialog.svelte';
   import DateRangeInput from '../components/DateRangeInput.svelte';
-  import { LocationRank, TaxonRank } from '../../shared/model';
   import { columnInfoMap, type QueryColumnInfo } from '../../shared/general_query';
   import {
     EARLIEST_RECORD_DATE,
     type QueryDateFilter,
-    type QueryLocationFilter,
-    type QueryTaxonFilter,
     type GeneralQuery
   } from '../../shared/general_query';
+  import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
   import { selectedLocations } from '../stores/selectedLocations';
   import { selectedTaxa } from '../stores/selectedTaxa';
 
@@ -59,77 +57,11 @@
     }
   }
 
-  function getDateFilter(): QueryDateFilter {
+  export function getDateFilter(): QueryDateFilter {
     return {
-      fromDate: fromDate.getTime(),
-      throughDate: throughDate.getTime()
+      fromDateMillis: fromDate.getTime(),
+      throughDateMillis: throughDate.getTime()
     };
-  }
-
-  function getLocationFilter(): QueryLocationFilter | null {
-    if ($selectedLocations === null) return null;
-
-    const filter: QueryLocationFilter = {
-      countyIDs: null,
-      localityIDs: null
-    };
-    for (const spec of Object.values($selectedLocations)) {
-      switch (spec.rank) {
-        case LocationRank.County:
-          filter.countyIDs = appendFilteredID(filter.countyIDs, spec.locationID);
-          break;
-        case LocationRank.Locality:
-          filter.localityIDs = appendFilteredID(filter.localityIDs, spec.locationID);
-          break;
-      }
-    }
-    return filter;
-  }
-
-  function getTaxonFilter(): QueryTaxonFilter | null {
-    if ($selectedTaxa === null) return null;
-
-    const filter: QueryTaxonFilter = {
-      phylumIDs: null,
-      classIDs: null,
-      orderIDs: null,
-      familyIDs: null,
-      genusIDs: null,
-      speciesIDs: null,
-      subspeciesIDs: null
-    };
-    for (const spec of Object.values($selectedTaxa)) {
-      switch (spec.rank) {
-        case TaxonRank.Phylum:
-          filter.phylumIDs = appendFilteredID(filter.phylumIDs, spec.taxonID);
-          break;
-        case TaxonRank.Class:
-          filter.classIDs = appendFilteredID(filter.classIDs, spec.taxonID);
-          break;
-        case TaxonRank.Order:
-          filter.orderIDs = appendFilteredID(filter.orderIDs, spec.taxonID);
-          break;
-        case TaxonRank.Family:
-          filter.familyIDs = appendFilteredID(filter.familyIDs, spec.taxonID);
-          break;
-        case TaxonRank.Genus:
-          filter.genusIDs = appendFilteredID(filter.genusIDs, spec.taxonID);
-          break;
-        case TaxonRank.Species:
-          filter.speciesIDs = appendFilteredID(filter.speciesIDs, spec.taxonID);
-          break;
-        case TaxonRank.Subspecies:
-          filter.subspeciesIDs = appendFilteredID(filter.subspeciesIDs, spec.taxonID);
-          break;
-      }
-    }
-    return filter;
-  }
-
-  function appendFilteredID(toList: number[] | null, taxonID: number): number[] {
-    if (toList === null) return [taxonID];
-    toList.push(taxonID);
-    return toList;
   }
 
   function resortIncludedItems(e: CustomEvent<DndEvent>) {
@@ -170,8 +102,8 @@
         return { columnID, optionText, ascending };
       }),
       dateFilter: getDateFilter(),
-      locationFilter: filterLocations ? getLocationFilter() : null,
-      taxonFilter: filterTaxa ? getTaxonFilter() : null
+      locationFilter: filterLocations ? getLocationFilter($selectedLocations) : null,
+      taxonFilter: filterTaxa ? getTaxonFilter($selectedTaxa) : null
     });
   };
 

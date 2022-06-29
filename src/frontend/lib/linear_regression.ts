@@ -1,11 +1,8 @@
 import * as jstat from 'jstat';
 
-const MODEL_COEF_PRECISION = 3;
+import type { Point } from '../../shared/point';
 
-export interface Point {
-  x: number;
-  y: number;
-}
+const MODEL_COEF_PRECISION = 3;
 
 export interface JstatModel {
   coef: number[];

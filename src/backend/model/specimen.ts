@@ -494,16 +494,16 @@ export class Specimen {
     const columnOrders: string[] = [];
 
     if (dateFilter !== null) {
-      if (dateFilter.fromDate !== null) {
-        const fromDate = toPostgresDate(new Date(dateFilter.fromDate));
+      if (dateFilter.fromDateMillis !== null) {
+        const fromDate = toPostgresDate(new Date(dateFilter.fromDateMillis));
         whereComponents.push(
           `(collection_start_date >= ${fromDate} or
             (collection_end_date is not null and
               collection_end_date >= ${fromDate}))`
         );
       }
-      if (dateFilter.throughDate !== null) {
-        const throughDate = toPostgresDate(new Date(dateFilter.throughDate));
+      if (dateFilter.throughDateMillis !== null) {
+        const throughDate = toPostgresDate(new Date(dateFilter.throughDateMillis));
         whereComponents.push(`collection_start_date <= ${throughDate}`);
       }
     }

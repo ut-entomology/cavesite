@@ -37,8 +37,8 @@ router.post('/query', async (req: Request, res) => {
   }
   if (query.dateFilter !== null) {
     if (
-      !checkInteger(query.dateFilter.fromDate, true) ||
-      !checkInteger(query.dateFilter.throughDate, true)
+      !checkInteger(query.dateFilter.fromDateMillis, true) ||
+      !checkInteger(query.dateFilter.throughDateMillis, true)
     ) {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
@@ -68,6 +68,7 @@ router.post('/query', async (req: Request, res) => {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 
+  // TODO: Impose an upper limit on batch size.
   const result: [QueryRow[], number | null] = await Specimen.generalQuery(
     getDB(),
     query.columnSpecs,
