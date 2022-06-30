@@ -6,7 +6,6 @@
   "scripts": {
     "build": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w",
-    "deploy": "./bin/deploy",
     "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps --watch ./build ./build/backend/server.js",
     "test": "run unit-tests && run web-tests",
     "unit-tests": "./bin/test-all",
