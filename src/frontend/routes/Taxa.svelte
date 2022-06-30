@@ -86,10 +86,13 @@
     return specs[0];
   }
 
-  function addSelection(clear: boolean, spec: TaxonSpec) {
-    if (clear) clearInput();
+  async function addSelection(clear: boolean, spec: TaxonSpec) {
+    if (spec.taxonID == 0) {
+      spec = await loadSpec(spec.unique);
+    }
     selectionsTree.addSelection(spec);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
+    if (clear) clearInput();
   }
 
   function removeSelection(

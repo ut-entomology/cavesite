@@ -49,6 +49,7 @@ export abstract class SelectionsTree<S extends ModelSpec> {
         node.children.push(nextNode);
         if (resort) node.children.sort(this._nodeSorter);
       } else if (nextNode.spec.unique == forSpec.unique) {
+        nextNode.spec = forSpec; // provide any previously-missing ID
         nextNode.children = []; // childless nodes are the selections
         break; // this is redundant but clarifies behavior
       }

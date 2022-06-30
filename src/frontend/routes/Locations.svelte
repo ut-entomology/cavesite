@@ -103,10 +103,13 @@
     return specs[0];
   }
 
-  function addSelection(clear: boolean, spec: LocationSpec) {
-    if (clear) clearInput();
+  async function addSelection(clear: boolean, spec: LocationSpec) {
+    if (spec.locationID == 0) {
+      spec = await loadSpec(spec.unique);
+    }
     selectionsTree.addSelection(spec);
     selectedLocations.set(selectionsTree.getSelectionSpecs());
+    if (clear) clearInput();
   }
 
   function removeSelection(
