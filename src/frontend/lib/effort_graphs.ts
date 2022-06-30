@@ -173,8 +173,6 @@ export abstract class EffortGraphSpec {
 
   protected _getPercentChangePoint(point: Point): Point | null {
     if (this._priorY == this._yBaseline) return null;
-    if (this._priorY < this._yBaseline)
-      console.log('priorY', this._priorY, '< _yBaseline', this._yBaseline);
     return {
       x: point.x,
       y: (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline)

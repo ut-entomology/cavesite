@@ -1125,8 +1125,7 @@ describe('general specimen query', () => {
     // Test use of only fromDate.
 
     await _createSpecimen1(db); // 2021-01-01 - 2021-01-03
-    const s2 = await _createSpecimen2(db); // 2021-01-04
-    console.log(s2);
+    await _createSpecimen2(db); // 2021-01-04
     await _createSpecimen3(db); // 2020-01-01
     await _createSpecimen4(db); // 2020-01-01
 

@@ -101,7 +101,6 @@
       await flashMessage('Updated user');
       onSuccess(res.data);
     } catch (err: any) {
-      console.log('*** got err.response', err.response);
       showNotice({
         message: `Failed to update user<br/><br/>` + errorReason(err.response),
         header: 'Error',
