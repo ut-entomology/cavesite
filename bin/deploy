@@ -4,8 +4,10 @@ rm -rdf /var/www/html/*
 rm -rdf /var/www/build
 rm -rdf /var/www/emails
 rm -rdf /var/www/bin
+rm -rdf /var/www/node_modules
 
 cp -R public/* /var/www/html
 cp -R build /var/www/build
 cp -R emails /var/www/emails
 cp -R bin /var/www/bin
+cp -R node_modules /var/www/node_modules

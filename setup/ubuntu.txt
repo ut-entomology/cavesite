@@ -70,7 +70,24 @@ Otherwise update the repo:
 
 	yarn build
 	sudo ./bin/deploy
-
 	
+(18) Create /var/www/.env based on the following (e.g via "sudo vim /var/www/.env"):
+
+CAVESITE_TITLE=Texas Underground
+CAVESITE_SUBTITLE=The University of Texas Biospeleological Collection
+CAVESITE_BASE_URL=https://caves.tacc.utexas.edu
+CAVESITE_SENDER_NAME=Alex Wild
+CAVESITE_SENDER_EMAIL=alex.wild@utexas.edu
+
+CAVESITE_LOG_DIR=/var/www/logs
+CAVESITE_DB_HOST=postgres-host-name
+CAVESITE_DB_PORT=postgres-port
+CAVESITE_DB_NAME=postgres-cave-database-name
+CAVESITE_DB_USER=postgres-user-name
+CAVESITE_DB_PASSWORD=postgres-user-password
+
+SENDGRID_API_KEY=sender-sendgrid-key
+
+(19) 
 
 TODO: install node monitoring and restart
