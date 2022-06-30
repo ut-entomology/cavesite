@@ -1,5 +1,4 @@
 # cd to the repo root before running this script
-# note that this deletes all prior API logs
 
 rm -rdf /var/www/html/*
 rm -rdf /var/www/build
@@ -13,5 +12,5 @@ cp -R emails /var/www/emails
 cp -R bin /var/www/bin
 cp -R node_modules /var/www/node_modules
 
-mkdir /var/www/logs
+mkdir -p /var/www/logs
 chown -R www-data:www-data /var/www/logs
