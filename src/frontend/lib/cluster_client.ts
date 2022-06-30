@@ -1,6 +1,5 @@
 import type { AxiosInstance } from 'axios';
 
-import type { Point } from './linear_regression';
 import type {
   EffortResult,
   LocationSpec,

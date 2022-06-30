@@ -1,4 +1,4 @@
-import type { Point } from '../lib/linear_regression';
+import type { Point } from '../../shared/point';
 import type { EffortData } from '../lib/effort_data';
 
 export enum YAxisType {
