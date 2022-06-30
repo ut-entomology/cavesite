@@ -68,17 +68,20 @@ Otherwise update the repo:
     
 (17) From within ~/cavesite:
 
+	./bin/setup-db
 	yarn build
 	sudo ./bin/deploy
-	./bin/setup-db
 	
 (19) Create /var/www/.env based on the following (e.g via "sudo vim /var/www/.env"):
 
 CAVESITE_TITLE=Texas Underground
 CAVESITE_SUBTITLE=The University of Texas Biospeleological Collection
 CAVESITE_BASE_URL=https://caves.tacc.utexas.edu
+CAVESITE_PORT=3000
+CAVESITE_HTML_FOLDER=html
 CAVESITE_SENDER_NAME=Alex Wild
 CAVESITE_SENDER_EMAIL=alex.wild@utexas.edu
+CAVESITE_HIDDEN_TABS=comma-delimited-names-of-tabs-you-want-to-hide
 
 CAVESITE_LOG_DIR=/var/www/logs
 CAVESITE_DB_HOST=postgres-host-name
@@ -93,7 +96,12 @@ SENDGRID_API_KEY=sender-sendgrid-key
 
 scp uploadable.csv user@caves.tacc.utexas.edu:~/
 
-----
+(21) Load the data:
+
+cd /var/www
+node build/tools/load-csv.js ~/uploadable.csv
+
+(22) Run the API server from within /var/www:
 
 sudo -u www-data node build/backend/server.js
 
