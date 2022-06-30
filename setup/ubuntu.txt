@@ -68,6 +68,8 @@ Otherwise update the repo:
     
 (17) From within ~/cavesite:
 
-	yarn build
+	yarn build-deploy
+
+	
 
 TODO: install node monitoring and restart

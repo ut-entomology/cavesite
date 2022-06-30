@@ -1,0 +1,6 @@
+# cd to the repo root before running this script
+cp public/* /var/www/html
+cp -R public/build /var/www/html/build
+cp -R build /var/www/build
+cp -R emails /var/www/emails
+cp -R bin /var/www/bin
