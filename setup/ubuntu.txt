@@ -68,7 +68,8 @@ Otherwise update the repo:
     
 (17) From within ~/cavesite:
 
-	yarn build-deploy
+	yarn build
+	yarn deploy
 
 	
 
