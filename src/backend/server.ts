@@ -35,6 +35,7 @@ const port = parseInt(process.env.CAVESITE_PORT!);
 // The public directory is only used in development, as nginx handles static
 // files when deployed.
 const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
+const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 
 // Set up pre-route stack.
 
@@ -66,8 +67,11 @@ app.use('/api/taxa', taxaApi);
 app.use('/api/location', locationApi);
 app.use('/api/specimen', specimenApi);
 app.use('/api/cluster', clusterApi);
-app.use('/*', (_req, res) => {
+app.use('/api/*', (_req, res) => {
   return res.status(StatusCodes.NOT_FOUND).send();
+});
+app.use('/', (_req, res) => {
+  return res.sendFile(SPA_INDEX_FILE);
 });
 app.use(async (err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
