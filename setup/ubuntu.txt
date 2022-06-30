@@ -89,7 +89,11 @@ CAVESITE_DB_PASSWORD=postgres-user-password
 
 SENDGRID_API_KEY=sender-sendgrid-key
 
-(20) 
+(20) Use scp to copy the uploadable datafile to the host (temporary measure until integrated with GBIF):
+
+scp uploadable.csv user@caves.tacc.utexas.edu:~/
+
+----
 
 sudo -u www-data node build/backend/server.js
 

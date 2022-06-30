@@ -14,7 +14,10 @@ if (process.argv.length != 3) {
   console.log('Please provide the path to the uploadable CSV');
   process.exit(1);
 }
-const csvFilepath = path.join(process.cwd(), process.argv[2]);
+let csvFilepath = path.join(process.cwd(), process.argv[2]);
+if (!'/~'.includes(csvFilepath[0])) {
+  csvFilepath = path.join(process.cwd(), csvFilepath);
+}
 
 const records: CsvSpecimen[] = [];
 
