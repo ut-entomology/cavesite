@@ -32,10 +32,10 @@
   export let onQuery: (query: GeneralQuery) => void;
 
   let fromDate = initialQuery.dateFilter
-    ? initialQuery.dateFilter.fromDateMillis
+    ? new Date(initialQuery.dateFilter.fromDateMillis!)
     : EARLIEST_RECORD_DATE;
   let throughDate = initialQuery.dateFilter
-    ? initialQuery.dateFilter.throughDateMillis
+    ? new Date(initialQuery.dateFilter.throughDateMillis!)
     : new Date();
   let filterTaxa = initialQuery.taxonFilter !== null;
   let filterLocations = initialQuery.locationFilter !== null;
