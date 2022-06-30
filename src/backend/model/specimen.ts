@@ -557,7 +557,7 @@ export class Specimen {
         locationFilter.localityIDs
       );
       if (locationConditions.length > 0) {
-        whereComponents.push(locationConditions.join(' or '));
+        whereComponents.push(`(${locationConditions.join(' or ')})`);
       }
     }
 
@@ -571,7 +571,7 @@ export class Specimen {
       _collectInIntegerList(taxaConditions, 'species_id', taxonFilter.speciesIDs);
       _collectInIntegerList(taxaConditions, 'subspecies_id', taxonFilter.subspeciesIDs);
       if (taxaConditions.length > 0) {
-        whereComponents.push(taxaConditions.join(' or '));
+        whereComponents.push(`(${taxaConditions.join(' or ')})`);
       }
     }
 
