@@ -8,7 +8,7 @@ Caves site is configured at /etc/nginx/sites-available/caves.conf
 
 ## Initial setup
 
-(1) SSH to the VM.
+(1) SSH to the VM as a user who has all permissions to the postgres caves database.
 
 (2) sudo su
 
@@ -70,8 +70,9 @@ Otherwise update the repo:
 
 	yarn build
 	sudo ./bin/deploy
+	./bin/setup-db
 	
-(18) Create /var/www/.env based on the following (e.g via "sudo vim /var/www/.env"):
+(19) Create /var/www/.env based on the following (e.g via "sudo vim /var/www/.env"):
 
 CAVESITE_TITLE=Texas Underground
 CAVESITE_SUBTITLE=The University of Texas Biospeleological Collection
@@ -88,6 +89,8 @@ CAVESITE_DB_PASSWORD=postgres-user-password
 
 SENDGRID_API_KEY=sender-sendgrid-key
 
-(19) 
+(20) 
+
+sudo -u www-data node build/backend/server.js
 
 TODO: install node monitoring and restart
