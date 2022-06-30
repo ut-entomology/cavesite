@@ -70,6 +70,9 @@ app.use('/api/cluster', clusterApi);
 app.use('/api/*', (_req, res) => {
   return res.status(StatusCodes.NOT_FOUND).send();
 });
+app.use('/api', (_req, res) => {
+  return res.status(StatusCodes.NOT_FOUND).send();
+});
 app.use('/', (_req, res) => {
   return res.sendFile(SPA_INDEX_FILE);
 });
