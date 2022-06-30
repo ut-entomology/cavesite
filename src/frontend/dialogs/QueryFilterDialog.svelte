@@ -90,7 +90,7 @@
     includedItems = includedItems;
   };
 
-  const submitQuery = () => {
+  async function submitQuery() {
     onQuery({
       columnSpecs: includedItems.map((item) => {
         const columnID = item.info.columnID;
@@ -106,10 +106,10 @@
         return { columnID, optionText, ascending };
       }),
       dateFilter: getDateFilter(),
-      locationFilter: filterLocations ? getLocationFilter($selectedLocations) : null,
-      taxonFilter: filterTaxa ? getTaxonFilter($selectedTaxa) : null
+      locationFilter: filterLocations ? await getLocationFilter() : null,
+      taxonFilter: filterTaxa ? await getTaxonFilter() : null
     });
-  };
+  }
 
   function _setDateRange(from: Date, thru: Date): void {
     fromDate = from;

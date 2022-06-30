@@ -1,19 +1,36 @@
-import { TaxonRank } from '../../shared/model';
-import { LocationRank } from '../../shared/model';
+import { TaxonRank, LocationRank } from '../../shared/model';
 import type { QueryLocationFilter, QueryTaxonFilter } from '../../shared/general_query';
-import type { SelectedTaxa } from '../stores/selectedTaxa';
-import type { SelectedLocations } from '../stores/selectedLocations';
+import {
+  type SelectedLocations,
+  selectedLocations as selectedLocationsStore,
+  checkSelectedLocations,
+  updateSelectedLocations
+} from '../stores/selectedLocations';
+import {
+  type SelectedTaxa,
+  selectedTaxa as selectedTaxaStore,
+  checkSelectedTaxa,
+  updateSelectedTaxa
+} from '../stores/selectedTaxa';
 
-export function getLocationFilter(
-  selectedLocations: SelectedLocations | null
-): QueryLocationFilter | null {
-  if (selectedLocations === null) return null;
+let selectedLocationsMap: SelectedLocations | null = null;
+let selectedTaxaMap: SelectedTaxa | null = null;
+
+selectedLocationsStore.subscribe((value) => (selectedLocationsMap = value));
+selectedTaxaStore.subscribe((value) => (selectedTaxaMap = value));
+
+export async function getLocationFilter(): Promise<QueryLocationFilter | null> {
+  if (selectedLocationsMap === null) return null;
+
+  if (await checkSelectedLocations()) {
+    await updateSelectedLocations();
+  }
 
   const filter: QueryLocationFilter = {
     countyIDs: null,
     localityIDs: null
   };
-  for (const spec of Object.values(selectedLocations)) {
+  for (const spec of Object.values(selectedLocationsMap)) {
     switch (spec.rank) {
       case LocationRank.County:
         filter.countyIDs = appendFilteredID(filter.countyIDs, spec.locationID);
@@ -26,10 +43,12 @@ export function getLocationFilter(
   return filter;
 }
 
-export function getTaxonFilter(
-  selectedTaxa: SelectedTaxa | null
-): QueryTaxonFilter | null {
-  if (selectedTaxa === null) return null;
+export async function getTaxonFilter(): Promise<QueryTaxonFilter | null> {
+  if (selectedTaxaMap === null) return null;
+
+  if (await checkSelectedTaxa()) {
+    await updateSelectedTaxa();
+  }
 
   const filter: QueryTaxonFilter = {
     phylumIDs: null,
@@ -40,7 +59,7 @@ export function getTaxonFilter(
     speciesIDs: null,
     subspeciesIDs: null
   };
-  for (const spec of Object.values(selectedTaxa)) {
+  for (const spec of Object.values(selectedTaxaMap)) {
     switch (spec.rank) {
       case TaxonRank.Phylum:
         filter.phylumIDs = appendFilteredID(filter.phylumIDs, spec.taxonID);
