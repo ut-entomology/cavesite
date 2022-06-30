@@ -32,12 +32,9 @@ const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 m
 loadAndCheckEnvVars(true);
 const devMode = process.env.NODE_ENV !== 'production';
 const port = parseInt(process.env.CAVESITE_PORT!);
-const PUBLIC_FILE_DIR = path.join(
-  __dirname,
-  '../..',
-  process.env.CAVESITE_HTML_FOLDER!
-);
-const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
+// The public directory is only used in development, as nginx handles static
+// files when deployed.
+const PUBLIC_FILE_DIR = path.join(__dirname, '../../public');
 
 // Set up pre-route stack.
 
@@ -62,20 +59,15 @@ app.use(sessionware);
 
 // Set up application routes.
 
-app.use(express.static(PUBLIC_FILE_DIR));
+app.use(express.static(PUBLIC_FILE_DIR)); // not used when deployed to nginx
 app.use('/api/auth', authApi);
 app.use('/api/user', userApi);
 app.use('/api/taxa', taxaApi);
 app.use('/api/location', locationApi);
 app.use('/api/specimen', specimenApi);
 app.use('/api/cluster', clusterApi);
-app.use('/api/*', (_req, _res, next) => {
-  const err = Error(ReasonPhrases.NOT_FOUND) as any;
-  err.status = StatusCodes.NOT_FOUND;
-  next(err);
-});
-app.use('*', (_req, res) => {
-  res.sendFile(SPA_INDEX_FILE);
+app.use('/*', (_req, res) => {
+  return res.status(StatusCodes.NOT_FOUND).send();
 });
 app.use(async (err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {

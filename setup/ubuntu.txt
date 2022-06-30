@@ -83,7 +83,6 @@ CAVESITE_TITLE=Texas Underground
 CAVESITE_SUBTITLE=The University of Texas Biospeleological Collection
 CAVESITE_BASE_URL=https://caves.tacc.utexas.edu
 CAVESITE_PORT=3000
-CAVESITE_HTML_FOLDER=html
 CAVESITE_SENDER_NAME=Alex Wild
 CAVESITE_SENDER_EMAIL=alex.wild@utexas.edu
 CAVESITE_HIDDEN_TABS=comma-delimited-names-of-tabs-you-want-to-hide

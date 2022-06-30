@@ -26,9 +26,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
   } else {
     errors.push('CAVESITE_BASE_URL - missing');
   }
-  if (!process.env.CAVESITE_HTML_FOLDER) {
-    errors.push('CAVESITE_HTML_FOLDER - missing');
-  }
   if (!process.env.CAVESITE_SENDER_NAME) {
     errors.push('CAVESITE_SENDER_NAME - missing');
   }
@@ -104,7 +101,6 @@ CAVESITE_SUBTITLE* - Subtitle to display for website.
 CAVESITE_SENDER_NAME* - Name of person emails appear to come from.
 CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
-CAVESITE_HTML_FOLDER* - Folder in deployment directory containing public HTML.
 CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 
