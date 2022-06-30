@@ -26,7 +26,11 @@ import { LogType, Logs } from './model/logs';
 
 const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
 const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
-const PUBLIC_FILE_DIR = path.join(__dirname, '../..', process.env.CAVESITE_HTML_FOLDER);
+const PUBLIC_FILE_DIR = path.join(
+  __dirname,
+  '../..',
+  process.env.CAVESITE_HTML_FOLDER!
+);
 const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 
 // Initialize configuration.
