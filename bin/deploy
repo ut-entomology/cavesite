@@ -1,4 +1,11 @@
 # cd to the repo root before running this script
+
+rm -f /var/www/html/*
+rm -rdf /var/www/html/build
+rm -rdf /var/www/build
+rm -rdf /var/www/emails
+rm -rdf /var/www/bin
+
 cp public/* /var/www/html
 cp -R public/build /var/www/html/build
 cp -R build /var/www/build
