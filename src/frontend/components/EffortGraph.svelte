@@ -1,7 +1,8 @@
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { Point, PlottableModel } from '../lib/linear_regression';
+  import type { Point } from '../../shared/point';
+  import type { PlottableModel } from '../lib/linear_regression';
   import type { EffortGraphSpec } from '../lib/effort_graphs';
 
   export let title: string;

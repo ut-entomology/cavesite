@@ -30,8 +30,8 @@
   } from '../../shared/model';
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
+  import type { Point } from '../../shared/point';
   import {
-    Point,
     PlottableModel,
     LinearXModel,
     Order3XModel,

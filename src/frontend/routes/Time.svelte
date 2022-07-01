@@ -7,6 +7,8 @@
 </script>
 
 <script lang="ts">
+  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
+
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
@@ -14,6 +16,7 @@
     type TimeGraphQueryRequest
   } from '../dialogs/TimeFilterDialog.svelte';
   import { pageName } from '../stores/pageName';
+  import type { Point } from '../../shared/point';
   import { selectedLocations } from '../stores/selectedLocations';
   import { selectedTaxa } from '../stores/selectedTaxa';
   import type { QueryDateFilter } from '../../shared/general_query';
@@ -22,6 +25,12 @@
   $pageName = 'Time';
 
   let queryRequest: TimeGraphQueryRequest | null = null;
+
+  const xValues = [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050];
+  const yValues = [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478];
+  const points = xValues.map((x, i) => {
+    return { x, y: yValues[i] };
+  });
 
   function clearQuery() {
     $cachedData = null;
@@ -65,6 +74,25 @@
         >
       </span>
     </TabHeader>
+    <Scatter
+      data={{
+        datasets: [
+          {
+            showLine: true,
+            data: points,
+            label: 'Africa',
+            borderColor: '#3e95cd',
+            fill: false
+          }
+        ]
+      }}
+      options={{
+        title: {
+          display: true,
+          text: 'World population per region (in millions)'
+        }
+      }}
+    />
   </div>
   {#if !$cachedData}
     <EmptyTab message={'Click the "Generate" button to generate new charts.'} />
