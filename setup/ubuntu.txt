@@ -6,30 +6,27 @@ NGINX and Postgres are installed and running, the former on HTTPS.
 
 Caves site is configured at /etc/nginx/sites-available/caves.conf
 
-## Initial setup
+## Initial Setup
 
 (1) SSH to the VM as a user who has all permissions to the postgres caves database.
 
-(2) sudo su
+(2) Install Node.js, yarn, and pm2:
 
-(3) apt install npm
+sudo apt install npm
+sudo npm install -g n
+sudo n stable
+hash -r
+sudo npm install -g yarn
+sudo npm install -g pm2
 
-(4) npm install -g n
-
-(5) n stable
-
-(6) hash -r
-
-(7) npm install -g yarn
-
-(8) Add the following to /etc/nginx/sites-available/caves.conf (e.g. using vim), at the very start of the file, before "server {".
+(3) Add the following to /etc/nginx/sites-available/caves.conf, at the very start of the file, before "server {" (e.g. "sudo vim /etc/nginx/sites-available/caves.conf").
 
     upstream app_yourdomain {
         server 127.0.0.1:3000;
         keepalive 8;
     }
     
-(9) Add the following to /etc/nginx/sites-available/caves.conf before the final bracket of "server { ... }":
+(4) Add the following to /etc/nginx/sites-available/caves.conf before the final bracket of "server { ... }":
 
 	location / {
 		root /var/www/html;
@@ -46,38 +43,13 @@ Caves site is configured at /etc/nginx/sites-available/caves.conf
       proxy_redirect off;
     }
     
-(10) Run "nginx -t" to check the syntax of caves.conf and correct any errors.
+(5) Run "sudo nginx -t" to check the syntax of caves.conf and correct any errors.
 
-(11) /etc/init.d/nginx restart
+(6) sudo /etc/init.d/nginx restart
 
-(12) Exit su mode
+(7) You can test the setup at this point by going to https://caves.tacc.utexas.edu/api and making sure you get a "502 bad gateway" error.
 
-(13) You can test the setup at this point by going to https://caves.tacc.utexas.edu/api and making sure you get a "502 bad gateway" error.
-
-(14) cd ~
-
-(15) If you haven't done this step before, type:
-
-    cd ~
-    git clone https://github.com/ut-entomology/cavesite.git
-    cd cavesite
-   
-Otherwise update the repo:
-
-    cd ~/cavesite
-    git pull
-    
-(16) From within ~/cavesite, type this in order to get the right dependency versions:
-
-    yarn
-    
-(17) From within ~/cavesite:
-
-	./bin/setup-db
-	yarn build
-	sudo ./bin/deploy
-	
-(19) Create /var/www/.env based on the following (e.g via "sudo vim /var/www/.env"):
+(8) Create /var/www/.env based on the following (e.g via "sudo vim /var/www/.env"):
 
 CAVESITE_TITLE=Texas Underground
 CAVESITE_SUBTITLE=The University of Texas Biospeleological Collection
@@ -96,17 +68,50 @@ CAVESITE_DB_PASSWORD=postgres-user-password
 
 SENDGRID_API_KEY=sender-sendgrid-key
 
-(20) Use scp to copy the uploadable datafile to the host (temporary measure until integrated with GBIF):
+## Build and Deploy the Website
+
+(9) If you haven't done this step before, type:
+
+    cd ~
+    git clone https://github.com/ut-entomology/cavesite.git
+    cd cavesite
+   
+Otherwise update the repo:
+
+    cd ~/cavesite
+    git pull
+    
+(10) From within ~/cavesite, type this in order to get the right dependency versions (don't use NPM):
+
+    yarn
+    
+(11) From within ~/cavesite:
+
+	./bin/setup-db
+	yarn build
+	sudo ./bin/deploy
+	
+(12) From the client, use scp to copy the uploadable datafile to the host (temporary measure until integrated with GBIF):
 
 scp uploadable.csv user@caves.tacc.utexas.edu:~/
 
-(21) Load the data:
+(13) Load the data into the database:
 
 cd /var/www
 node build/tools/load-csv.js ~/uploadable.csv
 
-(22) Run the API server from within /var/www:
+(14) To run the server for testing purposes and see console log output:
 
-sudo -u www-data node build/backend/server.js
+    cd /var/www
+    sudo -u www-data node build/backend/server.js
 
-TODO: install node monitoring and restart
+To have the server run in the background and restart on reboots and crashes:
+
+    sudo pm2 start --name server -u www-data --cwd /var/www node build/backend/server.js
+    sudo pm2 startup
+
+(15) To stop, start, and restart the server:
+
+sudo pm2 stop server
+sudo pm2 start server
+sudo pm2 restart server
