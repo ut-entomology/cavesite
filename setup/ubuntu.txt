@@ -8,7 +8,7 @@ Caves site is configured at /etc/nginx/sites-available/caves.conf
 
 ## Initial Setup
 
-(1) SSH to the VM as a user who has all permissions to the postgres caves database.
+(1) SSH to the VM as a user who has all permissions to the postgres 'caves' database.
 
 (2) Install Node.js, yarn, and pm2:
 
@@ -60,9 +60,9 @@ CAVESITE_SENDER_EMAIL=alex.wild@utexas.edu
 CAVESITE_HIDDEN_TABS=comma-delimited-names-of-tabs-you-want-to-hide
 
 CAVESITE_LOG_DIR=/var/www/logs
-CAVESITE_DB_HOST=postgres-host-name
-CAVESITE_DB_PORT=postgres-port
-CAVESITE_DB_NAME=postgres-cave-database-name
+CAVESITE_DB_HOST=localhost
+CAVESITE_DB_PORT=5432
+CAVESITE_DB_NAME=caves
 CAVESITE_DB_USER=postgres-user-name
 CAVESITE_DB_PASSWORD=postgres-user-password
 
