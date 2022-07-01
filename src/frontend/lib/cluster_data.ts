@@ -1,3 +1,4 @@
+import type { Point } from '../../shared/point';
 import type { EffortData } from './effort_data';
 import {
   type YAxisType,
@@ -5,9 +6,9 @@ import {
   type EffortGraphSpecPerXUnit,
   createEffortGraphSpecPerXUnit
 } from '../lib/effort_graphs';
-import { Point, PlottableModel, LogYModel } from '../lib/linear_regression';
+import { PlottableModel, LogYModel } from '../lib/plottable_model';
 
-const MIN_POINTS_TO_REGRESS = 3;
+const MIN_POINTS_TO_REGRESS = 20;
 
 export enum YAxisModel {
   none = 'y',
@@ -129,29 +130,40 @@ export function toPerLocationModels(
 
   for (const modelFactory of modelFactories) {
     const weightedCoefSums: number[] = [];
-    let totalPoints = 0;
+    const allPoints: Point[] = [];
     let baseModel: PlottableModel | null = null;
     let lowestX = Infinity;
     let highestX = 0;
+    let totalWeight = 0;
 
     // Loop for each graph spec at one per location in the cluster.
 
+    let firstGraphSpec = true;
     for (const graphSpec of sizedGraphSpec.graphSpecs) {
       if (graphSpec.points.length >= MIN_POINTS_TO_REGRESS) {
         const locationModel = createModel(modelFactory, graphSpec.points);
+
+        // TODO: Does not work for Ax^B because A and B are inversely correlated.
+        //  I think I have to average the plots of all the efforts in this case.
         const pointCount = graphSpec.points.length;
-        const coefs = locationModel.jstats.coef;
-        if (coefs.length == 0) {
-          // TypeScript wierdly "can't find" coefs in a for loop here.
-          coefs.forEach((coef) => weightedCoefSums.push(pointCount * coef));
-        } else {
-          // TypeScript wierdly "can't find" coefs in a for loop here.
-          coefs.forEach((coef, i) => (weightedCoefSums[i] += pointCount * coef));
+        const lastX = graphSpec.points[graphSpec.points.length - 1].x;
+        const weight = lastX * pointCount * pointCount;
+        const coefs = locationModel.regression.jstats.coef;
+        for (let i = 0; i < coefs.length; ++i) {
+          if (firstGraphSpec) {
+            weightedCoefSums[i] = weight * coefs[i];
+          } else {
+            weightedCoefSums[i] += weight * coefs[i];
+          }
         }
-        totalPoints += pointCount;
+        totalWeight += weight;
+
+        allPoints.push(...graphSpec.points);
         if (baseModel === null) baseModel = locationModel;
         if (locationModel.lowestX < lowestX) lowestX = locationModel.lowestX;
         if (locationModel.highestX > highestX) highestX = locationModel.highestX;
+
+        firstGraphSpec = false; // must come last
       }
     }
 
@@ -159,10 +171,11 @@ export function toPerLocationModels(
 
     if (baseModel !== null) {
       for (let i = 0; i < weightedCoefSums.length; ++i) {
-        baseModel.jstats.coef[i] = weightedCoefSums[i] / totalPoints;
+        baseModel.regression.jstats.coef[i] = weightedCoefSums[i] / totalWeight;
       }
       baseModel.lowestX = lowestX;
       baseModel.highestX = highestX;
+      baseModel.regression.evaluate(allPoints);
       models.push(baseModel);
     }
   }

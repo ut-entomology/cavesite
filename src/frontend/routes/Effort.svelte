@@ -33,16 +33,14 @@
   } from '../../shared/model';
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
+  import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
   import {
     PlottableModel,
     LinearXModel,
     Order3XModel,
     QuadraticXModel,
-    PowerXModel,
-    shortenPValue,
-    shortenRMSE,
-    shortenR2
-  } from '../lib/linear_regression';
+    PowerXModel
+  } from '../lib/plottable_model';
   import { YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
@@ -51,10 +49,10 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const USE_ZERO_Y_BASELINE = false;
+  const USE_ZERO_Y_BASELINE = true;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 0;
+  const LOWER_BOUND_X = 8;
   const UPPER_BOUND_X = Infinity;
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;

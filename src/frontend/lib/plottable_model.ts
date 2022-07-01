@@ -1,56 +1,35 @@
-import * as jstat from 'jstat';
+import type { Point } from '../../shared/point';
+import {
+  type XTransform,
+  type YTransform,
+  type FittedYTakingCoefs,
+  Regression,
+  shortenValue
+} from './regression';
 
 const MODEL_COEF_PRECISION = 3;
 
-export interface Point {
-  x: number;
-  y: number;
-}
+type PlottableModelFactory = (
+  dataPoints: Point[],
+  yTransform: YTransform
+) => PlottableModel;
+const identityY: YTransform = (y) => y;
 
-export interface JstatModel {
-  coef: number[];
-  R2: number;
-  t: { p: number[] };
-  f: { pvalue: number };
-}
-interface ModelSearchConfig {
+interface RegressionSearchConfig {
   lowerBoundScalar: number;
   upperBoundScalar: number;
   maxSearchDepth: number;
 }
 
-type XTransform = (x: number) => number[];
-type YTransform = (y: number) => number;
-type FittedY = (y: number) => number;
-type FittedYTakingCoefs = (coefs: number[], y: number) => number;
-type PlottableModelFactory = (
-  dataPoints: Point[],
-  yTransform: YTransform
-) => PlottableModel;
-type RegressionModelFactory = (dataPoints: Point[], scalar: number) => RegressionModel;
+type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
-const identityY: YTransform = (y) => y;
-
-interface RegressionModel {
-  jstats: JstatModel;
-  fittedYTakingCoefs: FittedYTakingCoefs;
-  fittedY: FittedY;
-  rmse: number;
-  residuals: Point[];
-}
-
-export abstract class PlottableModel implements RegressionModel {
+export abstract class PlottableModel {
   name: string;
   hexColor: string;
   equation!: string;
   lowestX = Infinity;
   highestX = 0;
-
-  jstats!: JstatModel;
-  fittedYTakingCoefs!: FittedYTakingCoefs;
-  fittedY!: FittedY;
-  rmse!: number;
-  residuals!: Point[];
+  regression!: Regression;
 
   private _modelPoints: Point[] | null = null;
 
@@ -79,24 +58,23 @@ export abstract class PlottableModel implements RegressionModel {
       const deltaX = (this.highestX - this.lowestX) / pointCount;
       let x = this.lowestX;
       while (x <= this.highestX) {
-        const y = this.fittedY(x);
+        const y = this.regression.fittedY(x);
         // Don't plot model points for y < 0.
         if (y >= 0) this._modelPoints.push({ x, y });
         x += deltaX;
       }
     }
-    // console.log('**** _modelPoints', this._modelPoints);
     return this._modelPoints;
   }
 }
 
 export class PowerXModel extends PlottableModel {
-  power: number;
+  // assigns the power to jstats.coef[2] when done so can later be averaged
 
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
     super('power fit', hexColor, dataPoints);
 
-    const [model, power] = _findBestRMSEScalar_nAry(
+    const [regression, power] = _findBestRMSEScalar_nAry(
       {
         lowerBoundScalar: 0.001,
         upperBoundScalar: 3,
@@ -105,7 +83,7 @@ export class PowerXModel extends PlottableModel {
       },
       dataPoints,
       (dataPoints, scalar) => {
-        return _createRegressionModel(
+        return new Regression(
           (x) => [Math.pow(x, scalar), 1],
           yTransform,
           (coefs, x) => coefs[0] * Math.pow(x, scalar) + coefs[1],
@@ -113,17 +91,17 @@ export class PowerXModel extends PlottableModel {
         );
       }
     );
-    Object.assign(this, model);
-    this.power = power;
+    regression.jstats.coef.push(power);
+    this.regression = regression;
   }
 
   getXFormula(): string {
-    const coefs = this.jstats.coef;
+    const coefs = this.regression.jstats.coef;
     return [
       _coefHtml(coefs[0], true),
       ' x<sup>',
       // @ts-ignore
-      shortenValue(this.power, 4),
+      shortenValue(coefs[2], 4),
       '</sup> ',
       _coefHtml(coefs[1])
     ].join(' ');
@@ -138,17 +116,16 @@ export class LinearXModel extends PlottableModel {
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * x + coefs[1];
 
-    const model = _createRegressionModel(
+    this.regression = new Regression(
       xTransform,
       yTransform,
       fittedYTakingCoefs,
       dataPoints
     );
-    Object.assign(this, model);
   }
 
   getXFormula(): string {
-    const coefs = this.jstats.coef;
+    const coefs = this.regression.jstats.coef;
     return [_coefHtml(coefs[0], true), ' x ', _coefHtml(coefs[1])].join(' ');
   }
 }
@@ -161,17 +138,16 @@ export class QuadraticXModel extends PlottableModel {
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * x * x + coefs[1] * x + coefs[2];
 
-    const model = _createRegressionModel(
+    this.regression = new Regression(
       xTransform,
       yTransform,
       fittedYTakingCoefs,
       dataPoints
     );
-    Object.assign(this, model);
   }
 
   getXFormula(): string {
-    const coefs = this.jstats.coef;
+    const coefs = this.regression.jstats.coef;
     return [
       _coefHtml(coefs[0], true),
       ' x<sup>2</sup> ',
@@ -190,17 +166,16 @@ export class LogXModel extends PlottableModel {
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * Math.log(x) + coefs[1];
 
-    const model = _createRegressionModel(
+    this.regression = new Regression(
       xTransform,
       yTransform,
       fittedYTakingCoefs,
       dataPoints
     );
-    Object.assign(this, model);
   }
 
   getXFormula(): string {
-    const coefs = this.jstats.coef;
+    const coefs = this.regression.jstats.coef;
     return [_coefHtml(coefs[0], true), ' ln(x) ', _coefHtml(coefs[1])].join(' ');
   }
 }
@@ -213,17 +188,16 @@ export class Order3XModel extends PlottableModel {
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * x * x * x + coefs[1] * x * x + coefs[2] * x + coefs[3];
 
-    const model = _createRegressionModel(
+    this.regression = new Regression(
       xTransform,
       yTransform,
       fittedYTakingCoefs,
       dataPoints
     );
-    Object.assign(this, model);
   }
 
   getXFormula(): string {
-    const coefs = this.jstats.coef;
+    const coefs = this.regression.jstats.coef;
     return [
       _coefHtml(coefs[0], true),
       ' x<sup>3</sup> ',
@@ -276,25 +250,6 @@ export class LogYModel extends YModel {
   }
 }
 
-export function shortenValue(value: number, precision: number): string {
-  if (value != 0 && Math.abs(value) < 0.001) {
-    return value.toExponential(precision - 1);
-  }
-  return value.toPrecision(precision);
-}
-
-export function shortenPValue(pValue: number): string {
-  return pValue < 0.001 ? '0.0' : shortenValue(pValue, 2);
-}
-
-export function shortenRMSE(rmse: number): string {
-  return shortenValue(rmse, 3);
-}
-
-export function shortenR2(r2: number): string {
-  return shortenValue(r2, 2);
-}
-
 function _coefHtml(coef: number, firstCoef = false) {
   if (firstCoef) {
     return shortenValue(coef, MODEL_COEF_PRECISION);
@@ -302,79 +257,45 @@ function _coefHtml(coef: number, firstCoef = false) {
   return (coef >= 0 ? '+ ' : '- ') + shortenValue(Math.abs(coef), MODEL_COEF_PRECISION);
 }
 
-function _createRegressionModel(
-  xTransform: XTransform,
-  yTransform: YTransform,
-  fittedYTakingCoefs: FittedYTakingCoefs,
-  dataPoints: Point[]
-): RegressionModel {
-  const independentValues: number[][] = [];
-  const dependentValues: number[] = [];
-  for (const point of dataPoints) {
-    independentValues.push(xTransform(point.x));
-    dependentValues.push(yTransform(point.y));
-  }
-
-  const jstats: JstatModel = jstat.models.ols(dependentValues, independentValues);
-  const coefs = jstats.coef;
-  const fittedY = fittedYTakingCoefs.bind(null, coefs);
-  const residuals = _getResiduals(dataPoints, fittedY);
-  const rmse = _getRMSE(residuals);
-
-  return { jstats, fittedYTakingCoefs, fittedY, rmse, residuals };
-}
-
-function _getResiduals(points: Point[], fittedY: FittedY) {
-  return points.map((point) => {
-    return { x: point.x, y: point.y - fittedY(point.x) };
-  });
-}
-
-function _getRMSE(residuals: Point[]) {
-  let sumOfSquares = 0;
-  residuals.forEach((residual) => (sumOfSquares += residual.y * residual.y));
-  return Math.sqrt(sumOfSquares / residuals.length);
-}
-
 function _findBestRMSEScalar_binary(
-  config: ModelSearchConfig,
+  config: RegressionSearchConfig,
   dataPoints: Point[],
-  modelFactory: RegressionModelFactory
-): [RegressionModel, number] {
-  let lowModel: RegressionModel;
+  regressionFactory: RegressionFactory
+): [Regression, number] {
+  let lowRegression: Regression;
   let middleScalar: number;
-  let middleModel: RegressionModel;
-  let highModel: RegressionModel;
+  let middleRegression: Regression;
+  let highRegression: Regression;
 
-  lowModel = modelFactory(dataPoints, config.lowerBoundScalar);
-  highModel = modelFactory(dataPoints, config.upperBoundScalar);
+  lowRegression = regressionFactory(dataPoints, config.lowerBoundScalar);
+  highRegression = regressionFactory(dataPoints, config.upperBoundScalar);
 
   let lowScalar = config.lowerBoundScalar;
   let highScalar = config.upperBoundScalar;
   for (let i = 0; i < config.maxSearchDepth; ++i) {
     middleScalar = (lowScalar + highScalar) / 2;
-    middleModel = modelFactory(dataPoints, middleScalar);
-    if (lowModel.rmse < highModel.rmse) {
+    middleRegression = regressionFactory(dataPoints, middleScalar);
+    if (lowRegression.rmse < highRegression.rmse) {
       highScalar = middleScalar;
-      highModel = middleModel;
+      highRegression = middleRegression;
     } else {
       lowScalar = middleScalar;
-      lowModel = middleModel;
+      lowRegression = middleRegression;
     }
   }
 
   // @ts-ignore
-  return [middleModel, middleScalar];
+  return [middleRegression, middleScalar];
 }
 
 function _findBestRMSEScalar_nAry(
-  config: ModelSearchConfig & {
+  config: RegressionSearchConfig & {
     initialPartitions: number;
   },
   dataPoints: Point[],
-  modelFactory: RegressionModelFactory
-): [RegressionModel, number] {
-  let models: RegressionModel[] = [];
+  regressionFactory: RegressionFactory
+): [Regression, number] {
+  let regressions: Regression[] = [];
   const scalars: number[] = [];
   const scalarIncrement =
     (config.upperBoundScalar - config.lowerBoundScalar) / config.initialPartitions;
@@ -384,32 +305,32 @@ function _findBestRMSEScalar_nAry(
     scalar <= config.upperBoundScalar;
     scalar += scalarIncrement
   ) {
-    models.push(modelFactory(dataPoints, scalar));
+    regressions.push(regressionFactory(dataPoints, scalar));
     scalars.push(scalar);
   }
 
   let lowestRMSE = Infinity;
   let lowestRMSEIndex = 0;
-  for (let i = 0; i < models.length; ++i) {
-    if (models[i].rmse < lowestRMSE) {
+  for (let i = 0; i < regressions.length; ++i) {
+    if (regressions[i].rmse < lowestRMSE) {
       lowestRMSEIndex = i;
-      lowestRMSE = models[i].rmse;
+      lowestRMSE = regressions[i].rmse;
     }
   }
 
   const nestedConfig = Object.assign({}, config);
   if (lowestRMSEIndex == 0) {
     nestedConfig.upperBoundScalar = scalars[1];
-  } else if (lowestRMSEIndex == models.length - 1) {
-    nestedConfig.lowerBoundScalar = scalars[models.length - 2];
-  } else if (models[lowestRMSEIndex - 1] < models[lowestRMSEIndex + 1]) {
+  } else if (lowestRMSEIndex == regressions.length - 1) {
+    nestedConfig.lowerBoundScalar = scalars[regressions.length - 2];
+  } else if (regressions[lowestRMSEIndex - 1] < regressions[lowestRMSEIndex + 1]) {
     nestedConfig.lowerBoundScalar = scalars[lowestRMSEIndex - 1];
     nestedConfig.upperBoundScalar = scalars[lowestRMSEIndex];
   } else {
     nestedConfig.lowerBoundScalar = scalars[lowestRMSEIndex];
     nestedConfig.upperBoundScalar = scalars[lowestRMSEIndex + 1];
   }
-  models = []; // clear memory
-  // TODO: improve performance by passing in boundary models
-  return _findBestRMSEScalar_binary(nestedConfig, dataPoints, modelFactory);
+  regressions = []; // clear memory
+  // TODO: improve performance by passing in boundary regressions
+  return _findBestRMSEScalar_binary(nestedConfig, dataPoints, regressionFactory);
 }

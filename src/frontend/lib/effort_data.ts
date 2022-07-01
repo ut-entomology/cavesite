@@ -1,4 +1,4 @@
-import type { Point } from './linear_regression';
+import type { Point } from '../../shared/point';
 import type { RawEffortData } from '../../shared/model';
 
 // I split this out from cluster_client.ts so that a server-side daemon

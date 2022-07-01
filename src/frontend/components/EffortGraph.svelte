@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Line from 'svelte-chartjs/src/Line.svelte';
+  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { PlottableModel } from '../lib/linear_regression';
+  import type { PlottableModel } from '../lib/plottable_model';
   import type { SizedEffortGraphSpec } from '../lib/cluster_data';
 
-  const POINTS_IN_MODEL_PLOT = 200;
+  const POINTS_IN_MODEL_PLOT = 100;
 
   export let title: string;
   export let config: SizedEffortGraphSpec;
@@ -17,21 +17,22 @@
   }
 </script>
 
-<Line
+<Scatter
   data={{
     datasets: [
       ...config.graphSpecs.map((graphSpec) => {
         return {
+          showLine: true,
           label: config.pointCount + ' points',
           data:
             models.length > 0
               ? models[0].convertDataPoints(graphSpec.points)
-              : graphSpec.points,
-          backgroundColor: '#dddddd'
+              : graphSpec.points
         };
       }),
       ...models.map((model) => {
         return {
+          showLine: true,
           label: model.name,
           data: model.getModelPoints(POINTS_IN_MODEL_PLOT),
           backgroundColor: '#' + model.hexColor
