@@ -304,7 +304,7 @@
 
       <div class="model_summary_info">
         <div class="row mt-3">
-          <div class="col-3 text-center">best/avg/weighted-avg</div>
+          <div class="col-3 text-center">weighted-avg/avg/best</div>
           <div class="col"><span>p-value</span></div>
           <div class="col"><span>RMSE</span></div>
           <div class="col"><span>R2</span></div>
@@ -313,19 +313,19 @@
           <div class="row">
             <div class="col-3"><span>{summary.modelName}</span></div>
             <div class="col">
-              {shortenPValue(summary.bestPValue)}<span>/</span>{shortenPValue(
+              {shortenPValue(summary.weightedPValue)}<span>/</span>{shortenPValue(
                 summary.averagePValue
-              )}<span>/</span>{shortenPValue(summary.weightedPValue)}
+              )}<span>/</span>{shortenPValue(summary.bestPValue)}
             </div>
             <div class="col">
-              {shortenRMSE(summary.bestRMSE)}<span>/</span>{shortenRMSE(
+              {shortenRMSE(summary.weightedRMSE)}<span>/</span>{shortenRMSE(
                 summary.averageRMSE
-              )}<span>/</span>{shortenRMSE(summary.weightedRMSE)}
+              )}<span>/</span>{shortenRMSE(summary.bestRMSE)}
             </div>
             <div class="col">
-              {shortenR2(summary.bestR2)}<span>/</span>{shortenR2(
+              {shortenR2(summary.weightedR2)}<span>/</span>{shortenR2(
                 summary.averageR2
-              )}<span>/</span>{shortenR2(summary.weightedR2)}
+              )}<span>/</span>{shortenR2(summary.bestR2)}
             </div>
           </div>
         {/each}
