@@ -151,9 +151,11 @@ export function toPerLocationModels(
         }
         modelAverager.addModel(graphSpec, locationModel, modelWeightPower);
       }
-      allPoints.push(...points);
-      if (points[0].x < lowestX) lowestX = points[0].x;
-      if (lastPoint.x > highestX) highestX = lastPoint.x;
+      if (points.length > 0) {
+        allPoints.push(...points);
+        if (points[0].x < lowestX) lowestX = points[0].x;
+        if (lastPoint.x > highestX) highestX = lastPoint.x;
+      }
     }
 
     // Combine the models if we were able to generate at least one model.
