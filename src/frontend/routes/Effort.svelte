@@ -75,8 +75,8 @@
 
   const PINK_HEXCOLOR = 'FF0088';
   const AQUA_HEXCOLOR = '00DCD8';
-  const PURPLE_HEXCOLOR = 'A95CFF';
-  const GREEN_HEXCOLOR = '00D40E';
+  // const PURPLE_HEXCOLOR = 'A95CFF';
+  // const GREEN_HEXCOLOR = '00D40E';
 
   enum LoadState {
     idle,

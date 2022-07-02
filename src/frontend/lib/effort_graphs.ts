@@ -3,6 +3,7 @@ import type { EffortData } from '../lib/effort_data';
 
 export enum YAxisType {
   totalSpecies = 'total species',
+  deltaSpecies = 'delta species',
   percentChange = '% change',
   cumuPercentChange = 'cumulative % change'
 }
@@ -39,6 +40,31 @@ export function createEffortGraphSpecPerXUnit(
           zeroYBaseline
         ),
         perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
+    case YAxisType.deltaSpecies:
+      return {
+        perDayTotalsGraph: new DeltaSpeciesByDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new DeltaSpeciesByVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new DeltaSpeciesByPersonVisitsGraphSpec(
           effortData,
           lowerBoundX,
           upperBoundX,
@@ -236,6 +262,34 @@ export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
   }
 }
 
+export class DeltaSpeciesByDaysGraphSpec extends ByDaysGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Delta species across days',
+      'delta species',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return { x: point.x, y: point.y - this._priorY };
+  }
+}
+
 export class PercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
   constructor(
     effortData: EffortData,
@@ -339,6 +393,34 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
   }
 }
 
+export class DeltaSpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Delta species across visits',
+      'delta species',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return { x: point.x, y: point.y - this._priorY };
+  }
+}
+
 export class PercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
   constructor(
     effortData: EffortData,
@@ -439,6 +521,34 @@ export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
       minUnchangedY,
       useZeroBaseline
     );
+  }
+}
+
+export class DeltaSpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Delta species across person-visits',
+      'delta species',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return { x: point.x, y: point.y - this._priorY };
   }
 }
 
