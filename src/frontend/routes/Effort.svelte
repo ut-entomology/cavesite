@@ -34,13 +34,7 @@
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
-  import {
-    PlottableModel,
-    LinearXModel,
-    Order3XModel,
-    QuadraticXModel,
-    PowerXModel
-  } from '../lib/plottable_model';
+  import { PlottableModel, LinearXModel, PowerXModel } from '../lib/plottable_model';
   import { YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
@@ -49,10 +43,10 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const USE_ZERO_Y_BASELINE = true;
+  const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 12;
   const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 8;
+  const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
@@ -71,10 +65,8 @@
   };
   const PLOTTED_COMPARED_TAXA = ComparedTaxa.all;
 
-  const LOG_HEXCOLOR = 'A95CFF';
-  const ORDER3_HEXCOLOR = '00D40E';
-  const POWER_HEXCOLOR = 'FF0088';
-  const QUADRATIC_HEXCOLOR = '00DCD8';
+  const PINK_HEXCOLOR = 'FF0088';
+  const AQUA_HEXCOLOR = '00DCD8';
 
   enum LoadState {
     idle,
@@ -94,16 +86,10 @@
 
   const modelFactories: ModelFactory[] = [];
   modelFactories.push((dataPoints, yTransform) => {
-    return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
+    return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
   });
   modelFactories.push((dataPoints, yTransform) => {
-    return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
-  });
-  modelFactories.push((dataPoints, yTransform) => {
-    return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
-  });
-  modelFactories.push((dataPoints, yTransform) => {
-    return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
+    return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
   });
 
   let loadState = LoadState.idle;
