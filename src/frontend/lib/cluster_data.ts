@@ -9,7 +9,7 @@ import {
 import { PlottableModel, LogYModel } from './plottable_model';
 import type { ModelAverager } from './model_averager';
 
-const MIN_POINTS_TO_REGRESS = 20;
+const MIN_POINTS_TO_REGRESS = 10;
 
 export enum YAxisModel {
   none = 'y',
@@ -144,10 +144,10 @@ export function toPerLocationModels(
           modelAverager = locationModel.getModelAverager();
         }
         modelAverager.addModel(graphSpec, locationModel);
-        allPoints.push(...graphSpec.points);
         if (locationModel.lowestX < lowestX) lowestX = locationModel.lowestX;
         if (locationModel.highestX > highestX) highestX = locationModel.highestX;
       }
+      allPoints.push(...graphSpec.points);
     }
 
     // Combine the models if we were able to generate at least one model.
