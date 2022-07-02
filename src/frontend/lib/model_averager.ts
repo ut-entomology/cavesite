@@ -4,14 +4,17 @@ import type { FittedY, YTransform } from './regression';
 import type { Point } from '../../shared/point';
 
 export abstract class ModelAverager {
-  abstract addModel(graphSpec: EffortGraphSpec, model: PlottableModel): void;
+  abstract addModel(
+    graphSpec: EffortGraphSpec,
+    model: PlottableModel,
+    weightPower: number
+  ): void;
 
   abstract getAverageModel(lowestX: number, highestX: number): PlottableModel;
 
-  protected _toWeight(graphSpec: EffortGraphSpec): number {
-    const pointCount = graphSpec.points.length;
+  protected _toWeight(graphSpec: EffortGraphSpec, weightPower: number): number {
     const lastX = graphSpec.points[graphSpec.points.length - 1].x;
-    return lastX + pointCount;
+    return lastX ** weightPower;
   }
 }
 
@@ -20,9 +23,13 @@ export class PolynomialAverager extends ModelAverager {
   private _weightedCoefSums: number[] = [];
   private _totalWeight = 0;
 
-  addModel(graphSpec: EffortGraphSpec, model: PlottableModel): void {
+  addModel(
+    graphSpec: EffortGraphSpec,
+    model: PlottableModel,
+    weightPower: number
+  ): void {
     const coefs = model.regression.jstats.coef;
-    const weight = this._toWeight(graphSpec);
+    const weight = this._toWeight(graphSpec, weightPower);
 
     for (let i = 0; i < coefs.length; ++i) {
       if (this._baseModel == null) {
@@ -70,8 +77,12 @@ export class PlotAverager extends ModelAverager {
     this._yTransform = yTransform;
   }
 
-  addModel(graphSpec: EffortGraphSpec, model: PlottableModel): void {
-    const weight = this._toWeight(graphSpec);
+  addModel(
+    graphSpec: EffortGraphSpec,
+    model: PlottableModel,
+    weightPower: number
+  ): void {
+    const weight = this._toWeight(graphSpec, weightPower);
     this._modelInfos.push({
       fittedY: model.regression.fittedY,
       weight

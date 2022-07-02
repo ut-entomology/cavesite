@@ -52,6 +52,7 @@
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
+  const MODEL_WEIGHT_POWER = 1.5;
 
   const CLUSTER_SPEC: ClusterSpec = {
     comparedTaxa: ComparedTaxa.all,
@@ -110,7 +111,8 @@
         modelFactories,
         yAxisModel,
         graphData,
-        MIN_X_ALLOWING_REGRESS
+        MIN_X_ALLOWING_REGRESS,
+        MODEL_WEIGHT_POWER
       );
 
       modelsByCluster[i] = models; // must place by cluster index
@@ -295,7 +297,7 @@
           <div class="col">
             metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
           </div>
-          <div class="col" />
+          <div class="col">model weight power: <span>{MODEL_WEIGHT_POWER}</span></div>
           <div class="col">
             min. unchanged y: <span>{MIN_UNCHANGED_Y}</span>
           </div>

@@ -115,7 +115,8 @@ export function toPerLocationModels(
   modelFactories: PlottableModelFactory[],
   yAxisModel: YAxisModel,
   sizedGraphSpec: SizedEffortGraphSpec,
-  minXAllowingRegression: number
+  minXAllowingRegression: number,
+  modelWeightPower: number
 ): PlottableModel[] {
   const models: PlottableModel[] = [];
 
@@ -148,7 +149,7 @@ export function toPerLocationModels(
         if (modelAverager == null) {
           modelAverager = locationModel.getModelAverager();
         }
-        modelAverager.addModel(graphSpec, locationModel);
+        modelAverager.addModel(graphSpec, locationModel, modelWeightPower);
       }
       allPoints.push(...points);
       if (points[0].x < lowestX) lowestX = points[0].x;
