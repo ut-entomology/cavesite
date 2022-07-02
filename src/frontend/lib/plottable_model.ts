@@ -6,16 +6,12 @@ import {
   Regression,
   shortenValue
 } from './regression';
-import {
-  type ModelAverager,
-  PolynomialAverager,
-  PowerXAverager
-} from './model_averager';
+import { type ModelAverager, PolynomialAverager, PlotAverager } from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
-type PlottableModelFactory = (
+export type PlottableModelFactory = (
   dataPoints: Point[],
-  yTransform: YTransform
+  yTransform?: YTransform
 ) => PlottableModel;
 const identityY: YTransform = (y) => y;
 
@@ -116,7 +112,9 @@ export class PowerXModel extends PlottableModel {
   }
 
   getModelAverager(): ModelAverager {
-    return new PowerXAverager();
+    return new PlotAverager((points: Point[], yTransform?: YTransform) => {
+      return new PowerXModel(this.hexColor, points, yTransform);
+    });
   }
 }
 

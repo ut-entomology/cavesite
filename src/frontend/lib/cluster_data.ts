@@ -6,7 +6,11 @@ import {
   type EffortGraphSpecPerXUnit,
   createEffortGraphSpecPerXUnit
 } from './effort_graphs';
-import { PlottableModel, LogYModel } from './plottable_model';
+import {
+  type PlottableModelFactory,
+  PlottableModel,
+  LogYModel
+} from './plottable_model';
 import type { ModelAverager } from './model_averager';
 
 const MIN_POINTS_TO_REGRESS = 10;
@@ -15,11 +19,6 @@ export enum YAxisModel {
   none = 'y',
   logY = 'log(y)'
 }
-
-export type ModelFactory = (
-  dataPoints: Point[],
-  yTransform?: (y: number) => number
-) => PlottableModel;
 
 export interface JumbledClusterData {
   locationCount: number;
@@ -113,13 +112,13 @@ export function toPerLocationClusterData(
 }
 
 export function toPerLocationModels(
-  modelFactories: ModelFactory[],
+  modelFactories: PlottableModelFactory[],
   yAxisModel: YAxisModel,
   sizedGraphSpec: SizedEffortGraphSpec
 ): PlottableModel[] {
   const models: PlottableModel[] = [];
 
-  let createModel: (factory: ModelFactory, points: Point[]) => PlottableModel;
+  let createModel: (factory: PlottableModelFactory, points: Point[]) => PlottableModel;
   switch (yAxisModel) {
     case YAxisModel.none:
       createModel = (modelFactory, points) => modelFactory(points);
@@ -138,16 +137,18 @@ export function toPerLocationModels(
     // Loop for each graph spec at one per location in the cluster.
 
     for (const graphSpec of sizedGraphSpec.graphSpecs) {
-      if (graphSpec.points.length >= MIN_POINTS_TO_REGRESS) {
-        const locationModel = createModel(modelFactory, graphSpec.points);
+      const points = graphSpec.points;
+      if (points.length >= MIN_POINTS_TO_REGRESS) {
+        const locationModel = createModel(modelFactory, points);
         if (modelAverager == null) {
           modelAverager = locationModel.getModelAverager();
         }
         modelAverager.addModel(graphSpec, locationModel);
-        if (locationModel.lowestX < lowestX) lowestX = locationModel.lowestX;
-        if (locationModel.highestX > highestX) highestX = locationModel.highestX;
       }
-      allPoints.push(...graphSpec.points);
+      allPoints.push(...points);
+      if (points[0].x < lowestX) lowestX = points[0].x;
+      const lastPoint = points[points.length - 1];
+      if (lastPoint.x > highestX) highestX = lastPoint.x;
     }
 
     // Combine the models if we were able to generate at least one model.

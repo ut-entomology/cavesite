@@ -2,9 +2,9 @@
   import { createSessionStore } from '../util/session_store';
 
   import { type EffortData, toEffortDataSetByCluster } from '../lib/effort_data';
+  import type { PlottableModelFactory } from '../lib/plottable_model';
   import {
     YAxisModel,
-    type ModelFactory,
     type PerLocationClusterData,
     toPerLocationClusterData,
     toPerLocationModels
@@ -84,7 +84,7 @@
     personVisits = 'per-person-visit-set'
   }
 
-  const modelFactories: ModelFactory[] = [];
+  const modelFactories: PlottableModelFactory[] = [];
   modelFactories.push((dataPoints, yTransform) => {
     return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
   });
