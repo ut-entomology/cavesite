@@ -5,8 +5,9 @@ import {
   type EffortGraphSpec,
   type EffortGraphSpecPerXUnit,
   createEffortGraphSpecPerXUnit
-} from '../lib/effort_graphs';
-import { PlottableModel, LogYModel } from '../lib/plottable_model';
+} from './effort_graphs';
+import { PlottableModel, LogYModel } from './plottable_model';
+import type { ModelAverager } from './model_averager';
 
 const MIN_POINTS_TO_REGRESS = 20;
 
@@ -129,54 +130,30 @@ export function toPerLocationModels(
   }
 
   for (const modelFactory of modelFactories) {
-    const weightedCoefSums: number[] = [];
     const allPoints: Point[] = [];
-    let baseModel: PlottableModel | null = null;
+    let modelAverager: ModelAverager | null = null;
     let lowestX = Infinity;
     let highestX = 0;
-    let totalWeight = 0;
 
     // Loop for each graph spec at one per location in the cluster.
 
-    let firstGraphSpec = true;
     for (const graphSpec of sizedGraphSpec.graphSpecs) {
       if (graphSpec.points.length >= MIN_POINTS_TO_REGRESS) {
         const locationModel = createModel(modelFactory, graphSpec.points);
-
-        // TODO: Does not work for Ax^B because A and B are inversely correlated.
-        //  I think I have to average the plots of all the efforts in this case.
-        const pointCount = graphSpec.points.length;
-        const lastX = graphSpec.points[graphSpec.points.length - 1].x;
-        const weight = lastX * pointCount * pointCount;
-        const coefs = locationModel.regression.jstats.coef;
-        for (let i = 0; i < coefs.length; ++i) {
-          if (firstGraphSpec) {
-            weightedCoefSums[i] = weight * coefs[i];
-          } else {
-            weightedCoefSums[i] += weight * coefs[i];
-          }
+        if (modelAverager == null) {
+          modelAverager = locationModel.getModelAverager();
         }
-        totalWeight += weight;
-
+        modelAverager.addModel(graphSpec, locationModel);
         allPoints.push(...graphSpec.points);
-        if (baseModel === null) baseModel = locationModel;
         if (locationModel.lowestX < lowestX) lowestX = locationModel.lowestX;
         if (locationModel.highestX > highestX) highestX = locationModel.highestX;
-
-        firstGraphSpec = false; // must come last
       }
     }
 
     // Combine the models if we were able to generate at least one model.
 
-    if (baseModel !== null) {
-      for (let i = 0; i < weightedCoefSums.length; ++i) {
-        baseModel.regression.jstats.coef[i] = weightedCoefSums[i] / totalWeight;
-      }
-      baseModel.lowestX = lowestX;
-      baseModel.highestX = highestX;
-      baseModel.regression.evaluate(allPoints);
-      models.push(baseModel);
+    if (modelAverager !== null) {
+      models.push(modelAverager.getAverageModel(lowestX, highestX));
     }
   }
   return models;

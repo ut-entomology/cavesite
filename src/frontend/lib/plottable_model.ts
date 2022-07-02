@@ -6,7 +6,11 @@ import {
   Regression,
   shortenValue
 } from './regression';
-
+import {
+  type ModelAverager,
+  PolynomialAverager,
+  PowerXAverager
+} from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
 type PlottableModelFactory = (
@@ -50,6 +54,10 @@ export abstract class PlottableModel {
 
   convertDataPoints(dataPoints: Point[]): Point[] {
     return dataPoints;
+  }
+
+  getModelAverager(): ModelAverager {
+    return new PolynomialAverager();
   }
 
   getModelPoints(pointCount: number): Point[] {
@@ -105,6 +113,10 @@ export class PowerXModel extends PlottableModel {
       '</sup> ',
       _coefHtml(coefs[1])
     ].join(' ');
+  }
+
+  getModelAverager(): ModelAverager {
+    return new PowerXAverager();
   }
 }
 

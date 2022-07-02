@@ -4,8 +4,8 @@ import type { Point } from '../../shared/point';
 
 export type XTransform = (x: number) => number[];
 export type YTransform = (y: number) => number;
-export type FittedY = (y: number) => number;
-export type FittedYTakingCoefs = (coefs: number[], y: number) => number;
+export type FittedY = (x: number) => number;
+export type FittedYTakingCoefs = (coefs: number[], x: number) => number;
 
 // TODO: the original jstats object contains all the provided data, so I
 // probably want to replace them with just the data I need, this data:
