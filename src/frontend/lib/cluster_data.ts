@@ -153,7 +153,9 @@ export function toPerLocationModels(
     // Combine the models if we were able to generate at least one model.
 
     if (modelAverager !== null) {
-      models.push(modelAverager.getAverageModel(lowestX, highestX));
+      const averageModel = modelAverager.getAverageModel(lowestX, highestX);
+      averageModel.regression.evaluate(allPoints);
+      models.push(averageModel);
     }
   }
   return models;

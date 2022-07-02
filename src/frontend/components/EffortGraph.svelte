@@ -4,7 +4,7 @@
   import type { PlottableModel } from '../lib/plottable_model';
   import type { SizedEffortGraphSpec } from '../lib/cluster_data';
 
-  const POINTS_IN_MODEL_PLOT = 100;
+  const POINTS_IN_MODEL_PLOT = 200;
 
   export let title: string;
   export let config: SizedEffortGraphSpec;

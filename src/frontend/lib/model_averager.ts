@@ -36,7 +36,7 @@ export class PolynomialAverager extends ModelAverager {
     if (!this._baseModel) this._baseModel = model;
   }
 
-  getAverageModel(): PlottableModel {
+  getAverageModel(lowestX: number, highestX: number): PlottableModel {
     // The average of the equations for y can be computed by averaging
     // the coefficients of the terms of the polynomial.
     const baseModel = this._baseModel!;
@@ -44,6 +44,8 @@ export class PolynomialAverager extends ModelAverager {
       baseModel.regression.jstats.coef[i] =
         this._weightedCoefSums[i] / this._totalWeight;
     }
+    baseModel.lowestX = lowestX;
+    baseModel.highestX = highestX;
     return baseModel;
   }
 }
