@@ -13,7 +13,7 @@ import {
 } from './plottable_model';
 import type { ModelAverager } from './model_averager';
 
-const MIN_POINTS_TO_REGRESS = 10;
+const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regression
 
 export enum YAxisModel {
   none = 'y',
@@ -114,7 +114,8 @@ export function toPerLocationClusterData(
 export function toPerLocationModels(
   modelFactories: PlottableModelFactory[],
   yAxisModel: YAxisModel,
-  sizedGraphSpec: SizedEffortGraphSpec
+  sizedGraphSpec: SizedEffortGraphSpec,
+  minXAllowingRegression: number
 ): PlottableModel[] {
   const models: PlottableModel[] = [];
 
@@ -138,7 +139,11 @@ export function toPerLocationModels(
 
     for (const graphSpec of sizedGraphSpec.graphSpecs) {
       const points = graphSpec.points;
-      if (points.length >= MIN_POINTS_TO_REGRESS) {
+      const lastPoint = points[points.length - 1];
+      if (
+        points.length >= MIN_POINTS_TO_REGRESS &&
+        lastPoint.x >= minXAllowingRegression
+      ) {
         const locationModel = createModel(modelFactory, points);
         if (modelAverager == null) {
           modelAverager = locationModel.getModelAverager();
@@ -147,7 +152,6 @@ export function toPerLocationModels(
       }
       allPoints.push(...points);
       if (points[0].x < lowestX) lowestX = points[0].x;
-      const lastPoint = points[points.length - 1];
       if (lastPoint.x > highestX) highestX = lastPoint.x;
     }
 

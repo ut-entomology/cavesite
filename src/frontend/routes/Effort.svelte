@@ -44,10 +44,11 @@
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
-  const MAX_CLUSTERS = 12;
+  const MAX_CLUSTERS = 15;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
+  const MIN_X_ALLOWING_REGRESS = 20;
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
@@ -105,7 +106,12 @@
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
       const graphData = _getGraphData(datasetID, clusterData);
-      let models = toPerLocationModels(modelFactories, yAxisModel, graphData);
+      let models = toPerLocationModels(
+        modelFactories,
+        yAxisModel,
+        graphData,
+        MIN_X_ALLOWING_REGRESS
+      );
 
       modelsByCluster[i] = models; // must place by cluster index
       localityCountByCluster[i] = clusterData.locationCount;
