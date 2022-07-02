@@ -49,19 +49,19 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const USE_ZERO_Y_BASELINE = false;
-  const MAX_CLUSTERS = 15;
-  const MIN_PERSON_VISITS = 0;
-  const LOWER_BOUND_X = 8;
+  const USE_ZERO_Y_BASELINE = true;
+  const MAX_CLUSTERS = 10;
+  const MIN_PERSON_VISITS = 20;
+  const LOWER_BOUND_X = 10;
   const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 20;
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
-  const MODEL_WEIGHT_POWER = 2;
+  const MODEL_WEIGHT_POWER = 4;
 
   const CLUSTER_SPEC: ClusterSpec = {
-    comparedTaxa: ComparedTaxa.all,
+    comparedTaxa: ComparedTaxa.caveObligates,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000,

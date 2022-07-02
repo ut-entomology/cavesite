@@ -80,7 +80,7 @@ export abstract class PlottableModel {
 }
 
 export class PowerXModel extends PlottableModel {
-  // assigns the power to jstats.coef[2] when done so can later be averaged
+  private power: number;
 
   private _finalModelFactory: PlottableModelFactory;
 
@@ -114,7 +114,7 @@ export class PowerXModel extends PlottableModel {
         );
       }
     );
-    regression.jstats.coef.push(power);
+    this.power = power;
     this.regression = regression;
   }
 
@@ -124,7 +124,7 @@ export class PowerXModel extends PlottableModel {
       _coefHtml(coefs[0], true),
       ' x<sup>',
       // @ts-ignore
-      shortenValue(coefs[2], 4),
+      shortenValue(this.power, 4),
       '</sup> ',
       _coefHtml(coefs[1])
     ].join(' ');
