@@ -29,17 +29,24 @@ export abstract class PlottableModel {
   equation!: string;
   lowestX = Infinity;
   highestX = 0;
+  yTransform?: YTransform;
   regression!: Regression;
 
   private _modelPoints: Point[] | null = null;
 
-  constructor(name: string, hexColor: string, dataPoints: Point[]) {
+  constructor(
+    name: string,
+    hexColor: string,
+    dataPoints: Point[],
+    yTransform?: YTransform
+  ) {
     this.name = name;
     this.hexColor = hexColor;
     for (const point of dataPoints) {
       if (point.x < this.lowestX) this.lowestX = point.x;
       if (point.x > this.highestX) this.highestX = point.x;
     }
+    this.yTransform = yTransform;
   }
 
   abstract getXFormula(): string;
@@ -76,7 +83,7 @@ export class PowerXModel extends PlottableModel {
   // assigns the power to jstats.coef[2] when done so can later be averaged
 
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('power fit', hexColor, dataPoints);
+    super('power fit', hexColor, dataPoints, yTransform);
 
     const [regression, power] = _findBestRMSEScalar_nAry(
       {
@@ -114,13 +121,13 @@ export class PowerXModel extends PlottableModel {
   getModelAverager(): ModelAverager {
     return new PlotAverager((points: Point[], yTransform?: YTransform) => {
       return new PowerXModel(this.hexColor, points, yTransform);
-    });
+    }, this.yTransform);
   }
 }
 
 export class LinearXModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('linear fit', hexColor, dataPoints);
+    super('linear fit', hexColor, dataPoints, yTransform);
 
     const xTransform: XTransform = (x) => [x, 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
@@ -142,7 +149,7 @@ export class LinearXModel extends PlottableModel {
 
 export class QuadraticXModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('quadratic fit', hexColor, dataPoints);
+    super('quadratic fit', hexColor, dataPoints, yTransform);
 
     const xTransform: XTransform = (x) => [x * x, x, 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
@@ -170,7 +177,7 @@ export class QuadraticXModel extends PlottableModel {
 
 export class LogXModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('log fit', hexColor, dataPoints);
+    super('log fit', hexColor, dataPoints, yTransform);
 
     const xTransform: XTransform = (x) => [Math.log(x), 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
@@ -192,7 +199,7 @@ export class LogXModel extends PlottableModel {
 
 export class Order3XModel extends PlottableModel {
   constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('3rd order fit', hexColor, dataPoints);
+    super('3rd order fit', hexColor, dataPoints, yTransform);
 
     const xTransform: XTransform = (x) => [x * x * x, x * x, x, 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
