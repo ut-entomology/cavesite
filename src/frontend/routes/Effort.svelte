@@ -34,7 +34,13 @@
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
-  import { PlottableModel, LinearXModel, PowerXModel } from '../lib/plottable_model';
+  import {
+    PlottableModel,
+    LinearXModel,
+    PowerXModel,
+    QuadraticXModel,
+    Order3XModel
+  } from '../lib/plottable_model';
   import { YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
@@ -69,6 +75,8 @@
 
   const PINK_HEXCOLOR = 'FF0088';
   const AQUA_HEXCOLOR = '00DCD8';
+  const PURPLE_HEXCOLOR = 'A95CFF';
+  const GREEN_HEXCOLOR = '00D40E';
 
   enum LoadState {
     idle,
@@ -92,6 +100,16 @@
   });
   modelFactories.push((dataPoints, yTransform) => {
     return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
+      return new QuadraticXModel(PURPLE_HEXCOLOR, points, yTransform);
+    });
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
+      return new Order3XModel(GREEN_HEXCOLOR, points, yTransform);
+    });
   });
 
   let loadState = LoadState.idle;

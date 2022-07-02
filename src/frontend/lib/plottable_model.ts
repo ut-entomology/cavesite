@@ -82,8 +82,20 @@ export abstract class PlottableModel {
 export class PowerXModel extends PlottableModel {
   // assigns the power to jstats.coef[2] when done so can later be averaged
 
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
+  private _finalModelFactory: PlottableModelFactory;
+
+  constructor(
+    hexColor: string,
+    dataPoints: Point[],
+    yTransform = identityY,
+    modelFactory?: PlottableModelFactory
+  ) {
     super('power fit', hexColor, dataPoints, yTransform);
+    this._finalModelFactory = modelFactory
+      ? modelFactory
+      : (points: Point[], yTransform?: YTransform) => {
+          return new PowerXModel(hexColor, points, yTransform);
+        };
 
     const [regression, power] = _findBestRMSEScalar_nAry(
       {
@@ -119,9 +131,7 @@ export class PowerXModel extends PlottableModel {
   }
 
   getModelAverager(): ModelAverager {
-    return new PlotAverager((points: Point[], yTransform?: YTransform) => {
-      return new PowerXModel(this.hexColor, points, yTransform);
-    }, this.yTransform);
+    return new PlotAverager(this._finalModelFactory, this.yTransform);
   }
 }
 
