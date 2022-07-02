@@ -258,8 +258,10 @@
         <div class="row">
           <div class="col"><span>{CLUSTER_SPEC.metric.basis}</span></div>
           <div class="col">
-            subgenera:
-            <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
+            <span
+              >{CLUSTER_SPEC.minSpecies} &lt;= species &lt;=
+              {CLUSTER_SPEC.maxSpecies}</span
+            >
           </div>
           <div class="col">
             regressed: <span
@@ -271,28 +273,28 @@
         </div>
         <div class="row">
           <div class="col">
-            metric transform: <span>{CLUSTER_SPEC.metric.transform}</span>
+            subgenera:
+            <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
           </div>
-          <div class="col">
-            <span
-              >{CLUSTER_SPEC.minSpecies} &lt;= species &lt;=
-              {CLUSTER_SPEC.maxSpecies}</span
-            >
-          </div>
+          <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
           <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
         </div>
         <div class="row">
           <div class="col">
-            metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
+            metric transform: <span>{CLUSTER_SPEC.metric.transform}</span>
           </div>
-          <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
+          <div class="col">
+            min. x => regression: <span>{MIN_X_ALLOWING_REGRESS}</span>
+          </div>
           <div class="col">
             min. caves<span>/</span>pts/sum:
             <span>{MIN_CAVES_PER_SUMMARY}/{MIN_POINTS_PER_SUMMARY}</span>
           </div>
         </div>
         <div class="row">
-          <div class="col" />
+          <div class="col">
+            metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
+          </div>
           <div class="col" />
           <div class="col">
             min. unchanged y: <span>{MIN_UNCHANGED_Y}</span>
