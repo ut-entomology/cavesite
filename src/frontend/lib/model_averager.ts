@@ -87,7 +87,8 @@ export class PlotAverager extends ModelAverager {
     // fit a new power model to these points.
     const points: Point[] = [];
     const deltaX = (highestX - lowestX) / AVERAGED_MODEL_POINTS;
-    for (let x = lowestX; x <= highestX; x += deltaX) {
+    // Add 0.5 to accommodate deltaX imprecision exceeding highestX.
+    for (let x = lowestX; x <= highestX + 0.5; x += deltaX) {
       let weightedYSum = 0;
       for (const modelInfo of this._modelInfos) {
         weightedYSum += modelInfo.weight * modelInfo.fittedY(x);
