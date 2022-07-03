@@ -1,7 +1,41 @@
 <script lang="ts" context="module">
   import { writable } from 'svelte/store';
 
-  import type { TimeGraphData, TimeGraphQuery } from '../../shared/time_query';
+  import {
+    type TimeGraphQuery,
+    LifeStage,
+    convertTimeQuery,
+    TimeChartTallier
+  } from '../../shared/time_query';
+  import {
+    type TimeGraphSpec,
+    createHistoryGraphSpec,
+    createSeasonalityGraphSpec
+  } from '../lib/time_graphs';
+
+  interface TimeGraphSpecPair {
+    species: TimeGraphSpec;
+    specimens: TimeGraphSpec;
+  }
+
+  interface HistoryGraphSpecs {
+    monthlySpecs: TimeGraphSpecPair;
+    seasonalSpecs: TimeGraphSpecPair;
+    yearlySpecs: TimeGraphSpecPair;
+  }
+
+  interface SeasonalityGraphSpecs {
+    weeklySpecs: TimeGraphSpecPair;
+    biweeklySpecs: TimeGraphSpecPair;
+    monthlySpecs: TimeGraphSpecPair;
+    seasonalSpecs: TimeGraphSpecPair;
+  }
+
+  interface TimeGraphData {
+    query: TimeGraphQuery;
+    historyGraphSpecs: HistoryGraphSpecs;
+    seasonalityGraphSpecs: SeasonalityGraphSpecs;
+  }
 
   export const cachedData = writable<TimeGraphData | null>(null);
 </script>
@@ -15,22 +49,29 @@
   import TimeFilterDialog, {
     type TimeGraphQueryRequest
   } from '../dialogs/TimeFilterDialog.svelte';
+  import TimeGraph from '../components/TimeGraph.svelte';
   import { pageName } from '../stores/pageName';
-  import type { Point } from '../../shared/point';
-  import { selectedLocations } from '../stores/selectedLocations';
-  import { selectedTaxa } from '../stores/selectedTaxa';
-  import type { QueryDateFilter } from '../../shared/general_query';
+  import { showNotice } from '../common/VariableNotice.svelte';
+  import type {
+    QueryDateFilter,
+    GeneralQuery,
+    QueryRow
+  } from '../../shared/general_query';
   import { EARLIEST_RECORD_DATE } from '../../shared/general_query';
+  import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
+  import { client, errorReason } from '../stores/client';
 
   $pageName = 'Time';
 
-  let queryRequest: TimeGraphQueryRequest | null = null;
+  const TIME_QUERY_BATCH_SIZE = 500;
 
   const xValues = [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050];
   const yValues = [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478];
   const points = xValues.map((x, i) => {
     return { x, y: yValues[i] };
   });
+
+  let queryRequest: TimeGraphQueryRequest | null = null;
 
   function clearQuery() {
     $cachedData = null;
@@ -55,8 +96,122 @@
     }
   }
 
-  function performQuery(request: TimeGraphQueryRequest) {
-    queryRequest = request;
+  async function performQuery(request: TimeGraphQueryRequest) {
+    const timeQuery = {
+      fromDateMillis: request.fromDateMillis,
+      throughDateMillis: request.throughDateMillis,
+      locationFilter: request.filterLocations ? await getLocationFilter() : null,
+      taxonFilter: request.filterTaxa ? await getTaxonFilter() : null
+    };
+    queryRequest = null; // hide query request dialog
+    const generalQuery = convertTimeQuery(timeQuery);
+
+    const tallier = new TimeChartTallier();
+
+    let offset = 0;
+    let done = false;
+    while (!done) {
+      const rows = await _loadBatch(generalQuery, offset);
+      for (const row of rows) {
+        tallier.addTimeQueryRow(row);
+      }
+      offset += TIME_QUERY_BATCH_SIZE;
+      done = rows.length == 0;
+    }
+
+    // query: TimeGraphQuery;
+    // historyGraphSpecs: HistoryGraphSpecs;
+    // seasonalityGraphSpecs: SeasonalityGraphSpecs;
+
+    const historyStageTallies = tallier.getHistoryStageTallies();
+    const seasonalityStageTallies = tallier.getSeasonalityStageTallies();
+
+    cachedData.set({
+      query: timeQuery,
+      historyGraphSpecs: {
+        monthlySpecs: {
+          species: createHistoryGraphSpec(historyStageTallies, 'monthlySpeciesTotals'),
+          specimens: createHistoryGraphSpec(
+            historyStageTallies,
+            'monthlySpecimenTotals'
+          )
+        },
+        seasonalSpecs: {
+          species: createHistoryGraphSpec(historyStageTallies, 'seasonalSpeciesTotals'),
+          specimens: createHistoryGraphSpec(
+            historyStageTallies,
+            'seasonalSpecimenTotals'
+          )
+        },
+        yearlySpecs: {
+          species: createHistoryGraphSpec(historyStageTallies, 'yearlySpeciesTotals'),
+          specimens: createHistoryGraphSpec(historyStageTallies, 'yearlySpecimenTotals')
+        }
+      },
+      seasonalityGraphSpecs: {
+        weeklySpecs: {
+          species: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'weeklySpeciesTotals'
+          ),
+          specimens: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'weeklySpecimenTotals'
+          )
+        },
+        biweeklySpecs: {
+          species: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'biweeklySpeciesTotals'
+          ),
+          specimens: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'biweeklySpecimenTotals'
+          )
+        },
+        monthlySpecs: {
+          species: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'monthlySpeciesTotals'
+          ),
+          specimens: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'monthlySpecimenTotals'
+          )
+        },
+        seasonalSpecs: {
+          species: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'seasonalSpeciesTotals'
+          ),
+          specimens: createSeasonalityGraphSpec(
+            seasonalityStageTallies,
+            'seasonalSpecimenTotals'
+          )
+        }
+      }
+    });
+  }
+
+  async function _loadBatch(
+    generalQuery: GeneralQuery,
+    offset: number
+  ): Promise<QueryRow[]> {
+    try {
+      let res = await $client.post('api/specimen/query', {
+        query: generalQuery,
+        skip: offset,
+        limit: TIME_QUERY_BATCH_SIZE
+      });
+      return res.data.rows;
+    } catch (err: any) {
+      showNotice({
+        message: `Failed to load query results<br/><br/>` + errorReason(err.response),
+        header: 'Error',
+        alert: 'danger'
+      });
+      return [];
+    }
   }
 </script>
 
