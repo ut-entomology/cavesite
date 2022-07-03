@@ -38,13 +38,13 @@
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
-  import {
-    PlottableModel,
-    //LinearXModel,
-    PowerXModel,
-    QuadraticXModel,
-    Order3XModel,
-    Order4XModel
+  import type {
+    PlottableModel
+    // LinearXModel,
+    // PowerXModel
+    //QuadraticXModel,
+    //Order3XModel,
+    //Order4XModel
   } from '../lib/plottable_model';
   import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
@@ -52,9 +52,9 @@
 
   $pageName = 'Collection Effort';
 
-  const JUMBLE_MODELS = true;
+  const JUMBLE_MODELS = false;
   const yAxisType = YAxisType.expectedSlope;
-  const yAxisModel = YAxisModel.squareRootY;
+  const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 1;
   const MIN_PERSON_VISITS = 0;
@@ -67,7 +67,7 @@
   const MODEL_WEIGHT_POWER = 0;
 
   const CLUSTER_SPEC: ClusterSpec = {
-    comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
+    comparedTaxa: ComparedTaxa.all,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000,
@@ -101,21 +101,21 @@
   }
 
   const modelFactories: PlottableModelFactory[] = [];
-  modelFactories.push((dataPoints, yTransform) => {
-    return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
-  });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
+  // });
   // modelFactories.push((dataPoints, yTransform) => {
   //   return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
   // });
-  modelFactories.push((dataPoints, yTransform) => {
-    return new QuadraticXModel(PURPLE_HEXCOLOR, dataPoints, yTransform);
-  });
-  modelFactories.push((dataPoints, yTransform) => {
-    return new Order3XModel(GREEN_HEXCOLOR, dataPoints, yTransform);
-  });
-  modelFactories.push((dataPoints, yTransform) => {
-    return new Order4XModel(AQUA_HEXCOLOR, dataPoints, yTransform);
-  });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new QuadraticXModel(PURPLE_HEXCOLOR, dataPoints, yTransform);
+  // });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new Order3XModel(GREEN_HEXCOLOR, dataPoints, yTransform);
+  // });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new Order4XModel(AQUA_HEXCOLOR, dataPoints, yTransform);
+  // });
   // The following models track the power model well in graphs that matter.
   // modelFactories.push((dataPoints, yTransform) => {
   //   return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
@@ -128,6 +128,7 @@
   //   });
   // });
 
+  // @ts-ignore
   let usingJumbledModels = JUMBLE_MODELS || yAxisType == YAxisType.expectedSlope;
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;

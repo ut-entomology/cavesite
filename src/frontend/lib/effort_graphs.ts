@@ -1,5 +1,6 @@
 import type { Point } from '../../shared/point';
-import type { EffortData } from '../lib/effort_data';
+import type { EffortData } from './effort_data';
+import { PowerXModel } from './plottable_model';
 
 export enum YAxisType {
   totalSpecies = 'total species',
@@ -163,6 +164,7 @@ export abstract class EffortGraphSpec {
   protected _priorSlope = -1;
   protected _yBaseline = 0;
   protected _cumulativePercentChange = 0;
+  protected _rawPointsSoFar: Point[] = [];
 
   constructor(
     effortData: EffortData,
@@ -196,11 +198,13 @@ export abstract class EffortGraphSpec {
         if (useZeroBaseline && this._yBaseline == 0) {
           this._yBaseline = this._getBaselineY(point);
         }
+        this._rawPointsSoFar.push(point);
         this._addPoint(point);
       }
       this._priorX = point.x;
       this._priorY = point.y;
     }
+    this._rawPointsSoFar = []; // clear memory
   }
 
   protected abstract _getEffortPoints(effortData: EffortData): Point[];
@@ -240,7 +244,7 @@ export abstract class EffortGraphSpec {
     return { x: point.x, y: this._cumulativePercentChange };
   }
 
-  protected _getExpectedSlopePoint(point: Point): Point | null {
+  protected _getJaggedExpectedSlopePoint(point: Point): Point | null {
     if (point.x == 0) return null;
     const slope = (point.y - this._priorY) / (point.x - this._priorX);
     const priorSlope = this._priorSlope;
@@ -248,6 +252,19 @@ export abstract class EffortGraphSpec {
     if (priorSlope < 0) return null;
     return { x: priorSlope, y: slope };
     //return { x: Math.log(priorSlope + 1), y: slope };
+  }
+
+  protected _getSmoothExpectedSlopePoint(point: Point): Point | null {
+    if (point.x == 0 || this._rawPointsSoFar.length < 3) return null;
+    const priorModel = new PowerXModel(
+      '',
+      // Regress all prior points (exclude this most recent point).
+      this._rawPointsSoFar.slice(0, this._rawPointsSoFar.length - 1)
+    );
+    const priorSmoothSlope = priorModel.getFirstDerivative()(this._priorX);
+    const actualSlope = (point.y - this._priorY) / (point.x - this._priorX);
+    //return { x: priorSmoothSlope, y: actualSlope };
+    return { x: Math.log(priorSmoothSlope), y: actualSlope };
   }
 }
 
@@ -399,7 +416,7 @@ export class ExpectedSlopeAcrossDaysGraphSpec extends ByDaysGraphSpec {
       minUnchangedY,
       useZeroBaseline
     );
-    this.xAxisLabel = 'actual prior slope for day';
+    this.xAxisLabel = 'log of smoothed prior slope for day';
   }
 
   protected _getBaselineY(_point: Point): number {
@@ -407,7 +424,7 @@ export class ExpectedSlopeAcrossDaysGraphSpec extends ByDaysGraphSpec {
   }
 
   protected _transformPoint(point: Point): Point | null {
-    return this._getExpectedSlopePoint(point);
+    return this._getSmoothExpectedSlopePoint(point);
   }
 }
 
@@ -559,7 +576,7 @@ export class ExpectedSlopeAcrossVisitsGraphSpec extends ByVisitsGraphSpec {
       minUnchangedY,
       useZeroBaseline
     );
-    this.xAxisLabel = 'actual prior slope for visit';
+    this.xAxisLabel = 'log of smoothed prior slope for visit';
   }
 
   protected _getBaselineY(_point: Point): number {
@@ -567,7 +584,7 @@ export class ExpectedSlopeAcrossVisitsGraphSpec extends ByVisitsGraphSpec {
   }
 
   protected _transformPoint(point: Point): Point | null {
-    return this._getExpectedSlopePoint(point);
+    return this._getSmoothExpectedSlopePoint(point);
   }
 }
 
@@ -719,7 +736,7 @@ export class ExpectedSlopeAcrossPersonVisitsGraphSpec extends ByPersonVisitsGrap
       minUnchangedY,
       useZeroBaseline
     );
-    this.xAxisLabel = 'actual prior slope for person visit';
+    this.xAxisLabel = 'log of smoothed prior slope for person visit';
   }
 
   protected _getBaselineY(_point: Point): number {
@@ -727,6 +744,6 @@ export class ExpectedSlopeAcrossPersonVisitsGraphSpec extends ByPersonVisitsGrap
   }
 
   protected _transformPoint(point: Point): Point | null {
-    return this._getExpectedSlopePoint(point);
+    return this._getSmoothExpectedSlopePoint(point);
   }
 }

@@ -118,6 +118,11 @@ export class PowerXModel extends PlottableModel {
     this.regression = regression;
   }
 
+  getFirstDerivative(): (x: number) => number {
+    const coefs = this.regression.jstats.coef;
+    return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
+  }
+
   getXFormula(): string {
     const coefs = this.regression.jstats.coef;
     return [
