@@ -5,7 +5,8 @@ export enum YAxisType {
   totalSpecies = 'total species',
   deltaSpecies = 'delta species',
   percentChange = '% change',
-  cumuPercentChange = 'cumulative % change'
+  cumuPercentChange = 'cumulative % change',
+  expectedSlope = 'expected slope'
 }
 
 export interface EffortGraphSpecPerXUnit {
@@ -123,6 +124,31 @@ export function createEffortGraphSpecPerXUnit(
         )
       };
       break;
+    case YAxisType.expectedSlope:
+      return {
+        perDayTotalsGraph: new ExpectedSlopeAcrossDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new ExpectedSlopeAcrossVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new ExpectedSlopeAcrossPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
   }
 }
 
@@ -132,7 +158,9 @@ export abstract class EffortGraphSpec {
   yAxisLabel!: string;
   points: Point[] = [];
 
-  protected _priorY = 0; // these value reset for each locality
+  protected _priorX = 0;
+  protected _priorY = 0;
+  protected _priorSlope = -1;
   protected _yBaseline = 0;
   protected _cumulativePercentChange = 0;
 
@@ -156,10 +184,7 @@ export abstract class EffortGraphSpec {
 
     let unchangedYCount = 0;
     let collecting = minUnchangedY == 0;
-    this._priorY = 0; // reset at the start of each cave
-    this._cumulativePercentChange = 0;
-    this._yBaseline = 0;
-    for (const point of this._getPoints(effortData)) {
+    for (const point of this._getEffortPoints(effortData)) {
       if (!collecting && minUnchangedY > 0) {
         if (point.y == this._priorY) {
           if (++unchangedYCount == minUnchangedY) collecting = true;
@@ -173,11 +198,12 @@ export abstract class EffortGraphSpec {
         }
         this._addPoint(point);
       }
+      this._priorX = point.x;
       this._priorY = point.y;
     }
   }
 
-  protected abstract _getPoints(effortData: EffortData): Point[];
+  protected abstract _getEffortPoints(effortData: EffortData): Point[];
 
   protected _addPoint(point: Point): void {
     const transformedPoint = this._transformPoint(point);
@@ -213,6 +239,15 @@ export abstract class EffortGraphSpec {
       (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline);
     return { x: point.x, y: this._cumulativePercentChange };
   }
+
+  protected _getExpectedSlopePoint(point: Point): Point | null {
+    if (point.x == 0) return null;
+    const slope = (point.y - this._priorY) / (point.x - this._priorX);
+    const priorSlope = this._priorSlope;
+    this._priorSlope = slope;
+    if (priorSlope < 0) return null;
+    return { x: priorSlope, y: slope };
+  }
 }
 
 export abstract class ByDaysGraphSpec extends EffortGraphSpec {
@@ -237,7 +272,7 @@ export abstract class ByDaysGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getPoints(effortData: EffortData): Point[] {
+  protected _getEffortPoints(effortData: EffortData): Point[] {
     return effortData.perDayPoints;
   }
 }
@@ -346,6 +381,35 @@ export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
   }
 }
 
+export class ExpectedSlopeAcrossDaysGraphSpec extends ByDaysGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Expected next slope by prior slope across days',
+      'expected next slope',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+    this.xAxisLabel = 'actual prior slope for day';
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    throw Error('Cannot baseline expected slopes');
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getExpectedSlopePoint(point);
+  }
+}
+
 export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
   constructor(
     effortData: EffortData,
@@ -368,7 +432,7 @@ export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getPoints(effortData: EffortData): Point[] {
+  protected _getEffortPoints(effortData: EffortData): Point[] {
     return effortData.perVisitPoints;
   }
 }
@@ -477,6 +541,35 @@ export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
   }
 }
 
+export class ExpectedSlopeAcrossVisitsGraphSpec extends ByVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Expected next slope by prior slope across visits',
+      'expected next slope',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+    this.xAxisLabel = 'actual prior slope for visit';
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    throw Error('Cannot baseline expected slopes');
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getExpectedSlopePoint(point);
+  }
+}
+
 export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
   constructor(
     effortData: EffortData,
@@ -499,7 +592,7 @@ export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getPoints(effortData: EffortData): Point[] {
+  protected _getEffortPoints(effortData: EffortData): Point[] {
     return effortData.perPersonVisitPoints;
   }
 }
@@ -605,5 +698,34 @@ export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGrap
 
   protected _transformPoint(point: Point): Point | null {
     return this._getCumuPercentChangePoint(point);
+  }
+}
+
+export class ExpectedSlopeAcrossPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Expected next slope by prior slope across person visits',
+      'expected next slope',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+    this.xAxisLabel = 'actual prior slope for person visit';
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    throw Error('Cannot baseline expected slopes');
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getExpectedSlopePoint(point);
   }
 }
