@@ -15,14 +15,15 @@ export interface EffortData {
 
 export function toEffortDataSetByCluster(
   rawEffortDataSetByCluster: RawEffortData[][],
-  minPersonVisits: number
+  minPersonVisits: number,
+  includeOrigin: boolean
 ): EffortData[][] {
   const effortDataSetByCluster: EffortData[][] = [];
   for (const clusterResults of rawEffortDataSetByCluster) {
     const clusterEffortData: EffortData[] = [];
     for (const rawEffortData of clusterResults) {
       if (rawEffortData.perVisitPoints.length >= minPersonVisits) {
-        clusterEffortData.push(_toEffortData(rawEffortData));
+        clusterEffortData.push(_toEffortData(rawEffortData, includeOrigin));
       }
     }
     if (clusterEffortData.length > 0) {
@@ -36,15 +37,20 @@ function _pairToPoint(pair: number[]) {
   return { x: pair[0], y: pair[1] };
 }
 
-function _toEffortData(rawEffortData: RawEffortData): EffortData {
+function _toEffortData(
+  rawEffortData: RawEffortData,
+  includeOrigin: boolean
+): EffortData {
   const perDayPointPairs: number[][] = JSON.parse(rawEffortData.perDayPoints);
   const perDayPoints: Point[] = [];
+  if (includeOrigin) perDayPoints.push({ x: 0, y: 0 });
   for (const pair of perDayPointPairs) {
     perDayPoints.push(_pairToPoint(pair));
   }
 
   const perVisitPointPairs: number[][] = JSON.parse(rawEffortData.perVisitPoints);
   const perVisitPoints: Point[] = [];
+  if (includeOrigin) perVisitPoints.push({ x: 0, y: 0 });
   for (const pair of perVisitPointPairs) {
     perVisitPoints.push(_pairToPoint(pair));
   }
@@ -53,6 +59,7 @@ function _toEffortData(rawEffortData: RawEffortData): EffortData {
     rawEffortData.perPersonVisitPoints
   );
   const perPersonVisitPoints: Point[] = [];
+  if (includeOrigin) perPersonVisitPoints.push({ x: 0, y: 0 });
   for (const pair of perPersonVisitPointPairs) {
     perPersonVisitPoints.push(_pairToPoint(pair));
   }

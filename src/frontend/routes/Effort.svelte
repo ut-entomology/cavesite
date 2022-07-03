@@ -49,16 +49,17 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const USE_ZERO_Y_BASELINE = true;
-  const MAX_CLUSTERS = 10;
-  const MIN_PERSON_VISITS = 20;
-  const LOWER_BOUND_X = 10;
+  const USE_ZERO_Y_BASELINE = false;
+  const INCLUDE_ORIGIN = true;
+  const MAX_CLUSTERS = 1;
+  const MIN_PERSON_VISITS = 0;
+  const LOWER_BOUND_X = 5;
   const UPPER_BOUND_X = Infinity;
-  const MIN_X_ALLOWING_REGRESS = 20;
+  const MIN_X_ALLOWING_REGRESS = 0;
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
-  const MODEL_WEIGHT_POWER = 4;
+  const MODEL_WEIGHT_POWER = 0;
 
   const CLUSTER_SPEC: ClusterSpec = {
     comparedTaxa: ComparedTaxa.caveObligates,
@@ -71,7 +72,7 @@
       weight: TaxonWeight.weighted
     }
   };
-  const PLOTTED_COMPARED_TAXA = ComparedTaxa.generaHavingCaveObligates;
+  const PLOTTED_COMPARED_TAXA = ComparedTaxa.caveObligates;
 
   const PINK_HEXCOLOR = 'FF0088';
   const AQUA_HEXCOLOR = '00DCD8';
@@ -167,7 +168,8 @@
       );
       const effortDataSetByCluster = toEffortDataSetByCluster(
         rawEffortDataSetByCluster,
-        MIN_PERSON_VISITS
+        MIN_PERSON_VISITS,
+        INCLUDE_ORIGIN
       );
       effortStore.set(effortDataSetByCluster);
 
