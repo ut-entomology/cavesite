@@ -42,7 +42,7 @@
               : graphSpec.points,
           // borderColor: _toLocationHexColor(i),
           borderWidth: 1,
-          hoverBorderWidth: 2,
+          hoverBorderWidth: 3,
           hoverBorderColor: '#000000'
         };
       }),
