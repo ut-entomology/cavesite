@@ -9,7 +9,9 @@ import {
 import {
   type PlottableModelFactory,
   PlottableModel,
-  LogYModel
+  LogYModel,
+  LogYPlus1Model,
+  SquareRootYModel
 } from './plottable_model';
 import type { ModelAverager } from './model_averager';
 
@@ -17,7 +19,9 @@ const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regressi
 
 export enum YAxisModel {
   none = 'y',
-  logY = 'log(y)'
+  logY = 'log(y)',
+  logYPlus1 = 'log(y+1)',
+  squareRootY = 'sqrt(y)'
 }
 
 export enum ClusterDataType {
@@ -204,5 +208,9 @@ function _makeModelFactory(
       return (modelFactory, points) => modelFactory(points);
     case YAxisModel.logY:
       return (modelFactory, points) => new LogYModel(points, modelFactory);
+    case YAxisModel.logYPlus1:
+      return (modelFactory, points) => new LogYPlus1Model(points, modelFactory);
+    case YAxisModel.squareRootY:
+      return (modelFactory, points) => new SquareRootYModel(points, modelFactory);
   }
 }

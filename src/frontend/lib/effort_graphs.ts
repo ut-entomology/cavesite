@@ -247,6 +247,7 @@ export abstract class EffortGraphSpec {
     this._priorSlope = slope;
     if (priorSlope < 0) return null;
     return { x: priorSlope, y: slope };
+    //return { x: Math.log(priorSlope + 1), y: slope };
   }
 }
 

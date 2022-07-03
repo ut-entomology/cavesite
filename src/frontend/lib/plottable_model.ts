@@ -237,6 +237,42 @@ export class Order3XModel extends PlottableModel {
   }
 }
 
+export class Order4XModel extends PlottableModel {
+  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
+    super('4th order fit', hexColor, dataPoints, yTransform);
+
+    const xTransform: XTransform = (x) => [Math.pow(x, 4), Math.pow(x, 3), x * x, x, 1];
+    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
+      coefs[0] * Math.pow(x, 4) +
+      coefs[1] * Math.pow(x, 3) +
+      coefs[2] * x * x +
+      coefs[3] * x +
+      coefs[4];
+
+    this.regression = new Regression(
+      xTransform,
+      yTransform,
+      fittedYTakingCoefs,
+      dataPoints
+    );
+  }
+
+  getXFormula(): string {
+    const coefs = this.regression.jstats.coef;
+    return [
+      _coefHtml(coefs[0], true),
+      ' x<sup>4</sup> ',
+      _coefHtml(coefs[1]),
+      ' x<sup>3</sup> ',
+      _coefHtml(coefs[2]),
+      ' x<sup>2</sup> ',
+      _coefHtml(coefs[3]),
+      ' x ',
+      _coefHtml(coefs[4])
+    ].join(' ');
+  }
+}
+
 export abstract class YModel extends PlottableModel {
   yTransform!: (y: number) => number;
   protected _xFormula!: string;
@@ -274,6 +310,42 @@ export class LogYModel extends YModel {
 
   getYFormula(): string {
     return `log(y)`;
+  }
+}
+
+export class LogYPlus1Model extends YModel {
+  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
+    super(dataPoints);
+
+    this.yTransform = (y: number) => Math.log(y + 1);
+
+    const model = baseModelFactory(dataPoints, this.yTransform);
+    Object.assign(this, model);
+
+    this.name += ' vs. ln(y+1)';
+    this._xFormula = (model as PlottableModel).getXFormula();
+  }
+
+  getYFormula(): string {
+    return `log(y+1)`;
+  }
+}
+
+export class SquareRootYModel extends YModel {
+  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
+    super(dataPoints);
+
+    this.yTransform = (y: number) => Math.sqrt(y);
+
+    const model = baseModelFactory(dataPoints, this.yTransform);
+    Object.assign(this, model);
+
+    this.name += ' vs. sqrt(y)';
+    this._xFormula = (model as PlottableModel).getXFormula();
+  }
+
+  getYFormula(): string {
+    return `sqrt(y)`;
   }
 }
 
