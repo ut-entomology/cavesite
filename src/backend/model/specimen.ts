@@ -2,6 +2,8 @@
  * Class representing a vial of specimens all of the same taxon.
  */
 
+// TODO: re-coalesce determiners, which were put into remarks for GBIF
+// TODO: UI query for result coutn, cave obligate (yes), scientific name,, and specimen count (any value) produced wrong total row count and may have crahsed the server.
 // TODO: Revisit use of GUIDs and location uniques for specimens and private coords.
 
 import type { DataOf } from '../../shared/data_of';
