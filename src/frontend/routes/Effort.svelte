@@ -49,14 +49,13 @@
 
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
-  const USE_ZERO_Y_BASELINE = true;
-  const INCLUDE_ORIGIN = true;
+  const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 10;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 10;
-  const MIN_UNCHANGED_Y = 4;
+  const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
   const MODEL_WEIGHT_POWER = 0;
@@ -168,8 +167,7 @@
       );
       const effortDataSetByCluster = toEffortDataSetByCluster(
         rawEffortDataSetByCluster,
-        MIN_PERSON_VISITS,
-        INCLUDE_ORIGIN
+        MIN_PERSON_VISITS
       );
       effortStore.set(effortDataSetByCluster);
 
@@ -288,7 +286,7 @@
           </div>
           <div class="col">
             regressed: <span
-              >{LOWER_BOUND_X} &lt;{LOWER_BOUND_X != 0 || INCLUDE_ORIGIN ? '=' : ''} x &lt;=
+              >{LOWER_BOUND_X} &lt;= x &lt;=
               {@html UPPER_BOUND_X == Infinity ? '&infin;' : UPPER_BOUND_X}</span
             >
           </div>
