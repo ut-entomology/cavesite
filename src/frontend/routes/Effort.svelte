@@ -5,15 +5,19 @@
   import type { PlottableModelFactory } from '../lib/plottable_model';
   import {
     YAxisModel,
+    ClusterDataType,
+    type JumbledClusterData,
+    toJumbledModels,
     type PerLocationClusterData,
     toPerLocationClusterData,
-    toPerLocationModels
+    toPerLocationModels,
+    toJumbledClusterData,
+    SizedEffortGraphSpec
   } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
-  const clusterStore = createSessionStore<PerLocationClusterData[] | null>(
-    'cluster_data',
-    null
-  );
+  const clusterStore = createSessionStore<
+    PerLocationClusterData[] | JumbledClusterData[] | null
+  >('cluster_data', null);
 </script>
 
 <script lang="ts">
@@ -41,12 +45,13 @@
     // QuadraticXModel,
     // Order3XModel
   } from '../lib/plottable_model';
-  import { YAxisType } from '../lib/effort_graphs';
+  import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
 
   $pageName = 'Collection Effort';
 
+  const JUMBLE_MODELS = true;
   const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
@@ -54,7 +59,7 @@
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
-  const MIN_X_ALLOWING_REGRESS = 20;
+  const MIN_X_ALLOWING_REGRESS = 0;
   const MIN_UNCHANGED_Y = 0;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
@@ -113,6 +118,7 @@
   //   });
   // });
 
+  let usingJumbledModels = JUMBLE_MODELS || yAxisType == YAxisType.expectedSlope;
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
@@ -125,16 +131,30 @@
 
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
-      const graphData = _getGraphData(datasetID, clusterData);
-      let models = toPerLocationModels(
-        modelFactories,
-        yAxisModel,
-        graphData,
-        MIN_X_ALLOWING_REGRESS,
-        MODEL_WEIGHT_POWER
-      );
-
-      modelsByCluster[i] = models; // must place by cluster index
+      if (clusterData.type == ClusterDataType.perLocation) {
+        const graphData = _getPerLocationGraphData(
+          datasetID,
+          clusterData as PerLocationClusterData
+        );
+        modelsByCluster[i] = toPerLocationModels(
+          modelFactories,
+          yAxisModel,
+          graphData,
+          MIN_X_ALLOWING_REGRESS,
+          MODEL_WEIGHT_POWER
+        );
+      } else {
+        const graphData = _getJumbledGraphData(
+          datasetID,
+          clusterData as JumbledClusterData
+        );
+        modelsByCluster[i] = toJumbledModels(
+          modelFactories,
+          yAxisModel,
+          graphData,
+          MIN_X_ALLOWING_REGRESS
+        );
+      }
       localityCountByCluster[i] = clusterData.locationCount;
     }
     modelSummaries = summarizeModels(
@@ -174,27 +194,52 @@
       // Process the loaded data.
 
       loadState = LoadState.generatingPlotData;
-      const clusterDataByCluster: PerLocationClusterData[] = [];
-      for (const effortDataSet of effortDataSetByCluster) {
-        clusterDataByCluster.push(
-          toPerLocationClusterData(
-            yAxisType,
-            effortDataSet,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            USE_ZERO_Y_BASELINE
-          )
-        );
+      if (usingJumbledModels) {
+        const clusterDataByCluster: JumbledClusterData[] = [];
+        for (const effortDataSet of effortDataSetByCluster) {
+          clusterDataByCluster.push(
+            toJumbledClusterData(
+              yAxisType,
+              effortDataSet,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X,
+              MIN_UNCHANGED_Y,
+              USE_ZERO_Y_BASELINE
+            )
+          );
+        }
+        clusterDataByCluster.sort((a, b) => {
+          const aPointCount =
+            a.graphSpecPerXUnit.perPersonVisitTotalsGraph.points.length;
+          const bPointCount =
+            b.graphSpecPerXUnit.perPersonVisitTotalsGraph.points.length;
+          if (aPointCount == bPointCount) return 0;
+          return bPointCount - aPointCount; // sort most points first
+        });
+        clusterStore.set(clusterDataByCluster);
+      } else {
+        const clusterDataByCluster: PerLocationClusterData[] = [];
+        for (const effortDataSet of effortDataSetByCluster) {
+          clusterDataByCluster.push(
+            toPerLocationClusterData(
+              yAxisType,
+              effortDataSet,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X,
+              MIN_UNCHANGED_Y,
+              USE_ZERO_Y_BASELINE
+            )
+          );
+        }
+        clusterDataByCluster.sort((a, b) => {
+          const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
+          const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
+          if (aPointCount == bPointCount) return 0;
+          return bPointCount - aPointCount; // sort most points first
+        });
+        clusterStore.set(clusterDataByCluster);
       }
-      clusterDataByCluster.sort((a, b) => {
-        const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
-        const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
-        if (aPointCount == bPointCount) return 0;
-        return bPointCount - aPointCount; // sort most points first
-      });
 
-      clusterStore.set(clusterDataByCluster);
       loadState = LoadState.ready;
     } catch (err: any) {
       showNotice({ message: err.message });
@@ -207,7 +252,37 @@
     location.reload();
   }
 
-  function _getGraphData(datasetID: DatasetID, clusterData: PerLocationClusterData) {
+  function _getGraphTitle(graphSpec: EffortGraphSpec | SizedEffortGraphSpec) {
+    return usingJumbledModels
+      ? (graphSpec as EffortGraphSpec).graphTitle
+      : (graphSpec as SizedEffortGraphSpec).graphSpecs[0].graphTitle;
+  }
+
+  function _getGraphData(
+    datasetID: DatasetID,
+    clusterData: JumbledClusterData | PerLocationClusterData
+  ) {
+    return usingJumbledModels
+      ? _getJumbledGraphData(datasetID, clusterData as JumbledClusterData)
+      : _getPerLocationGraphData(datasetID, clusterData as PerLocationClusterData);
+  }
+
+  function _getJumbledGraphData(datasetID: DatasetID, clusterData: JumbledClusterData) {
+    // datasetID is passed in to get reactivity in the HTML
+    switch (datasetID) {
+      case DatasetID.days:
+        return clusterData.graphSpecPerXUnit.perDayTotalsGraph;
+      case DatasetID.visits:
+        return clusterData.graphSpecPerXUnit.perVisitTotalsGraph;
+      case DatasetID.personVisits:
+        return clusterData.graphSpecPerXUnit.perPersonVisitTotalsGraph;
+    }
+  }
+
+  function _getPerLocationGraphData(
+    datasetID: DatasetID,
+    clusterData: PerLocationClusterData
+  ) {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:
@@ -353,18 +428,18 @@
 
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
-        {@const sizedEffortGraphSpec = _getGraphData(datasetID, clusterData)}
+        {@const graphSpec = _getGraphData(datasetID, clusterData)}
         {@const models = modelsByCluster[i]}
         {@const graphTitle =
           (multipleClusters ? `#${i + 1}: ` : '') +
-          sizedEffortGraphSpec.graphSpecs[0].graphTitle +
+          _getGraphTitle(graphSpec) +
           ` (${clusterData.locationCount} caves)`}
         {#if models.length > 0}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
               <EffortGraph
                 title={graphTitle}
-                config={sizedEffortGraphSpec}
+                spec={graphSpec}
                 {models}
                 yFormula={models ? models[0].getYFormula() : 'y'}
               />
@@ -381,7 +456,7 @@
         {:else}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
-              <EffortGraph title={graphTitle} config={sizedEffortGraphSpec} />
+              <EffortGraph title={graphTitle} spec={graphSpec} />
             </div>
           </div>
           <div class="row mb-3 gx-0 ms-4">

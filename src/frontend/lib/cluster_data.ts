@@ -20,13 +20,21 @@ export enum YAxisModel {
   logY = 'log(y)'
 }
 
-export interface JumbledClusterData {
+export enum ClusterDataType {
+  jumbled = 'jumbled',
+  perLocation = 'per-location'
+}
+
+export interface ClusterData {
+  type: ClusterDataType;
   locationCount: number;
+}
+
+export interface JumbledClusterData extends ClusterData {
   graphSpecPerXUnit: EffortGraphSpecPerXUnit;
 }
 
-export interface PerLocationClusterData {
-  locationCount: number;
+export interface PerLocationClusterData extends ClusterData {
   perDayTotalsGraphs: SizedEffortGraphSpec;
   perVisitTotalsGraphs: SizedEffortGraphSpec;
   perPersonVisitTotalsGraphs: SizedEffortGraphSpec;
@@ -70,6 +78,7 @@ export function toJumbledClusterData(
     }
   }
   return {
+    type: ClusterDataType.jumbled,
     locationCount: effortDataSet.length,
     graphSpecPerXUnit: effortGraphSpecPerUnitX!
   };
@@ -84,6 +93,7 @@ export function toPerLocationClusterData(
   zeroYBaseline: boolean
 ): PerLocationClusterData {
   let clusterData: PerLocationClusterData = {
+    type: ClusterDataType.perLocation,
     locationCount: effortDataSet.length,
     perDayTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] },
@@ -111,6 +121,27 @@ export function toPerLocationClusterData(
   return clusterData;
 }
 
+export function toJumbledModels(
+  modelFactories: PlottableModelFactory[],
+  yAxisModel: YAxisModel,
+  graphSpec: EffortGraphSpec,
+  minXAllowingRegression: number
+): PlottableModel[] {
+  const models: PlottableModel[] = [];
+  const createModel = _makeModelFactory(yAxisModel);
+  const points = graphSpec.points;
+  for (const modelFactory of modelFactories) {
+    const lastPoint = points[points.length - 1];
+    if (
+      points.length >= MIN_POINTS_TO_REGRESS &&
+      lastPoint.x >= minXAllowingRegression
+    ) {
+      models.push(createModel(modelFactory, points));
+    }
+  }
+  return models;
+}
+
 export function toPerLocationModels(
   modelFactories: PlottableModelFactory[],
   yAxisModel: YAxisModel,
@@ -119,16 +150,7 @@ export function toPerLocationModels(
   modelWeightPower: number
 ): PlottableModel[] {
   const models: PlottableModel[] = [];
-
-  let createModel: (factory: PlottableModelFactory, points: Point[]) => PlottableModel;
-  switch (yAxisModel) {
-    case YAxisModel.none:
-      createModel = (modelFactory, points) => modelFactory(points);
-      break;
-    case YAxisModel.logY:
-      createModel = (modelFactory, points) => new LogYModel(points, modelFactory);
-      break;
-  }
+  const createModel = _makeModelFactory(yAxisModel);
 
   for (const modelFactory of modelFactories) {
     const allPoints: Point[] = [];
@@ -172,4 +194,15 @@ export function toPerLocationModels(
 function _addGraphSpec(sizedSpec: SizedEffortGraphSpec, spec: EffortGraphSpec): void {
   sizedSpec.pointCount += spec.points.length;
   sizedSpec.graphSpecs.push(spec);
+}
+
+function _makeModelFactory(
+  yAxisModel: YAxisModel
+): (factory: PlottableModelFactory, points: Point[]) => PlottableModel {
+  switch (yAxisModel) {
+    case YAxisModel.none:
+      return (modelFactory, points) => modelFactory(points);
+    case YAxisModel.logY:
+      return (modelFactory, points) => new LogYModel(points, modelFactory);
+  }
 }
