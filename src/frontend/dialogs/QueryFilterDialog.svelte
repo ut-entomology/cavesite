@@ -11,8 +11,6 @@
     type GeneralQuery
   } from '../../shared/general_query';
   import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
-  import { selectedLocations } from '../stores/selectedLocations';
-  import { selectedTaxa } from '../stores/selectedTaxa';
 
   type DraggableItem = Item & {
     info: QueryColumnInfo;
@@ -130,7 +128,7 @@
   <div class="row mb-3">
     <div class="col">
       Drag and drop the values you want in the query results and order them, or click
-      '&times;' and '&plus;'. Sorted values sort results in order of appearance.
+      '&times;' and '&plus;'. Sorted values sort results in their order here.
     </div>
   </div>
   <DateRangeInput
