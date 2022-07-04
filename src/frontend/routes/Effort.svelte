@@ -38,10 +38,10 @@
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
   import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
-  import type {
-    PlottableModel
-    // LinearXModel,
-    // PowerXModel
+  import {
+    type PlottableModel,
+    LinearXModel,
+    PowerXModel
     //QuadraticXModel,
     //Order3XModel,
     //Order4XModel
@@ -60,8 +60,8 @@
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
-  const MIN_X_ALLOWING_REGRESS = 0;
-  const MIN_UNCHANGED_Y = 0;
+  const MIN_X_ALLOWING_REGRESS = 10;
+  const MIN_UNCHANGED_Y = 1;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
   const MODEL_WEIGHT_POWER = 0;
@@ -101,12 +101,12 @@
   }
 
   const modelFactories: PlottableModelFactory[] = [];
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
-  // });
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
-  // });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
+  });
   // modelFactories.push((dataPoints, yTransform) => {
   //   return new QuadraticXModel(PURPLE_HEXCOLOR, dataPoints, yTransform);
   // });

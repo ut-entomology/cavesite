@@ -194,12 +194,14 @@ export abstract class EffortGraphSpec {
           unchangedYCount = 0;
         }
       }
-      if (collecting && point.x >= lowerBoundX && point.x <= upperBoundX) {
-        if (useZeroBaseline && this._yBaseline == 0) {
-          this._yBaseline = this._getBaselineY(point);
-        }
+      if (point.x >= lowerBoundX && point.x <= upperBoundX) {
         this._rawPointsSoFar.push(point);
-        this._addPoint(point);
+        if (collecting) {
+          if (useZeroBaseline && this._yBaseline == 0) {
+            this._yBaseline = this._getBaselineY(point);
+          }
+          this._addPoint(point);
+        }
       }
       this._priorX = point.x;
       this._priorY = point.y;
