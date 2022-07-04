@@ -1,4 +1,4 @@
-import type { PlottableModel } from './linear_regression';
+import type { PlottableModel } from './plottable_model';
 
 export interface ModelSummary {
   modelName: string;
@@ -46,33 +46,34 @@ export function summarizeModels(
     if (models !== undefined && localityCount >= minCavesAllowed) {
       for (let j = 0; j < models.length; ++j) {
         const model = models[j];
-        if (model.residuals.length >= minPointsAllowed) {
+        const regression = model.regression;
+        if (regression.residuals.length >= minPointsAllowed) {
           const summary = summaries[j];
 
           summary.modelName = model.name;
 
           if (
-            !isNaN(model.jstats.f.pvalue) &&
-            !isNaN(model.rmse) &&
-            !isNaN(model.jstats.R2)
+            !isNaN(regression.jstats.f.pvalue) &&
+            !isNaN(regression.rmse) &&
+            !isNaN(regression.jstats.R2)
           ) {
-            if (model.jstats.f.pvalue < summary.bestPValue) {
-              summary.bestPValue = model.jstats.f.pvalue;
+            if (regression.jstats.f.pvalue < summary.bestPValue) {
+              summary.bestPValue = regression.jstats.f.pvalue;
             }
-            summary.averagePValue += model.jstats.f.pvalue;
-            summary.weightedPValue += localityCount * model.jstats.f.pvalue;
+            summary.averagePValue += regression.jstats.f.pvalue;
+            summary.weightedPValue += localityCount * regression.jstats.f.pvalue;
 
-            if (model.rmse < summary.bestRMSE) {
-              summary.bestRMSE = model.rmse;
+            if (regression.rmse < summary.bestRMSE) {
+              summary.bestRMSE = regression.rmse;
             }
-            summary.averageRMSE += model.rmse;
-            summary.weightedRMSE += localityCount * model.rmse;
+            summary.averageRMSE += regression.rmse;
+            summary.weightedRMSE += localityCount * regression.rmse;
 
-            if (model.jstats.R2 > summary.bestR2) {
-              summary.bestR2 = model.jstats.R2;
+            if (regression.jstats.R2 > summary.bestR2) {
+              summary.bestR2 = regression.jstats.R2;
             }
-            summary.averageR2 += model.jstats.R2;
-            summary.weightedR2 += localityCount * model.jstats.R2;
+            summary.averageR2 += regression.jstats.R2;
+            summary.weightedR2 += localityCount * regression.jstats.R2;
 
             summary.totalClusters += 1;
             summary.totalLocalities += localityCount;

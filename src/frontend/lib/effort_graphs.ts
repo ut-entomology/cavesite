@@ -1,26 +1,29 @@
 import type { Point } from '../../shared/point';
-import type { EffortData } from '../lib/effort_data';
+import type { EffortData } from './effort_data';
+import { PowerXModel } from './plottable_model';
 
 export enum YAxisType {
   totalSpecies = 'total species',
+  deltaSpecies = 'delta species',
   percentChange = '% change',
-  cumuPercentChange = 'cumulative % change'
+  cumuPercentChange = 'cumulative % change',
+  expectedSlope = 'expected slope'
 }
 
-export interface MultiEffortGraphSpec {
+export interface EffortGraphSpecPerXUnit {
   perDayTotalsGraph: EffortGraphSpec;
   perVisitTotalsGraph: EffortGraphSpec;
   perPersonVisitTotalsGraph: EffortGraphSpec;
 }
 
-export function createMultiEffortGraphSpec(
+export function createEffortGraphSpecPerXUnit(
   yAxisType: YAxisType,
   effortData: EffortData,
   lowerBoundX: number,
   upperBoundX: number,
   minUnchangedY: number,
   zeroYBaseline: boolean
-): MultiEffortGraphSpec {
+): EffortGraphSpecPerXUnit {
   switch (yAxisType) {
     case YAxisType.totalSpecies:
       return {
@@ -39,6 +42,31 @@ export function createMultiEffortGraphSpec(
           zeroYBaseline
         ),
         perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
+    case YAxisType.deltaSpecies:
+      return {
+        perDayTotalsGraph: new DeltaSpeciesByDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new DeltaSpeciesByVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new DeltaSpeciesByPersonVisitsGraphSpec(
           effortData,
           lowerBoundX,
           upperBoundX,
@@ -97,6 +125,31 @@ export function createMultiEffortGraphSpec(
         )
       };
       break;
+    case YAxisType.expectedSlope:
+      return {
+        perDayTotalsGraph: new ExpectedSlopeAcrossDaysGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perVisitTotalsGraph: new ExpectedSlopeAcrossVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        ),
+        perPersonVisitTotalsGraph: new ExpectedSlopeAcrossPersonVisitsGraphSpec(
+          effortData,
+          lowerBoundX,
+          upperBoundX,
+          minUnchangedY,
+          zeroYBaseline
+        )
+      };
+      break;
   }
 }
 
@@ -106,9 +159,12 @@ export abstract class EffortGraphSpec {
   yAxisLabel!: string;
   points: Point[] = [];
 
-  protected _priorY = 0; // these value reset for each locality
+  protected _priorX = 0;
+  protected _priorY = 0;
+  protected _priorSlope = -1;
   protected _yBaseline = 0;
   protected _cumulativePercentChange = 0;
+  protected _rawPointsSoFar: Point[] = [];
 
   constructor(
     effortData: EffortData,
@@ -130,10 +186,7 @@ export abstract class EffortGraphSpec {
 
     let unchangedYCount = 0;
     let collecting = minUnchangedY == 0;
-    this._priorY = 0; // reset at the start of each cave
-    this._cumulativePercentChange = 0;
-    this._yBaseline = 0;
-    for (const point of this._getPoints(effortData)) {
+    for (const point of this._getEffortPoints(effortData)) {
       if (!collecting && minUnchangedY > 0) {
         if (point.y == this._priorY) {
           if (++unchangedYCount == minUnchangedY) collecting = true;
@@ -141,17 +194,22 @@ export abstract class EffortGraphSpec {
           unchangedYCount = 0;
         }
       }
-      if (collecting && point.x >= lowerBoundX && point.x <= upperBoundX) {
-        if (useZeroBaseline && this._yBaseline == 0) {
-          this._yBaseline = this._getBaselineY(point);
+      if (point.x >= lowerBoundX && point.x <= upperBoundX) {
+        this._rawPointsSoFar.push(point);
+        if (collecting) {
+          if (useZeroBaseline && this._yBaseline == 0) {
+            this._yBaseline = this._getBaselineY(point);
+          }
+          this._addPoint(point);
         }
-        this._addPoint(point);
       }
+      this._priorX = point.x;
       this._priorY = point.y;
     }
+    this._rawPointsSoFar = []; // clear memory
   }
 
-  protected abstract _getPoints(effortData: EffortData): Point[];
+  protected abstract _getEffortPoints(effortData: EffortData): Point[];
 
   protected _addPoint(point: Point): void {
     const transformedPoint = this._transformPoint(point);
@@ -185,6 +243,29 @@ export abstract class EffortGraphSpec {
       (100 * (point.y - this._priorY)) / (this._priorY - this._yBaseline);
     return { x: point.x, y: this._cumulativePercentChange };
   }
+
+  protected _getJaggedExpectedSlopePoint(point: Point): Point | null {
+    if (point.x == 0) return null;
+    const slope = (point.y - this._priorY) / (point.x - this._priorX);
+    const priorSlope = this._priorSlope;
+    this._priorSlope = slope;
+    if (priorSlope < 0) return null;
+    return { x: priorSlope, y: slope };
+    //return { x: Math.log(priorSlope + 1), y: slope };
+  }
+
+  protected _getSmoothExpectedSlopePoint(point: Point): Point | null {
+    if (point.x == 0 || this._rawPointsSoFar.length < 3) return null;
+    const priorModel = new PowerXModel(
+      '',
+      // Regress all prior points (exclude this most recent point).
+      this._rawPointsSoFar.slice(0, this._rawPointsSoFar.length - 1)
+    );
+    const priorSmoothSlope = priorModel.getFirstDerivative()(this._priorX);
+    const actualSlope = (point.y - this._priorY) / (point.x - this._priorX);
+    //return { x: priorSmoothSlope, y: actualSlope };
+    return { x: Math.log(priorSmoothSlope), y: actualSlope };
+  }
 }
 
 export abstract class ByDaysGraphSpec extends EffortGraphSpec {
@@ -209,7 +290,7 @@ export abstract class ByDaysGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getPoints(effortData: EffortData): Point[] {
+  protected _getEffortPoints(effortData: EffortData): Point[] {
     return effortData.perDayPoints;
   }
 }
@@ -231,6 +312,34 @@ export class SpeciesByDaysGraphSpec extends ByDaysGraphSpec {
       minUnchangedY,
       useZeroBaseline
     );
+  }
+}
+
+export class DeltaSpeciesByDaysGraphSpec extends ByDaysGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Delta species across days',
+      'delta species',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return { x: point.x, y: point.y - this._priorY };
   }
 }
 
@@ -290,6 +399,35 @@ export class CumuPercentChangeByDaysGraphSpec extends ByDaysGraphSpec {
   }
 }
 
+export class ExpectedSlopeAcrossDaysGraphSpec extends ByDaysGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Expected next slope by prior slope across days',
+      'expected next slope',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+    this.xAxisLabel = 'log of smoothed prior slope for day';
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    throw Error('Cannot baseline expected slopes');
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getSmoothExpectedSlopePoint(point);
+  }
+}
+
 export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
   constructor(
     effortData: EffortData,
@@ -312,7 +450,7 @@ export abstract class ByVisitsGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getPoints(effortData: EffortData): Point[] {
+  protected _getEffortPoints(effortData: EffortData): Point[] {
     return effortData.perVisitPoints;
   }
 }
@@ -334,6 +472,34 @@ export class SpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
       minUnchangedY,
       useZeroBaseline
     );
+  }
+}
+
+export class DeltaSpeciesByVisitsGraphSpec extends ByVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Delta species across visits',
+      'delta species',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return { x: point.x, y: point.y - this._priorY };
   }
 }
 
@@ -393,6 +559,35 @@ export class CumuPercentChangeByVisitsGraphSpec extends ByVisitsGraphSpec {
   }
 }
 
+export class ExpectedSlopeAcrossVisitsGraphSpec extends ByVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Expected next slope by prior slope across visits',
+      'expected next slope',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+    this.xAxisLabel = 'log of smoothed prior slope for visit';
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    throw Error('Cannot baseline expected slopes');
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getSmoothExpectedSlopePoint(point);
+  }
+}
+
 export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
   constructor(
     effortData: EffortData,
@@ -415,7 +610,7 @@ export abstract class ByPersonVisitsGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getPoints(effortData: EffortData): Point[] {
+  protected _getEffortPoints(effortData: EffortData): Point[] {
     return effortData.perPersonVisitPoints;
   }
 }
@@ -437,6 +632,34 @@ export class SpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
       minUnchangedY,
       useZeroBaseline
     );
+  }
+}
+
+export class DeltaSpeciesByPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Delta species across person-visits',
+      'delta species',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    return this._priorY;
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return { x: point.x, y: point.y - this._priorY };
   }
 }
 
@@ -493,5 +716,34 @@ export class CumuPercentChangeByPersonVisitsGraphSpec extends ByPersonVisitsGrap
 
   protected _transformPoint(point: Point): Point | null {
     return this._getCumuPercentChangePoint(point);
+  }
+}
+
+export class ExpectedSlopeAcrossPersonVisitsGraphSpec extends ByPersonVisitsGraphSpec {
+  constructor(
+    effortData: EffortData,
+    minDays: number,
+    maxDays: number,
+    minUnchangedY: number,
+    useZeroBaseline: boolean
+  ) {
+    super(
+      effortData,
+      'Expected next slope by prior slope across person visits',
+      'expected next slope',
+      minDays,
+      maxDays,
+      minUnchangedY,
+      useZeroBaseline
+    );
+    this.xAxisLabel = 'log of smoothed prior slope for person visit';
+  }
+
+  protected _getBaselineY(_point: Point): number {
+    throw Error('Cannot baseline expected slopes');
+  }
+
+  protected _transformPoint(point: Point): Point | null {
+    return this._getSmoothExpectedSlopePoint(point);
   }
 }

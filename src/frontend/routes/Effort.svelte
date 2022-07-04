@@ -1,16 +1,23 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../util/session_store';
 
-  import { type EffortData, toEffortDataByCluster } from '../lib/effort_data';
+  import { type EffortData, toEffortDataSetByCluster } from '../lib/effort_data';
+  import type { PlottableModelFactory } from '../lib/plottable_model';
   import {
+    YAxisModel,
+    ClusterDataType,
     type JumbledClusterData,
-    toJumbledJumbledClusterData
+    toJumbledModels,
+    type PerLocationClusterData,
+    toPerLocationClusterData,
+    toPerLocationModels,
+    toJumbledClusterData,
+    SizedEffortGraphSpec
   } from '../lib/cluster_data';
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
-  const clusterStore = createSessionStore<JumbledClusterData[] | null>(
-    'cluster_data',
-    null
-  );
+  const clusterStore = createSessionStore<
+    PerLocationClusterData[] | JumbledClusterData[] | null
+  >('cluster_data', null);
 </script>
 
 <script lang="ts">
@@ -30,40 +37,34 @@
   } from '../../shared/model';
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
-  import type { Point } from '../../shared/point';
+  import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
   import {
-    PlottableModel,
+    type PlottableModel,
     LinearXModel,
-    Order3XModel,
-    QuadraticXModel,
-    PowerXModel,
-    LogYModel,
-    shortenPValue,
-    shortenRMSE,
-    shortenR2
-  } from '../lib/linear_regression';
-  import { YAxisType } from '../lib/effort_graphs';
+    PowerXModel
+    //QuadraticXModel,
+    //Order3XModel,
+    //Order4XModel
+  } from '../lib/plottable_model';
+  import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
 
   $pageName = 'Collection Effort';
 
-  enum YAxisModel {
-    none = 'y',
-    logY = 'log(y)'
-  }
-
-  const yAxisType = YAxisType.totalSpecies;
+  const JUMBLE_MODELS = false;
+  const yAxisType = YAxisType.expectedSlope;
   const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
-  const MAX_CLUSTERS = 12;
+  const MAX_CLUSTERS = 1;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
-  const MIN_UNCHANGED_Y = 0;
-  const POINTS_IN_MODEL_PLOT = 200;
+  const MIN_X_ALLOWING_REGRESS = 10;
+  const MIN_UNCHANGED_Y = 1;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
+  const MODEL_WEIGHT_POWER = 0;
 
   const CLUSTER_SPEC: ClusterSpec = {
     comparedTaxa: ComparedTaxa.all,
@@ -76,13 +77,12 @@
       weight: TaxonWeight.weighted
     }
   };
-  const PLOTTED_COMPARED_TAXA = ComparedTaxa.all;
+  const PLOTTED_COMPARED_TAXA = ComparedTaxa.generaHavingCaveObligates;
 
-  const MIN_POINTS_TO_REGRESS = 3;
-  const LOG_HEXCOLOR = 'A95CFF';
-  const ORDER3_HEXCOLOR = '00D40E';
-  const POWER_HEXCOLOR = 'FF0088';
-  const QUADRATIC_HEXCOLOR = '00DCD8';
+  const PINK_HEXCOLOR = 'FF0088';
+  const AQUA_HEXCOLOR = '00DCD8';
+  const PURPLE_HEXCOLOR = 'A95CFF';
+  const GREEN_HEXCOLOR = '00D40E';
 
   enum LoadState {
     idle,
@@ -100,6 +100,36 @@
     personVisits = 'per-person-visit-set'
   }
 
+  const modelFactories: PlottableModelFactory[] = [];
+  modelFactories.push((dataPoints, yTransform) => {
+    return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
+  });
+  modelFactories.push((dataPoints, yTransform) => {
+    return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
+  });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new QuadraticXModel(PURPLE_HEXCOLOR, dataPoints, yTransform);
+  // });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new Order3XModel(GREEN_HEXCOLOR, dataPoints, yTransform);
+  // });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new Order4XModel(AQUA_HEXCOLOR, dataPoints, yTransform);
+  // });
+  // The following models track the power model well in graphs that matter.
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
+  //     return new QuadraticXModel(PURPLE_HEXCOLOR, points, yTransform);
+  //   });
+  // });
+  // modelFactories.push((dataPoints, yTransform) => {
+  //   return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
+  //     return new Order3XModel(GREEN_HEXCOLOR, points, yTransform);
+  //   });
+  // });
+
+  // @ts-ignore
+  let usingJumbledModels = JUMBLE_MODELS || yAxisType == YAxisType.expectedSlope;
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
@@ -112,12 +142,30 @@
 
     for (let i = 0; i < $clusterStore.length; ++i) {
       const clusterData = $clusterStore[i];
-      const graphData = _getGraphData(datasetID, clusterData);
-      let models: PlottableModel[] = [];
-      if (graphData.points.length >= MIN_POINTS_TO_REGRESS) {
-        models = _generateModels(yAxisModel, graphData.points);
+      if (clusterData.type == ClusterDataType.perLocation) {
+        const graphData = _getPerLocationGraphData(
+          datasetID,
+          clusterData as PerLocationClusterData
+        );
+        modelsByCluster[i] = toPerLocationModels(
+          modelFactories,
+          yAxisModel,
+          graphData,
+          MIN_X_ALLOWING_REGRESS,
+          MODEL_WEIGHT_POWER
+        );
+      } else {
+        const graphData = _getJumbledGraphData(
+          datasetID,
+          clusterData as JumbledClusterData
+        );
+        modelsByCluster[i] = toJumbledModels(
+          modelFactories,
+          yAxisModel,
+          graphData,
+          MIN_X_ALLOWING_REGRESS
+        );
       }
-      modelsByCluster[i] = models; // must place by cluster index
       localityCountByCluster[i] = clusterData.locationCount;
     }
     modelSummaries = summarizeModels(
@@ -143,43 +191,66 @@
       );
 
       loadState = LoadState.loadingPoints;
-      const resultsByCluster = await loadPoints(
+      const rawEffortDataSetByCluster = await loadPoints(
         $client,
         PLOTTED_COMPARED_TAXA,
         locationIDsByClusterIndex
       );
+      const effortDataSetByCluster = toEffortDataSetByCluster(
+        rawEffortDataSetByCluster,
+        MIN_PERSON_VISITS
+      );
+      effortStore.set(effortDataSetByCluster);
 
       // Process the loaded data.
 
       loadState = LoadState.generatingPlotData;
-
-      const effortDataByCluster = toEffortDataByCluster(
-        resultsByCluster,
-        MIN_PERSON_VISITS
-      );
-      effortStore.set(effortDataByCluster);
-
-      const clusterDataByCluster: JumbledClusterData[] = [];
-      for (const effortDataSet of effortDataByCluster) {
-        clusterDataByCluster.push(
-          toJumbledJumbledClusterData(
-            yAxisType,
-            effortDataSet,
-            LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
-            USE_ZERO_Y_BASELINE
-          )
-        );
+      if (usingJumbledModels) {
+        const clusterDataByCluster: JumbledClusterData[] = [];
+        for (const effortDataSet of effortDataSetByCluster) {
+          clusterDataByCluster.push(
+            toJumbledClusterData(
+              yAxisType,
+              effortDataSet,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X,
+              MIN_UNCHANGED_Y,
+              USE_ZERO_Y_BASELINE
+            )
+          );
+        }
+        clusterDataByCluster.sort((a, b) => {
+          const aPointCount =
+            a.graphSpecPerXUnit.perPersonVisitTotalsGraph.points.length;
+          const bPointCount =
+            b.graphSpecPerXUnit.perPersonVisitTotalsGraph.points.length;
+          if (aPointCount == bPointCount) return 0;
+          return bPointCount - aPointCount; // sort most points first
+        });
+        clusterStore.set(clusterDataByCluster);
+      } else {
+        const clusterDataByCluster: PerLocationClusterData[] = [];
+        for (const effortDataSet of effortDataSetByCluster) {
+          clusterDataByCluster.push(
+            toPerLocationClusterData(
+              yAxisType,
+              effortDataSet,
+              LOWER_BOUND_X,
+              UPPER_BOUND_X,
+              MIN_UNCHANGED_Y,
+              USE_ZERO_Y_BASELINE
+            )
+          );
+        }
+        clusterDataByCluster.sort((a, b) => {
+          const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
+          const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
+          if (aPointCount == bPointCount) return 0;
+          return bPointCount - aPointCount; // sort most points first
+        });
+        clusterStore.set(clusterDataByCluster);
       }
-      clusterDataByCluster.sort((a, b) => {
-        const aPointCount = a.multiSpec.perVisitTotalsGraph.points.length;
-        const bPointCount = b.multiSpec.perVisitTotalsGraph.points.length;
-        if (aPointCount == bPointCount) return 0;
-        return bPointCount - aPointCount; // sort most points first
-      });
 
-      clusterStore.set(clusterDataByCluster);
       loadState = LoadState.ready;
     } catch (err: any) {
       showNotice({ message: err.message });
@@ -192,51 +263,45 @@
     location.reload();
   }
 
-  function _generateModels(yAxisModel: YAxisModel, points: Point[]) {
-    const models: PlottableModel[] = [];
-
-    switch (yAxisModel) {
-      case YAxisModel.none:
-        models.push(new PowerXModel(POWER_HEXCOLOR, points));
-        models.push(new LinearXModel(LOG_HEXCOLOR, points));
-        models.push(new QuadraticXModel(QUADRATIC_HEXCOLOR, points));
-        models.push(new Order3XModel(ORDER3_HEXCOLOR, points));
-        break;
-      case YAxisModel.logY:
-        const modelFactories: ((
-          dataPoints: Point[],
-          yTransform: (y: number) => number
-        ) => PlottableModel)[] = [];
-
-        modelFactories.push((dataPoints, yTransform) => {
-          return new PowerXModel(POWER_HEXCOLOR, dataPoints, yTransform);
-        });
-        modelFactories.push((dataPoints, yTransform) => {
-          return new LinearXModel(LOG_HEXCOLOR, dataPoints, yTransform);
-        });
-        modelFactories.push((dataPoints, yTransform) => {
-          return new QuadraticXModel(QUADRATIC_HEXCOLOR, dataPoints, yTransform);
-        });
-        modelFactories.push((dataPoints, yTransform) => {
-          return new Order3XModel(ORDER3_HEXCOLOR, dataPoints, yTransform);
-        });
-        for (const modelFactory of modelFactories) {
-          models.push(new LogYModel(points, modelFactory));
-        }
-        break;
-    }
-    return models;
+  function _getGraphTitle(graphSpec: EffortGraphSpec | SizedEffortGraphSpec) {
+    return usingJumbledModels
+      ? (graphSpec as EffortGraphSpec).graphTitle
+      : (graphSpec as SizedEffortGraphSpec).graphSpecs[0].graphTitle;
   }
 
-  function _getGraphData(datasetID: DatasetID, clusterData: JumbledClusterData) {
+  function _getGraphData(
+    datasetID: DatasetID,
+    clusterData: JumbledClusterData | PerLocationClusterData
+  ) {
+    return usingJumbledModels
+      ? _getJumbledGraphData(datasetID, clusterData as JumbledClusterData)
+      : _getPerLocationGraphData(datasetID, clusterData as PerLocationClusterData);
+  }
+
+  function _getJumbledGraphData(datasetID: DatasetID, clusterData: JumbledClusterData) {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:
-        return clusterData.multiSpec.perDayTotalsGraph;
+        return clusterData.graphSpecPerXUnit.perDayTotalsGraph;
       case DatasetID.visits:
-        return clusterData.multiSpec.perVisitTotalsGraph;
+        return clusterData.graphSpecPerXUnit.perVisitTotalsGraph;
       case DatasetID.personVisits:
-        return clusterData.multiSpec.perPersonVisitTotalsGraph;
+        return clusterData.graphSpecPerXUnit.perPersonVisitTotalsGraph;
+    }
+  }
+
+  function _getPerLocationGraphData(
+    datasetID: DatasetID,
+    clusterData: PerLocationClusterData
+  ) {
+    // datasetID is passed in to get reactivity in the HTML
+    switch (datasetID) {
+      case DatasetID.days:
+        return clusterData.perDayTotalsGraphs;
+      case DatasetID.visits:
+        return clusterData.perVisitTotalsGraphs;
+      case DatasetID.personVisits:
+        return clusterData.perPersonVisitTotalsGraphs;
     }
   }
 </script>
@@ -300,42 +365,43 @@
         <div class="row">
           <div class="col"><span>{CLUSTER_SPEC.metric.basis}</span></div>
           <div class="col">
-            subgenera:
-            <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
+            <span
+              >{CLUSTER_SPEC.minSpecies} &lt;= species &lt;=
+              {CLUSTER_SPEC.maxSpecies}</span
+            >
           </div>
           <div class="col">
             regressed: <span
-              >{LOWER_BOUND_X} &lt;= x &lt;= {@html UPPER_BOUND_X == Infinity
-                ? '&infin;'
-                : UPPER_BOUND_X}</span
+              >{LOWER_BOUND_X} &lt;= x &lt;=
+              {@html UPPER_BOUND_X == Infinity ? '&infin;' : UPPER_BOUND_X}</span
             >
           </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            subgenera:
+            <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
+          </div>
+          <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
+          <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
         </div>
         <div class="row">
           <div class="col">
             metric transform: <span>{CLUSTER_SPEC.metric.transform}</span>
           </div>
           <div class="col">
-            <span
-              >{CLUSTER_SPEC.minSpecies} &lt;= species &lt;=
-              {CLUSTER_SPEC.maxSpecies}</span
-            >
+            min. x => regression: <span>{MIN_X_ALLOWING_REGRESS}</span>
           </div>
-          <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
-        </div>
-        <div class="row">
-          <div class="col">
-            metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
-          </div>
-          <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
           <div class="col">
             min. caves<span>/</span>pts/sum:
             <span>{MIN_CAVES_PER_SUMMARY}/{MIN_POINTS_PER_SUMMARY}</span>
           </div>
         </div>
         <div class="row">
-          <div class="col" />
-          <div class="col" />
+          <div class="col">
+            metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
+          </div>
+          <div class="col">model weight power: <span>{MODEL_WEIGHT_POWER}</span></div>
           <div class="col">
             min. unchanged y: <span>{MIN_UNCHANGED_Y}</span>
           </div>
@@ -344,7 +410,7 @@
 
       <div class="model_summary_info">
         <div class="row mt-3">
-          <div class="col-3 text-center">best/avg/weighted-avg</div>
+          <div class="col-3 text-center">weighted-avg/avg/best</div>
           <div class="col"><span>p-value</span></div>
           <div class="col"><span>RMSE</span></div>
           <div class="col"><span>R2</span></div>
@@ -353,19 +419,19 @@
           <div class="row">
             <div class="col-3"><span>{summary.modelName}</span></div>
             <div class="col">
-              {shortenPValue(summary.bestPValue)}<span>/</span>{shortenPValue(
+              {shortenPValue(summary.weightedPValue)}<span>/</span>{shortenPValue(
                 summary.averagePValue
-              )}<span>/</span>{shortenPValue(summary.weightedPValue)}
+              )}<span>/</span>{shortenPValue(summary.bestPValue)}
             </div>
             <div class="col">
-              {shortenRMSE(summary.bestRMSE)}<span>/</span>{shortenRMSE(
+              {shortenRMSE(summary.weightedRMSE)}<span>/</span>{shortenRMSE(
                 summary.averageRMSE
-              )}<span>/</span>{shortenRMSE(summary.weightedRMSE)}
+              )}<span>/</span>{shortenRMSE(summary.bestRMSE)}
             </div>
             <div class="col">
-              {shortenR2(summary.bestR2)}<span>/</span>{shortenR2(
+              {shortenR2(summary.weightedR2)}<span>/</span>{shortenR2(
                 summary.averageR2
-              )}<span>/</span>{shortenR2(summary.weightedR2)}
+              )}<span>/</span>{shortenR2(summary.bestR2)}
             </div>
           </div>
         {/each}
@@ -373,20 +439,19 @@
 
       {#each $clusterStore as clusterData, i}
         {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
+        {@const graphSpec = _getGraphData(datasetID, clusterData)}
         {@const models = modelsByCluster[i]}
-        {@const graphData = _getGraphData(datasetID, clusterData)}
         {@const graphTitle =
-          (multipleClusters ? `#${i + 1}: ` : '') + graphData.graphTitle}
-        {#if graphData.points.length >= MIN_POINTS_TO_REGRESS}
+          (multipleClusters ? `#${i + 1}: ` : '') +
+          _getGraphTitle(graphSpec) +
+          ` (${clusterData.locationCount} caves)`}
+        {#if models.length > 0}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
               <EffortGraph
                 title={graphTitle}
-                config={graphData}
+                spec={graphSpec}
                 {models}
-                modelPlots={models.map((model) =>
-                  model.getModelPoints(POINTS_IN_MODEL_PLOT)
-                )}
                 yFormula={models ? models[0].getYFormula() : 'y'}
               />
             </div>
@@ -402,7 +467,7 @@
         {:else}
           <div class="row mt-3 mb-1">
             <div class="col" style="height: 350px">
-              <EffortGraph title={graphTitle} config={graphData} />
+              <EffortGraph title={graphTitle} spec={graphSpec} />
             </div>
           </div>
           <div class="row mb-3 gx-0 ms-4">

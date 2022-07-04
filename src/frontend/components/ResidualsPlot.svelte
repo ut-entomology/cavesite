@@ -1,7 +1,8 @@
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { PlottableModel, Point } from '../lib/linear_regression';
+  import type { Point } from '../../shared/point';
+  import type { PlottableModel } from '../lib/plottable_model';
 
   export let model: PlottableModel;
 
@@ -32,7 +33,7 @@
       {
         label: model.name + ' residuals',
         borderColor: '#' + model.hexColor,
-        data: model.residuals,
+        data: model.regression.residuals,
         fill: false
       }
     ]
