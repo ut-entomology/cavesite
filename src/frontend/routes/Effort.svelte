@@ -5,31 +5,34 @@
   import type { PlottableModelFactory } from '../lib/plottable_model';
   import {
     YAxisModel,
-    ClusterDataType,
-    type JumbledClusterData,
-    toJumbledModels,
+    type ClusteringConfig,
     type PerLocationClusterData,
     toPerLocationClusterData,
     toPerLocationModels,
-    toJumbledClusterData,
     SizedEffortGraphSpec
   } from '../lib/cluster_data';
+
+  interface Clustering {
+    config: ClusteringConfig;
+    dataByCluster: PerLocationClusterData[];
+  }
+
   const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
-  const clusterStore = createSessionStore<
-    PerLocationClusterData[] | JumbledClusterData[] | null
-  >('cluster_data', null);
+  const clustering = createSessionStore<Clustering | null>('clustering', null);
 </script>
 
 <script lang="ts">
+  import Pie from 'svelte-chartjs/src/Pie.svelte';
+
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import BusyMessage from '../common/BusyMessage.svelte';
+  import ConfigClustersDialog from '../dialogs/ConfigClustersDialog.svelte';
   import ModelStats from '../components/ModelStats.svelte';
   import EffortGraph from '../components/EffortGraph.svelte';
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
-    ClusterSpec,
     DissimilarityBasis,
     DissimilarityTransform,
     TaxonWeight,
@@ -42,9 +45,6 @@
     type PlottableModel,
     LinearXModel,
     PowerXModel
-    //QuadraticXModel,
-    //Order3XModel,
-    //Order4XModel
   } from '../lib/plottable_model';
   import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
@@ -52,11 +52,10 @@
 
   $pageName = 'Collection Effort';
 
-  const JUMBLE_MODELS = false;
-  const yAxisType = YAxisType.expectedSlope;
+  const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
-  const MAX_CLUSTERS = 1;
+  const MAX_CLUSTERS = 10;
   const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
@@ -66,8 +65,8 @@
   const MIN_POINTS_PER_SUMMARY = 50;
   const MODEL_WEIGHT_POWER = 0;
 
-  const CLUSTER_SPEC: ClusterSpec = {
-    comparedTaxa: ComparedTaxa.all,
+  const clusterSpec = {
+    comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
     ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000,
@@ -77,7 +76,6 @@
       weight: TaxonWeight.weighted
     }
   };
-  const PLOTTED_COMPARED_TAXA = ComparedTaxa.generaHavingCaveObligates;
 
   const PINK_HEXCOLOR = 'FF0088';
   const AQUA_HEXCOLOR = '00DCD8';
@@ -107,65 +105,34 @@
   modelFactories.push((dataPoints, yTransform) => {
     return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
   });
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new QuadraticXModel(PURPLE_HEXCOLOR, dataPoints, yTransform);
-  // });
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new Order3XModel(GREEN_HEXCOLOR, dataPoints, yTransform);
-  // });
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new Order4XModel(AQUA_HEXCOLOR, dataPoints, yTransform);
-  // });
-  // The following models track the power model well in graphs that matter.
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
-  //     return new QuadraticXModel(PURPLE_HEXCOLOR, points, yTransform);
-  //   });
-  // });
-  // modelFactories.push((dataPoints, yTransform) => {
-  //   return new PowerXModel('', dataPoints, yTransform, (points, yTransform) => {
-  //     return new Order3XModel(GREEN_HEXCOLOR, points, yTransform);
-  //   });
-  // });
 
+  let clusteringRequest: ClusteringConfig | null = null;
   // @ts-ignore
-  let usingJumbledModels = JUMBLE_MODELS || yAxisType == YAxisType.expectedSlope;
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
   let modelSummaries: ModelSummary[] = [];
   let localityCountByCluster: number[] = [];
 
-  $: if ($clusterStore) {
+  $: if ($clustering) {
     loadState = LoadState.fittingModels;
     modelsByCluster = [];
+    clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
+    clusterSpec.ignoreSubgenera = $clustering.config.ignoreSubgenera;
 
-    for (let i = 0; i < $clusterStore.length; ++i) {
-      const clusterData = $clusterStore[i];
-      if (clusterData.type == ClusterDataType.perLocation) {
-        const graphData = _getPerLocationGraphData(
-          datasetID,
-          clusterData as PerLocationClusterData
-        );
-        modelsByCluster[i] = toPerLocationModels(
-          modelFactories,
-          yAxisModel,
-          graphData,
-          MIN_X_ALLOWING_REGRESS,
-          MODEL_WEIGHT_POWER
-        );
-      } else {
-        const graphData = _getJumbledGraphData(
-          datasetID,
-          clusterData as JumbledClusterData
-        );
-        modelsByCluster[i] = toJumbledModels(
-          modelFactories,
-          yAxisModel,
-          graphData,
-          MIN_X_ALLOWING_REGRESS
-        );
-      }
+    for (let i = 0; i < $clustering.dataByCluster.length; ++i) {
+      const clusterData = $clustering.dataByCluster[i];
+      const graphData = _getPerLocationGraphData(
+        datasetID,
+        clusterData as PerLocationClusterData
+      );
+      modelsByCluster[i] = toPerLocationModels(
+        modelFactories,
+        yAxisModel,
+        graphData,
+        MIN_X_ALLOWING_REGRESS,
+        MODEL_WEIGHT_POWER
+      );
       localityCountByCluster[i] = clusterData.locationCount;
     }
     modelSummaries = summarizeModels(
@@ -176,118 +143,18 @@
     );
   }
 
-  async function loadData() {
-    try {
-      // Configure and load the data.
-
-      loadState = LoadState.determiningSeeds;
-      const seedLocations = await loadSeeds($client, CLUSTER_SPEC, MAX_CLUSTERS);
-
-      loadState = LoadState.sortingIntoClusters;
-      const locationIDsByClusterIndex = await sortIntoClusters(
-        $client,
-        CLUSTER_SPEC,
-        seedLocations
-      );
-
-      loadState = LoadState.loadingPoints;
-      const rawEffortDataSetByCluster = await loadPoints(
-        $client,
-        PLOTTED_COMPARED_TAXA,
-        locationIDsByClusterIndex
-      );
-      const effortDataSetByCluster = toEffortDataSetByCluster(
-        rawEffortDataSetByCluster,
-        MIN_PERSON_VISITS
-      );
-      effortStore.set(effortDataSetByCluster);
-
-      // Process the loaded data.
-
-      loadState = LoadState.generatingPlotData;
-      if (usingJumbledModels) {
-        const clusterDataByCluster: JumbledClusterData[] = [];
-        for (const effortDataSet of effortDataSetByCluster) {
-          clusterDataByCluster.push(
-            toJumbledClusterData(
-              yAxisType,
-              effortDataSet,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X,
-              MIN_UNCHANGED_Y,
-              USE_ZERO_Y_BASELINE
-            )
-          );
-        }
-        clusterDataByCluster.sort((a, b) => {
-          const aPointCount =
-            a.graphSpecPerXUnit.perPersonVisitTotalsGraph.points.length;
-          const bPointCount =
-            b.graphSpecPerXUnit.perPersonVisitTotalsGraph.points.length;
-          if (aPointCount == bPointCount) return 0;
-          return bPointCount - aPointCount; // sort most points first
-        });
-        clusterStore.set(clusterDataByCluster);
-      } else {
-        const clusterDataByCluster: PerLocationClusterData[] = [];
-        for (const effortDataSet of effortDataSetByCluster) {
-          clusterDataByCluster.push(
-            toPerLocationClusterData(
-              yAxisType,
-              effortDataSet,
-              LOWER_BOUND_X,
-              UPPER_BOUND_X,
-              MIN_UNCHANGED_Y,
-              USE_ZERO_Y_BASELINE
-            )
-          );
-        }
-        clusterDataByCluster.sort((a, b) => {
-          const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
-          const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
-          if (aPointCount == bPointCount) return 0;
-          return bPointCount - aPointCount; // sort most points first
-        });
-        clusterStore.set(clusterDataByCluster);
-      }
-
-      loadState = LoadState.ready;
-    } catch (err: any) {
-      showNotice({ message: err.message });
-    }
-  }
-
-  function clearData() {
+  function _clearData() {
     effortStore.set(null);
-    clusterStore.set(null);
-    location.reload();
+    clustering.set(null);
+    $clustering = null;
   }
 
   function _getGraphTitle(graphSpec: EffortGraphSpec | SizedEffortGraphSpec) {
-    return usingJumbledModels
-      ? (graphSpec as EffortGraphSpec).graphTitle
-      : (graphSpec as SizedEffortGraphSpec).graphSpecs[0].graphTitle;
+    return (graphSpec as SizedEffortGraphSpec).graphSpecs[0].graphTitle;
   }
 
-  function _getGraphData(
-    datasetID: DatasetID,
-    clusterData: JumbledClusterData | PerLocationClusterData
-  ) {
-    return usingJumbledModels
-      ? _getJumbledGraphData(datasetID, clusterData as JumbledClusterData)
-      : _getPerLocationGraphData(datasetID, clusterData as PerLocationClusterData);
-  }
-
-  function _getJumbledGraphData(datasetID: DatasetID, clusterData: JumbledClusterData) {
-    // datasetID is passed in to get reactivity in the HTML
-    switch (datasetID) {
-      case DatasetID.days:
-        return clusterData.graphSpecPerXUnit.perDayTotalsGraph;
-      case DatasetID.visits:
-        return clusterData.graphSpecPerXUnit.perVisitTotalsGraph;
-      case DatasetID.personVisits:
-        return clusterData.graphSpecPerXUnit.perPersonVisitTotalsGraph;
-    }
+  function _getGraphData(datasetID: DatasetID, clusterData: PerLocationClusterData) {
+    return _getPerLocationGraphData(datasetID, clusterData as PerLocationClusterData);
   }
 
   function _getPerLocationGraphData(
@@ -304,20 +171,117 @@
         return clusterData.perPersonVisitTotalsGraphs;
     }
   }
+
+  function _getPieChartColors() {
+    return $clustering!.dataByCluster.map(
+      (_, i) => `hsl(${i * (360 / $clustering!.dataByCluster.length)}, 60%, 60%)`
+    );
+  }
+
+  async function _loadData(config: ClusteringConfig) {
+    effortStore.set(null);
+    clustering.set(null);
+
+    clusterSpec.comparedTaxa = config.comparedTaxa;
+    clusterSpec.ignoreSubgenera = config.ignoreSubgenera;
+
+    try {
+      // Configure and load the data.
+
+      loadState = LoadState.determiningSeeds;
+      const seedLocations = await loadSeeds($client, clusterSpec, config.maxClusters);
+
+      loadState = LoadState.sortingIntoClusters;
+      const locationIDsByClusterIndex = await sortIntoClusters(
+        $client,
+        clusterSpec,
+        seedLocations
+      );
+
+      loadState = LoadState.loadingPoints;
+      const rawEffortDataSetByCluster = await loadPoints(
+        $client,
+        config.comparedTaxa,
+        locationIDsByClusterIndex
+      );
+      const effortDataSetByCluster = toEffortDataSetByCluster(
+        rawEffortDataSetByCluster,
+        MIN_PERSON_VISITS
+      );
+      effortStore.set(effortDataSetByCluster);
+
+      // Process the loaded data.
+
+      loadState = LoadState.generatingPlotData;
+      const dataByCluster: PerLocationClusterData[] = [];
+      for (const effortDataSet of effortDataSetByCluster) {
+        dataByCluster.push(
+          toPerLocationClusterData(
+            yAxisType,
+            effortDataSet,
+            LOWER_BOUND_X,
+            UPPER_BOUND_X,
+            MIN_UNCHANGED_Y,
+            USE_ZERO_Y_BASELINE
+          )
+        );
+      }
+      dataByCluster.sort((a, b) => {
+        const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
+        const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
+        if (aPointCount == bPointCount) return 0;
+        return bPointCount - aPointCount; // sort most points first
+      });
+      clustering.set({
+        config,
+        dataByCluster
+      });
+
+      loadState = LoadState.ready;
+    } catch (err: any) {
+      showNotice({ message: err.message });
+    }
+  }
+
+  function _openConfigDialog() {
+    // Setting clusteringRequest opens dialog.
+    if ($clustering) {
+      clusteringRequest = $clustering.config;
+    } else {
+      clusteringRequest = {
+        maxClusters: MAX_CLUSTERS,
+        comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
+        ignoreSubgenera: false,
+        maxPointsToRegress: 12
+      };
+    }
+  }
+
+  function _onCloseConfigDialog() {
+    clusteringRequest = null;
+  }
+
+  function _onSubmitConfigDialog(config: ClusteringConfig) {
+    _loadData(config); // don't wait, so we can close dialog
+    clusteringRequest = null;
+  }
 </script>
 
 <DataTabRoute activeTab="Effort">
   <div class="container-fluid mb-3">
     <TabHeader title={$pageName}>
       <span slot="main-buttons">
-        {#if $clusterStore != null}
-          <button class="btn btn-minor" type="button" on:click={clearData}
-            >Clear Data</button
+        {#if $clustering}
+          <button class="btn btn-minor" type="button" on:click={_clearData}
+            >Clear</button
           >
         {/if}
+        <button class="btn btn-major" type="button" on:click={_openConfigDialog}
+          >{$clustering ? 'Change' : 'Load'} Data</button
+        >
       </span>
       <span slot="work-buttons">
-        {#if $clusterStore}
+        {#if $clustering}
           <div class="btn-group" role="group" aria-label="Switch datasets">
             <input
               type="radio"
@@ -353,21 +317,21 @@
       </span>
     </TabHeader>
 
-    {#if $clusterStore === null}
-      <button class="btn btn-major" type="button" on:click={loadData}>Load Data</button>
-    {:else}
+    {#if $clustering !== null}
       <div class="cluster_summary_info">
         <div class="row mt-3">
-          <div class="col"><span>{MAX_CLUSTERS} clusters max</span></div>
-          <div class="col">comparing: <span>{CLUSTER_SPEC.comparedTaxa}</span></div>
+          <div class="col">
+            <span>{$clustering.config.maxClusters} clusters max</span>
+          </div>
+          <div class="col">comparing: <span>{clusterSpec.comparedTaxa}</span></div>
           <div class="col"><span>{yAxisModel}</span>: <span>{yAxisType}</span></div>
         </div>
         <div class="row">
-          <div class="col"><span>{CLUSTER_SPEC.metric.basis}</span></div>
+          <div class="col"><span>{clusterSpec.metric.basis}</span></div>
           <div class="col">
             <span
-              >{CLUSTER_SPEC.minSpecies} &lt;= species &lt;=
-              {CLUSTER_SPEC.maxSpecies}</span
+              >{clusterSpec.minSpecies} &lt;= species &lt;=
+              {clusterSpec.maxSpecies}</span
             >
           </div>
           <div class="col">
@@ -380,14 +344,14 @@
         <div class="row">
           <div class="col">
             subgenera:
-            <span>{CLUSTER_SPEC.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
+            <span>{clusterSpec.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
           </div>
-          <div class="col">plotting: <span>{PLOTTED_COMPARED_TAXA}</span></div>
+          <div class="col" />
           <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
         </div>
         <div class="row">
           <div class="col">
-            metric transform: <span>{CLUSTER_SPEC.metric.transform}</span>
+            metric transform: <span>{clusterSpec.metric.transform}</span>
           </div>
           <div class="col">
             min. x => regression: <span>{MIN_X_ALLOWING_REGRESS}</span>
@@ -399,7 +363,7 @@
         </div>
         <div class="row">
           <div class="col">
-            metric weight: <span>{CLUSTER_SPEC.metric.weight}</span>
+            metric weight: <span>{clusterSpec.metric.weight}</span>
           </div>
           <div class="col">model weight power: <span>{MODEL_WEIGHT_POWER}</span></div>
           <div class="col">
@@ -437,8 +401,35 @@
         {/each}
       </div>
 
-      {#each $clusterStore as clusterData, i}
-        {@const multipleClusters = $clusterStore && $clusterStore.length > 1}
+      <div class="pie_chart">
+        <Pie
+          data={{
+            labels: $clustering.dataByCluster.map((_, i) => 'Cluster #' + i),
+            datasets: [
+              {
+                data: $clustering.dataByCluster.map((data) => data.locationCount),
+                backgroundColor: _getPieChartColors(),
+                hoverOffset: 4
+              }
+            ]
+          }}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: `Caves per Cluster (${$clustering.dataByCluster.length} clusters)`
+              }
+            }
+          }}
+        />
+      </div>
+
+      {#each $clustering.dataByCluster as clusterData, i}
+        {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
         {@const graphSpec = _getGraphData(datasetID, clusterData)}
         {@const models = modelsByCluster[i]}
         {@const graphTitle =
@@ -479,7 +470,15 @@
   </div>
 </DataTabRoute>
 
-{#if $clusterStore === null}
+{#if clusteringRequest !== null}
+  <ConfigClustersDialog
+    config={clusteringRequest}
+    close={_onCloseConfigDialog}
+    submit={_onSubmitConfigDialog}
+  />
+{/if}
+
+{#if $clustering === null}
   {#if loadState == LoadState.determiningSeeds}
     <BusyMessage message="Determining seed locations..." />
   {:else if loadState == LoadState.sortingIntoClusters}
@@ -511,5 +510,10 @@
   }
   .model_summary_info .row > div + div {
     text-align: center;
+  }
+
+  .pie_chart {
+    width: 250px;
+    margin: 0 auto;
   }
 </style>

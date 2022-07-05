@@ -1,4 +1,5 @@
 import type { Point } from '../../shared/point';
+import type { ComparedTaxa } from '../../shared/model';
 import type { EffortData } from './effort_data';
 import {
   type YAxisType,
@@ -22,6 +23,13 @@ export enum YAxisModel {
   logY = 'log(y)',
   logYPlus1 = 'log(y+1)',
   squareRootY = 'sqrt(y)'
+}
+
+export interface ClusteringConfig {
+  maxClusters: number;
+  comparedTaxa: ComparedTaxa;
+  ignoreSubgenera: boolean;
+  maxPointsToRegress: number;
 }
 
 export enum ClusterDataType {
