@@ -14,7 +14,7 @@ const monthLabels = [
 const seasonLabels = ['Spring', 'Summer', 'Fall', 'Winter'];
 const weeklyLabels = _makeWeeklyLabels();
 
-export interface LifeStageLine {
+export interface LifeStageTrend {
   label: string;
   hexColor: string;
   yValues: number[];
@@ -25,7 +25,7 @@ export interface TimeGraphSpec {
   xAxisLabel: string;
   yAxisLabel: string;
   xValues: (string | number)[];
-  lifeStageLines: LifeStageLine[];
+  trendsByLifeStage: LifeStageTrend[];
 }
 
 interface LinePoint {
@@ -37,7 +37,7 @@ export function createHistoryGraphSpec(
   stageTallySet: HistoryStageTallies[],
   totalsProperty: keyof HistoryStageTallies
 ): TimeGraphSpec {
-  const lifeStageLines: LifeStageLine[] = [];
+  const trendsByLifeStage: LifeStageTrend[] = [];
   let linePoints: LinePoint[] = [];
   let yAxisLabel = 'total specimens';
   let xAxisLabel = 'BLANK';
@@ -67,7 +67,7 @@ export function createHistoryGraphSpec(
         break;
     }
 
-    lifeStageLines.push({
+    trendsByLifeStage.push({
       label: labelByLifeStage[i],
       hexColor: hexColors[i],
       yValues: linePoints.map((p) => p.y)
@@ -80,7 +80,7 @@ export function createHistoryGraphSpec(
     xAxisLabel,
     yAxisLabel,
     xValues: linePoints.map((p) => p.xLabel), // same labels for all sets of points
-    lifeStageLines
+    trendsByLifeStage
   };
 }
 
@@ -88,7 +88,7 @@ export function createSeasonalityGraphSpec(
   stageTallySet: SeasonalityStageTallies[],
   totalsProperty: keyof SeasonalityStageTallies
 ): TimeGraphSpec {
-  const lifeStageLines: LifeStageLine[] = [];
+  const trendsByLifeStage: LifeStageTrend[] = [];
   let linePoints: LinePoint[] = [];
   let yAxisLabel = 'total specimens';
   let xAxisLabel = 'BLANK';
@@ -125,7 +125,7 @@ export function createSeasonalityGraphSpec(
         break;
     }
 
-    lifeStageLines.push({
+    trendsByLifeStage.push({
       label: labelByLifeStage[i],
       hexColor: hexColors[i],
       yValues: linePoints.map((p) => p.y)
@@ -138,7 +138,7 @@ export function createSeasonalityGraphSpec(
     xAxisLabel,
     yAxisLabel,
     xValues: linePoints.map((p) => p.xLabel), // same labels for all sets of points
-    lifeStageLines
+    trendsByLifeStage
   };
 }
 

@@ -1,16 +1,16 @@
 <script lang="ts">
-  import Line from 'svelte-chartjs/src/Line.svelte';
+  import Bar from 'svelte-chartjs/src/Bar.svelte';
 
   import type { TimeGraphSpec } from '../lib/time_graphs';
 
   export let spec: TimeGraphSpec;
 </script>
 
-<Line
+<Bar
   data={{
     labels: spec.xValues,
     datasets: [
-      ...spec.lifeStageLines.map((line) => {
+      ...spec.trendsByLifeStage.map((line) => {
         return {
           label: line.label,
           data: line.yValues,
@@ -28,14 +28,16 @@
           display: true,
           text: spec.xAxisLabel,
           font: { size: 16 }
-        }
+        },
+        stacked: true
       },
       y: {
         title: {
           display: true,
           text: spec.yAxisLabel,
           font: { size: 16 }
-        }
+        },
+        stacked: true
       }
     },
     plugins: {
@@ -45,8 +47,6 @@
         font: { size: 17 }
       }
     },
-    animation: {
-      duration: 0
-    }
+    animation: false
   }}
 />

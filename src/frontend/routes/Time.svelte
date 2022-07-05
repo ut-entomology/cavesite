@@ -3,7 +3,6 @@
 
   import {
     type TimeGraphQuery,
-    LifeStage,
     convertTimeQuery,
     TimeChartTallier
   } from '../../shared/time_query';
@@ -41,8 +40,6 @@
 </script>
 
 <script lang="ts">
-  import Scatter from 'svelte-chartjs/src/Scatter.svelte';
-
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
@@ -52,32 +49,44 @@
   import TimeGraph from '../components/TimeGraph.svelte';
   import { pageName } from '../stores/pageName';
   import { showNotice } from '../common/VariableNotice.svelte';
-  import type {
-    QueryDateFilter,
-    GeneralQuery,
-    QueryRow
-  } from '../../shared/general_query';
+  import type { GeneralQuery, QueryRow } from '../../shared/general_query';
   import { EARLIEST_RECORD_DATE } from '../../shared/general_query';
   import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
   import { client, errorReason } from '../stores/client';
 
   $pageName = 'Time';
 
+  enum CountUnits {
+    species = 'species',
+    specimens = 'specimens'
+  }
+  let seasonalityYUnits = CountUnits.species;
+  let historyYUnits = CountUnits.species;
+
+  enum SeasonalityXUnits {
+    weekly = 'weekly',
+    biweekly = 'biweekly',
+    monthly = 'monthly',
+    seasonally = 'seasonally'
+  }
+
+  enum HistoryXUnits {
+    monthly = 'monthly',
+    seasonally = 'seasonally',
+    yearly = 'yearly'
+  }
+
   const TIME_QUERY_BATCH_SIZE = 500;
 
-  const xValues = [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050];
-  const yValues = [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478];
-  const points = xValues.map((x, i) => {
-    return { x, y: yValues[i] };
-  });
-
+  let seasonalityXUnits = SeasonalityXUnits.monthly;
+  let historyXUnits = HistoryXUnits.seasonally;
   let queryRequest: TimeGraphQueryRequest | null = null;
 
-  function clearQuery() {
+  function clearData() {
     $cachedData = null;
   }
 
-  function createNewQuery() {
+  function loadData() {
     if ($cachedData) {
       const query = $cachedData.query;
       queryRequest = {
@@ -118,10 +127,6 @@
       offset += TIME_QUERY_BATCH_SIZE;
       done = rows.length == 0;
     }
-
-    // query: TimeGraphQuery;
-    // historyGraphSpecs: HistoryGraphSpecs;
-    // seasonalityGraphSpecs: SeasonalityGraphSpecs;
 
     const historyStageTallies = tallier.getHistoryStageTallies();
     const seasonalityStageTallies = tallier.getSeasonalityStageTallies();
@@ -213,6 +218,46 @@
       return [];
     }
   }
+
+  function _getHistoryGraphSpec(
+    xUnits: HistoryXUnits,
+    yUnits: CountUnits
+  ): TimeGraphSpec {
+    const getYData =
+      yUnits == CountUnits.species
+        ? (specPair: TimeGraphSpecPair) => specPair.species
+        : (specPair: TimeGraphSpecPair) => specPair.specimens;
+
+    switch (xUnits) {
+      case HistoryXUnits.monthly:
+        return getYData($cachedData!.historyGraphSpecs.monthlySpecs);
+      case HistoryXUnits.seasonally:
+        return getYData($cachedData!.historyGraphSpecs.seasonalSpecs);
+      case HistoryXUnits.yearly:
+        return getYData($cachedData!.historyGraphSpecs.yearlySpecs);
+    }
+  }
+
+  function _getSeasonalityGraphSpec(
+    xUnits: SeasonalityXUnits,
+    yUnits: CountUnits
+  ): TimeGraphSpec {
+    const getYData =
+      yUnits == CountUnits.species
+        ? (specPair: TimeGraphSpecPair) => specPair.species
+        : (specPair: TimeGraphSpecPair) => specPair.specimens;
+
+    switch (xUnits) {
+      case SeasonalityXUnits.weekly:
+        return getYData($cachedData!.seasonalityGraphSpecs.weeklySpecs);
+      case SeasonalityXUnits.biweekly:
+        return getYData($cachedData!.seasonalityGraphSpecs.biweeklySpecs);
+      case SeasonalityXUnits.monthly:
+        return getYData($cachedData!.seasonalityGraphSpecs.monthlySpecs);
+      case SeasonalityXUnits.seasonally:
+        return getYData($cachedData!.seasonalityGraphSpecs.seasonalSpecs);
+    }
+  }
 </script>
 
 <DataTabRoute activeTab="Time">
@@ -223,36 +268,151 @@
       instructions="Specify the optional filters for new charts using the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs."
     >
       <span slot="main-buttons">
-        <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
-        <button class="btn btn-major" type="button" on:click={createNewQuery}
-          >Generate</button
+        <button class="btn btn-minor" type="button" on:click={clearData}>Clear</button>
+        <button class="btn btn-major" type="button" on:click={loadData}
+          >{$cachedData ? 'Change' : 'Load'} Data</button
         >
       </span>
     </TabHeader>
-    <Scatter
-      data={{
-        datasets: [
-          {
-            showLine: true,
-            data: points,
-            label: 'Africa',
-            borderColor: '#3e95cd',
-            fill: false
-          }
-        ]
-      }}
-      options={{
-        title: {
-          display: true,
-          text: 'World population per region (in millions)'
-        }
-      }}
-    />
   </div>
   {#if !$cachedData}
-    <EmptyTab message={'Click the "Generate" button to generate new charts.'} />
+    <EmptyTab message={'Click the "Load Data" button to generate new charts.'} />
   {:else}
-    charts
+    <div class="row justify-content-center">
+      <div class="col-auto">
+        <div class="btn-group" role="group" aria-label="Seasonality count units">
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={seasonalityYUnits}
+            name="seasonalityYUnits"
+            id="seasonalitySpecies"
+            value={CountUnits.species}
+          />
+          <label class="btn btn-outline-primary" for="seasonalitySpecies">Species</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={seasonalityYUnits}
+            name="seasonalityYUnits"
+            id="seasonalitySpecimens"
+            value={CountUnits.specimens}
+          />
+          <label class="btn btn-outline-primary" for="seasonalitySpecimens"
+            >Specimens</label
+          >
+        </div>
+        <div class="btn-group" role="group" aria-label="Seasonality units of time">
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={seasonalityXUnits}
+            name="seasonalityXUnits"
+            id="seasonalitySeasonal"
+            value={SeasonalityXUnits.seasonally}
+          />
+          <label class="btn btn-outline-primary" for="seasonalitySeasonal"
+            >Seasonally</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={seasonalityXUnits}
+            name="seasonalityXUnits"
+            id="seasonalityMonthly"
+            value={SeasonalityXUnits.monthly}
+          />
+          <label class="btn btn-outline-primary" for="seasonalityMonthly">Monthly</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={seasonalityXUnits}
+            name="seasonalityXUnits"
+            id="seasonalityBiweekly"
+            value={SeasonalityXUnits.biweekly}
+          />
+          <label class="btn btn-outline-primary" for="seasonalityBiweekly"
+            >Biweekly</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={seasonalityXUnits}
+            name="seasonalityXUnits"
+            id="seasonalityWeekly"
+            value={SeasonalityXUnits.weekly}
+          />
+          <label class="btn btn-outline-primary" for="seasonalityWeekly">Weekly</label>
+        </div>
+      </div>
+    </div>
+    <div class="time_graph">
+      <TimeGraph
+        spec={_getSeasonalityGraphSpec(seasonalityXUnits, seasonalityYUnits)}
+      />
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-auto">
+        <div class="btn-group" role="group" aria-label="History count units">
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={historyYUnits}
+            name="historyYUnits"
+            id="historySpecies"
+            value={CountUnits.species}
+          />
+          <label class="btn btn-outline-primary" for="historySpecies">Species</label>
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={historyYUnits}
+            name="historyYUnits"
+            id="historySpecimens"
+            value={CountUnits.specimens}
+          />
+          <label class="btn btn-outline-primary" for="historySpecimens">Specimens</label
+          >
+        </div>
+        <div class="btn-group" role="group" aria-label="History units of time">
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={historyXUnits}
+            name="historyXUnits"
+            id="historyYearly"
+            value={HistoryXUnits.yearly}
+          />
+          <label class="btn btn-outline-primary" for="historyYearly">Yearly</label>
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={historyXUnits}
+            name="historyXUnits"
+            id="historySeasonally"
+            value={HistoryXUnits.seasonally}
+          />
+          <label class="btn btn-outline-primary" for="historySeasonally"
+            >Seasonally</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={historyXUnits}
+            name="historyXUnits"
+            id="historyMonthly"
+            value={HistoryXUnits.monthly}
+          />
+          <label class="btn btn-outline-primary" for="historyMonthly">Monthly</label>
+        </div>
+      </div>
+    </div>
+    <div class="time_graph">
+      <TimeGraph spec={_getHistoryGraphSpec(historyXUnits, historyYUnits)} />
+    </div>
   {/if}
 </DataTabRoute>
 
@@ -263,3 +423,9 @@
     onClose={() => (queryRequest = null)}
   />
 {/if}
+
+<style>
+  .time_graph {
+    height: 400px;
+  }
+</style>

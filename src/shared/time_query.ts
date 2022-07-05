@@ -24,11 +24,12 @@ export interface TimeGraphQuery {
   taxonFilter: QueryTaxonFilter | null;
 }
 
+// TODO: If I only stack bar graphs, I can remove All.
 export enum LifeStage {
   Adult,
   Immature,
   Unspecified,
-  All,
+  //All,
   _LENGTH
 }
 
@@ -208,7 +209,7 @@ export class TimeChartTallier {
     // Update the species counts on a single date.
 
     let dateInfo = _toDateInfo(speciesDate);
-    this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.All);
+    //this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.All);
     if (adultCount > 0) {
       this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Adult);
     }
@@ -227,7 +228,7 @@ export class TimeChartTallier {
         const date = new Date(startDateMillies + nextDay * MILLIS_PER_DAY);
         dateInfo = _toDateInfo(date);
       }
-      this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.All);
+      //this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.All);
       if (adultCount > 0) {
         this._updateSpecimenTallies(dateInfo, adultCount, LifeStage.Adult);
       }
@@ -305,17 +306,29 @@ export class TimeChartTallier {
     // Update the history tallies.
 
     const history = this._historyStageTallies[lifeStage];
-    history.monthlySpeciesTallies[dateInfo.yearMonth][taxonUnique] = true;
-    history.seasonalSpeciesTallies[dateInfo.yearSeason][taxonUnique] = true;
-    history.yearlySpeciesTallies[dateInfo.year][taxonUnique] = true;
+    this._setTaxonTally(history.monthlySpeciesTallies, dateInfo.yearMonth, taxonUnique);
+    this._setTaxonTally(
+      history.seasonalSpeciesTallies,
+      dateInfo.yearSeason,
+      taxonUnique
+    );
+    this._setTaxonTally(history.yearlySpeciesTallies, dateInfo.year, taxonUnique);
 
     // Update the seasonality tallies.
 
     const seasonality = this._seasonalityStageTallies[lifeStage];
-    seasonality.weeklySpeciesTallies[dateInfo.week][taxonUnique] = true;
-    seasonality.biweeklySpeciesTallies[dateInfo.fortnight][taxonUnique] = true;
-    seasonality.monthlySpeciesTallies[dateInfo.month][taxonUnique] = true;
-    seasonality.seasonalSpeciesTallies[dateInfo.season][taxonUnique] = true;
+    this._setTaxonTally(seasonality.weeklySpeciesTallies, dateInfo.week, taxonUnique);
+    this._setTaxonTally(
+      seasonality.biweeklySpeciesTallies,
+      dateInfo.fortnight,
+      taxonUnique
+    );
+    this._setTaxonTally(seasonality.monthlySpeciesTallies, dateInfo.month, taxonUnique);
+    this._setTaxonTally(
+      seasonality.seasonalSpeciesTallies,
+      dateInfo.season,
+      taxonUnique
+    );
   }
 
   private _updateSpecimenTallies(
@@ -344,6 +357,19 @@ export class TimeChartTallier {
       (seasonality.monthlySpecimenTotals[dateInfo.month] || 0) + specimenCount;
     seasonality.seasonalSpecimenTotals[dateInfo.season] =
       (seasonality.seasonalSpecimenTotals[dateInfo.season] || 0) + specimenCount;
+  }
+
+  private _setTaxonTally(
+    tallies: _SpeciesTallies[],
+    timeCode: number,
+    taxonUnique: string
+  ): void {
+    let tally = tallies[timeCode];
+    if (tally === undefined) {
+      tally = {};
+      tallies[timeCode] = tally;
+    }
+    tally[taxonUnique] = true;
   }
 }
 
