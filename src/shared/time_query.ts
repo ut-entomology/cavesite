@@ -1,4 +1,3 @@
-import { ALL_DIGIT } from '@zxcvbn-ts/core/dist/data/const';
 import {
   QueryColumnID,
   type QueryColumnSpec,
