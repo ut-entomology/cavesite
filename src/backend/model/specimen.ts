@@ -2,8 +2,6 @@
  * Class representing a vial of specimens all of the same taxon.
  */
 
-// TODO: re-coalesce determiners, which were put into remarks for GBIF
-// TODO: UI query for result coutn, cave obligate (yes), scientific name,, and specimen count (any value) produced wrong total row count and may have crahsed the server.
 // TODO: Revisit use of GUIDs and location uniques for specimens and private coords.
 
 import type { DataOf } from '../../shared/data_of';
@@ -183,6 +181,7 @@ export class Specimen {
     let locationIDs: (string | null)[];
     let specimen: Specimen;
     let detRemarks = source.determinationRemarks;
+    let determiners = source.determiners?.replace(/ ?[|] ?/g, '|') || null;
 
     // Perform crucial initial actions that might prevent the import on error.
 
@@ -236,6 +235,18 @@ export class Specimen {
               }
             }
           }
+        }
+        const detAlsoBy = 'det. also by';
+        if (determiners && detRemarks.includes(detAlsoBy)) {
+          const remarks = detRemarks.split(';');
+          for (let i = 0; i < remarks.length; ++i) {
+            const remark = remarks[i].trimStart();
+            if (remark.startsWith(detAlsoBy)) {
+              determiners += '|' + remark.substring(detAlsoBy.length).trim();
+              remarks.splice(i--, 1);
+            }
+          }
+          detRemarks = remarks.join(';').trim();
         }
       }
 
@@ -360,7 +371,7 @@ export class Specimen {
       collectors,
       normalizedCollectors,
       determinationYear,
-      determiners: source.determiners?.replace(/ ?[|] ?/g, '|') || null,
+      determiners,
       collectionRemarks: collectionRemarks,
       occurrenceRemarks: source.occurrenceRemarks || null,
       determinationRemarks: detRemarks || null,
