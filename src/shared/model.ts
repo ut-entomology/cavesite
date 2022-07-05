@@ -196,6 +196,8 @@ export function pointSorter(a: number[], b: number[]) {
 
 //// Cluster /////////////////////////////////////////////////////////////////
 
+export const MAX_ALLOWED_CLUSTERS = 40;
+
 export interface DissimilarityMetric {
   basis: DissimilarityBasis;
   transform: DissimilarityTransform;

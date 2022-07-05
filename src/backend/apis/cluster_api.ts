@@ -5,7 +5,11 @@ import { getDB } from '../integrations/postgres';
 import { Location } from '../model/location';
 import { createClusterer } from '../effort/create_clusterer';
 import { toLocationSpec } from './location_api';
-import { ClusterSpec, checkComparedTaxa } from '../../shared/model';
+import {
+  MAX_ALLOWED_CLUSTERS,
+  ClusterSpec,
+  checkComparedTaxa
+} from '../../shared/model';
 
 export const router = Router();
 
@@ -16,7 +20,10 @@ router.post('/get_seeds', async (req: Request, res) => {
 
   // TODO: validate params
 
-  if (!checkComparedTaxa(clusterSpec.comparedTaxa)) {
+  if (
+    maxClusters > MAX_ALLOWED_CLUSTERS ||
+    !checkComparedTaxa(clusterSpec.comparedTaxa)
+  ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 

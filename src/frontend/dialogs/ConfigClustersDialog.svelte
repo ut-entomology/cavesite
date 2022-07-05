@@ -1,9 +1,8 @@
 <script lang="ts">
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { ComparedTaxa } from '../../shared/model';
+  import { MAX_ALLOWED_CLUSTERS, ComparedTaxa } from '../../shared/model';
   import type { ClusteringConfig } from '../lib/cluster_data';
 
-  const MAX_MAX_CLUSTERS = 40;
   const MAX_MAX_POINTS_TO_REGRESS = 20;
 
   export let config: ClusteringConfig;
@@ -48,7 +47,7 @@
           class="form-select form-select-sm item_select"
           aria-label=".form-select-sm example"
         >
-          {#each { length: MAX_MAX_CLUSTERS } as _, i}
+          {#each { length: MAX_ALLOWED_CLUSTERS } as _, i}
             <option value={i + 1}>{i + 1}</option>
           {/each}
         </select>
