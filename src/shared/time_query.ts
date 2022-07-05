@@ -1,3 +1,4 @@
+import { ALL_DIGIT } from '@zxcvbn-ts/core/dist/data/const';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -8,6 +9,10 @@ import {
 } from './general_query';
 
 export const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const ADULTS_REGEX = /(\d+) *(adult|male|female|worker|alate|queen)/gi;
+const IMMATURES_REGEX = /(\d+) *(im\.|imm|juv|pupa|larva)/gi;
+
 const _daysEpochByYear: Record<number, number> = [];
 const _daysEpochByYearAndSeason: Record<number, number[]> = [];
 
@@ -57,6 +62,11 @@ export function convertTimeQuery(timeGraphQuery: TimeGraphQuery): GeneralQuery {
   });
   columnSpecs.push({
     columnID: QueryColumnID.LifeStage,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.OccurrenceRemarks,
     ascending: null,
     optionText: null
   });
@@ -160,8 +170,25 @@ export class TimeChartTallier {
     const taxonUnique = row.taxonUnique!;
     let specimenCount = row.resultCount! * row.specimenCount!;
 
+    // Count adults, immatures, and unspecifieds.
+
+    let adultCount = this._countLifeStage(ADULTS_REGEX, row.occurrenceRemarks!);
+    let immatureCount = this._countLifeStage(IMMATURES_REGEX, row.occurrenceRemarks!);
+    if (adultCount == 0 && immatureCount == 0) {
+      if (row.lifeStage?.toLowerCase() == 'adult') {
+        adultCount = specimenCount;
+      } else if (row.lifeStage) {
+        immatureCount = specimenCount;
+      }
+    }
+    let unspecifiedCount = specimenCount - adultCount - immatureCount;
+    if (unspecifiedCount < 0) {
+      specimenCount = adultCount + immatureCount;
+      unspecifiedCount = 0;
+    }
+
     // If there's an end date, record the species on a random date of the range
-    // of dates, and divide the specimen count up among all the dates in the range.
+    // of dates, and divide the specimen counts among all the dates in the range.
 
     if (row.collectionEndDate) {
       const endDate = new Date(row.collectionEndDate);
@@ -169,25 +196,31 @@ export class TimeChartTallier {
       const endDaysEpoch = _toDaysEpoch(endDate);
       if (endDaysEpoch != startDaysEpoch) {
         deltaDays = endDaysEpoch - startDaysEpoch;
-        const speciesDeltaDays = Math.floor((deltaDays + 1) * Math.random());
+        const daysInRange = deltaDays + 1;
+        const speciesDeltaDays = Math.floor(daysInRange * Math.random());
         speciesDate = new Date(startDateMillies + speciesDeltaDays * MILLIS_PER_DAY);
-        specimenCount = specimenCount / (deltaDays + 1);
+        adultCount /= daysInRange;
+        immatureCount /= daysInRange;
+        unspecifiedCount /= daysInRange;
+        specimenCount /= daysInRange;
       }
     }
 
-    // Update the species count on a single date.
+    // Update the species counts on a single date.
 
     let dateInfo = _toDateInfo(speciesDate);
     this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.All);
-    if (row.lifeStage?.toLowerCase() == 'adult') {
+    if (adultCount > 0) {
       this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Adult);
-    } else if (row.lifeStage) {
+    }
+    if (immatureCount > 0) {
       this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Immature);
-    } else {
+    }
+    if (unspecifiedCount > 0) {
       this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Unspecified);
     }
 
-    // Update the specimen count on all dates in the range.
+    // Update the specimen counts on all dates in the range.
 
     for (let nextDay = 0; nextDay <= deltaDays; ++nextDay) {
       if (deltaDays > 0) {
@@ -196,12 +229,14 @@ export class TimeChartTallier {
         dateInfo = _toDateInfo(date);
       }
       this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.All);
-      if (row.lifeStage?.toLowerCase() == 'adult') {
-        this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.Adult);
-      } else if (row.lifeStage) {
-        this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.Immature);
-      } else {
-        this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.Unspecified);
+      if (adultCount > 0) {
+        this._updateSpecimenTallies(dateInfo, adultCount, LifeStage.Adult);
+      }
+      if (immatureCount > 0) {
+        this._updateSpecimenTallies(dateInfo, immatureCount, LifeStage.Immature);
+      }
+      if (unspecifiedCount > 0) {
+        this._updateSpecimenTallies(dateInfo, unspecifiedCount, LifeStage.Unspecified);
       }
     }
   }
@@ -251,6 +286,16 @@ export class TimeChartTallier {
       });
     }
     return finalStageTallies;
+  }
+
+  private _countLifeStage(regex: RegExp, remarks: string | null): number {
+    if (remarks == null) return 0;
+    const matches = remarks.matchAll(regex);
+    let total = 0;
+    for (const match of matches) {
+      total += parseInt(match[1]);
+    }
+    return total;
   }
 
   private _updateSpeciesTallies(
