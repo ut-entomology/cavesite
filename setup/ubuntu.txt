@@ -21,17 +21,17 @@ sudo npm install -g pm2
 
 (3) Add the following to /etc/nginx/sites-available/caves.conf, at the very start of the file, before "server {" (e.g. "sudo vim /etc/nginx/sites-available/caves.conf").
 
-    upstream app_yourdomain {
-        server 127.0.0.1:3000;
-        keepalive 8;
-    }
+upstream app_yourdomain {
+    server 127.0.0.1:3000;
+    keepalive 8;
+}
     
 (4) Add the following to /etc/nginx/sites-available/caves.conf before the final bracket of "server { ... }":
 
-	location / {
-		root /var/www/html;
-		index index.html;
-	}
+    location / {
+        root /var/www/html;
+        try_files $uri $uri/ /index.html =404;
+    }
 
     location /api {
       proxy_set_header X-Real-IP $remote_addr;
@@ -87,10 +87,10 @@ Otherwise update the repo:
     
 (11) From within ~/cavesite:
 
-	./bin/setup-db
-	yarn build
-	sudo ./bin/deploy
-	
+    ./bin/setup-db
+    yarn build
+    sudo ./bin/deploy
+    
 (12) From the client, use scp to copy the uploadable datafile to the host (temporary measure until integrated with GBIF):
 
 scp uploadable.csv user@caves.tacc.utexas.edu:~/
