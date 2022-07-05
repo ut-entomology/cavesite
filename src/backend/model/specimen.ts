@@ -602,7 +602,7 @@ export class Specimen {
     if (skip == 0) {
       const result = await db.query(
         `select count(*) from (select ${countedClause} from specimens
-          ${whereClause}) as temp`
+          ${whereClause} ${groupByClause}) as temp`
       );
       // postgres returns counts as strings
       totalResults = parseInt(result.rows[0].count);
