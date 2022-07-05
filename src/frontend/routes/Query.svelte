@@ -261,7 +261,7 @@
       title={$pageName}
       center={false}
       expandable={true}
-      instructions="Specify the optional filters for new queries using the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs."
+      instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters for new queries."
     >
       <span slot="main-buttons">
         <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
