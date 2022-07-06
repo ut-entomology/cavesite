@@ -55,7 +55,7 @@ export function createHistoryGraphSpec(
       case 'seasonalSpeciesTotals':
         yAxisLabel = 'total species';
       case 'seasonalSpecimenTotals':
-        xAxisLabel = 'season';
+        xAxisLabel = 'year and season';
         linePoints = _createSeasonalHistoryPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore

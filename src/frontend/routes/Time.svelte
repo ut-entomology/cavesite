@@ -265,7 +265,7 @@
     <TabHeader
       title={$pageName}
       center={false}
-      instructions="Specify the optional filters for new charts using the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs."
+      instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters to use when loading data."
     >
       <span slot="main-buttons">
         <button class="btn btn-minor" type="button" on:click={clearData}>Clear</button>
