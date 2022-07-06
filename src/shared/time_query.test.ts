@@ -1,14 +1,20 @@
 import {
   LifeStage,
   HistoryStageTallies,
-  //SeasonalityStageTallies,
-  TimeChartTallier,
-  SeasonalityStageTallies
+  SeasonalityStageTallies,
+  TimeChartTallier
 } from './time_query';
 
-test('date computation', () => {
+test('date season date ranges', () => {
   const tallier = new TimeChartTallier();
 
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2021, 2, 24),
+    taxonUnique: 'Steatoda',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2021, 11, 31),
@@ -23,34 +29,48 @@ test('date computation', () => {
     specimenCount: 1,
     lifeStage: 'adult'
   });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2023, 6, 1),
+    taxonUnique: 'Pholcus',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2023, 9, 1),
+    taxonUnique: 'Xysticus',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
 
   const history = tallier.getHistoryStageTallies();
   const seasonality = tallier.getSeasonalityStageTallies();
   // prettier-ignore
   checkHistorySpecies(history, LifeStage.Adult, [
-    [[202112, 1], [202201, 1]],
-    [[20213, 2]],
-    [[2021, 1], [2022, 1]]
+    [[202103, 1], [202112, 1], [202201, 1], [202307, 1], [202310, 1]],
+    [[20210, 1], [20213, 2], [20231, 1], [20232, 1]],
+    [[2021, 2], [2022, 1], [2023, 2]]
   ]);
   // prettier-ignore
   checkHistorySpecimens(history, LifeStage.Adult, [
-    [[202112, 1], [202201, 1]],
-    [[20213, 2]],
-    [[2021, 1], [2022, 1]]
+    [[202103, 1], [202112, 1], [202201, 1], [202307, 1], [202310, 1]],
+    [[20210, 1], [20213, 2], [20231, 1], [20232, 1]],
+    [[2021, 2], [2022, 1], [2023, 2]]
   ]);
   // prettier-ignore
   checkSeasonalitySpecies(seasonality, LifeStage.Adult, [
-    [[1, 1], [52, 1]],
-    [[1, 1], [26, 1]],
-    [[1, 1], [12, 1]],
-    [[3, 2]]
+    [[1, 1], [12, 1], [26, 1], [40, 1], [52, 1]],
+    [[1, 1], [6, 1], [13, 1], [20, 1], [26, 1]],
+    [[1, 1], [3, 1], [7, 1], [10, 1], [12, 1]],
+    [[0, 1], [1, 1], [2, 1], [3, 2]]
   ]);
   // prettier-ignore
   checkSeasonalitySpecimens(seasonality, LifeStage.Adult, [
-    [[1, 1], [52, 1]],
-    [[1, 1], [26, 1]],
-    [[1, 1], [12, 1]],
-    [[3, 2]]
+    [[1, 1], [12, 1], [26, 1], [40, 1], [52, 1]],
+    [[1, 1], [6, 1], [13, 1], [20, 1], [26, 1]],
+    [[1, 1], [3, 1], [7, 1], [10, 1], [12, 1]],
+    [[0, 1], [1, 1], [2, 1], [3, 2]]
   ]);
 });
 
@@ -82,6 +102,7 @@ function checkSeasonalitySpecies(
   pairsByTimeUnit: number[][][]
 ): void {
   const stageTallies = talliesByStage[lifeStage];
+  console.log('seasonality stateTallies', stageTallies);
   checkSeasonalityTimeUnit(stageTallies, 'weeklySpeciesTotals', pairsByTimeUnit[0]);
   checkSeasonalityTimeUnit(stageTallies, 'biweeklySpeciesTotals', pairsByTimeUnit[1]);
   checkSeasonalityTimeUnit(stageTallies, 'monthlySpeciesTotals', pairsByTimeUnit[2]);
@@ -94,6 +115,7 @@ function checkSeasonalitySpecimens(
   pairsByTimeUnit: number[][][]
 ): void {
   const stageTallies = talliesByStage[lifeStage];
+  console.log('seasonality stateTallies', stageTallies);
   checkSeasonalityTimeUnit(stageTallies, 'weeklySpecimenTotals', pairsByTimeUnit[0]);
   checkSeasonalityTimeUnit(stageTallies, 'biweeklySpecimenTotals', pairsByTimeUnit[1]);
   checkSeasonalityTimeUnit(stageTallies, 'monthlySpecimenTotals', pairsByTimeUnit[2]);
@@ -107,7 +129,7 @@ function checkHistoryTimeUnit(
 ): void {
   const timeUnitTotals = tallies[propertyName];
   for (const pair of pairs) {
-    //console.log(`checking history ${propertyName} ${pair}`);
+    console.log(`checking history ${propertyName} ${pair}`);
     expect(timeUnitTotals[pair[0]]).toEqual(pair[1]);
   }
   expect(Object.keys(timeUnitTotals).length).toEqual(pairs.length);
@@ -120,7 +142,7 @@ function checkSeasonalityTimeUnit(
 ): void {
   const timeUnitTotals = tallies[propertyName];
   for (const pair of pairs) {
-    //console.log(`checking seasonality ${propertyName} ${pair}`);
+    console.log(`checking seasonality ${propertyName} ${pair}`);
     expect(timeUnitTotals[pair[0]]).toEqual(pair[1]);
   }
   expect(Object.keys(timeUnitTotals).length).toEqual(pairs.length);
