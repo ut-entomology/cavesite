@@ -256,9 +256,9 @@ export class TimeChartTallier {
           (tallies) => Object.keys(tallies).length
         ),
 
-        monthlySpecimenTotals: stageTallies.monthlySpecimenTotals,
-        seasonalSpecimenTotals: stageTallies.seasonalSpecimenTotals,
-        yearlySpecimenTotals: stageTallies.yearlySpecimenTotals
+        monthlySpecimenTotals: _roundTotals(stageTallies.monthlySpecimenTotals),
+        seasonalSpecimenTotals: _roundTotals(stageTallies.seasonalSpecimenTotals),
+        yearlySpecimenTotals: _roundTotals(stageTallies.yearlySpecimenTotals)
       });
     }
     return finalStageTallies;
@@ -280,10 +280,10 @@ export class TimeChartTallier {
         seasonalSpeciesTotals: stageTallies.seasonalSpeciesTallies.map(
           (tallies) => Object.keys(tallies).length
         ),
-        weeklySpecimenTotals: stageTallies.weeklySpecimenTotals,
-        biweeklySpecimenTotals: stageTallies.biweeklySpecimenTotals,
-        monthlySpecimenTotals: stageTallies.monthlySpecimenTotals,
-        seasonalSpecimenTotals: stageTallies.seasonalSpecimenTotals
+        weeklySpecimenTotals: _roundTotals(stageTallies.weeklySpecimenTotals),
+        biweeklySpecimenTotals: _roundTotals(stageTallies.biweeklySpecimenTotals),
+        monthlySpecimenTotals: _roundTotals(stageTallies.monthlySpecimenTotals),
+        seasonalSpecimenTotals: _roundTotals(stageTallies.seasonalSpecimenTotals)
       });
     }
     return finalStageTallies;
@@ -429,4 +429,8 @@ function _toDateInfo(date: Date): _DateInfo {
 // TODO: use this globally
 function _toDaysEpoch(date: Date): number {
   return Math.floor(date.getTime() / MILLIS_PER_DAY);
+}
+
+function _roundTotals(totals: number[]): number[] {
+  return totals.map((total) => Math.round(total * 10) / 10);
 }
