@@ -26,9 +26,9 @@ export interface TimeGraphQuery {
 
 // TODO: If I only stack bar graphs, I can remove All.
 export enum LifeStage {
-  Adult,
-  Immature,
   Unspecified,
+  Immature,
+  Adult,
   //All,
   _LENGTH
 }
@@ -387,6 +387,7 @@ interface _DateInfo {
 // returns weeks since epoch (millis = 0), resetting each week at start of year
 function _toDateInfo(date: Date): _DateInfo {
   const year = date.getFullYear();
+  let seasonYear = year;
   const month = date.getMonth() + 1; // 1-based
   const daysEpoch = _toDaysEpoch(date);
 
@@ -394,32 +395,40 @@ function _toDateInfo(date: Date): _DateInfo {
   // in order to hasten computation.
   let yearStartDaysEpoch = _daysEpochByYear[year];
   if (yearStartDaysEpoch === undefined) {
-    yearStartDaysEpoch = _toDaysEpoch(new Date(year, 1, 1));
+    yearStartDaysEpoch = _toDaysEpoch(new Date(year, 0 /*Jan*/, 1));
     _daysEpochByYear[year] = yearStartDaysEpoch;
 
     const daysEpochBySeason: number[] = [];
     const leap = year % 4 == 0 && (year % 400 == 0 || year % 100 != 0) ? 1 : 0;
-    daysEpochBySeason[0] = _toDaysEpoch(new Date(year, 3, 20 + leap));
-    daysEpochBySeason[1] = _toDaysEpoch(new Date(year, 6, 21 + leap));
-    daysEpochBySeason[2] = _toDaysEpoch(new Date(year, 9, 22 + leap));
-    daysEpochBySeason[3] = _toDaysEpoch(new Date(year, 12, 21 + leap));
+    daysEpochBySeason[0] = _toDaysEpoch(new Date(year, 2, 20 + leap));
+    daysEpochBySeason[1] = _toDaysEpoch(new Date(year, 5, 21 + leap));
+    daysEpochBySeason[2] = _toDaysEpoch(new Date(year, 8, 22 + leap));
+    daysEpochBySeason[3] = _toDaysEpoch(new Date(year, 11, 21 + leap));
     _daysEpochByYearAndSeason[year] = daysEpochBySeason;
   }
 
   const dayOfYear = daysEpoch - yearStartDaysEpoch + 1; // 1-based
-  const week = Math.ceil(dayOfYear / 7); // 1-based
-  const season =
-    _daysEpochByYearAndSeason[year].findIndex(
-      (seasonStartDaysEpoch) => daysEpoch >= seasonStartDaysEpoch
-    ) || 0;
+  let week = Math.ceil(dayOfYear / 7); // 1-based
+  if (week == 53) week = 52; // 1 extra day most years; 2 extra days leap years
+  // 0 = spring; 1 = summer; 2 = fall; 3 = winter
+  const fortnight = Math.ceil(week / 2); // 1-based
+  const daysEpochBySeason = _daysEpochByYearAndSeason[year];
+  let season = 4;
+  while (--season >= 0) {
+    if (daysEpoch >= daysEpochBySeason[season]) break;
+  }
+  if (season < 0) {
+    seasonYear -= 1;
+    season = 3;
+  }
 
   return {
     year,
     season,
     month,
-    fortnight: Math.ceil(week / 2),
+    fortnight,
     week,
-    yearSeason: year * 10 + season,
+    yearSeason: seasonYear * 10 + season,
     yearMonth: year * 100 + month
   };
 }

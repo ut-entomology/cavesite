@@ -281,6 +281,7 @@
     {#if !$cachedData}
       <EmptyTab message={'Click the "Load Data" button to generate new charts.'} />
     {:else}
+      <div>TBD: Need title saying what was queried</div>
       <div class="row justify-content-center mt-3 gx-3">
         <div class="col-auto chart_type">Seasonality</div>
         <div class="col-auto">
@@ -444,7 +445,8 @@
       allowing for fractional specimen counts. "Total species" is the number of distinct
       taxonomic determinations made, so that for example, the determinations "<i
         >Cicurina</i
-      >" and "<i>Cicurina cueva</i>" count as distinct "species."
+      >" and "<i>Cicurina cueva</i>" count as distinct "species. In weekly and biweekly
+      charts, the one or two days of the 53rd week are tacked onto the 52nd week."
     </TabFootnote>
   </div>
 </DataTabRoute>
