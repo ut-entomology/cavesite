@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  import { writable } from 'svelte/store';
+  import { createSessionStore } from '../util/session_store';
 
   import {
     type TimeGraphQuery,
@@ -36,7 +36,7 @@
     seasonalityGraphSpecs: SeasonalityGraphSpecs;
   }
 
-  export const cachedData = writable<TimeGraphData | null>(null);
+  export const cachedData = createSessionStore<TimeGraphData | null>('time_data', null);
 </script>
 
 <script lang="ts">
@@ -47,6 +47,7 @@
     type TimeGraphQueryRequest
   } from '../dialogs/TimeFilterDialog.svelte';
   import TimeGraph from '../components/TimeGraph.svelte';
+  import TabFootnote from '../components/TabFootnote.svelte';
   import { pageName } from '../stores/pageName';
   import { showNotice } from '../common/VariableNotice.svelte';
   import type { GeneralQuery, QueryRow } from '../../shared/general_query';
@@ -54,7 +55,7 @@
   import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
   import { client, errorReason } from '../stores/client';
 
-  $pageName = 'Time';
+  $pageName = 'Seasonality and History';
 
   enum CountUnits {
     species = 'species',
@@ -268,152 +269,181 @@
       instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters to use when loading data."
     >
       <span slot="main-buttons">
-        <button class="btn btn-minor" type="button" on:click={clearData}>Clear</button>
+        {#if $cachedData}
+          <button class="btn btn-minor" type="button" on:click={clearData}>Clear</button
+          >
+        {/if}
         <button class="btn btn-major" type="button" on:click={loadData}
           >{$cachedData ? 'Change' : 'Load'} Data</button
         >
       </span>
     </TabHeader>
-  </div>
-  {#if !$cachedData}
-    <EmptyTab message={'Click the "Load Data" button to generate new charts.'} />
-  {:else}
-    <div class="row justify-content-center">
-      <div class="col-auto">
-        <div class="btn-group" role="group" aria-label="Seasonality count units">
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={seasonalityYUnits}
-            name="seasonalityYUnits"
-            id="seasonalitySpecies"
-            value={CountUnits.species}
-          />
-          <label class="btn btn-outline-primary" for="seasonalitySpecies">Species</label
-          >
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={seasonalityYUnits}
-            name="seasonalityYUnits"
-            id="seasonalitySpecimens"
-            value={CountUnits.specimens}
-          />
-          <label class="btn btn-outline-primary" for="seasonalitySpecimens"
-            >Specimens</label
-          >
+    {#if !$cachedData}
+      <EmptyTab message={'Click the "Load Data" button to generate new charts.'} />
+    {:else}
+      <div class="row justify-content-center mt-3 gx-3">
+        <div class="col-auto chart_type">Seasonality</div>
+        <div class="col-auto">
+          <div class="btn-group" role="group" aria-label="Seasonality count units">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={seasonalityYUnits}
+              name="seasonalityYUnits"
+              id="seasonalitySpecies"
+              value={CountUnits.species}
+            />
+            <label class="btn btn-outline-primary" for="seasonalitySpecies"
+              >Species</label
+            >
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={seasonalityYUnits}
+              name="seasonalityYUnits"
+              id="seasonalitySpecimens"
+              value={CountUnits.specimens}
+            />
+            <label class="btn btn-outline-primary" for="seasonalitySpecimens"
+              >Specimens</label
+            >
+          </div>
         </div>
-        <div class="btn-group" role="group" aria-label="Seasonality units of time">
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={seasonalityXUnits}
-            name="seasonalityXUnits"
-            id="seasonalitySeasonal"
-            value={SeasonalityXUnits.seasonally}
-          />
-          <label class="btn btn-outline-primary" for="seasonalitySeasonal"
-            >Seasonally</label
-          >
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={seasonalityXUnits}
-            name="seasonalityXUnits"
-            id="seasonalityMonthly"
-            value={SeasonalityXUnits.monthly}
-          />
-          <label class="btn btn-outline-primary" for="seasonalityMonthly">Monthly</label
-          >
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={seasonalityXUnits}
-            name="seasonalityXUnits"
-            id="seasonalityBiweekly"
-            value={SeasonalityXUnits.biweekly}
-          />
-          <label class="btn btn-outline-primary" for="seasonalityBiweekly"
-            >Biweekly</label
-          >
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={seasonalityXUnits}
-            name="seasonalityXUnits"
-            id="seasonalityWeekly"
-            value={SeasonalityXUnits.weekly}
-          />
-          <label class="btn btn-outline-primary" for="seasonalityWeekly">Weekly</label>
+        <div class="col-auto">
+          <div class="btn-group" role="group" aria-label="Seasonality units of time">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={seasonalityXUnits}
+              name="seasonalityXUnits"
+              id="seasonalitySeasonal"
+              value={SeasonalityXUnits.seasonally}
+            />
+            <label class="btn btn-outline-primary" for="seasonalitySeasonal"
+              >Seasonally</label
+            >
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={seasonalityXUnits}
+              name="seasonalityXUnits"
+              id="seasonalityMonthly"
+              value={SeasonalityXUnits.monthly}
+            />
+            <label class="btn btn-outline-primary" for="seasonalityMonthly"
+              >Monthly</label
+            >
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={seasonalityXUnits}
+              name="seasonalityXUnits"
+              id="seasonalityBiweekly"
+              value={SeasonalityXUnits.biweekly}
+            />
+            <label class="btn btn-outline-primary" for="seasonalityBiweekly"
+              >Biweekly</label
+            >
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={seasonalityXUnits}
+              name="seasonalityXUnits"
+              id="seasonalityWeekly"
+              value={SeasonalityXUnits.weekly}
+            />
+            <label class="btn btn-outline-primary" for="seasonalityWeekly">Weekly</label
+            >
+          </div>
         </div>
       </div>
-    </div>
-    <div class="time_graph">
-      <TimeGraph
-        spec={_getSeasonalityGraphSpec(seasonalityXUnits, seasonalityYUnits)}
-      />
-    </div>
+      <div class="row mt-3 mb-3 time_graph">
+        <div class="col">
+          <TimeGraph
+            spec={_getSeasonalityGraphSpec(seasonalityXUnits, seasonalityYUnits)}
+          />
+        </div>
+      </div>
 
-    <div class="row justify-content-center">
-      <div class="col-auto">
-        <div class="btn-group" role="group" aria-label="History count units">
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={historyYUnits}
-            name="historyYUnits"
-            id="historySpecies"
-            value={CountUnits.species}
-          />
-          <label class="btn btn-outline-primary" for="historySpecies">Species</label>
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={historyYUnits}
-            name="historyYUnits"
-            id="historySpecimens"
-            value={CountUnits.specimens}
-          />
-          <label class="btn btn-outline-primary" for="historySpecimens">Specimens</label
-          >
+      <hr />
+
+      <div class="row justify-content-center mt-4 gx-3">
+        <div class="col-auto chart_type">History</div>
+        <div class="col-auto">
+          <div class="btn-group" role="group" aria-label="History count units">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={historyYUnits}
+              name="historyYUnits"
+              id="historySpecies"
+              value={CountUnits.species}
+            />
+            <label class="btn btn-outline-primary" for="historySpecies">Species</label>
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={historyYUnits}
+              name="historyYUnits"
+              id="historySpecimens"
+              value={CountUnits.specimens}
+            />
+            <label class="btn btn-outline-primary" for="historySpecimens"
+              >Specimens</label
+            >
+          </div>
         </div>
-        <div class="btn-group" role="group" aria-label="History units of time">
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={historyXUnits}
-            name="historyXUnits"
-            id="historyYearly"
-            value={HistoryXUnits.yearly}
-          />
-          <label class="btn btn-outline-primary" for="historyYearly">Yearly</label>
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={historyXUnits}
-            name="historyXUnits"
-            id="historySeasonally"
-            value={HistoryXUnits.seasonally}
-          />
-          <label class="btn btn-outline-primary" for="historySeasonally"
-            >Seasonally</label
-          >
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={historyXUnits}
-            name="historyXUnits"
-            id="historyMonthly"
-            value={HistoryXUnits.monthly}
-          />
-          <label class="btn btn-outline-primary" for="historyMonthly">Monthly</label>
+        <div class="col-auto">
+          <div class="btn-group" role="group" aria-label="History units of time">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={historyXUnits}
+              name="historyXUnits"
+              id="historyYearly"
+              value={HistoryXUnits.yearly}
+            />
+            <label class="btn btn-outline-primary" for="historyYearly">Yearly</label>
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={historyXUnits}
+              name="historyXUnits"
+              id="historySeasonally"
+              value={HistoryXUnits.seasonally}
+            />
+            <label class="btn btn-outline-primary" for="historySeasonally"
+              >Seasonally</label
+            >
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={historyXUnits}
+              name="historyXUnits"
+              id="historyMonthly"
+              value={HistoryXUnits.monthly}
+            />
+            <label class="btn btn-outline-primary" for="historyMonthly">Monthly</label>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="time_graph">
-      <TimeGraph spec={_getHistoryGraphSpec(historyXUnits, historyYUnits)} />
-    </div>
-  {/if}
+      <div class="row mt-3 time_graph">
+        <div class="col">
+          <div class="time_graph">
+            <TimeGraph spec={_getHistoryGraphSpec(historyXUnits, historyYUnits)} />
+          </div>
+        </div>
+      </div>
+      <hr />
+    {/if}
+    <TabFootnote>
+      Blank and zero specimen counts are treated as single specimens. Species collected
+      over a range of days are each randomly assigned to a date within the range, which
+      may cause seasonality charts to vary slightly from load to load. The counts of
+      specimens collected over a range of days are evenly distributed across those days,
+      allowing for fractional specimen counts.
+    </TabFootnote>
+  </div>
 </DataTabRoute>
 
 {#if queryRequest !== null}
@@ -425,6 +455,13 @@
 {/if}
 
 <style>
+  .chart_type {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+  .btn-group label {
+    font-size: 0.9em;
+  }
   .time_graph {
     height: 400px;
   }
