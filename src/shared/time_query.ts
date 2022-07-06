@@ -173,12 +173,19 @@ export class TimeChartTallier {
 
     // Count adults, immatures, and unspecifieds.
 
+    const lifeStage = row.lifeStage?.toLowerCase();
     let adultCount = this._countLifeStage(ADULTS_REGEX, row.occurrenceRemarks!);
     let immatureCount = this._countLifeStage(IMMATURES_REGEX, row.occurrenceRemarks!);
+    if (adultCount == 0 && lifeStage == 'adult') {
+      adultCount = specimenCount - immatureCount;
+    }
+    if (immatureCount == 0 && lifeStage == 'immature') {
+      immatureCount = specimenCount - adultCount;
+    }
     if (adultCount == 0 && immatureCount == 0) {
-      if (row.lifeStage?.toLowerCase() == 'adult') {
+      if (lifeStage == 'adult') {
         adultCount = specimenCount;
-      } else if (row.lifeStage) {
+      } else if (lifeStage) {
         immatureCount = specimenCount;
       }
     }

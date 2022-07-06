@@ -74,6 +74,34 @@ test('date season date ranges', () => {
   ]);
 });
 
+test('distribution of specimens between start and end dates', () => {
+  const tallier = new TimeChartTallier();
+
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 30), // 2 days in 1st month
+    collectionEndDate: new Date(2022, 1, 2), // 2 days in 2nd month
+    taxonUnique: 'Cicurina',
+    specimenCount: 4
+  });
+
+  const history = tallier.getHistoryStageTallies();
+  const seasonality = tallier.getSeasonalityStageTallies();
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Unspecified, [
+    [[202201, 2], [202202, 2]],
+    [[20213, 4]],
+    [[2022, 4]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecimens(seasonality, LifeStage.Unspecified, [
+    [[5, 4]],
+    [[3, 4]],
+    [[1, 2], [2, 2]],
+    [[3, 4]]
+  ]);
+});
+
 test('overlapping dates for different taxa and specimen and result counts', () => {
   const tallier = new TimeChartTallier();
 
@@ -272,7 +300,80 @@ test('separation of different life stages', () => {
 });
 
 test('life stage indications in remarks', () => {
-  //
+  const tallier = new TimeChartTallier();
+
+  tallier.addTimeQueryRow({
+    // 1 adult, 2 immature
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 3,
+    lifeStage: 'adult',
+    occurrenceRemarks: '2 immatures'
+  });
+  tallier.addTimeQueryRow({
+    // 1 adult, 6 immature
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 7,
+    lifeStage: 'immature',
+    occurrenceRemarks: '1 adult'
+  });
+  tallier.addTimeQueryRow({
+    // 3 adults, 2 unspecified
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 5,
+    occurrenceRemarks: '3 adults'
+  });
+  tallier.addTimeQueryRow({
+    // 2 adults, 1 immature, 7 unspecified
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 10,
+    occurrenceRemarks: '2 adults, 1 im.'
+  });
+  tallier.addTimeQueryRow({
+    // 5 immatures
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 5,
+    lifeStage: 'immature',
+    occurrenceRemarks: '5 immatures'
+  });
+
+  const history = tallier.getHistoryStageTallies();
+
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Unspecified, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Unspecified, [
+    [[202201, 9]], [[20213, 9]], [[2022, 9]]
+  ]);
+
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Immature, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Immature, [
+    [[202201, 14]], [[20213, 14]], [[2022, 14]]
+  ]);
+
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Adult, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Adult, [
+    [[202201, 7]], [[20213, 7]], [[2022, 7]]
+  ]);
 });
 
 function checkHistorySpecies(
@@ -303,7 +404,6 @@ function checkSeasonalitySpecies(
   pairsByTimeUnit: number[][][]
 ): void {
   const stageTallies = talliesByStage[lifeStage];
-  console.log('seasonality stateTallies', stageTallies);
   checkSeasonalityTimeUnit(stageTallies, 'weeklySpeciesTotals', pairsByTimeUnit[0]);
   checkSeasonalityTimeUnit(stageTallies, 'biweeklySpeciesTotals', pairsByTimeUnit[1]);
   checkSeasonalityTimeUnit(stageTallies, 'monthlySpeciesTotals', pairsByTimeUnit[2]);
@@ -316,7 +416,6 @@ function checkSeasonalitySpecimens(
   pairsByTimeUnit: number[][][]
 ): void {
   const stageTallies = talliesByStage[lifeStage];
-  console.log('seasonality stateTallies', stageTallies);
   checkSeasonalityTimeUnit(stageTallies, 'weeklySpecimenTotals', pairsByTimeUnit[0]);
   checkSeasonalityTimeUnit(stageTallies, 'biweeklySpecimenTotals', pairsByTimeUnit[1]);
   checkSeasonalityTimeUnit(stageTallies, 'monthlySpecimenTotals', pairsByTimeUnit[2]);
@@ -330,7 +429,7 @@ function checkHistoryTimeUnit(
 ): void {
   const timeUnitTotals = tallies[propertyName];
   for (const pair of pairs) {
-    console.log(`checking history ${propertyName} ${pair}`);
+    // console.log(`checking history ${propertyName} ${pair}`);
     expect(timeUnitTotals[pair[0]]).toEqual(pair[1]);
   }
   expect(Object.keys(timeUnitTotals).length).toEqual(pairs.length);
@@ -343,7 +442,7 @@ function checkSeasonalityTimeUnit(
 ): void {
   const timeUnitTotals = tallies[propertyName];
   for (const pair of pairs) {
-    console.log(`checking seasonality ${propertyName} ${pair}`);
+    // console.log(`checking seasonality ${propertyName} ${pair}`);
     expect(timeUnitTotals[pair[0]]).toEqual(pair[1]);
   }
   expect(Object.keys(timeUnitTotals).length).toEqual(pairs.length);
