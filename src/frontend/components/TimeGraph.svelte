@@ -24,11 +24,6 @@
     maintainAspectRatio: false,
     scales: {
       x: {
-        title: {
-          display: true,
-          text: spec.xAxisLabel,
-          font: { size: 16 }
-        },
         stacked: true
       },
       y: {

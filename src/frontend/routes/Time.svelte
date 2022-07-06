@@ -266,7 +266,7 @@
     <TabHeader
       title={$pageName}
       center={false}
-      instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters to use when loading data."
+      instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters to use when loading data. Click on the colored boxes in a chart's legend to hide and show particular life stages. See the note at the bottom for caveats."
     >
       <span slot="main-buttons">
         {#if $cachedData}
@@ -357,7 +357,7 @@
           </div>
         </div>
       </div>
-      <div class="row mt-3 mb-3 time_graph">
+      <div class="row mt-3 time_graph">
         <div class="col">
           <TimeGraph
             spec={_getSeasonalityGraphSpec(seasonalityXUnits, seasonalityYUnits)}
@@ -365,7 +365,7 @@
         </div>
       </div>
 
-      <hr />
+      <hr style="margin-top: 2rem" />
 
       <div class="row justify-content-center mt-4 gx-3">
         <div class="col-auto chart_type">History</div>
