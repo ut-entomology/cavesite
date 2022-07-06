@@ -441,7 +441,10 @@
       over a range of days are each randomly assigned to a date within the range, which
       may cause seasonality charts to vary slightly from load to load. The counts of
       specimens collected over a range of days are evenly distributed across those days,
-      allowing for fractional specimen counts.
+      allowing for fractional specimen counts. "Total species" is the number of distinct
+      taxonomic determinations made, so that for example, the determinations "<i
+        >Cicurina</i
+      >" and "<i>Cicurina cueva</i>" count as distinct "species."
     </TabFootnote>
   </div>
 </DataTabRoute>
