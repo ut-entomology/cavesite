@@ -74,6 +74,207 @@ test('date season date ranges', () => {
   ]);
 });
 
+test('overlapping dates for different taxa and specimen and result counts', () => {
+  const tallier = new TimeChartTallier();
+
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Steatoda',
+    specimenCount: 2,
+    lifeStage: 'adult'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 5,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Latrodectus',
+    specimenCount: 3,
+    lifeStage: 'adult'
+  });
+
+  const history = tallier.getHistoryStageTallies();
+  const seasonality = tallier.getSeasonalityStageTallies();
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Adult, [
+    [[202201, 3]],
+    [[20213, 3]],
+    [[2022, 3]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Adult, [
+    [[202201, 18]],
+    [[20213, 18]],
+    [[2022, 18]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecies(seasonality, LifeStage.Adult, [
+    [[1, 3]],
+    [[1, 3]],
+    [[1, 3]],
+    [[3, 3]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecimens(seasonality, LifeStage.Adult, [
+    [[1, 18]],
+    [[1, 18]],
+    [[1, 18]],
+    [[3, 18]]
+  ]);
+});
+
+test('overlapping dates and taxa for different specimen counts', () => {
+  const tallier = new TimeChartTallier();
+
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Steatoda',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 3,
+    lifeStage: 'adult'
+  });
+
+  const history = tallier.getHistoryStageTallies();
+  const seasonality = tallier.getSeasonalityStageTallies();
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Adult, [
+    [[202201, 2]],
+    [[20213, 2]],
+    [[2022, 2]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Adult, [
+    [[202201, 5]],
+    [[20213, 5]],
+    [[2022, 5]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecies(seasonality, LifeStage.Adult, [
+    [[1, 2]],
+    [[1, 2]],
+    [[1, 2]],
+    [[3, 2]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecimens(seasonality, LifeStage.Adult, [
+    [[1, 5]],
+    [[1, 5]],
+    [[1, 5]],
+    [[3, 5]]
+  ]);
+});
+
+test('separation of different life stages', () => {
+  const tallier = new TimeChartTallier();
+
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 1,
+    lifeStage: 'adult'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 2,
+    lifeStage: 'immature'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 3,
+    lifeStage: 'juvie'
+  });
+  tallier.addTimeQueryRow({
+    resultCount: 1,
+    collectionStartDate: new Date(2022, 0, 1),
+    taxonUnique: 'Cicurina',
+    specimenCount: 10
+    // lifeStage unspecified
+  });
+
+  const history = tallier.getHistoryStageTallies();
+  const seasonality = tallier.getSeasonalityStageTallies();
+
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Unspecified, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Unspecified, [
+    [[202201, 10]], [[20213, 10]], [[2022, 10]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecies(seasonality, LifeStage.Unspecified, [
+    [[1, 1]], [[1, 1]], [[1, 1]], [[3, 1]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecimens(seasonality, LifeStage.Unspecified, [
+    [[1, 10]], [[1, 10]], [[1, 10]], [[3, 10]]
+  ]);
+
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Immature, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Immature, [
+    [[202201, 5]], [[20213, 5]], [[2022, 5]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecies(seasonality, LifeStage.Immature, [
+    [[1, 1]], [[1, 1]], [[1, 1]], [[3, 1]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecimens(seasonality, LifeStage.Immature, [
+    [[1, 5]], [[1, 5]], [[1, 5]], [[3, 5]]
+  ]);
+
+  // prettier-ignore
+  checkHistorySpecies(history, LifeStage.Adult, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkHistorySpecimens(history, LifeStage.Adult, [
+    [[202201, 1]], [[20213, 1]], [[2022, 1]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecies(seasonality, LifeStage.Adult, [
+    [[1, 1]], [[1, 1]], [[1, 1]], [[3, 1]]
+  ]);
+  // prettier-ignore
+  checkSeasonalitySpecimens(seasonality, LifeStage.Adult, [
+    [[1, 1]], [[1, 1]], [[1, 1]], [[3, 1]]
+  ]);
+});
+
+test('life stage indications in remarks', () => {
+  //
+});
+
 function checkHistorySpecies(
   talliesByStage: HistoryStageTallies[],
   lifeStage: LifeStage,
