@@ -28,7 +28,7 @@ export interface TimeGraphSpec {
   trendsByLifeStage: LifeStageTrend[];
 }
 
-interface LinePoint {
+interface BarPoint {
   y: number;
   xLabel: string | number;
 }
@@ -38,7 +38,7 @@ export function createHistoryGraphSpec(
   totalsProperty: keyof HistoryStageTallies
 ): TimeGraphSpec {
   const trendsByLifeStage: LifeStageTrend[] = [];
-  let linePoints: LinePoint[] = [];
+  let linePoints: BarPoint[] = [];
   let yAxisLabel = 'total specimens';
   let xAxisLabel = 'BLANK';
 
@@ -89,7 +89,7 @@ export function createSeasonalityGraphSpec(
   totalsProperty: keyof SeasonalityStageTallies
 ): TimeGraphSpec {
   const trendsByLifeStage: LifeStageTrend[] = [];
-  let linePoints: LinePoint[] = [];
+  let linePoints: BarPoint[] = [];
   let yAxisLabel = 'total specimens';
   let xAxisLabel = 'BLANK';
 
@@ -148,8 +148,8 @@ function _createMonthlyHistoryPoints(
     HistoryStageTallies,
     'monthlySpeciesTotals' | 'monthlySpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   const totalsByDateCode = tallies[totalsProperty];
   const dateCodeStrings = Object.keys(totalsByDateCode);
   let dateCode = parseInt(dateCodeStrings[0]);
@@ -175,8 +175,8 @@ function _createSeasonalHistoryPoints(
     HistoryStageTallies,
     'seasonalSpeciesTotals' | 'seasonalSpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   const totalsByDateCode = tallies[totalsProperty];
   const dateCodeStrings = Object.keys(totalsByDateCode);
   let dateCode = parseInt(dateCodeStrings[0]);
@@ -202,8 +202,8 @@ function _createYearlyHistoryPoints(
     HistoryStageTallies,
     'yearlySpeciesTotals' | 'yearlySpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   const totalsByYear = tallies[totalsProperty];
   const yearStrings = Object.keys(totalsByYear);
   let year = parseInt(yearStrings[0]);
@@ -223,8 +223,8 @@ function _createWeeklySeasonalityPoints(
     SeasonalityStageTallies,
     'weeklySpeciesTotals' | 'weeklySpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   for (let i = 0; i < 52; ++i) {
     points.push({ y: tallies[totalsProperty][i + 1], xLabel: weeklyLabels[i] });
   }
@@ -237,8 +237,8 @@ function _createBiweeklySeasonalityPoints(
     SeasonalityStageTallies,
     'biweeklySpeciesTotals' | 'biweeklySpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   for (let i = 0; i < 26; ++i) {
     points.push({ y: tallies[totalsProperty][i + 1], xLabel: weeklyLabels[i * 2] });
   }
@@ -251,8 +251,8 @@ function _createMonthlySeasonalityPoints(
     SeasonalityStageTallies,
     'monthlySpeciesTotals' | 'monthlySpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   for (let i = 0; i < 12; ++i) {
     points.push({ y: tallies[totalsProperty][i + 1], xLabel: monthLabels[i] });
   }
@@ -265,8 +265,8 @@ function _createSeasonalSeasonalityPoints(
     SeasonalityStageTallies,
     'seasonalSpeciesTotals' | 'seasonalSpecimenTotals'
   >
-): LinePoint[] {
-  const points: LinePoint[] = [];
+): BarPoint[] {
+  const points: BarPoint[] = [];
   for (let i = 0; i < 4; ++i) {
     points.push({ y: tallies[totalsProperty][i], xLabel: seasonLabels[i] });
   }
@@ -275,7 +275,7 @@ function _createSeasonalSeasonalityPoints(
 
 function _makeWeeklyLabels(): string[] {
   const labels: string[] = [];
-  const anyNonLeapYear = new Date(2021, 1, 1);
+  const anyNonLeapYear = new Date(2021, 0, 1);
   const dateMillies = anyNonLeapYear.getTime();
   for (let i = 0; i < 356; i += 7) {
     const date = new Date(dateMillies + i * MILLIS_PER_DAY);
