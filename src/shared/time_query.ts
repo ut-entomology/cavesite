@@ -210,15 +210,14 @@ export class TimeChartTallier {
     // Update the species counts on a single date.
 
     let dateInfo = _toDateInfo(speciesDate);
-    //this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.All);
-    if (adultCount > 0) {
-      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Adult);
+    if (unspecifiedCount > 0) {
+      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Unspecified);
     }
     if (immatureCount > 0) {
       this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Immature);
     }
-    if (unspecifiedCount > 0) {
-      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Unspecified);
+    if (adultCount > 0) {
+      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Adult);
     }
 
     // Update the specimen counts on all dates in the range.
@@ -229,15 +228,14 @@ export class TimeChartTallier {
         const date = new Date(startDateMillies + nextDay * MILLIS_PER_DAY);
         dateInfo = _toDateInfo(date);
       }
-      //this._updateSpecimenTallies(dateInfo, specimenCount, LifeStage.All);
-      if (adultCount > 0) {
-        this._updateSpecimenTallies(dateInfo, adultCount, LifeStage.Adult);
+      if (unspecifiedCount > 0) {
+        this._updateSpecimenTallies(dateInfo, unspecifiedCount, LifeStage.Unspecified);
       }
       if (immatureCount > 0) {
         this._updateSpecimenTallies(dateInfo, immatureCount, LifeStage.Immature);
       }
-      if (unspecifiedCount > 0) {
-        this._updateSpecimenTallies(dateInfo, unspecifiedCount, LifeStage.Unspecified);
+      if (adultCount > 0) {
+        this._updateSpecimenTallies(dateInfo, adultCount, LifeStage.Adult);
       }
     }
   }

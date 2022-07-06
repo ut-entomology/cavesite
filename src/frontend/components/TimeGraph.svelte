@@ -10,11 +10,11 @@
   data={{
     labels: spec.xValues,
     datasets: [
-      ...spec.trendsByLifeStage.map((line) => {
+      ...spec.trendsByLifeStage.map((trend) => {
         return {
-          label: line.label,
-          data: line.yValues,
-          backgroundColor: '#' + line.hexColor,
+          label: trend.label,
+          data: trend.yValues,
+          backgroundColor: '#' + trend.hexColor,
           fill: true
         };
       })
