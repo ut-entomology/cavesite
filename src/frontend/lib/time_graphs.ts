@@ -6,7 +6,7 @@ import {
 } from '../../shared/time_query';
 
 const labelByLifeStage = ['Unspecified', 'Immatures', 'Adults'];
-const hexColors = ['ff00e9', '74e140', '7200ff'];
+const hexColors = ['ff00e9', '74e140', '7d46eb'];
 // prettier-ignore
 const monthLabels = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
