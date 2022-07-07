@@ -5,7 +5,8 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonTallies, LocationVisit, setTaxonCounts } from './location_visit';
+import { LocationVisit } from './location_visit';
+import { TaxonCounter } from '../../shared/taxon_counter';
 import { ComparedTaxa } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
@@ -79,7 +80,7 @@ export class LocationEffort {
     locationID: number,
     isCave: boolean,
     data: EffortData,
-    tallies: TaxonTallies
+    tallies: TaxonCounter
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
       Object.assign({ locationID, isCave }, tallies, data)
@@ -216,7 +217,7 @@ export class LocationEffort {
           perPersonVisitPoints = [];
           priorLocationID = visit.locationID;
         } else {
-          this._mergeVisit(tallies!, visit);
+          tallies!.mergeCounter(visit);
         }
 
         endDate = visit.endDate || visit.startDate;
@@ -225,7 +226,7 @@ export class LocationEffort {
             (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
           ) + 1;
 
-        totalSpecies = this._countSpecies(tallies!);
+        totalSpecies = tallies!.getSpeciesCount();
         totalDays = visit.endEpochDay - firstEpochDay + 1;
 
         if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
@@ -275,89 +276,4 @@ export class LocationEffort {
       );
     }
   }
-
-  //// PRIVATE CLASS METHODS ///////////////////////////////////////////////
-
-  private static _countSpecies(tallies: TaxonTallies): number {
-    let count = _countOnes(tallies.kingdomCounts);
-    count += _countOnes(tallies.phylumCounts);
-    count += _countOnes(tallies.classCounts);
-    count += _countOnes(tallies.orderCounts);
-    count += _countOnes(tallies.familyCounts);
-    count += _countOnes(tallies.genusCounts);
-    count += _countOnes(tallies.speciesCounts);
-    count += _countOnes(tallies.subspeciesCounts);
-    return count;
-  }
-
-  private static _mergeTaxa(
-    tallies: TaxonTallies,
-    visit: LocationVisit,
-    namesField: keyof TaxonTallies,
-    countsField: keyof TaxonTallies
-  ): void {
-    // Only merge visit values when they exist for the taxon.
-
-    const visitTaxonSeries = visit[namesField];
-    if (visitTaxonSeries !== null) {
-      // If the tally doesn't currently represent the visit taxon, copy over
-      // the visit values for the taxon; otherwise, merge the visit values.
-
-      const tallyTaxonSeries = tallies[namesField];
-      if (tallyTaxonSeries === null) {
-        tallies[namesField] = visitTaxonSeries;
-        tallies[countsField] = visit[countsField]!;
-      } else {
-        const tallyTaxa = tallyTaxonSeries.split('|');
-        const visitTaxa = visitTaxonSeries.split('|');
-        const visitCounts = visit[countsField]!;
-
-        // Separately merge each visit taxon.
-
-        for (let visitIndex = 0; visitIndex < visitTaxa.length; ++visitIndex) {
-          const visitTaxon = visitTaxa[visitIndex];
-          const tallyIndex = tallyTaxa.indexOf(visitTaxon);
-
-          if (visitCounts[visitIndex] == '0') {
-            // When the visit count is 0, a lower taxon provides more specificity,
-            // so the tally must indicate a 0 count for the taxon.
-
-            if (tallyIndex < 0) {
-              tallies[namesField] += '|' + visitTaxon;
-              tallies[countsField] += '0';
-            } else {
-              const taxonCounts = tallies[countsField]!;
-              if (taxonCounts[tallyIndex] == '1') {
-                tallies[countsField] = setTaxonCounts(taxonCounts, tallyIndex, '0');
-              }
-            }
-          } else {
-            // When the visit count is 1, the visit provides no more specificity,
-            // so the tally must indicate a 1 if a tally is not already present.
-
-            if (tallyIndex < 0) {
-              tallies[namesField] += '|' + visitTaxon;
-              tallies[countsField] += '1';
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private static _mergeVisit(tallies: TaxonTallies, visit: LocationVisit): void {
-    this._mergeTaxa(tallies, visit, 'kingdomNames', 'kingdomCounts');
-    this._mergeTaxa(tallies, visit, 'phylumNames', 'phylumCounts');
-    this._mergeTaxa(tallies, visit, 'classNames', 'classCounts');
-    this._mergeTaxa(tallies, visit, 'orderNames', 'orderCounts');
-    this._mergeTaxa(tallies, visit, 'familyNames', 'familyCounts');
-    this._mergeTaxa(tallies, visit, 'genusNames', 'genusCounts');
-    this._mergeTaxa(tallies, visit, 'speciesNames', 'speciesCounts');
-    this._mergeTaxa(tallies, visit, 'subspeciesNames', 'subspeciesCounts');
-  }
-}
-
-function _countOnes(s: string | null): number {
-  if (s === null) return 0;
-  return s.replaceAll('0', '').length;
 }

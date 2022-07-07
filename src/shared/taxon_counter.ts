@@ -21,6 +21,8 @@ export class TaxonCounter {
   subspeciesNames: string | null;
   subspeciesCounts: string | null;
 
+  //// CONSTRUCTION //////////////////////////////////////////////////////////
+
   constructor(data: TaxonCounterData) {
     this.kingdomNames = data.kingdomNames;
     this.kingdomCounts = data.kingdomCounts;
@@ -39,6 +41,8 @@ export class TaxonCounter {
     this.subspeciesNames = data.subspeciesNames;
     this.subspeciesCounts = data.subspeciesCounts;
   }
+
+  //// PUBLIC STATIC METHODS /////////////////////////////////////////////////
 
   static createFromPathSpec(
     pathSpec: TaxonPathSpec,
@@ -63,6 +67,31 @@ export class TaxonCounter {
       subspeciesNames: subspeciesName,
       subspeciesCounts: _toInitialCount(pathSpec.subspeciesName, null)
     });
+  }
+
+  //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
+
+  getSpeciesCount(): number {
+    let count = _countOnes(this.kingdomCounts);
+    count += _countOnes(this.phylumCounts);
+    count += _countOnes(this.classCounts);
+    count += _countOnes(this.orderCounts);
+    count += _countOnes(this.familyCounts);
+    count += _countOnes(this.genusCounts);
+    count += _countOnes(this.speciesCounts);
+    count += _countOnes(this.subspeciesCounts);
+    return count;
+  }
+
+  mergeCounter(otherCounter: TaxonCounter): void {
+    this._mergeTaxa(otherCounter, 'kingdomNames', 'kingdomCounts');
+    this._mergeTaxa(otherCounter, 'phylumNames', 'phylumCounts');
+    this._mergeTaxa(otherCounter, 'classNames', 'classCounts');
+    this._mergeTaxa(otherCounter, 'orderNames', 'orderCounts');
+    this._mergeTaxa(otherCounter, 'familyNames', 'familyCounts');
+    this._mergeTaxa(otherCounter, 'genusNames', 'genusCounts');
+    this._mergeTaxa(otherCounter, 'speciesNames', 'speciesCounts');
+    this._mergeTaxa(otherCounter, 'subspeciesNames', 'subspeciesCounts');
   }
 
   updateForPathSpec(
@@ -103,6 +132,62 @@ export class TaxonCounter {
     this._updateForTaxon(pathSpec.genusName, speciesName, 'genusNames', 'genusCounts');
     this._updateForTaxon(speciesName, subspeciesName, 'speciesNames', 'speciesCounts');
     this._updateForTaxon(subspeciesName, null, 'subspeciesNames', 'subspeciesCounts');
+  }
+
+  //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
+
+  private _mergeTaxa(
+    otherCounter: TaxonCounter,
+    namesField: keyof TaxonCounterData,
+    countsField: keyof TaxonCounterData
+  ): void {
+    // Only merge visit values when they exist for the taxon.
+
+    const otherTaxonSeries = otherCounter[namesField];
+    if (otherTaxonSeries !== null) {
+      // If the tally doesn't currently represent the visit taxon, copy over
+      // the visit values for the taxon; otherwise, merge the visit values.
+
+      const tallyTaxonSeries = this[namesField];
+      if (tallyTaxonSeries === null) {
+        this[namesField] = otherTaxonSeries;
+        this[countsField] = otherCounter[countsField]!;
+      } else {
+        const tallyTaxa = tallyTaxonSeries.split('|');
+        const visitTaxa = otherTaxonSeries.split('|');
+        const otherCounts = otherCounter[countsField]!;
+
+        // Separately merge each visit taxon.
+
+        for (let otherIndex = 0; otherIndex < visitTaxa.length; ++otherIndex) {
+          const visitTaxon = visitTaxa[otherIndex];
+          const tallyIndex = tallyTaxa.indexOf(visitTaxon);
+
+          if (otherCounts[otherIndex] == '0') {
+            // When the visit count is 0, a lower taxon provides more specificity,
+            // so the tally must indicate a 0 count for the taxon.
+
+            if (tallyIndex < 0) {
+              this[namesField] += '|' + visitTaxon;
+              this[countsField] += '0';
+            } else {
+              const taxonCounts = this[countsField]!;
+              if (taxonCounts[tallyIndex] == '1') {
+                this[countsField] = setTaxonCounts(taxonCounts, tallyIndex, '0');
+              }
+            }
+          } else {
+            // When the visit count is 1, the visit provides no more specificity,
+            // so the tally must indicate a 1 if a tally is not already present.
+
+            if (tallyIndex < 0) {
+              this[namesField] += '|' + visitTaxon;
+              this[countsField] += '1';
+            }
+          }
+        }
+      }
+    }
   }
 
   private _updateForTaxon(
@@ -157,6 +242,11 @@ export function setTaxonCounts(
   return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
     offset + 1
   )}`;
+}
+
+function _countOnes(s: string | null): number {
+  if (s === null) return 0;
+  return s.replaceAll('0', '').length;
 }
 
 function _toInitialCount(
