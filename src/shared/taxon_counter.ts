@@ -141,47 +141,48 @@ export class TaxonCounter {
     namesField: keyof TaxonCounterData,
     countsField: keyof TaxonCounterData
   ): void {
-    // Only merge visit values when they exist for the taxon.
+    // Only merge counter values when they exist for the taxon.
 
     const otherTaxonSeries = otherCounter[namesField];
     if (otherTaxonSeries !== null) {
-      // If the tally doesn't currently represent the visit taxon, copy over
-      // the visit values for the taxon; otherwise, merge the visit values.
+      // If this counter doesn't currently represent the other's taxon, copy over
+      // the other's values for the taxon; otherwise, merge the other's values.
 
-      const tallyTaxonSeries = this[namesField];
-      if (tallyTaxonSeries === null) {
+      const taxonSeries = this[namesField];
+      if (taxonSeries === null) {
         this[namesField] = otherTaxonSeries;
         this[countsField] = otherCounter[countsField]!;
       } else {
-        const tallyTaxa = tallyTaxonSeries.split('|');
-        const visitTaxa = otherTaxonSeries.split('|');
+        const taxa = taxonSeries.split('|');
+        const otherTaxa = otherTaxonSeries.split('|');
         const otherCounts = otherCounter[countsField]!;
 
-        // Separately merge each visit taxon.
+        // Separately merge each of the other taxa.
 
-        for (let otherIndex = 0; otherIndex < visitTaxa.length; ++otherIndex) {
-          const visitTaxon = visitTaxa[otherIndex];
-          const tallyIndex = tallyTaxa.indexOf(visitTaxon);
+        for (let otherIndex = 0; otherIndex < otherTaxa.length; ++otherIndex) {
+          const otherTaxon = otherTaxa[otherIndex];
+          const thisIndex = taxa.indexOf(otherTaxon);
 
           if (otherCounts[otherIndex] == '0') {
-            // When the visit count is 0, a lower taxon provides more specificity,
-            // so the tally must indicate a 0 count for the taxon.
+            // When the other's count is 0, a lower taxon of the other counter
+            // provides more specificity, so this counter must indicate a 0
+            // count for the taxon.
 
-            if (tallyIndex < 0) {
-              this[namesField] += '|' + visitTaxon;
+            if (thisIndex < 0) {
+              this[namesField] += '|' + otherTaxon;
               this[countsField] += '0';
             } else {
               const taxonCounts = this[countsField]!;
-              if (taxonCounts[tallyIndex] == '1') {
-                this[countsField] = setTaxonCounts(taxonCounts, tallyIndex, '0');
+              if (taxonCounts[thisIndex] == '1') {
+                this[countsField] = setTaxonCounts(taxonCounts, thisIndex, '0');
               }
             }
           } else {
-            // When the visit count is 1, the visit provides no more specificity,
-            // so the tally must indicate a 1 if a tally is not already present.
+            // When the other's count is 1, the other provides no more specificity,
+            // so the this counter must indicate a 1 if a tally isn't already present.
 
-            if (tallyIndex < 0) {
-              this[namesField] += '|' + visitTaxon;
+            if (thisIndex < 0) {
+              this[namesField] += '|' + otherTaxon;
               this[countsField] += '1';
             }
           }
