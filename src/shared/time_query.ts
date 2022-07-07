@@ -24,13 +24,12 @@ export interface TimeGraphQuery {
   taxonFilter: QueryTaxonFilter | null;
 }
 
-// TODO: If I only stack bar graphs, I can remove All.
 export enum LifeStage {
+  // Must occur in this order
   Unspecified,
   Immature,
   Adult,
-  //All,
-  _LENGTH
+  All
 }
 
 export function convertTimeQuery(timeGraphQuery: TimeGraphQuery): GeneralQuery {
@@ -140,7 +139,7 @@ export class TimeChartTallier {
   private _seasonalityStageTallies: _SeasonalityStageTallies[] = [];
 
   constructor() {
-    for (let i = 0; i < LifeStage._LENGTH; ++i) {
+    for (let i = 0; i <= LifeStage.All; ++i) {
       this._historyStageTallies.push({
         monthlySpeciesTallies: [],
         seasonalSpeciesTallies: [],
@@ -231,6 +230,11 @@ export class TimeChartTallier {
       dateInfo,
       adultCount > 0 ? taxonUnique : null,
       LifeStage.Adult
+    );
+    this._updateSpeciesTallies(
+      dateInfo,
+      specimenCount > 0 ? taxonUnique : null,
+      LifeStage.All
     );
 
     // Update the specimen counts on all dates in the range.

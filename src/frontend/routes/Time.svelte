@@ -47,8 +47,8 @@
   import TimeFilterDialog, {
     type TimeGraphQueryRequest
   } from '../dialogs/TimeFilterDialog.svelte';
-  import SpeciesGraph from '../components/SpeciesGraph.svelte';
-  import SpecimenGraph from '../components/SpecimenGraph.svelte';
+  import SeasonalityGraph from '../components/SeasonalityGraph.svelte';
+  import HistoryGraph from '../components/HistoryGraph.svelte';
   import TabFootnote from '../components/TabFootnote.svelte';
   import { pageName } from '../stores/pageName';
   import { showNotice } from '../common/VariableNotice.svelte';
@@ -427,11 +427,7 @@
       </div>
       <div class="row mt-3 time_graph">
         <div class="col">
-          {#if seasonalityYUnits == CountUnits.species}
-            <SpeciesGraph spec={seasonalityGraphSpec} />
-          {:else}
-            <SpecimenGraph spec={seasonalityGraphSpec} />
-          {/if}
+          <SeasonalityGraph spec={seasonalityGraphSpec} />
         </div>
       </div>
 
@@ -500,11 +496,7 @@
       <div class="row mt-3 time_graph">
         <div class="col">
           <div class="time_graph">
-            {#if historyYUnits == CountUnits.species}
-              <SpeciesGraph spec={historyGraphSpec} />
-            {:else}
-              <SpecimenGraph spec={historyGraphSpec} />
-            {/if}
+            <HistoryGraph spec={historyGraphSpec} />
           </div>
         </div>
       </div>
