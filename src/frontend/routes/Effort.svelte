@@ -63,7 +63,7 @@
   const MIN_UNCHANGED_Y = 1;
   const MIN_CAVES_PER_SUMMARY = 10;
   const MIN_POINTS_PER_SUMMARY = 50;
-  const MODEL_WEIGHT_POWER = 0;
+  const MODEL_WEIGHT_POWER = 2;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,

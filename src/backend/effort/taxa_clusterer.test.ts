@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Location } from '../model/location';
-import { type TaxonTallies } from './location_visit';
+import { type TaxonCounterData } from './../../shared/taxon_counter';
 import { type EffortData, LocationEffort } from './location_effort';
 import {
   LocationRank,
@@ -178,7 +178,7 @@ afterAll(async () => {
 async function _addEffort(
   locationID: number,
   totalSpecies: number,
-  partialTallies: Partial<TaxonTallies>
+  partialTallies: Partial<TaxonCounterData>
 ): Promise<void> {
   await LocationEffort.create(
     db,
@@ -243,7 +243,7 @@ function _toEffortData(data: Partial<EffortData>): EffortData {
   );
 }
 
-function _toTallies(data: Partial<TaxonTallies>): TaxonTallies {
+function _toTallies(data: Partial<TaxonCounterData>): TaxonCounterData {
   return Object.assign(
     {
       kingdomNames: '',

@@ -6,7 +6,7 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { LocationVisit } from './location_visit';
-import { TaxonCounter } from '../../shared/taxon_counter';
+import { type TaxonCounterData, TaxonCounter } from '../../shared/taxon_counter';
 import { ComparedTaxa } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
@@ -65,7 +65,7 @@ export class LocationEffort extends TaxonCounter {
     locationID: number,
     isCave: boolean,
     data: EffortData,
-    taxonCounter: TaxonCounter
+    taxonCounter: TaxonCounterData
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
       Object.assign({ locationID, isCave }, taxonCounter, data)
