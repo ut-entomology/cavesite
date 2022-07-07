@@ -327,7 +327,6 @@
     <TabHeader
       title={$pageName}
       center={false}
-      expandable={true}
       instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters to use when loading data. Click on the colored boxes in a chart's legend to hide and show particular life stages. See the note at the bottom for caveats."
     >
       <span slot="main-buttons">
