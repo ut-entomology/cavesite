@@ -6,7 +6,7 @@ import {
 } from '../../shared/time_query';
 
 const FILL_OPACITY = 0.2;
-const TOTAL_SPECIES_LABEL = 'total species';
+const TOTAL_SPECIES_LABEL = 'min. species';
 const TOTAL_SPECIMENS_LABEL = 'total specimens';
 
 const labelByLifeStage = ['Unspecified', 'Immatures', 'Adults', 'All life stages'];
@@ -86,8 +86,7 @@ export function createHistoryGraphSpec(
   }
 
   return {
-    graphTitle:
-      yAxisLabel[0].toUpperCase() + yAxisLabel.substring(1) + ' by ' + xAxisLabel,
+    graphTitle: _toGraphTitle(yAxisLabel, xAxisLabel),
     xAxisLabel,
     yAxisLabel,
     isAdditive: yAxisLabel == TOTAL_SPECIMENS_LABEL,
@@ -150,8 +149,7 @@ export function createSeasonalityGraphSpec(
   }
 
   return {
-    graphTitle:
-      yAxisLabel[0].toUpperCase() + yAxisLabel.substring(1) + ' by ' + xAxisLabel,
+    graphTitle: _toGraphTitle(yAxisLabel, xAxisLabel),
     xAxisLabel,
     yAxisLabel,
     isAdditive: yAxisLabel == TOTAL_SPECIMENS_LABEL,
@@ -306,4 +304,9 @@ function _makeWeeklyLabels(): string[] {
     labels.push(`${monthLabels[date.getMonth()]} ${date.getDate()}`);
   }
   return labels;
+}
+
+function _toGraphTitle(yAxisLabel: string, xAxisLabel: string): string {
+  const yAxisName = yAxisLabel.replace('min.', 'minimum');
+  return yAxisName[0].toUpperCase() + yAxisName.substring(1) + ' by ' + xAxisLabel;
 }

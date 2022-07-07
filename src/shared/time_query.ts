@@ -1,3 +1,4 @@
+import { ROOT_TAXON_UNIQUE, type TaxonPathSpec, toSpeciesAndSubspecies } from './model';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -6,6 +7,7 @@ import {
   type GeneralQuery,
   type QueryRow
 } from './general_query';
+import { TaxonCounter } from './taxon_counter';
 
 export const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -47,6 +49,41 @@ export function convertTimeQuery(timeGraphQuery: TimeGraphQuery): GeneralQuery {
   columnSpecs.push({
     columnID: QueryColumnID.CollectionEndDate,
     ascending: true,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Phylum,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Class,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Order,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Family,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Genus,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Species,
+    ascending: null,
+    optionText: null
+  });
+  columnSpecs.push({
+    columnID: QueryColumnID.Subspecies,
+    ascending: null,
     optionText: null
   });
   columnSpecs.push({
@@ -108,13 +145,11 @@ export interface SeasonalityStageTallies {
   seasonalSpecimenTotals: number[];
 }
 
-type _SpeciesTallies = Record<string, boolean>;
-
 interface _HistoryStageTallies {
   // indexed first by unit time, then by species ID
-  monthlySpeciesTallies: _SpeciesTallies[];
-  seasonalSpeciesTallies: _SpeciesTallies[];
-  yearlySpeciesTallies: _SpeciesTallies[];
+  monthlySpeciesTallies: (TaxonCounter | null)[];
+  seasonalSpeciesTallies: (TaxonCounter | null)[];
+  yearlySpeciesTallies: (TaxonCounter | null)[];
 
   monthlySpecimenTotals: number[];
   seasonalSpecimenTotals: number[];
@@ -123,10 +158,10 @@ interface _HistoryStageTallies {
 
 interface _SeasonalityStageTallies {
   // indexed first by unit time, then by species ID
-  weeklySpeciesTallies: _SpeciesTallies[];
-  biweeklySpeciesTallies: _SpeciesTallies[];
-  monthlySpeciesTallies: _SpeciesTallies[];
-  seasonalSpeciesTallies: _SpeciesTallies[];
+  weeklySpeciesTallies: (TaxonCounter | null)[];
+  biweeklySpeciesTallies: (TaxonCounter | null)[];
+  monthlySpeciesTallies: (TaxonCounter | null)[];
+  seasonalSpeciesTallies: (TaxonCounter | null)[];
 
   weeklySpecimenTotals: number[];
   biweeklySpecimenTotals: number[];
@@ -162,13 +197,15 @@ export class TimeChartTallier {
   }
 
   addTimeQueryRow(row: QueryRow): void {
+    (row as any).kingdomName = ROOT_TAXON_UNIQUE;
+    const pathSpec = row as TaxonPathSpec;
     const startDate = new Date(row.collectionStartDate!);
     const startDateMillies = startDate.getTime();
     let speciesDate = startDate;
     let deltaDays = 0; // no. days from start to end (0 => start == end)
-    const taxonUnique = row.taxonUnique!;
     // Treat absence of a specimen count or specimen count of 0 as a 1.
     let specimenCount = row.resultCount! * (row.specimenCount ? row.specimenCount : 1);
+    const [species, subspecies] = toSpeciesAndSubspecies(pathSpec);
 
     // Count adults, immatures, and unspecifieds.
 
@@ -218,22 +255,30 @@ export class TimeChartTallier {
     let dateInfo = _toDateInfo(speciesDate);
     this._updateSpeciesTallies(
       dateInfo,
-      unspecifiedCount > 0 ? taxonUnique : null,
+      unspecifiedCount > 0 ? pathSpec : null,
+      species,
+      subspecies,
       LifeStage.Unspecified
     );
     this._updateSpeciesTallies(
       dateInfo,
-      immatureCount > 0 ? taxonUnique : null,
+      immatureCount > 0 ? pathSpec : null,
+      species,
+      subspecies,
       LifeStage.Immature
     );
     this._updateSpeciesTallies(
       dateInfo,
-      adultCount > 0 ? taxonUnique : null,
+      adultCount > 0 ? pathSpec : null,
+      species,
+      subspecies,
       LifeStage.Adult
     );
     this._updateSpeciesTallies(
       dateInfo,
-      specimenCount > 0 ? taxonUnique : null,
+      specimenCount > 0 ? pathSpec : null,
+      species,
+      subspecies,
       LifeStage.All
     );
 
@@ -255,14 +300,14 @@ export class TimeChartTallier {
     const finalStageTallies: HistoryStageTallies[] = [];
     for (const stageTallies of this._historyStageTallies) {
       finalStageTallies.push({
-        monthlySpeciesTotals: stageTallies.monthlySpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        monthlySpeciesTotals: stageTallies.monthlySpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
-        seasonalSpeciesTotals: stageTallies.seasonalSpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        seasonalSpeciesTotals: stageTallies.seasonalSpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
-        yearlySpeciesTotals: stageTallies.yearlySpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        yearlySpeciesTotals: stageTallies.yearlySpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
 
         monthlySpecimenTotals: _roundTotals(stageTallies.monthlySpecimenTotals),
@@ -277,17 +322,17 @@ export class TimeChartTallier {
     const finalStageTallies: SeasonalityStageTallies[] = [];
     for (const stageTallies of this._seasonalityStageTallies) {
       finalStageTallies.push({
-        weeklySpeciesTotals: stageTallies.weeklySpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        weeklySpeciesTotals: stageTallies.weeklySpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
-        biweeklySpeciesTotals: stageTallies.biweeklySpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        biweeklySpeciesTotals: stageTallies.biweeklySpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
-        monthlySpeciesTotals: stageTallies.monthlySpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        monthlySpeciesTotals: stageTallies.monthlySpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
-        seasonalSpeciesTotals: stageTallies.seasonalSpeciesTallies.map(
-          (tallies) => Object.keys(tallies).length
+        seasonalSpeciesTotals: stageTallies.seasonalSpeciesTallies.map((counter) =>
+          _getSpeciesCount(counter)
         ),
         weeklySpecimenTotals: _roundTotals(stageTallies.weeklySpecimenTotals),
         biweeklySpecimenTotals: _roundTotals(stageTallies.biweeklySpecimenTotals),
@@ -310,34 +355,66 @@ export class TimeChartTallier {
 
   private _updateSpeciesTallies(
     dateInfo: _DateInfo,
-    taxonUnique: string | null,
+    pathSpec: TaxonPathSpec | null,
+    species: string | null,
+    subspecies: string | null,
     lifeStage: LifeStage
   ) {
     // Update the history tallies.
 
     const history = this._historyStageTallies[lifeStage];
-    this._setTaxonTally(history.monthlySpeciesTallies, dateInfo.yearMonth, taxonUnique);
-    this._setTaxonTally(
+    this._addTaxonTally(
+      history.monthlySpeciesTallies,
+      dateInfo.yearMonth,
+      pathSpec,
+      species,
+      subspecies
+    );
+    this._addTaxonTally(
       history.seasonalSpeciesTallies,
       dateInfo.yearSeason,
-      taxonUnique
+      pathSpec,
+      species,
+      subspecies
     );
-    this._setTaxonTally(history.yearlySpeciesTallies, dateInfo.year, taxonUnique);
+    this._addTaxonTally(
+      history.yearlySpeciesTallies,
+      dateInfo.year,
+      pathSpec,
+      species,
+      subspecies
+    );
 
     // Update the seasonality tallies.
 
     const seasonality = this._seasonalityStageTallies[lifeStage];
-    this._setTaxonTally(seasonality.weeklySpeciesTallies, dateInfo.week, taxonUnique);
-    this._setTaxonTally(
+    this._addTaxonTally(
+      seasonality.weeklySpeciesTallies,
+      dateInfo.week,
+      pathSpec,
+      species,
+      subspecies
+    );
+    this._addTaxonTally(
       seasonality.biweeklySpeciesTallies,
       dateInfo.fortnight,
-      taxonUnique
+      pathSpec,
+      species,
+      subspecies
     );
-    this._setTaxonTally(seasonality.monthlySpeciesTallies, dateInfo.month, taxonUnique);
-    this._setTaxonTally(
+    this._addTaxonTally(
+      seasonality.monthlySpeciesTallies,
+      dateInfo.month,
+      pathSpec,
+      species,
+      subspecies
+    );
+    this._addTaxonTally(
       seasonality.seasonalSpeciesTallies,
       dateInfo.season,
-      taxonUnique
+      pathSpec,
+      species,
+      subspecies
     );
   }
 
@@ -369,18 +446,23 @@ export class TimeChartTallier {
       (seasonality.seasonalSpecimenTotals[dateInfo.season] || 0) + specimenCount;
   }
 
-  private _setTaxonTally(
-    tallies: _SpeciesTallies[],
+  private _addTaxonTally(
+    counters: (TaxonCounter | null)[],
     timeCode: number,
-    taxonUnique: string | null
+    pathSpec: TaxonPathSpec | null,
+    species: string | null,
+    subspecies: string | null
   ): void {
-    let tally = tallies[timeCode];
-    if (tally === undefined) {
-      tally = {};
-      tallies[timeCode] = tally;
-    }
-    if (taxonUnique) {
-      tally[taxonUnique] = true;
+    let counter = counters[timeCode];
+    if (!counter) {
+      if (pathSpec !== null) {
+        counter = TaxonCounter.createFromPathSpec(pathSpec, species, subspecies);
+        counters[timeCode] = counter;
+      } else {
+        counters[timeCode] = null; // reserve column for time code in chart
+      }
+    } else if (pathSpec) {
+      counter.updateForPathSpec(pathSpec, species, subspecies);
     }
   }
 }
@@ -444,6 +526,11 @@ function _toDateInfo(date: Date): _DateInfo {
     yearSeason: seasonYear * 10 + season,
     yearMonth: year * 100 + month
   };
+}
+
+function _getSpeciesCount(counter: TaxonCounter | null): number {
+  if (counter === null) return 0;
+  return counter.getSpeciesCount();
 }
 
 // TODO: use this globally

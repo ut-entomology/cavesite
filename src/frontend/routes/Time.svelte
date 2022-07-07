@@ -506,11 +506,12 @@
       over a range of days are each randomly assigned to a date within the range, which
       may cause seasonality charts to vary slightly from load to load. The counts of
       specimens collected over a range of days are evenly distributed across those days,
-      allowing for fractional specimen counts. "Total species" is the number of distinct
-      taxonomic determinations made, so that for example, the determinations "<i
-        >Cicurina</i
-      >" and "<i>Cicurina cueva</i>" count as distinct "species. In weekly and biweekly
-      charts, the one or two days of the 53rd week are tacked onto the 52nd week."
+      allowing for fractional specimen counts. "Min. species" is the minimum number of
+      species represented. For example, after counting a record for <i>Cicurina</i>, the
+      first occurence of a species in this genus (e.g. <i>Cicurina cueva</i>) does not
+      increase the count, while second and subsequent occurences of species in the genus
+      do increase the count. In weekly and biweekly charts, the one or two days of the
+      53rd week are tacked onto the 52nd week."
     </TabFootnote>
   </div>
 </DataTabRoute>
