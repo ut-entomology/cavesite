@@ -10,7 +10,7 @@ const TOTAL_SPECIES_LABEL = 'total species';
 const TOTAL_SPECIMENS_LABEL = 'total specimens';
 
 const labelByLifeStage = ['Unspecified', 'Immatures', 'Adults', 'All life stages'];
-const hexColors = ['ee00e9', '7d46eb', '00a0ee', 'c8c8c8'];
+const hexColors = ['ee00e9', '7d46eb', '00a0ee', 'b0b0b0'];
 // prettier-ignore
 const monthLabels = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
