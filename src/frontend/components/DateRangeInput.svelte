@@ -44,6 +44,7 @@
     fromStr = localToInputDate(earliestDate);
     throughDate = new Date();
     throughStr = localToInputDate(throughDate);
+    setDateRange(fromDate, throughDate);
   }
 </script>
 
