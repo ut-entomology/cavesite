@@ -458,23 +458,21 @@ export abstract class TaxaClusterer extends Clusterer {
     // Compute the taxon names by rank for this effort.
 
     taxonNamesByRank = new Array(TaxonRankIndex.Subspecies + 1);
-    taxonNamesByRank[TaxonRankIndex.Kingdom] = _getNamesList(effort.kingdomNames);
-    taxonNamesByRank[TaxonRankIndex.Phylum] = _getNamesList(effort.phylumNames);
-    taxonNamesByRank[TaxonRankIndex.Class] = _getNamesList(effort.classNames);
-    taxonNamesByRank[TaxonRankIndex.Order] = _getNamesList(effort.orderNames);
-    taxonNamesByRank[TaxonRankIndex.Family] = _getNamesList(effort.familyNames);
-    taxonNamesByRank[TaxonRankIndex.Genus] = _getNamesList(effort.genusNames);
-    taxonNamesByRank[TaxonRankIndex.Species] = _getNamesList(effort.speciesNames);
-    taxonNamesByRank[TaxonRankIndex.Subspecies] = _getNamesList(effort.subspeciesNames);
+    taxonNamesByRank[TaxonRankIndex.Kingdom] =
+      effort.convertToNamesList('kingdomNames');
+    taxonNamesByRank[TaxonRankIndex.Phylum] = effort.convertToNamesList('phylumNames');
+    taxonNamesByRank[TaxonRankIndex.Class] = effort.convertToNamesList('classNames');
+    taxonNamesByRank[TaxonRankIndex.Order] = effort.convertToNamesList('orderNames');
+    taxonNamesByRank[TaxonRankIndex.Family] = effort.convertToNamesList('familyNames');
+    taxonNamesByRank[TaxonRankIndex.Genus] = effort.convertToNamesList('genusNames');
+    taxonNamesByRank[TaxonRankIndex.Species] =
+      effort.convertToNamesList('speciesNames');
+    taxonNamesByRank[TaxonRankIndex.Subspecies] =
+      effort.convertToNamesList('subspeciesNames');
 
     // Cache and return the computed taxon names.
 
     this._taxonNamesByRankByLocationID[effort.locationID] = taxonNamesByRank;
     return taxonNamesByRank;
   }
-}
-
-function _getNamesList(taxonNamesString: string | null): string[] | null {
-  if (taxonNamesString === null) return null;
-  return taxonNamesString.split('|');
 }

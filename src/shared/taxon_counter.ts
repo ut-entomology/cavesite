@@ -3,22 +3,46 @@ import { type TaxonPathSpec } from './model';
 
 export type TaxonCounterData = DataOf<TaxonCounter>;
 
+type NamesFieldName = keyof Pick<
+  TaxonCounterData,
+  | 'kingdomNames'
+  | 'phylumNames'
+  | 'classNames'
+  | 'orderNames'
+  | 'familyNames'
+  | 'genusNames'
+  | 'speciesNames'
+  | 'subspeciesNames'
+>;
+
+type CountsFieldName = keyof Pick<
+  TaxonCounterData,
+  | 'kingdomCounts'
+  | 'phylumCounts'
+  | 'classCounts'
+  | 'orderCounts'
+  | 'familyCounts'
+  | 'genusCounts'
+  | 'speciesCounts'
+  | 'subspeciesCounts'
+>;
+
 export class TaxonCounter {
-  kingdomNames: string;
+  kingdomNames: string[] | string;
   kingdomCounts: string;
-  phylumNames: string | null;
+  phylumNames: string[] | string | null;
   phylumCounts: string | null;
-  classNames: string | null;
+  classNames: string[] | string | null;
   classCounts: string | null;
-  orderNames: string | null;
+  orderNames: string[] | string | null;
   orderCounts: string | null;
-  familyNames: string | null;
+  familyNames: string[] | string | null;
   familyCounts: string | null;
-  genusNames: string | null;
+  genusNames: string[] | string | null;
   genusCounts: string | null;
-  speciesNames: string | null;
+  speciesNames: string[] | string | null;
   speciesCounts: string | null;
-  subspeciesNames: string | null;
+  subspeciesNames: string[] | string | null;
   subspeciesCounts: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
@@ -69,7 +93,20 @@ export class TaxonCounter {
     });
   }
 
+  static toNameSeries(names: string[] | string | null): string | null {
+    if (names === null) return null;
+    return typeof names == 'string' ? names : names.join('|');
+  }
+
   //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
+
+  convertToNamesList(namesFieldName: NamesFieldName): string[] | null {
+    const names = this[namesFieldName];
+    if (names === null || Array.isArray(names)) return names;
+    const namesList = names.split('|');
+    this[namesFieldName] = namesList;
+    return namesList;
+  }
 
   getSpeciesCount(): number {
     let count = _countOnes(this.kingdomCounts);
@@ -138,24 +175,22 @@ export class TaxonCounter {
 
   private _mergeTaxa(
     otherCounter: TaxonCounter,
-    namesField: keyof TaxonCounterData,
-    countsField: keyof TaxonCounterData
+    namesFieldName: NamesFieldName,
+    countsFieldName: CountsFieldName
   ): void {
     // Only merge counter values when they exist for the taxon.
 
-    const otherTaxonSeries = otherCounter[namesField];
-    if (otherTaxonSeries !== null) {
+    const otherTaxa = otherCounter.convertToNamesList(namesFieldName);
+    if (otherTaxa !== null) {
       // If this counter doesn't currently represent the other's taxon, copy over
       // the other's values for the taxon; otherwise, merge the other's values.
 
-      const taxonSeries = this[namesField];
-      if (taxonSeries === null) {
-        this[namesField] = otherTaxonSeries;
-        this[countsField] = otherCounter[countsField]!;
+      const taxa = this.convertToNamesList(namesFieldName);
+      if (taxa === null) {
+        this[namesFieldName] = otherTaxa;
+        this[countsFieldName] = otherCounter[countsFieldName]!;
       } else {
-        const taxa = taxonSeries.split('|');
-        const otherTaxa = otherTaxonSeries.split('|');
-        const otherCounts = otherCounter[countsField]!;
+        const otherCounts = otherCounter[countsFieldName]!;
 
         // Separately merge each of the other taxa.
 
@@ -169,12 +204,12 @@ export class TaxonCounter {
             // count for the taxon.
 
             if (thisIndex < 0) {
-              this[namesField] += '|' + otherTaxon;
-              this[countsField] += '0';
+              taxa.push(otherTaxon);
+              this[countsFieldName] += '0';
             } else {
-              const taxonCounts = this[countsField]!;
+              const taxonCounts = this[countsFieldName]!;
               if (taxonCounts[thisIndex] == '1') {
-                this[countsField] = setTaxonCounts(taxonCounts, thisIndex, '0');
+                this[countsFieldName] = _setTaxonCounts(taxonCounts, thisIndex, '0');
               }
             }
           } else {
@@ -182,8 +217,8 @@ export class TaxonCounter {
             // so the this counter must indicate a 1 if a tally isn't already present.
 
             if (thisIndex < 0) {
-              this[namesField] += '|' + otherTaxon;
-              this[countsField] += '1';
+              taxa.push(otherTaxon);
+              this[countsFieldName] += '1';
             }
           }
         }
@@ -194,24 +229,23 @@ export class TaxonCounter {
   private _updateForTaxon(
     upperTaxon: string | null,
     lowerTaxon: string | null,
-    namesField: keyof TaxonCounterData,
-    countsField: keyof TaxonCounterData
+    namesFieldName: NamesFieldName,
+    countsFieldName: CountsFieldName
   ): void {
     // If the taxon does not occur, there's nothing to update.
 
     if (upperTaxon !== null) {
-      let taxonNameSeries = this[namesField] as string | null;
+      const taxonNames = this.convertToNamesList(namesFieldName);
 
       // If no taxa of this rank are yet recorded for the this, assign first;
       // otherwise update the existing record.
 
-      if (taxonNameSeries === null) {
+      if (taxonNames === null) {
         // @ts-ignore
-        this[namesField] = upperTaxon;
+        this[namesFieldName] = upperTaxon;
         // @ts-ignore
-        this[countsField] = lowerTaxon === null ? '1' : '0';
+        this[countsFieldName] = lowerTaxon === null ? '1' : '0';
       } else {
-        const taxonNames = taxonNameSeries.split('|');
         const taxonIndex = taxonNames.indexOf(upperTaxon);
 
         // If the taxon was not previously recorded, append it; otherwise,
@@ -220,14 +254,14 @@ export class TaxonCounter {
 
         if (taxonIndex < 0) {
           // @ts-ignore
-          this[namesField] += '|' + upperTaxon;
+          taxonNames.push(upperTaxon);
           // @ts-ignore
-          this[countsField] += lowerTaxon === null ? '1' : '0';
+          this[countsFieldName] += lowerTaxon === null ? '1' : '0';
         } else if (lowerTaxon !== null) {
-          const taxonCounts = this[countsField] as string;
+          const taxonCounts = this[countsFieldName] as string;
           if (taxonCounts[taxonIndex] == '1') {
             // @ts-ignore
-            this[countsField] = setTaxonCounts(taxonCounts, taxonIndex, '0');
+            this[countsFieldName] = _setTaxonCounts(taxonCounts, taxonIndex, '0');
           }
         }
       }
@@ -235,7 +269,12 @@ export class TaxonCounter {
   }
 }
 
-export function setTaxonCounts(
+function _countOnes(s: string | null): number {
+  if (s === null) return 0;
+  return s.replaceAll('0', '').length;
+}
+
+export function _setTaxonCounts(
   taxonCounts: string,
   offset: number,
   count: string
@@ -243,11 +282,6 @@ export function setTaxonCounts(
   return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
     offset + 1
   )}`;
-}
-
-function _countOnes(s: string | null): number {
-  if (s === null) return 0;
-  return s.replaceAll('0', '').length;
 }
 
 function _toInitialCount(

@@ -91,17 +91,17 @@ export class LocationEffort extends TaxonCounter {
         effort.totalVisits,
         effort.totalPersonVisits,
         effort.totalSpecies,
-        effort.kingdomNames,
-        effort.phylumNames,
-        effort.classNames,
-        effort.orderNames,
-        effort.familyNames,
-        effort.genusNames,
-        effort.speciesNames,
-        effort.subspeciesNames,
-        effort.perDayPoints,
-        effort.perVisitPoints,
-        effort.perPersonVisitPoints
+        TaxonCounter.toNameSeries(effort.kingdomNames),
+        TaxonCounter.toNameSeries(effort.phylumNames),
+        TaxonCounter.toNameSeries(effort.classNames),
+        TaxonCounter.toNameSeries(effort.orderNames),
+        TaxonCounter.toNameSeries(effort.familyNames),
+        TaxonCounter.toNameSeries(effort.genusNames),
+        TaxonCounter.toNameSeries(effort.speciesNames),
+        TaxonCounter.toNameSeries(effort.subspeciesNames),
+        TaxonCounter.toNameSeries(effort.perDayPoints),
+        TaxonCounter.toNameSeries(effort.perVisitPoints),
+        TaxonCounter.toNameSeries(effort.perPersonVisitPoints)
       ]
     );
     if (result.rowCount != 1) {
