@@ -6,33 +6,15 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
-import { ComparedTaxa } from '../../shared/model';
+import { ComparedTaxa, toSpeciesAndSubspecies } from '../../shared/model';
+import { TaxonCounter } from '../../shared/taxon_counter';
 import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligates';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
 type LocationVisitData = DataOf<LocationVisit>;
 
-export interface TaxonTallies {
-  kingdomNames: string;
-  kingdomCounts: string;
-  phylumNames: string | null;
-  phylumCounts: string | null;
-  classNames: string | null;
-  classCounts: string | null;
-  orderNames: string | null;
-  orderCounts: string | null;
-  familyNames: string | null;
-  familyCounts: string | null;
-  genusNames: string | null;
-  genusCounts: string | null;
-  speciesNames: string | null;
-  speciesCounts: string | null;
-  subspeciesNames: string | null;
-  subspeciesCounts: string | null;
-}
-
-export class LocationVisit implements TaxonTallies {
+export class LocationVisit extends TaxonCounter {
   locationID: number;
   isCave: boolean;
   startDate: Date;
@@ -41,26 +23,11 @@ export class LocationVisit implements TaxonTallies {
   endEpochDay: number;
   normalizedCollectors: string; // can't be null because is a key in the DB
   collectorCount: number;
-  kingdomNames: string;
-  kingdomCounts: string;
-  phylumNames: string | null;
-  phylumCounts: string | null;
-  classNames: string | null;
-  classCounts: string | null;
-  orderNames: string | null;
-  orderCounts: string | null;
-  familyNames: string | null;
-  familyCounts: string | null;
-  genusNames: string | null;
-  genusCounts: string | null;
-  speciesNames: string | null;
-  speciesCounts: string | null;
-  subspeciesNames: string | null;
-  subspeciesCounts: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
   private constructor(data: LocationVisitData) {
+    super(data);
     this.locationID = data.locationID;
     this.isCave = data.isCave;
     this.startDate = data.startDate;
@@ -69,22 +36,6 @@ export class LocationVisit implements TaxonTallies {
     this.endEpochDay = data.endEpochDay;
     this.normalizedCollectors = data.normalizedCollectors;
     this.collectorCount = data.collectorCount;
-    this.kingdomNames = data.kingdomNames;
-    this.kingdomCounts = data.kingdomCounts;
-    this.phylumNames = data.phylumNames;
-    this.phylumCounts = data.phylumCounts;
-    this.classNames = data.classNames;
-    this.classCounts = data.classCounts;
-    this.orderNames = data.orderNames;
-    this.orderCounts = data.orderCounts;
-    this.familyNames = data.familyNames;
-    this.familyCounts = data.familyCounts;
-    this.genusNames = data.genusNames;
-    this.genusCounts = data.genusCounts;
-    this.speciesNames = data.speciesNames;
-    this.speciesCounts = data.speciesCounts;
-    this.subspeciesNames = data.subspeciesNames;
-    this.subspeciesCounts = data.subspeciesCounts;
   }
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
@@ -151,49 +102,6 @@ export class LocationVisit implements TaxonTallies {
     }
   }
 
-  private _updateTaxon(
-    upperTaxon: string | null,
-    lowerTaxon: string | null,
-    visitNamesField: keyof TaxonTallies,
-    visitCountsField: keyof TaxonTallies
-  ): void {
-    // If the taxon does not occur, there's nothing to update.
-
-    if (upperTaxon !== null) {
-      let taxonNameSeries = this[visitNamesField] as string | null;
-
-      // If no taxa of this rank are yet recorded for the visit, assign first;
-      // otherwise update the existing record.
-
-      if (taxonNameSeries === null) {
-        // @ts-ignore
-        this[visitNamesField] = upperTaxon;
-        // @ts-ignore
-        this[visitCountsField] = lowerTaxon === null ? '1' : '0';
-      } else {
-        const taxonNames = taxonNameSeries.split('|');
-        const taxonIndex = taxonNames.indexOf(upperTaxon);
-
-        // If the taxon was not previously recorded, append it; otherwise,
-        // drop the taxon count for this rank if it's not already 0 and
-        // a taxon exists below the rank that will re-up the count.
-
-        if (taxonIndex < 0) {
-          // @ts-ignore
-          this[visitNamesField] += '|' + upperTaxon;
-          // @ts-ignore
-          this[visitCountsField] += lowerTaxon === null ? '1' : '0';
-        } else if (lowerTaxon !== null) {
-          const taxonCounts = this[visitCountsField] as string;
-          if (taxonCounts[taxonIndex] == '1') {
-            // @ts-ignore
-            this[visitCountsField] = setTaxonCounts(taxonCounts, taxonIndex, '0');
-          }
-        }
-      }
-    }
-  }
-
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
   private static async create(
@@ -215,12 +123,7 @@ export class LocationVisit implements TaxonTallies {
       throw Error("Can't add visits for a specimen with no start date");
     }
 
-    const speciesName = specimen.speciesName
-      ? specimen.subspeciesName
-        ? specimen.taxonUnique.substring(0, specimen.taxonUnique.lastIndexOf(' '))
-        : specimen.taxonUnique
-      : null;
-    const subspeciesName = specimen.subspeciesName ? specimen.taxonUnique : null;
+    const [speciesName, subspeciesName] = toSpeciesAndSubspecies(specimen);
 
     switch (comparedTaxa) {
       case ComparedTaxa.caveObligates:
@@ -265,67 +168,22 @@ export class LocationVisit implements TaxonTallies {
 
     if (visit === null) {
       const collectors = specimen.normalizedCollectors;
-      await this.create(db, comparedTaxa, {
-        locationID: specimen.localityID,
-        isCave: specimen.localityName.toLowerCase().includes('cave'),
-        startDate: specimen.collectionStartDate,
-        startEpochDay,
-        endDate,
-        endEpochDay,
-        normalizedCollectors: collectors || '',
-        collectorCount: collectors ? collectors.split('|').length : 1,
-        kingdomNames: specimen.kingdomName,
-        kingdomCounts: _toInitialCount(specimen.kingdomName, specimen.phylumName)!,
-        phylumNames: specimen.phylumName,
-        phylumCounts: _toInitialCount(specimen.phylumName, specimen.className),
-        classNames: specimen.className,
-        classCounts: _toInitialCount(specimen.className, specimen.orderName),
-        orderNames: specimen.orderName,
-        orderCounts: _toInitialCount(specimen.orderName, specimen.familyName),
-        familyNames: specimen.familyName,
-        familyCounts: _toInitialCount(specimen.familyName, specimen.genusName),
-        genusNames: specimen.genusName,
-        genusCounts: _toInitialCount(specimen.genusName, specimen.speciesName),
-        speciesNames: speciesName,
-        speciesCounts: _toInitialCount(specimen.speciesName, specimen.subspeciesName),
-        subspeciesNames: subspeciesName,
-        subspeciesCounts: _toInitialCount(specimen.subspeciesName, null)
-      });
+      const visitData: LocationVisitData = Object.assign(
+        TaxonCounter.createFromPathSpec(specimen, speciesName, subspeciesName),
+        {
+          locationID: specimen.localityID,
+          isCave: specimen.localityName.toLowerCase().includes('cave'),
+          startDate: specimen.collectionStartDate,
+          startEpochDay,
+          endDate,
+          endEpochDay,
+          normalizedCollectors: collectors || '',
+          collectorCount: collectors ? collectors.split('|').length : 1
+        }
+      );
+      await this.create(db, comparedTaxa, visitData);
     } else {
-      visit._updateTaxon(
-        specimen.kingdomName,
-        specimen.phylumName,
-        'kingdomNames',
-        'kingdomCounts'
-      );
-      visit._updateTaxon(
-        specimen.phylumName,
-        specimen.className,
-        'phylumNames',
-        'phylumCounts'
-      );
-      visit._updateTaxon(
-        specimen.className,
-        specimen.orderName,
-        'classNames',
-        'classCounts'
-      );
-      visit._updateTaxon(
-        specimen.orderName,
-        specimen.familyName,
-        'orderNames',
-        'orderCounts'
-      );
-      visit._updateTaxon(
-        specimen.familyName,
-        specimen.genusName,
-        'familyNames',
-        'familyCounts'
-      );
-      visit._updateTaxon(specimen.genusName, speciesName, 'genusNames', 'genusCounts');
-      visit._updateTaxon(speciesName, subspeciesName, 'speciesNames', 'speciesCounts');
-      visit._updateTaxon(subspeciesName, null, 'subspeciesNames', 'subspeciesCounts');
-
+      visit.updateForPathSpec(specimen, speciesName, subspeciesName);
       await visit.save(db, comparedTaxa);
     }
   }
@@ -372,24 +230,6 @@ export class LocationVisit implements TaxonTallies {
   }
 }
 
-export function setTaxonCounts(
-  taxonCounts: string,
-  offset: number,
-  count: string
-): string {
-  return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
-    offset + 1
-  )}`;
-}
-
 function _toEpochDay(date: Date): number {
   return Math.floor(date.getTime() / MILLIS_PER_DAY);
-}
-
-function _toInitialCount(
-  upperTaxon: string | null,
-  lowerTaxon: string | null
-): string | null {
-  if (!upperTaxon) return null;
-  return upperTaxon && !lowerTaxon ? '1' : '0';
 }

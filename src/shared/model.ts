@@ -48,6 +48,18 @@ export interface TaxonSpec extends ModelSpec {
   hasChildren: boolean | null; // null => count unknown
 }
 
+export interface TaxonPathSpec {
+  kingdomName: string;
+  phylumName: string | null;
+  className: string | null;
+  orderName: string | null;
+  familyName: string | null;
+  genusName: string | null;
+  speciesName: string | null;
+  subspeciesName: string | null;
+  taxonUnique: string;
+}
+
 export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
   const containingSpecs: TaxonSpec[] = [];
   let containingNames: string[] = [];
@@ -79,6 +91,18 @@ export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
     fromSpec.unique = _nextUniqueName(uniqueName, fromSpec.name);
   }
   return containingSpecs;
+}
+
+export function toSpeciesAndSubspecies(
+  pathSpec: TaxonPathSpec
+): [string | null, string | null] {
+  const speciesName = pathSpec.speciesName
+    ? pathSpec.subspeciesName
+      ? pathSpec.taxonUnique.substring(0, pathSpec.taxonUnique.lastIndexOf(' '))
+      : pathSpec.taxonUnique
+    : null;
+  const subspeciesName = pathSpec.subspeciesName ? pathSpec.taxonUnique : null;
+  return [speciesName, subspeciesName];
 }
 
 function _nextUniqueName(parentUniqueName: string, taxonName: string): string {

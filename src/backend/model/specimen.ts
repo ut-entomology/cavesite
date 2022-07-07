@@ -10,7 +10,7 @@ import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
-import { locationRanks } from '../../shared/model';
+import { type TaxonPathSpec, locationRanks } from '../../shared/model';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -66,7 +66,7 @@ export interface SpecimenSource {
   lifeStage?: string;
 }
 
-export class Specimen {
+export class Specimen implements TaxonPathSpec {
   catalogNumber: string;
   occurrenceGuid: string; // GBIF occurrenceID (specify co.GUID)
   taxonID: number; // ID of most specific taxon
