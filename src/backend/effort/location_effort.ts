@@ -27,7 +27,7 @@ export type EffortData = Pick<
   | 'perPersonVisitPoints'
 >;
 
-export class LocationEffort {
+export class LocationEffort extends TaxonCounter {
   locationID: number;
   isCave: boolean;
   startDate: Date;
@@ -36,14 +36,6 @@ export class LocationEffort {
   totalVisits: number;
   totalPersonVisits: number;
   totalSpecies: number;
-  kingdomNames: string;
-  phylumNames: string | null;
-  classNames: string | null;
-  orderNames: string | null;
-  familyNames: string | null;
-  genusNames: string | null;
-  speciesNames: string | null;
-  subspeciesNames: string | null;
   perDayPoints: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
@@ -51,6 +43,7 @@ export class LocationEffort {
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
   private constructor(data: DataOf<LocationEffort>) {
+    super(data);
     this.locationID = data.locationID;
     this.isCave = data.isCave;
     this.startDate = data.startDate;
@@ -59,14 +52,6 @@ export class LocationEffort {
     this.totalVisits = data.totalVisits;
     this.totalPersonVisits = data.totalPersonVisits;
     this.totalSpecies = data.totalSpecies;
-    this.kingdomNames = data.kingdomNames;
-    this.phylumNames = data.phylumNames;
-    this.classNames = data.classNames;
-    this.orderNames = data.orderNames;
-    this.familyNames = data.familyNames;
-    this.genusNames = data.genusNames;
-    this.speciesNames = data.speciesNames;
-    this.subspeciesNames = data.subspeciesNames;
     this.perDayPoints = data.perDayPoints;
     this.perVisitPoints = data.perVisitPoints;
     this.perPersonVisitPoints = data.perPersonVisitPoints;
@@ -80,10 +65,10 @@ export class LocationEffort {
     locationID: number,
     isCave: boolean,
     data: EffortData,
-    tallies: TaxonCounter
+    taxonCounter: TaxonCounter
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
-      Object.assign({ locationID, isCave }, tallies, data)
+      Object.assign({ locationID, isCave }, taxonCounter, data)
     );
     const result = await db.query(
       `insert into ${comparedTaxa}_for_effort (
@@ -165,7 +150,7 @@ export class LocationEffort {
     let priorLocationID = 0;
     let startDate: Date;
     let endDate: Date;
-    let tallies: LocationVisit;
+    let tallyingVisit: LocationVisit;
     let firstEpochDay = 0;
     let totalDays = 0;
     let totalSpecies = 0;
@@ -191,8 +176,8 @@ export class LocationEffort {
             await this.create(
               db,
               comparedTaxa,
-              tallies!.locationID,
-              tallies!.isCave,
+              tallyingVisit!.locationID,
+              tallyingVisit!.isCave,
               {
                 startDate: startDate!,
                 endDate: endDate!,
@@ -204,12 +189,12 @@ export class LocationEffort {
                 perVisitPoints: JSON.stringify(perVisitPoints),
                 perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
               },
-              tallies!
+              tallyingVisit!
             );
           }
           startDate = visit.startDate;
           firstEpochDay = visit.startEpochDay;
-          tallies = visit; // okay to overwrite the visit
+          tallyingVisit = visit; // okay to overwrite the visit
           totalVisits = 0;
           totalPersonVisits = 0;
           perDayPoints = [];
@@ -217,7 +202,7 @@ export class LocationEffort {
           perPersonVisitPoints = [];
           priorLocationID = visit.locationID;
         } else {
-          tallies!.mergeCounter(visit);
+          tallyingVisit!.mergeCounter(visit);
         }
 
         endDate = visit.endDate || visit.startDate;
@@ -226,7 +211,7 @@ export class LocationEffort {
             (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
           ) + 1;
 
-        totalSpecies = tallies!.getSpeciesCount();
+        totalSpecies = tallyingVisit!.getSpeciesCount();
         totalDays = visit.endEpochDay - firstEpochDay + 1;
 
         if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
@@ -258,8 +243,8 @@ export class LocationEffort {
       await this.create(
         db,
         comparedTaxa,
-        tallies!.locationID,
-        tallies!.isCave,
+        tallyingVisit!.locationID,
+        tallyingVisit!.isCave,
         {
           // @ts-ignore
           startDate,
@@ -272,7 +257,7 @@ export class LocationEffort {
           perVisitPoints: JSON.stringify(perVisitPoints),
           perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
         },
-        tallies!
+        tallyingVisit!
       );
     }
   }
