@@ -5,8 +5,10 @@ import {
   type SeasonalityStageTallies
 } from '../../shared/time_query';
 
+const FILL_OPACITY = 0.2;
+
 const labelByLifeStage = ['Life stage unspecified', 'Immatures', 'Adults'];
-const hexColors = ['ff00e9', '74e140', '7d46eb'];
+const hexColors = ['ee00e9', '74d140', '7d46eb'];
 // prettier-ignore
 const monthLabels = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -16,7 +18,8 @@ const weeklyLabels = _makeWeeklyLabels();
 
 export interface LifeStageTrend {
   label: string;
-  hexColor: string;
+  plotColor: string;
+  fillColor: string;
   yValues: number[];
 }
 
@@ -69,7 +72,8 @@ export function createHistoryGraphSpec(
 
     trendsByLifeStage.push({
       label: labelByLifeStage[i],
-      hexColor: hexColors[i],
+      plotColor: _hexToRGBAColor(hexColors[i], 1),
+      fillColor: _hexToRGBAColor(hexColors[i], FILL_OPACITY),
       yValues: barPoints.map((p) => p.y)
     });
   }
@@ -127,7 +131,8 @@ export function createSeasonalityGraphSpec(
 
     trendsByLifeStage.push({
       label: labelByLifeStage[i],
-      hexColor: hexColors[i],
+      plotColor: _hexToRGBAColor(hexColors[i], 1),
+      fillColor: _hexToRGBAColor(hexColors[i], FILL_OPACITY),
       yValues: barPoints.map((p) => p.y)
     });
   }
@@ -271,6 +276,12 @@ function _createSeasonalSeasonalityPoints(
     points.push({ y: tallies[totalsProperty][i], xLabel: seasonLabels[i] });
   }
   return points;
+}
+
+function _hexToRGBAColor(hexColor: string, opacity: number): string {
+  return `rgba(${Number('0x' + hexColor.substring(0, 2))},${Number(
+    '0x' + hexColor.substring(2, 4)
+  )},${Number('0x' + hexColor.substring(4))}, ${opacity})`;
 }
 
 function _makeWeeklyLabels(): string[] {

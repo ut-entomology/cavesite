@@ -14,7 +14,7 @@
         return {
           label: trend.label,
           data: trend.yValues,
-          backgroundColor: '#' + trend.hexColor,
+          backgroundColor: trend.plotColor,
           fill: true
         };
       })
