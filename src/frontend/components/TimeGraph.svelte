@@ -32,6 +32,9 @@
           text: spec.yAxisLabel,
           font: { size: 16 }
         },
+        ticks: {
+          precision: 0
+        },
         stacked: true
       }
     },

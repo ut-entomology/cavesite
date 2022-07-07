@@ -82,6 +82,16 @@
   let seasonalityXUnits = SeasonalityXUnits.monthly;
   let historyXUnits = HistoryXUnits.seasonally;
   let queryRequest: TimeGraphQueryRequest | null = null;
+  let historyGraphSpec: TimeGraphSpec;
+  let seasonalityGraphSpec: TimeGraphSpec;
+
+  $: if ($cachedData) {
+    historyGraphSpec = _getHistoryGraphSpec(historyXUnits, historyYUnits);
+    seasonalityGraphSpec = _getSeasonalityGraphSpec(
+      seasonalityXUnits,
+      seasonalityYUnits
+    );
+  }
 
   function clearData() {
     $cachedData = null;
@@ -360,9 +370,7 @@
       </div>
       <div class="row mt-3 time_graph">
         <div class="col">
-          <TimeGraph
-            spec={_getSeasonalityGraphSpec(seasonalityXUnits, seasonalityYUnits)}
-          />
+          <TimeGraph spec={seasonalityGraphSpec} />
         </div>
       </div>
 
@@ -431,7 +439,7 @@
       <div class="row mt-3 time_graph">
         <div class="col">
           <div class="time_graph">
-            <TimeGraph spec={_getHistoryGraphSpec(historyXUnits, historyYUnits)} />
+            <TimeGraph spec={historyGraphSpec} />
           </div>
         </div>
       </div>
