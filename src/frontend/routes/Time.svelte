@@ -85,7 +85,7 @@
   const TIME_QUERY_BATCH_SIZE = 500;
 
   let seasonalityXUnits = SeasonalityXUnits.monthly;
-  let historyXUnits = HistoryXUnits.seasonally;
+  let historyXUnits = HistoryXUnits.yearly;
   let queryRequest: TimeGraphQueryRequest | null = null;
   let historyGraphSpec: TimeGraphSpec;
   let seasonalityGraphSpec: TimeGraphSpec;
