@@ -11,10 +11,6 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import DateRangeInput from '../components/DateRangeInput.svelte';
   import { EARLIEST_RECORD_DATE } from '../../shared/general_query';
-  // import type { TimeGraphQuery } from '../../shared/time_query';
-  // import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
-  // import { selectedLocations } from '../stores/selectedLocations';
-  // import { selectedTaxa } from '../stores/selectedTaxa';
 
   export let initialQueryRequest: TimeGraphQueryRequest;
   export let onClose: () => void;
@@ -45,9 +41,10 @@
   contentClasses="time-filter-content"
   dialogClasses="time-filter-dialog"
 >
-  <div class="row mb-3">
+  <div class="row mb-4">
     <div class="col">
-      When not filtering by taxa, results are restricted to cave obligates.
+      Specify the criteria for generating new charts. When not restricting to selected
+      taxa, results are restricted to cave obligates.
     </div>
   </div>
   <DateRangeInput

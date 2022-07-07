@@ -31,6 +31,7 @@
   }
 
   interface TimeGraphData {
+    description: string;
     query: TimeGraphQuery;
     historyGraphSpecs: HistoryGraphSpecs;
     seasonalityGraphSpecs: SeasonalityGraphSpecs;
@@ -54,6 +55,9 @@
   import { EARLIEST_RECORD_DATE } from '../../shared/general_query';
   import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
   import { client, errorReason } from '../stores/client';
+  import { selectedTaxa } from '../stores/selectedTaxa';
+  import { selectedLocations } from '../stores/selectedLocations';
+  import { LocationRank } from '../../shared/model';
 
   $pageName = 'Seasonality and History';
 
@@ -117,6 +121,8 @@
   }
 
   async function performQuery(request: TimeGraphQueryRequest) {
+    // Load the data.
+
     const timeQuery = {
       fromDateMillis: request.fromDateMillis,
       throughDateMillis: request.throughDateMillis,
@@ -126,8 +132,50 @@
     queryRequest = null; // hide query request dialog
     const generalQuery = convertTimeQuery(timeQuery);
 
-    const tallier = new TimeChartTallier();
+    // Generate the title.
 
+    let taxonFilterName = 'All cave obligates';
+    if (generalQuery.taxonFilter) {
+      taxonFilterName = 'Selected taxa';
+      const taxonSpecs = Object.values($selectedTaxa!);
+      if (taxonSpecs.length == 1) {
+        const taxonFilter = generalQuery.taxonFilter;
+        taxonFilterName = taxonSpecs[0].unique;
+        if (
+          taxonFilter.subspeciesIDs ||
+          taxonFilter.speciesIDs ||
+          taxonFilter.genusIDs
+        ) {
+          taxonFilterName = `<i>${taxonFilterName}</i>`;
+        }
+      }
+    }
+
+    let locationFilterName = 'at all locations';
+    if (generalQuery.locationFilter) {
+      locationFilterName = 'at selected locations';
+      const locationSpecs = Object.values($selectedLocations!);
+      if (locationSpecs.length == 1) {
+        const locationSpec = locationSpecs[0];
+        locationFilterName = `in ${locationSpec.name}`;
+        if (locationSpec.rank == LocationRank.Locality) {
+          const parentNames = locationSpec.parentNamePath.split('|');
+          locationFilterName = `at ${locationSpec.name}, ${
+            parentNames[parentNames.length - 1]
+          }`;
+        }
+      }
+    }
+
+    const fromDate = new Date(generalQuery.dateFilter!.fromDateMillis!);
+    const thruDate = new Date(generalQuery.dateFilter!.throughDateMillis!);
+    let description =
+      `${taxonFilterName} ${locationFilterName}<br/>` +
+      `from ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
+
+    // Tally the data for the charts.
+
+    const tallier = new TimeChartTallier();
     let offset = 0;
     let done = false;
     while (!done) {
@@ -138,11 +186,13 @@
       offset += TIME_QUERY_BATCH_SIZE;
       done = rows.length == 0;
     }
-
     const historyStageTallies = tallier.getHistoryStageTallies();
     const seasonalityStageTallies = tallier.getSeasonalityStageTallies();
 
+    // Cache the data.
+
     cachedData.set({
+      description,
       query: timeQuery,
       historyGraphSpecs: {
         monthlySpecs: {
@@ -291,8 +341,13 @@
     {#if !$cachedData}
       <EmptyTab message={'Click the "Load Data" button to generate new charts.'} />
     {:else}
-      <div>TBD: Need title saying what was queried</div>
-      <div class="row justify-content-center mt-3 gx-3">
+      <div class="row mt-3 mb-3 justify-content-center description">
+        <div class="col-10">{@html $cachedData.description}</div>
+      </div>
+
+      <hr style="margin-top: 1rem" />
+
+      <div class="row justify-content-center mt-4 gx-3">
         <div class="col-auto chart_type">Seasonality</div>
         <div class="col-auto">
           <div class="btn-group" role="group" aria-label="Seasonality count units">
@@ -468,6 +523,11 @@
 {/if}
 
 <style>
+  .description {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
   .chart_type {
     font-size: 1.1rem;
     font-weight: bold;
