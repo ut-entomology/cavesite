@@ -5,7 +5,7 @@ import {
   type SeasonalityStageTallies
 } from '../../shared/time_query';
 
-const labelByLifeStage = ['Unspecified', 'Immatures', 'Adults'];
+const labelByLifeStage = ['Unspecified life stage', 'Immatures', 'Adults'];
 const hexColors = ['ff00e9', '74e140', '7d46eb'];
 // prettier-ignore
 const monthLabels = [
