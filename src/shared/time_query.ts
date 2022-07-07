@@ -217,15 +217,21 @@ export class TimeChartTallier {
     // Update the species counts on a single date.
 
     let dateInfo = _toDateInfo(speciesDate);
-    if (unspecifiedCount > 0) {
-      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Unspecified);
-    }
-    if (immatureCount > 0) {
-      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Immature);
-    }
-    if (adultCount > 0) {
-      this._updateSpeciesTallies(dateInfo, taxonUnique, LifeStage.Adult);
-    }
+    this._updateSpeciesTallies(
+      dateInfo,
+      unspecifiedCount > 0 ? taxonUnique : null,
+      LifeStage.Unspecified
+    );
+    this._updateSpeciesTallies(
+      dateInfo,
+      immatureCount > 0 ? taxonUnique : null,
+      LifeStage.Immature
+    );
+    this._updateSpeciesTallies(
+      dateInfo,
+      adultCount > 0 ? taxonUnique : null,
+      LifeStage.Adult
+    );
 
     // Update the specimen counts on all dates in the range.
 
@@ -235,15 +241,9 @@ export class TimeChartTallier {
         const date = new Date(startDateMillies + nextDay * MILLIS_PER_DAY);
         dateInfo = _toDateInfo(date);
       }
-      if (unspecifiedCount > 0) {
-        this._updateSpecimenTallies(dateInfo, unspecifiedCount, LifeStage.Unspecified);
-      }
-      if (immatureCount > 0) {
-        this._updateSpecimenTallies(dateInfo, immatureCount, LifeStage.Immature);
-      }
-      if (adultCount > 0) {
-        this._updateSpecimenTallies(dateInfo, adultCount, LifeStage.Adult);
-      }
+      this._updateSpecimenTallies(dateInfo, unspecifiedCount, LifeStage.Unspecified);
+      this._updateSpecimenTallies(dateInfo, immatureCount, LifeStage.Immature);
+      this._updateSpecimenTallies(dateInfo, adultCount, LifeStage.Adult);
     }
   }
 
@@ -306,7 +306,7 @@ export class TimeChartTallier {
 
   private _updateSpeciesTallies(
     dateInfo: _DateInfo,
-    taxonUnique: string,
+    taxonUnique: string | null,
     lifeStage: LifeStage
   ) {
     // Update the history tallies.
@@ -368,14 +368,16 @@ export class TimeChartTallier {
   private _setTaxonTally(
     tallies: _SpeciesTallies[],
     timeCode: number,
-    taxonUnique: string
+    taxonUnique: string | null
   ): void {
     let tally = tallies[timeCode];
     if (tally === undefined) {
       tally = {};
       tallies[timeCode] = tally;
     }
-    tally[taxonUnique] = true;
+    if (taxonUnique) {
+      tally[taxonUnique] = true;
+    }
   }
 }
 

@@ -5,7 +5,7 @@ import {
   type SeasonalityStageTallies
 } from '../../shared/time_query';
 
-const labelByLifeStage = ['Unspecified life stage', 'Immatures', 'Adults'];
+const labelByLifeStage = ['Life stage unspecified', 'Immatures', 'Adults'];
 const hexColors = ['ff00e9', '74e140', '7d46eb'];
 // prettier-ignore
 const monthLabels = [
@@ -38,7 +38,7 @@ export function createHistoryGraphSpec(
   totalsProperty: keyof HistoryStageTallies
 ): TimeGraphSpec {
   const trendsByLifeStage: LifeStageTrend[] = [];
-  let linePoints: BarPoint[] = [];
+  let barPoints: BarPoint[] = [];
   let yAxisLabel = 'total specimens';
   let xAxisLabel = 'BLANK';
 
@@ -49,28 +49,28 @@ export function createHistoryGraphSpec(
         yAxisLabel = 'total species';
       case 'monthlySpecimenTotals':
         xAxisLabel = 'year and month';
-        linePoints = _createMonthlyHistoryPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createMonthlyHistoryPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore
       case 'seasonalSpeciesTotals':
         yAxisLabel = 'total species';
       case 'seasonalSpecimenTotals':
         xAxisLabel = 'year and season';
-        linePoints = _createSeasonalHistoryPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createSeasonalHistoryPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore
       case 'yearlySpeciesTotals':
         yAxisLabel = 'total species';
       case 'yearlySpecimenTotals':
         xAxisLabel = 'year';
-        linePoints = _createYearlyHistoryPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createYearlyHistoryPoints(stageTallySet[i], totalsProperty);
         break;
     }
 
     trendsByLifeStage.push({
       label: labelByLifeStage[i],
       hexColor: hexColors[i],
-      yValues: linePoints.map((p) => p.y)
+      yValues: barPoints.map((p) => p.y)
     });
   }
 
@@ -79,7 +79,7 @@ export function createHistoryGraphSpec(
       yAxisLabel[0].toUpperCase() + yAxisLabel.substring(1) + ' by ' + xAxisLabel,
     xAxisLabel,
     yAxisLabel,
-    xValues: linePoints.map((p) => p.xLabel), // same labels for all sets of points
+    xValues: barPoints.map((p) => p.xLabel), // same labels for all sets of points
     trendsByLifeStage
   };
 }
@@ -89,7 +89,7 @@ export function createSeasonalityGraphSpec(
   totalsProperty: keyof SeasonalityStageTallies
 ): TimeGraphSpec {
   const trendsByLifeStage: LifeStageTrend[] = [];
-  let linePoints: BarPoint[] = [];
+  let barPoints: BarPoint[] = [];
   let yAxisLabel = 'total specimens';
   let xAxisLabel = 'BLANK';
 
@@ -100,35 +100,35 @@ export function createSeasonalityGraphSpec(
         yAxisLabel = 'total species';
       case 'weeklySpecimenTotals':
         xAxisLabel = 'week of year';
-        linePoints = _createWeeklySeasonalityPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createWeeklySeasonalityPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore
       case 'biweeklySpeciesTotals':
         yAxisLabel = 'total species';
       case 'biweeklySpecimenTotals':
         xAxisLabel = 'fortnight of year';
-        linePoints = _createBiweeklySeasonalityPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createBiweeklySeasonalityPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore
       case 'monthlySpeciesTotals':
         yAxisLabel = 'total species';
       case 'monthlySpecimenTotals':
         xAxisLabel = 'month of year';
-        linePoints = _createMonthlySeasonalityPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createMonthlySeasonalityPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore
       case 'seasonalSpeciesTotals':
         yAxisLabel = 'total species';
       case 'seasonalSpecimenTotals':
         xAxisLabel = 'season of year';
-        linePoints = _createSeasonalSeasonalityPoints(stageTallySet[i], totalsProperty);
+        barPoints = _createSeasonalSeasonalityPoints(stageTallySet[i], totalsProperty);
         break;
     }
 
     trendsByLifeStage.push({
       label: labelByLifeStage[i],
       hexColor: hexColors[i],
-      yValues: linePoints.map((p) => p.y)
+      yValues: barPoints.map((p) => p.y)
     });
   }
 
@@ -137,7 +137,7 @@ export function createSeasonalityGraphSpec(
       yAxisLabel[0].toUpperCase() + yAxisLabel.substring(1) + ' by ' + xAxisLabel,
     xAxisLabel,
     yAxisLabel,
-    xValues: linePoints.map((p) => p.xLabel), // same labels for all sets of points
+    xValues: barPoints.map((p) => p.xLabel), // same labels for all sets of points
     trendsByLifeStage
   };
 }
