@@ -193,8 +193,8 @@ export class TaxonCounter {
   private _updateForTaxon(
     upperTaxon: string | null,
     lowerTaxon: string | null,
-    namesField: keyof TaxonCounter,
-    countsField: keyof TaxonCounter
+    namesField: keyof TaxonCounterData,
+    countsField: keyof TaxonCounterData
   ): void {
     // If the taxon does not occur, there's nothing to update.
 
