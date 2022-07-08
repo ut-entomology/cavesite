@@ -138,6 +138,8 @@ export function createSeasonalityGraphSpec(
     }
 
     if (i != LifeStage.All || yAxisLabel != TOTAL_SPECIMENS_LABEL) {
+      // Have seasonality graph end on same start point to produce looping curve.
+      barPoints.push(barPoints[0]);
       trendsByLifeStage.push({
         label: labelByLifeStage[i],
         plotColor: _hexToRGBAColor(hexColors[i], 8, 1),
@@ -302,7 +304,7 @@ function _makeWeeklyLabels(): string[] {
   const labels: string[] = [];
   const anyNonLeapYear = new Date(2021, 0, 1);
   const dateMillies = anyNonLeapYear.getTime();
-  for (let i = 0; i < 356; i += 7) {
+  for (let i = 0; i < 52 * 7; i += 7) {
     const date = new Date(dateMillies + i * MILLIS_PER_DAY);
     labels.push(`${monthLabels[date.getMonth()]} ${date.getDate()}`);
   }
