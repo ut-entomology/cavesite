@@ -175,7 +175,7 @@ function _createMonthlyHistoryPoints(
     const total = totalsByDateCode[dateCode];
     let year = Math.floor(dateCode / 100);
     let month = dateCode % 100;
-    points.push({ y: total ? total : 0, xLabel: `${monthLabels[month - 1]} ${year}` });
+    points.push({ y: total || 0, xLabel: `${monthLabels[month - 1]} ${year}` });
     if (++month == 13) {
       ++year;
       month = 1;
@@ -202,7 +202,7 @@ function _createSeasonalHistoryPoints(
     const total = totalsByDateCode[dateCode];
     let year = Math.floor(dateCode / 10);
     let season = dateCode % 10;
-    points.push({ y: total ? total : 0, xLabel: `${seasonLabels[season]} ${year}` });
+    points.push({ y: total || 0, xLabel: `${seasonLabels[season]} ${year}` });
     if (++season == 4) {
       ++year;
       season = 0;
@@ -227,7 +227,7 @@ function _createYearlyHistoryPoints(
 
   while (year <= lastYear) {
     const total = totalsByYear[year];
-    points.push({ y: total ? total : 0, xLabel: year });
+    points.push({ y: total || 0, xLabel: year });
     ++year;
   }
   return points;
@@ -242,7 +242,7 @@ function _createWeeklySeasonalityPoints(
 ): BarPoint[] {
   const points: BarPoint[] = [];
   for (let i = 0; i < 52; ++i) {
-    points.push({ y: tallies[totalsProperty][i + 1], xLabel: weeklyLabels[i] });
+    points.push({ y: tallies[totalsProperty][i + 1] || 0, xLabel: weeklyLabels[i] });
   }
   return points;
 }
@@ -256,7 +256,10 @@ function _createBiweeklySeasonalityPoints(
 ): BarPoint[] {
   const points: BarPoint[] = [];
   for (let i = 0; i < 26; ++i) {
-    points.push({ y: tallies[totalsProperty][i + 1], xLabel: weeklyLabels[i * 2] });
+    points.push({
+      y: tallies[totalsProperty][i + 1] || 0,
+      xLabel: weeklyLabels[i * 2]
+    });
   }
   return points;
 }
@@ -270,7 +273,7 @@ function _createMonthlySeasonalityPoints(
 ): BarPoint[] {
   const points: BarPoint[] = [];
   for (let i = 0; i < 12; ++i) {
-    points.push({ y: tallies[totalsProperty][i + 1], xLabel: monthLabels[i] });
+    points.push({ y: tallies[totalsProperty][i + 1] || 0, xLabel: monthLabels[i] });
   }
   return points;
 }
@@ -284,7 +287,7 @@ function _createSeasonalSeasonalityPoints(
 ): BarPoint[] {
   const points: BarPoint[] = [];
   for (let i = 0; i < 4; ++i) {
-    points.push({ y: tallies[totalsProperty][i], xLabel: seasonLabels[i] });
+    points.push({ y: tallies[totalsProperty][i] || 0, xLabel: seasonLabels[i] });
   }
   return points;
 }
