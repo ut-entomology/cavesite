@@ -164,12 +164,14 @@
         </div>
       {/if}
     </div>
-    <TabFootnote>
-      Some genera are divided into subgenera so that you can select each subgenus
-      separately, with the subgenus appearing in parentheses after the genus. To select
-      the entire genus of one of these genera, select all genus/subgenus combinations of
-      the genus.
-    </TabFootnote>
+    <TabFootnote
+      notes={[
+        `Some genera are divided into subgenera so that you can select each subgenus
+      separately, with the subgenus appearing in parentheses after the genus. To
+      select the entire genus of one of these genera, select all genus/subgenus
+      combinations of the genus.`
+      ]}
+    />
   </div>
 </DataTabRoute>
 
