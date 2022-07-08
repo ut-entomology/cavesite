@@ -205,7 +205,7 @@ export class TimeChartTallier {
     let deltaDays = 0; // no. days from start to end (0 => start == end)
     // Treat absence of a specimen count or specimen count of 0 as a 1.
     let specimenCount = row.resultCount! * (row.specimenCount ? row.specimenCount : 1);
-    const [species, subspecies] = toSpeciesAndSubspecies(pathSpec);
+    const [species, subspecies] = toSpeciesAndSubspecies(pathSpec, row.taxonUnique!);
 
     // Count adults, immatures, and unspecifieds.
 

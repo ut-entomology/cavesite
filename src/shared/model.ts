@@ -57,7 +57,6 @@ export interface TaxonPathSpec {
   genusName: string | null;
   speciesName: string | null;
   subspeciesName: string | null;
-  taxonUnique: string;
 }
 
 export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
@@ -94,14 +93,15 @@ export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
 }
 
 export function toSpeciesAndSubspecies(
-  pathSpec: TaxonPathSpec
+  pathSpec: TaxonPathSpec,
+  taxonUnique: string
 ): [string | null, string | null] {
   const speciesName = pathSpec.speciesName
     ? pathSpec.subspeciesName
-      ? pathSpec.taxonUnique.substring(0, pathSpec.taxonUnique.lastIndexOf(' '))
-      : pathSpec.taxonUnique
+      ? taxonUnique.substring(0, taxonUnique.lastIndexOf(' '))
+      : taxonUnique
     : null;
-  const subspeciesName = pathSpec.subspeciesName ? pathSpec.taxonUnique : null;
+  const subspeciesName = pathSpec.subspeciesName ? taxonUnique : null;
   return [speciesName, subspeciesName];
 }
 
