@@ -44,6 +44,7 @@
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import EmptyTab from '../components/EmptyTab.svelte';
+  import BusyMessage from '../common/BusyMessage.svelte';
   import TimeFilterDialog, {
     type TimeGraphQueryRequest
   } from '../dialogs/TimeFilterDialog.svelte';
@@ -84,6 +85,7 @@
 
   const TIME_QUERY_BATCH_SIZE = 500;
 
+  let loading = false;
   let seasonalityXUnits = SeasonalityXUnits.monthly;
   let historyXUnits = HistoryXUnits.yearly;
   let queryRequest: TimeGraphQueryRequest | null = null;
@@ -176,6 +178,7 @@
 
     // Tally the data for the charts.
 
+    loading = true;
     const tallier = new TimeChartTallier();
     let offset = 0;
     let done = false;
@@ -189,6 +192,7 @@
     }
     const historyStageTallies = tallier.getHistoryStageTallies();
     const seasonalityStageTallies = tallier.getSeasonalityStageTallies();
+    loading = false;
 
     // Cache the data.
 
@@ -519,6 +523,10 @@
     />
   </div>
 </DataTabRoute>
+
+{#if loading}
+  <BusyMessage message="Loading data..." />
+{/if}
 
 {#if queryRequest !== null}
   <TimeFilterDialog
