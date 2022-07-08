@@ -34,6 +34,7 @@
           text: spec.yAxisLabel + additiveText,
           font: { size: 16 }
         },
+        min: 0,
         ticks: {
           precision: 0
         },
