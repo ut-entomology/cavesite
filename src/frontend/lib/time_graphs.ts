@@ -9,7 +9,12 @@ const FILL_OPACITY = 0.2;
 const TOTAL_SPECIES_LABEL = 'min. species';
 const TOTAL_SPECIMENS_LABEL = 'total specimens';
 
-const labelByLifeStage = ['Unspecified', 'Immatures', 'Adults', 'All life stages'];
+const labelByLifeStage = [
+  'Unspecified life stage',
+  'Immatures',
+  'Adults',
+  'All life stages'
+];
 const hexColors = ['ee00e9', '00a0ee', '7d46eb', 'b0b0b0'];
 // prettier-ignore
 const monthLabels = [
