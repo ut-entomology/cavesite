@@ -1,5 +1,5 @@
 import type { DataOf } from './data_of';
-import { type TaxonPathSpec } from './model';
+import type { TaxonPathSpec } from './model';
 
 export type TaxonCounterData = DataOf<TaxonCounter>;
 
