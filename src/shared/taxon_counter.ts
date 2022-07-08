@@ -271,6 +271,7 @@ export class TaxonCounter {
 
 function _countOnes(s: string | null): number {
   if (s === null) return 0;
+  // @ts-ignore
   return s.replaceAll('0', '').length;
 }
 

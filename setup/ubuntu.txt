@@ -88,6 +88,7 @@ Otherwise update the repo:
 (11) From within ~/cavesite:
 
     ./bin/setup-db
+    rm -rdf build  # this prevents intermittent build problems
     yarn build
     sudo ./bin/deploy
     
