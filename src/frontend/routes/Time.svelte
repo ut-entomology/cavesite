@@ -503,16 +503,16 @@
     {/if}
     <TabFootnote
       notes={[
-        `Blank and zero specimen counts are treated as single specimens.`,
-        `Species collected over a range of days are each randomly assigned to a date
-      within the range, which  may cause species charts to vary slightly from
-      load to load.`,
+        `Blank and zero specimen counts are counted as single specimens.`,
         `The counts of specimens collected over a range of days are evenly distributed
       across those days, allowing for fractional specimen counts.`,
+        `Species collected over a range of days are each randomly assigned to a date
+      within the range, which may cause species charts to vary slightly from
+      load to load.`,
         `"Min. species" is the minimum number of species represented. For example,
-      after counting a record for <i>Hahnia</i>, the first occurence of a species
+      after counting a record for <i>Hahnia</i>, the first occurrence of a species
       in this genus (e.g. <i>Hahnia flaviceps</i>) does not increase the count, while 
-      second and subsequent occurences of species in the genus do increase the count.`,
+      subsequent occurrences of additional species in the genus do increase the count.`,
         `In weekly and biweekly charts, the one or two days of the 53rd week are
       stacked onto the 52nd week.`
       ]}
