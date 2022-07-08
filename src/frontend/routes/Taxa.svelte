@@ -111,7 +111,7 @@
   <div class="container-fluid">
     <TabHeader
       title={$pageName}
-      instructions="This tab shows the taxa that you have selected for use in other tabs. Selections appear <b>checked {checkmarkIcon} and bolded</b>. Click on the {plusIcon} or {checkmarkIcon} to toggle selections. Click on a taxon link or on [Browse Taxa] to browse, add, and remove taxa. Type taxa in the box for autocompletion assistance and fast selection."
+      instructions={`This tab shows the taxa that you have selected for use in other tabs. Selections appear <b>checked ${checkmarkIcon} and bolded</b>. Click on the ${plusIcon} or ${checkmarkIcon} to toggle selections. Click on a taxon link or on "Browse Taxa" to browse, add, and remove taxa. Type taxa in the box for autocompletion assistance and fast selection.`}
     >
       <span slot="main-buttons">
         {#if rootNode}
