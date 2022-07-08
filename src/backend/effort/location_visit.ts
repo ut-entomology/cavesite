@@ -123,7 +123,10 @@ export class LocationVisit extends TaxonCounter {
       throw Error("Can't add visits for a specimen with no start date");
     }
 
-    const [speciesName, subspeciesName] = toSpeciesAndSubspecies(specimen);
+    const [speciesName, subspeciesName] = toSpeciesAndSubspecies(
+      specimen,
+      specimen.taxonUnique
+    );
 
     switch (comparedTaxa) {
       case ComparedTaxa.caveObligates:
