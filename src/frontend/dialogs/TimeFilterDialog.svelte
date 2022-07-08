@@ -55,7 +55,7 @@
     setDateRange={_setDateRange}
   />
 
-  <div class="row justify-content-center mt-3 mb-2">
+  <div class="row justify-content-center mt-3 mb-1">
     <div class="col-auto">
       Restrict results to selected:
       <span class="form-check form-check-inline ms-2">
@@ -78,6 +78,11 @@
       </span>
     </div>
   </div>
+  <div class="row justify-content-center mb-3">
+    <div class="col-auto obligate_restriction">
+      ({filterTaxa ? 'Not restricted' : 'Restricted'} to cave obligates.)
+    </div>
+  </div>
 
   <div class="dialog_controls row g-2">
     <div class="col-12 text-center">
@@ -93,5 +98,8 @@
   .dialog_controls button {
     width: 6rem;
     margin: 1rem 0.5rem 0 0.5rem;
+  }
+  .obligate_restriction {
+    color: #999;
   }
 </style>
