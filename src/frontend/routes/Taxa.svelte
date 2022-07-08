@@ -188,7 +188,8 @@
 {#if browseTaxonUnique !== null}
   <BrowseTreeDialog
     title="Browse and Select Taxa"
-    typeLabel="taxon"
+    singularTypeLabel="taxon"
+    pluralTypeLabel="taxa"
     rootUnique={ROOT_TAXON_UNIQUE}
     parentUnique={browseTaxonUnique}
     selectedSpecsStore={selectedTaxa}

@@ -198,7 +198,8 @@
 {#if browseLocationUnique !== null}
   <BrowseTreeDialog
     title="Browse and Select Locations"
-    typeLabel="location"
+    singularTypeLabel="location"
+    pluralTypeLabel="locations"
     rootUnique={ROOT_LOCATION_UNIQUE}
     parentUnique={browseLocationUnique}
     selectedSpecsStore={selectedLocations}

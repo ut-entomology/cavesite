@@ -13,7 +13,8 @@
   import type { SelectionsTree } from '../../frontend-core/selections_tree';
 
   export let title: string;
-  export let typeLabel: string;
+  export let singularTypeLabel: string;
+  export let pluralTypeLabel: string;
   export let rootUnique: string;
   export let parentUnique: string;
   export let selectionsTree: SelectionsTree<ModelSpec>;
@@ -141,9 +142,10 @@
   <ModalDialog {title} contentClasses="tree-browser-content" let:scrollToModelTop>
     <div class="row info-row">
       <div class="col-auto mb-3 small">
-        This box only shows {typeLabel} having records. Click on {typeLabel} links to navigate
-        around. A plus ({@html plusIcon}) indicates a {typeLabel} that can be selected. A
-        check ({@html checkmarkIcon}) indicates a {typeLabel} that has been selected. Click
+        This box only shows {pluralTypeLabel} having records. Click on {singularTypeLabel}
+        links to navigate around. A plus ({@html plusIcon}) indicates a {singularTypeLabel}
+        that can be selected. A check ({@html checkmarkIcon}) indicates a {singularTypeLabel}
+        that has been selected. Click
         {@html plusIcon} or {@html checkmarkIcon} to toggle selections.
       </div>
     </div>
@@ -212,7 +214,7 @@
     <Notice
       header="ERROR"
       alert="danger"
-      message="Failed to load {typeLabel} '{parentUnique}':<br/>{errorReason(
+      message="Failed to load {singularTypeLabel} '{parentUnique}':<br/>{errorReason(
         err.response
       )}"
       on:close={onClose}
