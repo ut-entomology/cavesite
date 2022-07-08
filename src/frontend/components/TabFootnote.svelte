@@ -34,6 +34,10 @@
     background-color: white;
   }
 
+  ul {
+    margin-bottom: 0.8rem;
+  }
+
   li + li {
     margin-top: 0.4rem;
   }
