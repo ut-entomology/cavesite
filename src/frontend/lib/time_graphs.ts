@@ -125,14 +125,14 @@ export function createSeasonalityGraphSpec(
       case 'monthlySpeciesTotals':
         yAxisLabel = TOTAL_SPECIES_LABEL;
       case 'monthlySpecimenTotals':
-        xAxisLabel = 'month of year';
+        xAxisLabel = 'month';
         barPoints = _createMonthlySeasonalityPoints(stageTallySet[i], totalsProperty);
         break;
       // @ts-ignore
       case 'seasonalSpeciesTotals':
         yAxisLabel = TOTAL_SPECIES_LABEL;
       case 'seasonalSpecimenTotals':
-        xAxisLabel = 'season of year';
+        xAxisLabel = 'season';
         barPoints = _createSeasonalSeasonalityPoints(stageTallySet[i], totalsProperty);
         break;
     }
