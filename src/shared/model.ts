@@ -277,6 +277,11 @@ export interface ClusterSpec {
   maxSpecies?: number;
 }
 
+export interface TaxaCluster {
+  visitsByTaxonUnique: Record<string, number>;
+  locationIDs: number[];
+}
+
 export function checkComparedTaxa(comparedTaxa: ComparedTaxa | undefined): boolean {
   return comparedTaxa === undefined || comparedTaxa.includes(comparedTaxa);
 }

@@ -6,8 +6,8 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { LocationVisit } from './location_visit';
-import { type TaxonCounterData, TaxonCounter } from '../../shared/taxon_counter';
-import { TaxonVisitCounter } from './taxon_visit_counter';
+import { TaxonCounter } from '../../shared/taxon_counter';
+import { TaxonVisitCounter, type TaxonVisitCounterData } from './taxon_visit_counter';
 import { ComparedTaxa } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
@@ -66,19 +66,16 @@ export class LocationEffort extends TaxonVisitCounter {
     locationID: number,
     isCave: boolean,
     data: EffortData,
-    taxonCounter: TaxonCounterData
+    counterData: TaxonVisitCounterData
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
-      TaxonVisitCounter.addInitialVisits(
-        Object.assign(
-          {
-            locationID,
-            isCave
-          },
-          taxonCounter,
-          data
-        ),
-        taxonCounter
+      Object.assign(
+        {
+          locationID,
+          isCave
+        },
+        counterData,
+        data
       )
     );
     const result = await db.query(
@@ -88,7 +85,7 @@ export class LocationEffort extends TaxonVisitCounter {
             kingdom_names, kingdom_visits, phylum_names, phylum_visits,
             class_names, class_visits, order_names, order_visits,
             family_names, family_visits, genus_names, genus_visits,
-            species_names, species_visits, subspecies_names, subspecies_visits
+            species_names, species_visits, subspecies_names, subspecies_visits,
             per_day_points, per_visit_points, per_person_visit_points
 					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
             $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
@@ -211,7 +208,7 @@ export class LocationEffort extends TaxonVisitCounter {
                 perVisitPoints: JSON.stringify(perVisitPoints),
                 perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
               },
-              firstVisitOfLocation!
+              taxonVisitCounter!
             );
           }
           startDate = visit.startDate;
@@ -282,7 +279,7 @@ export class LocationEffort extends TaxonVisitCounter {
           perVisitPoints: JSON.stringify(perVisitPoints),
           perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
         },
-        firstVisitOfLocation!
+        taxonVisitCounter!
       );
     }
   }

@@ -8,13 +8,15 @@ import {
   taxonRanks,
   type ClusterSpec,
   DissimilarityTransform,
-  TaxonWeight
+  TaxonWeight,
+  type TaxaCluster
 } from '../../shared/model';
 
 export interface TaxonTally {
   taxonUnique: string;
   rankIndex: number;
-  count: number;
+  localities: number;
+  visits: number; // number of visits in cluster with this taxon
 }
 export type TaxonTallyMap = Record<string, TaxonTally>;
 
@@ -24,6 +26,10 @@ const cachedTaxonNamesByRankByLocationIDByComparedTaxa: Record<
   string,
   (string[] | null)[][]
 > = {};
+const cachedTaxonVisitsByRankByLocationIDByComparedTaxa: Record<
+  string,
+  (number[] | null)[][]
+> = {};
 
 export abstract class TaxaClusterer extends Clusterer {
   protected _weights: number[];
@@ -31,6 +37,7 @@ export abstract class TaxaClusterer extends Clusterer {
   protected _sansSubgeneraMap: Record<string, string> = {};
   protected _caveTaxonPathsByUnique: TaxonPathsByUniqueMap = {};
   protected _taxonNamesByRankByLocationID: (string[] | null)[][];
+  protected _taxonVisitsByRankByLocationID: (number[] | null)[][];
 
   constructor(db: DB, clusterSpec: ClusterSpec) {
     super(db, clusterSpec);
@@ -82,12 +89,21 @@ export abstract class TaxaClusterer extends Clusterer {
     }
 
     if (!clusterSpec.comparedTaxa) throw 'ComparedTaxa not specified';
+
     this._taxonNamesByRankByLocationID =
       cachedTaxonNamesByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa];
     if (this._taxonNamesByRankByLocationID === undefined) {
       this._taxonNamesByRankByLocationID = [];
       cachedTaxonNamesByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa] =
         this._taxonNamesByRankByLocationID;
+    }
+
+    this._taxonVisitsByRankByLocationID =
+      cachedTaxonVisitsByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa];
+    if (this._taxonVisitsByRankByLocationID === undefined) {
+      this._taxonVisitsByRankByLocationID = [];
+      cachedTaxonVisitsByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa] =
+        this._taxonVisitsByRankByLocationID;
     }
   }
 
@@ -116,7 +132,7 @@ export abstract class TaxaClusterer extends Clusterer {
       // IMPORTANT: Efforts are sorted by total inferred number of species, most species
       // first. Ideally, I would sort by whichever dissimilarity metric is in use, so
       // that I can start with the most extreme value, but this is excessively complex.
-      // Inferred species count is a good estimate of species diversity, so we're always
+      // Inferred species locations is a good estimate of species diversity, so we're always
       // seeding the first cluster with the maximally diverse location.
 
       let skipCount = 0;
@@ -225,7 +241,7 @@ export abstract class TaxaClusterer extends Clusterer {
     return seedLocationIDs;
   }
 
-  async getClusteredLocationIDs(seedLocationIDs: number[]): Promise<number[][]> {
+  async getClusteredLocationIDs(seedLocationIDs: number[]): Promise<TaxaCluster[]> {
     // Node.js's V8 engine should end up using sparse arrays of location IDs.
     const clusterByLocationID: Record<number, number> = [];
     let taxonTallyMapsByCluster: TaxonTallyMap[] = [];
@@ -243,7 +259,17 @@ export abstract class TaxaClusterer extends Clusterer {
       clusterByLocationID[seedEffort.locationID] = i;
       const taxonTallyMap = await this._tallyTaxa(seedEffort);
       taxonTallyMapsByCluster.push(taxonTallyMap);
-      nextTaxonTallyMapsByCluster.push(Object.assign({}, taxonTallyMap)); // copy
+
+      const taxonTallyMapCopy: TaxonTallyMap = {};
+      for (const tally of Object.values(taxonTallyMap)) {
+        taxonTallyMapCopy[tally.taxonUnique] = {
+          taxonUnique: tally.taxonUnique,
+          rankIndex: tally.rankIndex,
+          localities: tally.localities,
+          visits: tally.visits
+        };
+      }
+      nextTaxonTallyMapsByCluster.push(taxonTallyMapCopy);
     }
 
     // Provide an initial assignment of each location to its nearest cluster,
@@ -317,7 +343,22 @@ export abstract class TaxaClusterer extends Clusterer {
     for (const [locationID, clusterIndex] of Object.entries(clusterByLocationID)) {
       locationIDsByCluster[clusterIndex].push(parseInt(locationID));
     }
-    return locationIDsByCluster;
+
+    // Generate and return the taxa clusters.
+
+    const taxaClusters: TaxaCluster[] = [];
+    for (let i = 0; i < taxonTallyMapsByCluster.length; ++i) {
+      const taxonTallyMap = taxonTallyMapsByCluster[i];
+      const visitsByTaxonUnique: Record<string, number> = {};
+      for (const [taxonUnique, tally] of Object.entries(taxonTallyMap)) {
+        visitsByTaxonUnique[taxonUnique] = tally.visits;
+      }
+      taxaClusters.push({
+        visitsByTaxonUnique,
+        locationIDs: locationIDsByCluster[i]
+      });
+    }
+    return taxaClusters;
   }
 
   protected _getNearestClusterIndex(
@@ -376,11 +417,13 @@ export abstract class TaxaClusterer extends Clusterer {
     tallies: TaxonTallyMap,
     fromTallies: TaxonTallyMap
   ): TaxonTallyMap {
-    for (const tally of Object.values(fromTallies)) {
-      if (tallies[tally.taxonUnique] === undefined) {
-        tallies[tally.taxonUnique] = Object.assign({}, tally);
+    for (const fromTally of Object.values(fromTallies)) {
+      const thisTally = tallies[fromTally.taxonUnique];
+      if (thisTally === undefined) {
+        tallies[fromTally.taxonUnique] = Object.assign({}, fromTally);
       } else {
-        tallies[tally.taxonUnique].count += 1;
+        thisTally.localities += 1;
+        thisTally.visits += fromTally.visits;
       }
     }
     return tallies;
@@ -388,11 +431,12 @@ export abstract class TaxaClusterer extends Clusterer {
 
   protected async _tallyTaxa(effort: LocationEffort): Promise<TaxonTallyMap> {
     const tallies: TaxonTallyMap = {};
-    const taxonNamesByRank = await this._getTaxonNamesByRank(effort);
+    const [taxonNamesByRank, taxonVisitsByRank] =
+      await this._getTaxonNamesAndVisitsByRank(effort);
     for (let i = 0; i <= TaxonRankIndex.Subspecies; ++i) {
       const taxonNames = taxonNamesByRank[i];
       if (taxonNames !== null) {
-        this._tallyTaxonRank(tallies, i, taxonNames);
+        this._tallyTaxonRank(tallies, i, taxonNames, taxonVisitsByRank[i]!);
       }
     }
     return tallies;
@@ -401,7 +445,8 @@ export abstract class TaxaClusterer extends Clusterer {
   protected _tallyTaxonRank(
     tallies: TaxonTallyMap,
     rankIndex: TaxonRankIndex,
-    taxonNames: string[]
+    taxonNames: string[],
+    taxonVisits: number[]
   ): void {
     if (taxonNames.length == 0) return;
     if (rankIndex == TaxonRankIndex.Genus && this._ignoreSubgenera) {
@@ -424,22 +469,31 @@ export abstract class TaxaClusterer extends Clusterer {
       taxonNames = Object.keys(sansSubgenera);
     }
 
-    for (const taxonUnique of taxonNames) {
-      if (tallies[taxonUnique] === undefined) {
-        tallies[taxonUnique] = { taxonUnique, rankIndex, count: 1 };
+    for (let i = 0; i < taxonNames.length; ++i) {
+      const taxonUnique = taxonNames[i];
+      const taxonTally = tallies[taxonUnique];
+      if (taxonTally === undefined) {
+        tallies[taxonUnique] = {
+          taxonUnique,
+          rankIndex,
+          localities: 1,
+          visits: taxonVisits[i]
+        };
       } else {
-        tallies[taxonUnique].count += 1;
+        taxonTally.localities += 1;
+        taxonTally.visits += taxonVisits[i];
       }
     }
   }
 
-  private async _getTaxonNamesByRank(
+  private async _getTaxonNamesAndVisitsByRank(
     effort: LocationEffort
-  ): Promise<(string[] | null)[]> {
+  ): Promise<[(string[] | null)[], (number[] | null)[]]> {
     // Return cached taxon names for the effort, when available.
 
     let taxonNamesByRank = this._taxonNamesByRankByLocationID[effort.locationID];
-    if (taxonNamesByRank !== undefined) return taxonNamesByRank;
+    let taxonVisitsByRank = this._taxonVisitsByRankByLocationID[effort.locationID];
+    if (taxonNamesByRank !== undefined) return [taxonNamesByRank, taxonVisitsByRank];
 
     // Clear the cache if the effort data has since been updated.
 
@@ -452,6 +506,7 @@ export abstract class TaxaClusterer extends Clusterer {
     if (sampleLocationID === undefined) {
       // Clear the existing map because it's shared by all clients.
       this._taxonNamesByRankByLocationID.length = 0;
+      this._taxonVisitsByRankByLocationID.length = 0;
       sampleLocationIDByComparedTaxa[this._comparedTaxa] = effort.locationID;
     }
 
@@ -470,9 +525,27 @@ export abstract class TaxaClusterer extends Clusterer {
     taxonNamesByRank[TaxonRankIndex.Subspecies] =
       effort.convertToNamesList('subspeciesNames');
 
-    // Cache and return the computed taxon names.
+    // Compute the taxon visit counts by rank for this effort.
+
+    taxonVisitsByRank = new Array(TaxonRankIndex.Subspecies + 1);
+    taxonVisitsByRank[TaxonRankIndex.Kingdom] =
+      effort.convertToVisitsList('kingdomVisits');
+    taxonVisitsByRank[TaxonRankIndex.Phylum] =
+      effort.convertToVisitsList('phylumVisits');
+    taxonVisitsByRank[TaxonRankIndex.Class] = effort.convertToVisitsList('classVisits');
+    taxonVisitsByRank[TaxonRankIndex.Order] = effort.convertToVisitsList('orderVisits');
+    taxonVisitsByRank[TaxonRankIndex.Family] =
+      effort.convertToVisitsList('familyVisits');
+    taxonVisitsByRank[TaxonRankIndex.Genus] = effort.convertToVisitsList('genusVisits');
+    taxonVisitsByRank[TaxonRankIndex.Species] =
+      effort.convertToVisitsList('speciesVisits');
+    taxonVisitsByRank[TaxonRankIndex.Subspecies] =
+      effort.convertToVisitsList('subspeciesVisits');
+
+    // Cache and return the computed taxon names and visit counts.
 
     this._taxonNamesByRankByLocationID[effort.locationID] = taxonNamesByRank;
-    return taxonNamesByRank;
+    this._taxonVisitsByRankByLocationID[effort.locationID] = taxonVisitsByRank;
+    return [taxonNamesByRank, taxonVisitsByRank];
   }
 }

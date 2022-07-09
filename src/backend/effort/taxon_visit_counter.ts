@@ -159,7 +159,7 @@ export class TaxonVisitCounter extends TaxonCounter {
 function _toInitialVisits(names: string[] | string | null): number[] | null {
   if (names === null) return null;
   if (typeof names == 'string') {
-    const count = names.length - names.replaceAll(',', '').length + 1;
+    const count = names.length - names.replaceAll('|', '').length + 1;
     return new Array(count).fill(1);
   }
   return names.map((_) => 1);

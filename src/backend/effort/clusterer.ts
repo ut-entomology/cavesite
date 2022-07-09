@@ -1,5 +1,5 @@
 import { type DB } from '../integrations/postgres';
-import { type ClusterSpec, ComparedTaxa } from '../../shared/model';
+import { type ClusterSpec, type TaxaCluster, ComparedTaxa } from '../../shared/model';
 
 export abstract class Clusterer {
   protected _db: DB;
@@ -13,7 +13,7 @@ export abstract class Clusterer {
     useCumulativeTaxa: boolean
   ): Promise<number[]>;
 
-  abstract getClusteredLocationIDs(seedLocationIDs: number[]): Promise<number[][]>;
+  abstract getClusteredLocationIDs(seedLocationIDs: number[]): Promise<TaxaCluster[]>;
 
   constructor(db: DB, clusterSpec: ClusterSpec) {
     this._db = db;
