@@ -7,6 +7,7 @@ import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { LocationVisit } from './location_visit';
 import { type TaxonCounterData, TaxonCounter } from '../../shared/taxon_counter';
+import { TaxonVisitCounter } from './taxon_visit_counter';
 import { ComparedTaxa } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
@@ -27,7 +28,7 @@ export type EffortData = Pick<
   | 'perPersonVisitPoints'
 >;
 
-export class LocationEffort extends TaxonCounter {
+export class LocationEffort extends TaxonVisitCounter {
   locationID: number;
   isCave: boolean;
   startDate: Date;
@@ -68,17 +69,29 @@ export class LocationEffort extends TaxonCounter {
     taxonCounter: TaxonCounterData
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
-      Object.assign({ locationID, isCave }, taxonCounter, data)
+      TaxonVisitCounter.addInitialVisits(
+        Object.assign(
+          {
+            locationID,
+            isCave
+          },
+          taxonCounter,
+          data
+        ),
+        taxonCounter
+      )
     );
     const result = await db.query(
       `insert into ${comparedTaxa}_for_effort (
             location_id, is_cave, start_date, end_date, total_days,
-            total_visits, total_person_visits, total_species, kingdom_names,
-            phylum_names, class_names, order_names, family_names,
-            genus_names, species_names, subspecies_names,
+            total_visits, total_person_visits, total_species,
+            kingdom_names, kingdom_visits, phylum_names, phylum_visits,
+            class_names, class_visits, order_names, order_visits,
+            family_names, family_visits, genus_names, genus_visits,
+            species_names, species_visits, subspecies_names, subspecies_visits
             per_day_points, per_visit_points, per_person_visit_points
-					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-              $14, $15, $16, $17, $18, $19)`,
+					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
       [
         effort.locationID,
         // @ts-ignore
@@ -92,13 +105,21 @@ export class LocationEffort extends TaxonCounter {
         effort.totalPersonVisits,
         effort.totalSpecies,
         TaxonCounter.toNameSeries(effort.kingdomNames),
+        TaxonVisitCounter.toVisitsSeries(effort.kingdomVisits),
         TaxonCounter.toNameSeries(effort.phylumNames),
+        TaxonVisitCounter.toVisitsSeries(effort.phylumVisits),
         TaxonCounter.toNameSeries(effort.classNames),
+        TaxonVisitCounter.toVisitsSeries(effort.classVisits),
         TaxonCounter.toNameSeries(effort.orderNames),
+        TaxonVisitCounter.toVisitsSeries(effort.orderVisits),
         TaxonCounter.toNameSeries(effort.familyNames),
+        TaxonVisitCounter.toVisitsSeries(effort.familyVisits),
         TaxonCounter.toNameSeries(effort.genusNames),
+        TaxonVisitCounter.toVisitsSeries(effort.genusVisits),
         TaxonCounter.toNameSeries(effort.speciesNames),
+        TaxonVisitCounter.toVisitsSeries(effort.speciesVisits),
         TaxonCounter.toNameSeries(effort.subspeciesNames),
+        TaxonVisitCounter.toVisitsSeries(effort.subspeciesVisits),
         TaxonCounter.toNameSeries(effort.perDayPoints),
         TaxonCounter.toNameSeries(effort.perVisitPoints),
         TaxonCounter.toNameSeries(effort.perPersonVisitPoints)
@@ -150,7 +171,8 @@ export class LocationEffort extends TaxonCounter {
     let priorLocationID = 0;
     let startDate: Date;
     let endDate: Date;
-    let tallyingVisit: LocationVisit;
+    let firstVisitOfLocation: LocationVisit;
+    let taxonVisitCounter: TaxonVisitCounter;
     let firstEpochDay = 0;
     let totalDays = 0;
     let totalSpecies = 0;
@@ -176,8 +198,8 @@ export class LocationEffort extends TaxonCounter {
             await this.create(
               db,
               comparedTaxa,
-              tallyingVisit!.locationID,
-              tallyingVisit!.isCave,
+              firstVisitOfLocation!.locationID,
+              firstVisitOfLocation!.isCave,
               {
                 startDate: startDate!,
                 endDate: endDate!,
@@ -189,12 +211,15 @@ export class LocationEffort extends TaxonCounter {
                 perVisitPoints: JSON.stringify(perVisitPoints),
                 perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
               },
-              tallyingVisit!
+              firstVisitOfLocation!
             );
           }
           startDate = visit.startDate;
           firstEpochDay = visit.startEpochDay;
-          tallyingVisit = visit; // okay to overwrite the visit
+          firstVisitOfLocation = visit;
+          taxonVisitCounter = new TaxonVisitCounter(
+            TaxonVisitCounter.addInitialVisits(visit, visit)
+          );
           totalVisits = 0;
           totalPersonVisits = 0;
           perDayPoints = [];
@@ -202,7 +227,7 @@ export class LocationEffort extends TaxonCounter {
           perPersonVisitPoints = [];
           priorLocationID = visit.locationID;
         } else {
-          tallyingVisit!.mergeCounter(visit);
+          taxonVisitCounter!.mergeCounter(visit);
         }
 
         endDate = visit.endDate || visit.startDate;
@@ -211,7 +236,7 @@ export class LocationEffort extends TaxonCounter {
             (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
           ) + 1;
 
-        totalSpecies = tallyingVisit!.getSpeciesCount();
+        totalSpecies = firstVisitOfLocation!.getSpeciesCount();
         totalDays = visit.endEpochDay - firstEpochDay + 1;
 
         if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
@@ -243,8 +268,8 @@ export class LocationEffort extends TaxonCounter {
       await this.create(
         db,
         comparedTaxa,
-        tallyingVisit!.locationID,
-        tallyingVisit!.isCave,
+        firstVisitOfLocation!.locationID,
+        firstVisitOfLocation!.isCave,
         {
           // @ts-ignore
           startDate,
@@ -257,7 +282,7 @@ export class LocationEffort extends TaxonCounter {
           perVisitPoints: JSON.stringify(perVisitPoints),
           perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
         },
-        tallyingVisit!
+        firstVisitOfLocation!
       );
     }
   }

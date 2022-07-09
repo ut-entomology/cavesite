@@ -3,7 +3,7 @@ import type { TaxonPathSpec } from './model';
 
 export type TaxonCounterData = DataOf<TaxonCounter>;
 
-type NamesFieldName = keyof Pick<
+export type NamesFieldName = keyof Pick<
   TaxonCounterData,
   | 'kingdomNames'
   | 'phylumNames'
@@ -15,7 +15,7 @@ type NamesFieldName = keyof Pick<
   | 'subspeciesNames'
 >;
 
-type CountsFieldName = keyof Pick<
+export type CountsFieldName = keyof Pick<
   TaxonCounterData,
   | 'kingdomCounts'
   | 'phylumCounts'
@@ -45,8 +45,6 @@ export class TaxonCounter {
   subspeciesNames: string[] | string | null;
   subspeciesCounts: string | null;
 
-  //// CONSTRUCTION //////////////////////////////////////////////////////////
-
   constructor(data: TaxonCounterData) {
     this.kingdomNames = data.kingdomNames;
     this.kingdomCounts = data.kingdomCounts;
@@ -65,8 +63,6 @@ export class TaxonCounter {
     this.subspeciesNames = data.subspeciesNames;
     this.subspeciesCounts = data.subspeciesCounts;
   }
-
-  //// PUBLIC STATIC METHODS /////////////////////////////////////////////////
 
   static createFromPathSpec(
     pathSpec: TaxonPathSpec,
@@ -98,8 +94,6 @@ export class TaxonCounter {
     return typeof names == 'string' ? names : names.join('|');
   }
 
-  //// PUBLIC INSTANCE METHODS ///////////////////////////////////////////////
-
   convertToNamesList(namesFieldName: NamesFieldName): string[] | null {
     const names = this[namesFieldName];
     if (names === null || Array.isArray(names)) return names;
@@ -118,17 +112,6 @@ export class TaxonCounter {
     count += _countOnes(this.speciesCounts);
     count += _countOnes(this.subspeciesCounts);
     return count;
-  }
-
-  mergeCounter(otherCounter: TaxonCounter): void {
-    this._mergeTaxa(otherCounter, 'kingdomNames', 'kingdomCounts');
-    this._mergeTaxa(otherCounter, 'phylumNames', 'phylumCounts');
-    this._mergeTaxa(otherCounter, 'classNames', 'classCounts');
-    this._mergeTaxa(otherCounter, 'orderNames', 'orderCounts');
-    this._mergeTaxa(otherCounter, 'familyNames', 'familyCounts');
-    this._mergeTaxa(otherCounter, 'genusNames', 'genusCounts');
-    this._mergeTaxa(otherCounter, 'speciesNames', 'speciesCounts');
-    this._mergeTaxa(otherCounter, 'subspeciesNames', 'subspeciesCounts');
   }
 
   updateForPathSpec(
@@ -171,59 +154,14 @@ export class TaxonCounter {
     this._updateForTaxon(subspeciesName, null, 'subspeciesNames', 'subspeciesCounts');
   }
 
-  //// PRIVATE INSTANCE METHODS //////////////////////////////////////////////
-
-  private _mergeTaxa(
-    otherCounter: TaxonCounter,
-    namesFieldName: NamesFieldName,
-    countsFieldName: CountsFieldName
-  ): void {
-    // Only merge counter values when they exist for the taxon.
-
-    const otherTaxa = otherCounter.convertToNamesList(namesFieldName);
-    if (otherTaxa !== null) {
-      // If this counter doesn't currently represent the other's taxon, copy over
-      // the other's values for the taxon; otherwise, merge the other's values.
-
-      const taxa = this.convertToNamesList(namesFieldName);
-      if (taxa === null) {
-        this[namesFieldName] = otherTaxa;
-        this[countsFieldName] = otherCounter[countsFieldName]!;
-      } else {
-        const otherCounts = otherCounter[countsFieldName]!;
-
-        // Separately merge each of the other taxa.
-
-        for (let otherIndex = 0; otherIndex < otherTaxa.length; ++otherIndex) {
-          const otherTaxon = otherTaxa[otherIndex];
-          const thisIndex = taxa.indexOf(otherTaxon);
-
-          if (otherCounts[otherIndex] == '0') {
-            // When the other's count is 0, a lower taxon of the other counter
-            // provides more specificity, so this counter must indicate a 0
-            // count for the taxon.
-
-            if (thisIndex < 0) {
-              taxa.push(otherTaxon);
-              this[countsFieldName] += '0';
-            } else {
-              const taxonCounts = this[countsFieldName]!;
-              if (taxonCounts[thisIndex] == '1') {
-                this[countsFieldName] = _setTaxonCounts(taxonCounts, thisIndex, '0');
-              }
-            }
-          } else {
-            // When the other's count is 1, the other provides no more specificity,
-            // so the this counter must indicate a 1 if a tally isn't already present.
-
-            if (thisIndex < 0) {
-              taxa.push(otherTaxon);
-              this[countsFieldName] += '1';
-            }
-          }
-        }
-      }
-    }
+  protected _setTaxonCounts(
+    taxonCounts: string,
+    offset: number,
+    count: string
+  ): string {
+    return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
+      offset + 1
+    )}`;
   }
 
   private _updateForTaxon(
@@ -261,7 +199,7 @@ export class TaxonCounter {
           const taxonCounts = this[countsFieldName] as string;
           if (taxonCounts[taxonIndex] == '1') {
             // @ts-ignore
-            this[countsFieldName] = _setTaxonCounts(taxonCounts, taxonIndex, '0');
+            this[countsFieldName] = this._setTaxonCounts(taxonCounts, taxonIndex, '0');
           }
         }
       }
@@ -273,16 +211,6 @@ function _countOnes(s: string | null): number {
   if (s === null) return 0;
   // @ts-ignore
   return s.replaceAll('0', '').length;
-}
-
-export function _setTaxonCounts(
-  taxonCounts: string,
-  offset: number,
-  count: string
-): string {
-  return `${taxonCounts.substring(0, offset)}${count}${taxonCounts.substring(
-    offset + 1
-  )}`;
 }
 
 function _toInitialCount(
