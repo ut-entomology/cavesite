@@ -21,14 +21,14 @@ type VisitsFieldName = keyof Pick<
 >;
 
 export class TaxonVisitCounter extends TaxonCounter {
-  kingdomVisits: string | number[];
-  phylumVisits: string | number[];
-  classVisits: string | number[];
-  orderVisits: string | number[];
-  familyVisits: string | number[];
-  genusVisits: string | number[];
-  speciesVisits: string | number[];
-  subspeciesVisits: string | number[];
+  kingdomVisits: string | number[] | null;
+  phylumVisits: string | number[] | null;
+  classVisits: string | number[] | null;
+  orderVisits: string | number[] | null;
+  familyVisits: string | number[] | null;
+  genusVisits: string | number[] | null;
+  speciesVisits: string | number[] | null;
+  subspeciesVisits: string | number[] | null;
 
   constructor(data: TaxonVisitCounterData) {
     super(data);
@@ -45,26 +45,27 @@ export class TaxonVisitCounter extends TaxonCounter {
   static addInitialVisits<T>(
     obj: T,
     taxonCounter: TaxonCounterData
-  ): T & { [K in VisitsFieldName]: number[] } {
-    const anyObj: T & { [K in VisitsFieldName]: number[] } = obj as any;
-    anyObj.kingdomVisits = taxonCounter.kingdomNames ? [1] : [0];
-    anyObj.phylumVisits = taxonCounter.phylumNames ? [1] : [0];
-    anyObj.classVisits = taxonCounter.classNames ? [1] : [0];
-    anyObj.orderVisits = taxonCounter.orderNames ? [1] : [0];
-    anyObj.familyVisits = taxonCounter.familyNames ? [1] : [0];
-    anyObj.genusVisits = taxonCounter.genusNames ? [1] : [0];
-    anyObj.speciesVisits = taxonCounter.subspeciesCounts ? [1] : [0];
-    anyObj.subspeciesVisits = taxonCounter.subspeciesNames ? [1] : [0];
+  ): T & { [K in VisitsFieldName]: number[] | null } {
+    const anyObj: T & { [K in VisitsFieldName]: number[] | null } = obj as any;
+    anyObj.kingdomVisits = taxonCounter.kingdomNames ? [1] : null;
+    anyObj.phylumVisits = taxonCounter.phylumNames ? [1] : null;
+    anyObj.classVisits = taxonCounter.classNames ? [1] : null;
+    anyObj.orderVisits = taxonCounter.orderNames ? [1] : null;
+    anyObj.familyVisits = taxonCounter.familyNames ? [1] : null;
+    anyObj.genusVisits = taxonCounter.genusNames ? [1] : null;
+    anyObj.speciesVisits = taxonCounter.subspeciesCounts ? [1] : null;
+    anyObj.subspeciesVisits = taxonCounter.subspeciesNames ? [1] : null;
     return anyObj;
   }
 
-  static toVisitsSeries(visits: number[] | string): string {
+  static toVisitsSeries(visits: number[] | string | null): string | null {
+    if (visits === null) return null;
     return typeof visits == 'string' ? visits : visits.join(',');
   }
 
-  convertToVisitsList(visitsFieldName: VisitsFieldName): number[] {
+  convertToVisitsList(visitsFieldName: VisitsFieldName): number[] | null {
     const visits = this[visitsFieldName];
-    if (Array.isArray(visits)) return visits;
+    if (visits === null || Array.isArray(visits)) return visits;
     const visitsList = visits.split(',').map((str) => parseInt(str));
     this[visitsFieldName] = visitsList;
     return visitsList;
@@ -106,7 +107,7 @@ export class TaxonVisitCounter extends TaxonCounter {
       if (taxa === null) {
         this[namesFieldName] = otherTaxa;
         this[countsFieldName] = otherCounter[countsFieldName]!;
-        this[visitsFieldName] = [1]; // this should be redundant
+        this[visitsFieldName] = [1];
       } else {
         const visits = this.convertToVisitsList(visitsFieldName);
         const otherCounts = otherCounter[countsFieldName]!;
@@ -125,7 +126,7 @@ export class TaxonVisitCounter extends TaxonCounter {
             if (thisIndex < 0) {
               taxa.push(otherTaxon);
               this[countsFieldName] += '0';
-              visits.push(1);
+              visits!.push(1);
             } else {
               const taxonCounts = this[countsFieldName]!;
               if (taxonCounts[thisIndex] == '1') {
@@ -135,7 +136,7 @@ export class TaxonVisitCounter extends TaxonCounter {
                   '0'
                 );
               }
-              ++visits[thisIndex];
+              ++visits![thisIndex];
             }
           } else {
             // When the other's count is 1, the other provides no more specificity,
@@ -144,9 +145,9 @@ export class TaxonVisitCounter extends TaxonCounter {
             if (thisIndex < 0) {
               taxa.push(otherTaxon);
               this[countsFieldName] += '1';
-              visits.push(1);
+              visits!.push(1);
             } else {
-              ++visits[thisIndex];
+              ++visits![thisIndex];
             }
           }
         }
