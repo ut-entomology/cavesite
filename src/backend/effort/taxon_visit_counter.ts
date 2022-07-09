@@ -47,14 +47,14 @@ export class TaxonVisitCounter extends TaxonCounter {
     taxonCounter: TaxonCounterData
   ): T & { [K in VisitsFieldName]: number[] | null } {
     const anyObj: T & { [K in VisitsFieldName]: number[] | null } = obj as any;
-    anyObj.kingdomVisits = taxonCounter.kingdomNames ? [1] : null;
-    anyObj.phylumVisits = taxonCounter.phylumNames ? [1] : null;
-    anyObj.classVisits = taxonCounter.classNames ? [1] : null;
-    anyObj.orderVisits = taxonCounter.orderNames ? [1] : null;
-    anyObj.familyVisits = taxonCounter.familyNames ? [1] : null;
-    anyObj.genusVisits = taxonCounter.genusNames ? [1] : null;
-    anyObj.speciesVisits = taxonCounter.subspeciesCounts ? [1] : null;
-    anyObj.subspeciesVisits = taxonCounter.subspeciesNames ? [1] : null;
+    anyObj.kingdomVisits = _toInitialVisits(taxonCounter.kingdomNames);
+    anyObj.phylumVisits = _toInitialVisits(taxonCounter.phylumNames);
+    anyObj.classVisits = _toInitialVisits(taxonCounter.classNames);
+    anyObj.orderVisits = _toInitialVisits(taxonCounter.orderNames);
+    anyObj.familyVisits = _toInitialVisits(taxonCounter.familyNames);
+    anyObj.genusVisits = _toInitialVisits(taxonCounter.genusNames);
+    anyObj.speciesVisits = _toInitialVisits(taxonCounter.subspeciesCounts);
+    anyObj.subspeciesVisits = _toInitialVisits(taxonCounter.subspeciesNames);
     return anyObj;
   }
 
@@ -105,9 +105,9 @@ export class TaxonVisitCounter extends TaxonCounter {
       // the other's values for the taxon; otherwise, merge the other's values.
 
       if (taxa === null) {
-        this[namesFieldName] = otherTaxa;
+        this[namesFieldName] = otherTaxa.slice();
         this[countsFieldName] = otherCounter[countsFieldName]!;
-        this[visitsFieldName] = [1];
+        this[visitsFieldName] = otherTaxa.map((_) => 1);
       } else {
         const visits = this.convertToVisitsList(visitsFieldName);
         const otherCounts = otherCounter[countsFieldName]!;
@@ -154,4 +154,13 @@ export class TaxonVisitCounter extends TaxonCounter {
       }
     }
   }
+}
+
+function _toInitialVisits(names: string[] | string | null): number[] | null {
+  if (names === null) return null;
+  if (typeof names == 'string') {
+    const count = names.length - names.replaceAll(',', '').length + 1;
+    return new Array(count).fill(1);
+  }
+  return names.map((_) => 1);
 }
