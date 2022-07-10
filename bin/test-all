@@ -1,15 +1,21 @@
 # Although the DB tests use locks, tests may timeout, so test one by one.
 
-jest src/backend/model/user.test.ts
-jest src/backend/model/session.test.ts
-jest src/backend/model/taxon.test.ts
-jest src/backend/model/location.test.ts
-jest src/backend/model/private_coords.test.ts
-jest src/backend/model/specimen.test.ts
-jest src/backend/model/logs.test.ts
+npx jest src/shared/validation.test.ts
+npx jest src/shared/time_query.test.ts
+npx jest src/shared/taxon_counter.test.ts
 
-jest src/backend/effort/location_visit.test.ts
-jest src/backend/effort/location_effort.test.ts
-# jest src/backend/effort/cluster.test.ts
+npx jest src/backend/model/user.test.ts
+npx jest src/backend/model/session.test.ts
+npx jest src/backend/model/taxon.test.ts
+npx jest src/backend/model/location.test.ts
+npx jest src/backend/model/private_coords.test.ts
+npx jest src/backend/model/specimen.test.ts
+npx jest src/backend/model/key_data.test.ts
+npx jest src/backend/model/logs.test.ts
 
-jest src/frontend-core/selections_tree.test.ts
+npx jest src/backend/effort/taxon_visit_counter.test.ts
+npx jest src/backend/effort/location_visit.test.ts
+npx jest src/backend/effort/location_effort.test.ts
+npx jest src/backend/effort/taxa_clusterer.test.ts
+
+npx jest src/frontend-core/selections_tree.test.ts
