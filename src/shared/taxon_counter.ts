@@ -89,15 +89,19 @@ export class TaxonCounter {
     });
   }
 
+  static toNamesList(names: string[] | string | null): string[] | null {
+    if (names === null || Array.isArray(names)) return names;
+    return names.split('|');
+  }
+
   static toNameSeries(names: string[] | string | null): string | null {
     if (names === null) return null;
     return typeof names == 'string' ? names : names.join('|');
   }
 
   convertToNamesList(namesFieldName: NamesFieldName): string[] | null {
-    const names = this[namesFieldName];
-    if (names === null || Array.isArray(names)) return names;
-    const namesList = names.split('|');
+    const namesList = TaxonCounter.toNamesList(this[namesFieldName]);
+    if (namesList === null) return null;
     this[namesFieldName] = namesList;
     return namesList;
   }

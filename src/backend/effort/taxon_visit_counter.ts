@@ -58,15 +58,19 @@ export class TaxonVisitCounter extends TaxonCounter {
     return anyObj;
   }
 
+  static toVisitsList(visits: number[] | string | null): number[] | null {
+    if (visits === null || Array.isArray(visits)) return visits;
+    return visits.split(',').map((str) => parseInt(str));
+  }
+
   static toVisitsSeries(visits: number[] | string | null): string | null {
     if (visits === null) return null;
     return typeof visits == 'string' ? visits : visits.join(',');
   }
 
   convertToVisitsList(visitsFieldName: VisitsFieldName): number[] | null {
-    const visits = this[visitsFieldName];
-    if (visits === null || Array.isArray(visits)) return visits;
-    const visitsList = visits.split(',').map((str) => parseInt(str));
+    const visitsList = TaxonVisitCounter.toVisitsList(this[visitsFieldName]);
+    if (visitsList === null) return null;
     this[visitsFieldName] = visitsList;
     return visitsList;
   }

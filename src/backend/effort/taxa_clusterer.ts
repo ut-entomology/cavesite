@@ -11,6 +11,7 @@ import {
   TaxonWeight,
   type TaxaCluster
 } from '../../shared/model';
+import { TaxonVisitCounter } from './taxon_visit_counter';
 
 export interface TaxonTally {
   taxonUnique: string;
@@ -504,34 +505,58 @@ export abstract class TaxaClusterer extends Clusterer {
     // Compute the taxon names by rank for this effort.
 
     taxonNamesByRank = new Array(TaxonRankIndex.Subspecies + 1);
-    taxonNamesByRank[TaxonRankIndex.Kingdom] =
-      effort.convertToNamesList('kingdomNames');
-    taxonNamesByRank[TaxonRankIndex.Phylum] = effort.convertToNamesList('phylumNames');
-    taxonNamesByRank[TaxonRankIndex.Class] = effort.convertToNamesList('classNames');
-    taxonNamesByRank[TaxonRankIndex.Order] = effort.convertToNamesList('orderNames');
-    taxonNamesByRank[TaxonRankIndex.Family] = effort.convertToNamesList('familyNames');
-    taxonNamesByRank[TaxonRankIndex.Genus] = effort.convertToNamesList('genusNames');
-    taxonNamesByRank[TaxonRankIndex.Species] =
-      effort.convertToNamesList('speciesNames');
-    taxonNamesByRank[TaxonRankIndex.Subspecies] =
-      effort.convertToNamesList('subspeciesNames');
+    taxonNamesByRank[TaxonRankIndex.Kingdom] = TaxonVisitCounter.toNamesList(
+      effort.kingdomNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Phylum] = TaxonVisitCounter.toNamesList(
+      effort.phylumNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Class] = TaxonVisitCounter.toNamesList(
+      effort.classNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Order] = TaxonVisitCounter.toNamesList(
+      effort.orderNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Family] = TaxonVisitCounter.toNamesList(
+      effort.familyNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Genus] = TaxonVisitCounter.toNamesList(
+      effort.genusNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Species] = TaxonVisitCounter.toNamesList(
+      effort.speciesNames
+    );
+    taxonNamesByRank[TaxonRankIndex.Subspecies] = TaxonVisitCounter.toNamesList(
+      effort.subspeciesNames
+    );
 
     // Compute the taxon visit counts by rank for this effort.
 
     taxonVisitsByRank = new Array(TaxonRankIndex.Subspecies + 1);
-    taxonVisitsByRank[TaxonRankIndex.Kingdom] =
-      effort.convertToVisitsList('kingdomVisits');
-    taxonVisitsByRank[TaxonRankIndex.Phylum] =
-      effort.convertToVisitsList('phylumVisits');
-    taxonVisitsByRank[TaxonRankIndex.Class] = effort.convertToVisitsList('classVisits');
-    taxonVisitsByRank[TaxonRankIndex.Order] = effort.convertToVisitsList('orderVisits');
-    taxonVisitsByRank[TaxonRankIndex.Family] =
-      effort.convertToVisitsList('familyVisits');
-    taxonVisitsByRank[TaxonRankIndex.Genus] = effort.convertToVisitsList('genusVisits');
-    taxonVisitsByRank[TaxonRankIndex.Species] =
-      effort.convertToVisitsList('speciesVisits');
-    taxonVisitsByRank[TaxonRankIndex.Subspecies] =
-      effort.convertToVisitsList('subspeciesVisits');
+    taxonVisitsByRank[TaxonRankIndex.Kingdom] = TaxonVisitCounter.toVisitsList(
+      effort.kingdomVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Phylum] = TaxonVisitCounter.toVisitsList(
+      effort.phylumVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Class] = TaxonVisitCounter.toVisitsList(
+      effort.classVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Order] = TaxonVisitCounter.toVisitsList(
+      effort.orderVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Family] = TaxonVisitCounter.toVisitsList(
+      effort.familyVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Genus] = TaxonVisitCounter.toVisitsList(
+      effort.genusVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Species] = TaxonVisitCounter.toVisitsList(
+      effort.speciesVisits
+    );
+    taxonVisitsByRank[TaxonRankIndex.Subspecies] = TaxonVisitCounter.toVisitsList(
+      effort.subspeciesVisits
+    );
 
     // Cache and return the computed taxon names and visit counts.
 
