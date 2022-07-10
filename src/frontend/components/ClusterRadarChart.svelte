@@ -6,12 +6,18 @@
   export let dataByCluster: PerLocationClusterData[];
   export let clusterColors: string[];
 
+  // Rotate the clusters clockwise by one cluster so the shaded areas don't
+  // overcrowd the scale, but adjust the cluster numbers everywhere.
+  let rotatedDataByCluster = dataByCluster.slice();
+  const lastCluster = rotatedDataByCluster.pop()!;
+  rotatedDataByCluster.unshift(lastCluster);
+
   let percentCommonByClusterByCluster: number[][] = [];
 
-  for (const baseClusterData of dataByCluster) {
+  for (const baseClusterData of rotatedDataByCluster) {
     const baseTaxaMap = baseClusterData.visitsByTaxonUnique;
     const percentCommonByCluster: number[] = [];
-    for (const comparedClusterData of dataByCluster) {
+    for (const comparedClusterData of rotatedDataByCluster) {
       if (comparedClusterData === baseClusterData) {
         // shortcut to save processing time
         percentCommonByCluster.push(100);
@@ -33,30 +39,22 @@
     percentCommonByClusterByCluster.push(percentCommonByCluster);
   }
 
-  // Rotate the clusters clockwise by one cluster so the shaded areas
-  // don't overcrowd the scale.
-  const lastDataset = percentCommonByClusterByCluster.pop()!;
-  percentCommonByClusterByCluster.unshift(lastDataset);
-  for (const dataset of percentCommonByClusterByCluster) {
-    const lastValue = dataset.pop()!;
-    dataset.unshift(lastValue);
-  }
-
-  function _toClusterNo(datasetIndex: number): string {
-    return `#${datasetIndex == 0 ? dataByCluster.length : datasetIndex}`;
+  function _toClusterNo(datasetIndex: number): number {
+    return datasetIndex == 0 ? dataByCluster.length : datasetIndex;
   }
 </script>
 
 <Radar
   data={{
-    labels: dataByCluster.map((_, i) => 'Cluster ' + _toClusterNo(i)),
+    labels: dataByCluster.map((_, i) => 'Cluster #' + _toClusterNo(i)),
     datasets: [
       ...percentCommonByClusterByCluster.map((percentCommonByCluster, i) => {
+        const colorIndex = i == 0 ? dataByCluster.length - 1 : i - 1;
         return {
-          label: `% taxa common with ${_toClusterNo(i)}`, // labels the point
+          label: `% taxa common with #${_toClusterNo(i)}`, // labels the point
           data: percentCommonByCluster,
-          borderColor: clusterColors[i],
-          backgroundColor: hslStringToRGBA(clusterColors[i], 0.2),
+          borderColor: clusterColors[colorIndex],
+          backgroundColor: hslStringToRGBA(clusterColors[colorIndex], 0.2),
           fill: true
         };
       })
