@@ -28,11 +28,27 @@ export type EffortData = Pick<
   | 'perPersonVisitPoints'
 >;
 
-export class LocationEffort extends TaxonVisitCounter {
+export class LocationEffort {
   locationID: number;
   isCave: boolean;
   startDate: Date;
   endDate: Date;
+  kingdomNames: string;
+  kingdomVisits: string;
+  phylumNames: string | null;
+  phylumVisits: string | null;
+  classNames: string | null;
+  classVisits: string | null;
+  orderNames: string | null;
+  orderVisits: string | null;
+  familyNames: string | null;
+  familyVisits: string | null;
+  genusNames: string | null;
+  genusVisits: string | null;
+  speciesNames: string | null;
+  speciesVisits: string | null;
+  subspeciesNames: string | null;
+  subspeciesVisits: string | null;
   totalDays: number;
   totalVisits: number;
   totalPersonVisits: number;
@@ -44,11 +60,26 @@ export class LocationEffort extends TaxonVisitCounter {
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
   private constructor(data: DataOf<LocationEffort>) {
-    super(data);
     this.locationID = data.locationID;
     this.isCave = data.isCave;
     this.startDate = data.startDate;
     this.endDate = data.endDate;
+    this.kingdomNames = data.kingdomNames;
+    this.kingdomVisits = data.kingdomVisits;
+    this.phylumNames = data.phylumNames;
+    this.phylumVisits = data.phylumVisits;
+    this.classNames = data.classNames;
+    this.classVisits = data.classVisits;
+    this.orderNames = data.orderNames;
+    this.orderVisits = data.orderVisits;
+    this.familyNames = data.familyNames;
+    this.familyVisits = data.familyVisits;
+    this.genusNames = data.genusNames;
+    this.genusVisits = data.genusVisits;
+    this.speciesNames = data.speciesNames;
+    this.speciesVisits = data.speciesVisits;
+    this.subspeciesNames = data.subspeciesNames;
+    this.subspeciesVisits = data.subspeciesVisits;
     this.totalDays = data.totalDays;
     this.totalVisits = data.totalVisits;
     this.totalPersonVisits = data.totalPersonVisits;
@@ -72,7 +103,25 @@ export class LocationEffort extends TaxonVisitCounter {
       Object.assign(
         {
           locationID,
-          isCave
+          isCave,
+          kingdomNames: TaxonCounter.toNameSeries(counterData.kingdomNames)!,
+          kingdomVisits: TaxonVisitCounter.toVisitsSeries(counterData.kingdomVisits)!,
+          phylumNames: TaxonCounter.toNameSeries(counterData.phylumNames),
+          phylumVisits: TaxonVisitCounter.toVisitsSeries(counterData.phylumVisits),
+          classNames: TaxonCounter.toNameSeries(counterData.classNames),
+          classVisits: TaxonVisitCounter.toVisitsSeries(counterData.classVisits),
+          orderNames: TaxonCounter.toNameSeries(counterData.orderNames),
+          orderVisits: TaxonVisitCounter.toVisitsSeries(counterData.orderVisits),
+          familyNames: TaxonCounter.toNameSeries(counterData.familyNames),
+          familyVisits: TaxonVisitCounter.toVisitsSeries(counterData.familyVisits),
+          genusNames: TaxonCounter.toNameSeries(counterData.genusNames),
+          genusVisits: TaxonVisitCounter.toVisitsSeries(counterData.genusVisits),
+          speciesNames: TaxonCounter.toNameSeries(counterData.speciesNames),
+          speciesVisits: TaxonVisitCounter.toVisitsSeries(counterData.speciesVisits),
+          subspeciesNames: TaxonCounter.toNameSeries(counterData.subspeciesNames),
+          subspeciesVisits: TaxonVisitCounter.toVisitsSeries(
+            counterData.subspeciesVisits
+          )
         },
         counterData,
         data

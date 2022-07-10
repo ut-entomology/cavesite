@@ -53,7 +53,7 @@ export class TaxonVisitCounter extends TaxonCounter {
     anyObj.orderVisits = _toInitialVisits(taxonCounter.orderNames);
     anyObj.familyVisits = _toInitialVisits(taxonCounter.familyNames);
     anyObj.genusVisits = _toInitialVisits(taxonCounter.genusNames);
-    anyObj.speciesVisits = _toInitialVisits(taxonCounter.speciesCounts);
+    anyObj.speciesVisits = _toInitialVisits(taxonCounter.speciesNames);
     anyObj.subspeciesVisits = _toInitialVisits(taxonCounter.subspeciesNames);
     return anyObj;
   }
