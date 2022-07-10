@@ -408,7 +408,7 @@
         <div class="col d-flex align-items-center" style="max-width: 300px">
           <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
         </div>
-        <div class="col" style="max-width: 450px">
+        <div class="col" style="max-width: 480px">
           <ClusterRadarChart
             dataByCluster={$clustering.dataByCluster}
             {clusterColors}

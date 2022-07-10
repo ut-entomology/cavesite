@@ -46,10 +46,16 @@
 
 <Radar
   data={{
-    labels: dataByCluster.map((_, i) => 'Cluster #' + _toClusterNo(i)),
+    labels: dataByCluster.map(
+      (_, i) =>
+        (i == 1 ? `Cluster ` : '') +
+        `#${_toClusterNo(i)}  (${
+          Object.keys(dataByCluster[_toClusterNo(i) - 1].visitsByTaxonUnique).length
+        } taxa)`
+    ),
     datasets: [
       ...percentCommonByClusterByCluster.map((percentCommonByCluster, i) => {
-        const colorIndex = i == 0 ? dataByCluster.length - 1 : i - 1;
+        const colorIndex = _toClusterNo(i) - 1;
         return {
           label: `% taxa common with #${_toClusterNo(i)}`, // labels the point
           data: percentCommonByCluster,
@@ -68,7 +74,17 @@
       },
       title: {
         display: true,
-        text: `Percent Compared Taxa in Common`
+        text: `Percent Taxa Common between Clusters`,
+        padding: { top: 0 }
+      }
+    },
+    scales: {
+      r: {
+        pointLabels: {
+          font: {
+            size: 12
+          }
+        }
       }
     }
   }}
