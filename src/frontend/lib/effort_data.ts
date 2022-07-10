@@ -16,20 +16,15 @@ export interface EffortData {
 }
 
 export function toEffortDataSetByCluster(
-  rawEffortDataSetByCluster: RawEffortData[][],
-  minPersonVisits: number
+  rawEffortDataSetByCluster: RawEffortData[][]
 ): EffortData[][] {
   const effortDataSetByCluster: EffortData[][] = [];
   for (const clusterResults of rawEffortDataSetByCluster) {
     const clusterEffortData: EffortData[] = [];
     for (const rawEffortData of clusterResults) {
-      if (rawEffortData.perVisitPoints.length >= minPersonVisits) {
-        clusterEffortData.push(_toEffortData(rawEffortData));
-      }
+      clusterEffortData.push(_toEffortData(rawEffortData));
     }
-    if (clusterEffortData.length > 0) {
-      effortDataSetByCluster.push(clusterEffortData);
-    }
+    effortDataSetByCluster.push(clusterEffortData);
   }
   return effortDataSetByCluster;
 }

@@ -27,6 +27,7 @@
   import BusyMessage from '../common/BusyMessage.svelte';
   import ConfigClustersDialog from '../dialogs/ConfigClustersDialog.svelte';
   import ClusterPieChart from '../components/ClusterPieChart.svelte';
+  import ClusterRadarChart from '../components/ClusterRadarChart.svelte';
   import ModelStats from '../components/ModelStats.svelte';
   import EffortGraph from '../components/EffortGraph.svelte';
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
@@ -49,6 +50,7 @@
   import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
   import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
+  import Taxa from './Taxa.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -56,7 +58,6 @@
   const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 10;
-  const MIN_PERSON_VISITS = 0;
   const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 10;
@@ -194,21 +195,16 @@
       const seedLocations = await loadSeeds($client, clusterSpec, config.maxClusters);
 
       loadState = LoadState.sortingIntoClusters;
-      const locationIDsByClusterIndex = await sortIntoClusters(
-        $client,
-        clusterSpec,
-        seedLocations
-      );
+      const taxaClusters = await sortIntoClusters($client, clusterSpec, seedLocations);
 
       loadState = LoadState.loadingPoints;
       const rawEffortDataSetByCluster = await loadPoints(
         $client,
         config.comparedTaxa,
-        locationIDsByClusterIndex
+        taxaClusters
       );
       const effortDataSetByCluster = toEffortDataSetByCluster(
-        rawEffortDataSetByCluster,
-        MIN_PERSON_VISITS
+        rawEffortDataSetByCluster
       );
       effortStore.set(effortDataSetByCluster);
 
@@ -216,9 +212,11 @@
 
       loadState = LoadState.generatingPlotData;
       const dataByCluster: PerLocationClusterData[] = [];
-      for (const effortDataSet of effortDataSetByCluster) {
+      for (let i = 0; i < taxaClusters.length; ++i) {
+        const effortDataSet = effortDataSetByCluster[i];
         dataByCluster.push(
           toPerLocationClusterData(
+            taxaClusters[i].visitsByTaxonUnique,
             yAxisType,
             effortDataSet,
             LOWER_BOUND_X,
@@ -352,7 +350,7 @@
               {clusterSpec.maxSpecies}</span
             >
           </div>
-          <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
+          <div class="col" />
         </div>
         <div class="row">
           <div class="col">
@@ -406,7 +404,17 @@
         {/each}
       </div>
 
-      <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
+      <div class="row justify-content-center">
+        <div class="col d-flex align-items-center" style="max-width: 300px">
+          <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
+        </div>
+        <div class="col" style="max-width: 450px">
+          <ClusterRadarChart
+            dataByCluster={$clustering.dataByCluster}
+            {clusterColors}
+          />
+        </div>
+      </div>
 
       {#each $clustering.dataByCluster as clusterData, i}
         {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}

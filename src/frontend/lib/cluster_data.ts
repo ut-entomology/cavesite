@@ -41,6 +41,7 @@ export enum ClusterDataType {
 export interface ClusterData {
   type: ClusterDataType;
   locationCount: number;
+  visitsByTaxonUnique: Record<string, number>;
 }
 
 export interface JumbledClusterData extends ClusterData {
@@ -59,6 +60,7 @@ export interface SizedEffortGraphSpec {
 }
 
 export function toJumbledClusterData(
+  visitsByTaxonUnique: Record<string, number>,
   yAxisType: YAxisType,
   effortDataSet: EffortData[],
   lowerBoundX: number,
@@ -93,11 +95,13 @@ export function toJumbledClusterData(
   return {
     type: ClusterDataType.jumbled,
     locationCount: effortDataSet.length,
+    visitsByTaxonUnique,
     graphSpecPerXUnit: effortGraphSpecPerUnitX!
   };
 }
 
 export function toPerLocationClusterData(
+  visitsByTaxonUnique: Record<string, number>,
   yAxisType: YAxisType,
   effortDataSet: EffortData[],
   lowerBoundX: number,
@@ -108,6 +112,7 @@ export function toPerLocationClusterData(
   let clusterData: PerLocationClusterData = {
     type: ClusterDataType.perLocation,
     locationCount: effortDataSet.length,
+    visitsByTaxonUnique,
     perDayTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perPersonVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] }
