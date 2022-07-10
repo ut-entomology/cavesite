@@ -1,6 +1,6 @@
 <script lang="ts">
   import ModalDialog from '../common/ModalDialog.svelte';
-  import { MAX_ALLOWED_CLUSTERS, ComparedTaxa } from '../../shared/model';
+  import { MAX_ALLOWED_CLUSTERS, TaxonRank, ComparedTaxa } from '../../shared/model';
   import type { ClusteringConfig } from '../lib/cluster_data';
 
   const MAX_MAX_POINTS_TO_REGRESS = 20;
@@ -12,6 +12,7 @@
   let maxClusters = config.maxClusters;
   let comparedTaxa = config.comparedTaxa;
   let ignoreSubgenera = config.ignoreSubgenera;
+  let highestComparedRank = config.highestComparedRank;
   let maxPointsToRegress = config.maxPointsToRegress;
 
   function onSubmit() {
@@ -19,6 +20,7 @@
       maxClusters,
       comparedTaxa,
       ignoreSubgenera,
+      highestComparedRank,
       maxPointsToRegress
     });
   }
@@ -63,11 +65,11 @@
           class="form-select form-select-sm item_select"
           aria-label=".form-select-sm example"
         >
-          <option value={ComparedTaxa.caveObligates}>Only cave obligates</option>
+          <option value={ComparedTaxa.all}>All taxa</option>
           <option value={ComparedTaxa.generaHavingCaveObligates}
             >Genera of cave obligates</option
           >
-          <option value={ComparedTaxa.all}>All taxa</option>
+          <option value={ComparedTaxa.caveObligates}>Only cave obligates</option>
         </select>
       </div>
     </div>
@@ -83,6 +85,26 @@
         >
           <option value={true}>Yes, ignore</option>
           <option value={false}>No, don't ignore</option>
+        </select>
+      </div>
+    </div>
+    <div class="row mt-3 mb-2 gx-2 align-items-center">
+      <div class="col-sm-7">
+        <div><b>Highest taxonomic rank</b> to use in comparisons</div>
+      </div>
+      <div class="col-sm-5 align-middle">
+        <select
+          bind:value={highestComparedRank}
+          class="form-select form-select-sm item_select"
+          aria-label=".form-select-sm example"
+        >
+          <option value={TaxonRank.Kingdom}>Kingdom</option>
+          <option value={TaxonRank.Phylum}>Phylum</option>
+          <option value={TaxonRank.Class}>Class</option>
+          <option value={TaxonRank.Order}>Order</option>
+          <option value={TaxonRank.Family}>Family</option>
+          <option value={TaxonRank.Genus}>Genus</option>
+          <option value={TaxonRank.Species}>Species</option>
         </select>
       </div>
     </div>

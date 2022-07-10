@@ -33,6 +33,7 @@
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
   import { showNotice } from '../common/VariableNotice.svelte';
   import {
+    TaxonRank,
     DissimilarityBasis,
     DissimilarityTransform,
     TaxonWeight,
@@ -73,7 +74,8 @@
     metric: {
       basis: DissimilarityBasis.diffMinusCommonTaxa,
       transform: DissimilarityTransform.none,
-      weight: TaxonWeight.weighted
+      highestComparedRank: TaxonRank.Genus,
+      weight: TaxonWeight.equalWeighted
     }
   };
 
@@ -119,6 +121,7 @@
     modelsByCluster = [];
     clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
     clusterSpec.ignoreSubgenera = $clustering.config.ignoreSubgenera;
+    clusterSpec.metric.highestComparedRank = $clustering.config.highestComparedRank;
 
     for (let i = 0; i < $clustering.dataByCluster.length; ++i) {
       const clusterData = $clustering.dataByCluster[i];
@@ -184,6 +187,7 @@
 
     clusterSpec.comparedTaxa = config.comparedTaxa;
     clusterSpec.ignoreSubgenera = config.ignoreSubgenera;
+    clusterSpec.metric.highestComparedRank = config.highestComparedRank;
 
     try {
       // Configure and load the data.
@@ -252,6 +256,7 @@
         maxClusters: MAX_CLUSTERS,
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         ignoreSubgenera: false,
+        highestComparedRank: TaxonRank.Genus,
         maxPointsToRegress: 12
       };
     }
@@ -329,10 +334,7 @@
         <div class="row">
           <div class="col"><span>{clusterSpec.metric.basis}</span></div>
           <div class="col">
-            <span
-              >{clusterSpec.minSpecies} &lt;= species &lt;=
-              {clusterSpec.maxSpecies}</span
-            >
+            highest comparison: <span>{clusterSpec.metric.highestComparedRank}</span>
           </div>
           <div class="col">
             regressed: <span
@@ -346,7 +348,12 @@
             subgenera:
             <span>{clusterSpec.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
           </div>
-          <div class="col" />
+          <div class="col">
+            <span
+              >{clusterSpec.minSpecies} &lt;= species &lt;=
+              {clusterSpec.maxSpecies}</span
+            >
+          </div>
           <div class="col">min. x graphed: <span>{MIN_PERSON_VISITS}</span></div>
         </div>
         <div class="row">

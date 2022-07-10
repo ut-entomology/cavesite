@@ -1,5 +1,5 @@
 import type { Point } from '../../shared/point';
-import type { ComparedTaxa } from '../../shared/model';
+import type { TaxonRank, ComparedTaxa } from '../../shared/model';
 import type { EffortData } from './effort_data';
 import {
   type YAxisType,
@@ -29,6 +29,7 @@ export interface ClusteringConfig {
   maxClusters: number;
   comparedTaxa: ComparedTaxa;
   ignoreSubgenera: boolean;
+  highestComparedRank: TaxonRank;
   maxPointsToRegress: number;
 }
 
