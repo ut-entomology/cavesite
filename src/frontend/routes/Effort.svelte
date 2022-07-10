@@ -22,12 +22,11 @@
 </script>
 
 <script lang="ts">
-  import Pie from 'svelte-chartjs/src/Pie.svelte';
-
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import BusyMessage from '../common/BusyMessage.svelte';
   import ConfigClustersDialog from '../dialogs/ConfigClustersDialog.svelte';
+  import ClusterPieChart from '../components/ClusterPieChart.svelte';
   import ModelStats from '../components/ModelStats.svelte';
   import EffortGraph from '../components/EffortGraph.svelte';
   import ResidualsPlot from '../components/ResidualsPlot.svelte';
@@ -114,6 +113,7 @@
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
   let modelSummaries: ModelSummary[] = [];
+  let clusterColors: string[] = [];
   let localityCountByCluster: number[] = [];
 
   $: if ($clustering) {
@@ -122,6 +122,10 @@
     clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
     clusterSpec.ignoreSubgenera = $clustering.config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = $clustering.config.highestComparedRank;
+
+    clusterColors = $clustering.dataByCluster.map(
+      (_, i) => `hsl(${i * (360 / $clustering!.dataByCluster.length)}, 60%, 60%)`
+    );
 
     for (let i = 0; i < $clustering.dataByCluster.length; ++i) {
       const clusterData = $clustering.dataByCluster[i];
@@ -173,12 +177,6 @@
       case DatasetID.personVisits:
         return clusterData.perPersonVisitTotalsGraphs;
     }
-  }
-
-  function _getPieChartColors() {
-    return $clustering!.dataByCluster.map(
-      (_, i) => `hsl(${i * (360 / $clustering!.dataByCluster.length)}, 60%, 60%)`
-    );
   }
 
   async function _loadData(config: ClusteringConfig) {
@@ -408,32 +406,7 @@
         {/each}
       </div>
 
-      <div class="pie_chart">
-        <Pie
-          data={{
-            labels: $clustering.dataByCluster.map((_, i) => 'Cluster #' + i),
-            datasets: [
-              {
-                data: $clustering.dataByCluster.map((data) => data.locationCount),
-                backgroundColor: _getPieChartColors(),
-                hoverOffset: 4
-              }
-            ]
-          }}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false
-              },
-              title: {
-                display: true,
-                text: `Caves per Cluster (${$clustering.dataByCluster.length} clusters)`
-              }
-            }
-          }}
-        />
-      </div>
+      <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
 
       {#each $clustering.dataByCluster as clusterData, i}
         {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
@@ -517,10 +490,5 @@
   }
   .model_summary_info .row > div + div {
     text-align: center;
-  }
-
-  .pie_chart {
-    width: 250px;
-    margin: 0 auto;
   }
 </style>
