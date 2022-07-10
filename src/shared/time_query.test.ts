@@ -5,6 +5,9 @@ import {
   TimeChartTallier
 } from './time_query';
 
+// TODO: Update tests to include path spec in query rows, as time queries
+// now request that this information be returned.
+
 test('date season date ranges', () => {
   const tallier = new TimeChartTallier();
 
