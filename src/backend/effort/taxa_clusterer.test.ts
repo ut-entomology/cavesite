@@ -4,6 +4,7 @@ import { Location } from '../model/location';
 import { type TaxonVisitCounterData } from './taxon_visit_counter';
 import { type EffortData, LocationEffort } from './location_effort';
 import {
+  TaxonRank,
   LocationRank,
   DissimilarityBasis,
   DissimilarityMetric,
@@ -26,13 +27,21 @@ let db: DB;
 const minusDiffMetric1: DissimilarityMetric = {
   basis: DissimilarityBasis.diffTaxa,
   transform: DissimilarityTransform.none,
+  highestComparedRank: TaxonRank.Kingdom,
   weight: TaxonWeight.unweighted
 };
 const commonMinusDiffMetric1: DissimilarityMetric = {
   basis: DissimilarityBasis.diffMinusCommonTaxa,
   transform: DissimilarityTransform.none,
+  highestComparedRank: TaxonRank.Kingdom,
   weight: TaxonWeight.unweighted
 };
+// const commonMinusDiffFamilyMetric1: DissimilarityMetric = {
+//   basis: DissimilarityBasis.diffMinusCommonTaxa,
+//   transform: DissimilarityTransform.none,
+//   highestComparedRank: TaxonRank.Family,
+//   weight: TaxonWeight.unweighted
+// };
 
 beforeAll(async () => {
   db = await mutex.lock();
@@ -42,7 +51,7 @@ beforeAll(async () => {
   }
 });
 
-test('selecting seed locations by taxon diversity', async () => {
+test('selecting seed locations comparing all taxa', async () => {
   await LocationEffort.dropAll(db, ComparedTaxa.all);
   const clusterer = createClusterer(db, {
     metric: minusDiffMetric1,
@@ -142,7 +151,7 @@ test('selecting seed locations by taxon diversity', async () => {
   expect(seedIDs).toEqual([7, 2, 5]);
 });
 
-test('clustering', async () => {
+test('clustering at all taxonomic ranks', async () => {
   await LocationEffort.dropAll(db, ComparedTaxa.all);
   const clusterer = createClusterer(db, {
     metric: commonMinusDiffMetric1,
@@ -200,16 +209,6 @@ test('clustering', async () => {
     { visitsByTaxonUnique: { k1: 6, p1: 5, p2: 4, p3: 1 }, locationIDs: [11, 12, 13] },
     { visitsByTaxonUnique: { k1: 9, p4: 3, p5: 6, p6: 1 }, locationIDs: [14, 15, 16] }
   ]);
-  // clusters = await _getClusters(TaxonWeight.weighted, [1, 2]);
-  // _checkClusters(clusters, [
-  //   [1, 2, 3],
-  //   [4, 5, 6]
-  // ]);
-  // clusters = await _getClusters(TaxonWeight.unweighted, [5, 6]);
-  // _checkClusters(clusters, [
-  //   [1, 2, 3],
-  //   [4, 5, 6]
-  // ]);
 });
 
 afterAll(async () => {

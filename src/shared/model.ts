@@ -222,12 +222,6 @@ export function pointSorter(a: number[], b: number[]) {
 
 export const MAX_ALLOWED_CLUSTERS = 40;
 
-export interface DissimilarityMetric {
-  basis: DissimilarityBasis;
-  transform: DissimilarityTransform;
-  weight: TaxonWeight;
-}
-
 export enum DissimilarityBasis {
   // dissimilarity = -1 * no. of taxa the test cave has in common with the mode
   minusCommonTaxa = '- common taxa',
@@ -254,12 +248,18 @@ export enum DissimilarityTransform {
 
 export enum TaxonWeight {
   unweighted = 'unweighted',
-  weighted = 'weighted',
+  equalWeighted = 'equal weighted',
   halfAgainWeight = '1.5x weight',
   doubleWeight = '2x weight',
-  onlySpecies = 'only species',
-  onlyGenera = 'only genera',
-  onlyGeneraAndSpecies = 'only genera + species'
+  weightTo1_5 = 'weight^1.5',
+  squaredWeight = 'weight^2'
+}
+
+export interface DissimilarityMetric {
+  basis: DissimilarityBasis;
+  transform: DissimilarityTransform;
+  highestComparedRank: TaxonRank;
+  weight: TaxonWeight;
 }
 
 export enum ComparedTaxa {

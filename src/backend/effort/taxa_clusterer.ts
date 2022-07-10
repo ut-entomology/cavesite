@@ -33,6 +33,7 @@ const cachedTaxonVisitsByRankByLocationIDByComparedTaxa: Record<
 > = {};
 
 export abstract class TaxaClusterer extends Clusterer {
+  protected _highestRankIndex: number;
   protected _weights: number[];
   protected _transform: (from: number) => number;
   protected _sansSubgeneraMap: Record<string, string> = {};
@@ -42,8 +43,9 @@ export abstract class TaxaClusterer extends Clusterer {
 
   constructor(db: DB, clusterSpec: ClusterSpec) {
     super(db, clusterSpec);
+    const metric = clusterSpec.metric;
 
-    switch (clusterSpec.metric.transform) {
+    switch (metric.transform) {
       case DissimilarityTransform.none:
         this._transform = (from: number) => from;
         break;
@@ -60,29 +62,33 @@ export abstract class TaxaClusterer extends Clusterer {
         throw Error('DissimilarityTransform not specified');
     }
 
-    this._weights = [];
-    for (let i = 0; i < taxonRanks.length; ++i) {
-      switch (clusterSpec.metric.weight) {
+    this._highestRankIndex = taxonRanks.indexOf(metric.highestComparedRank);
+
+    this._weights = new Array(taxonRanks.length).fill(0);
+    for (
+      let rankIndex = this._highestRankIndex;
+      rankIndex < taxonRanks.length;
+      ++rankIndex
+    ) {
+      const baseWeight = rankIndex - this._highestRankIndex + 1;
+      switch (metric.weight) {
         case TaxonWeight.unweighted:
-          this._weights[i] = 1;
+          this._weights[rankIndex] = 1;
           break;
-        case TaxonWeight.weighted:
-          this._weights[i] = i;
+        case TaxonWeight.equalWeighted:
+          this._weights[rankIndex] = baseWeight;
           break;
         case TaxonWeight.halfAgainWeight:
-          this._weights[i] = 1.5 * i;
+          this._weights[rankIndex] = 1.5 * baseWeight;
           break;
         case TaxonWeight.doubleWeight:
-          this._weights[i] = 2 * i;
+          this._weights[rankIndex] = 2 * baseWeight;
           break;
-        case TaxonWeight.onlySpecies:
-          this._weights[i] = i >= taxonRanks.length - 2 ? 1 : 0;
+        case TaxonWeight.weightTo1_5:
+          this._weights[rankIndex] = Math.pow(baseWeight, 1.5);
           break;
-        case TaxonWeight.onlyGenera:
-          this._weights[i] = i == taxonRanks.length - 3 ? 1 : 0;
-          break;
-        case TaxonWeight.onlyGeneraAndSpecies:
-          this._weights[i] = i >= taxonRanks.length - 3 ? 1 : 0;
+        case TaxonWeight.squaredWeight:
+          this._weights[rankIndex] = Math.pow(baseWeight, 2);
           break;
         default:
           throw Error('TaxonWeight not specified');
@@ -343,7 +349,10 @@ export abstract class TaxaClusterer extends Clusterer {
       const taxonTallyMap = taxonTallyMapsByCluster[i];
       const visitsByTaxonUnique: Record<string, number> = {};
       for (const [taxonUnique, tally] of Object.entries(taxonTallyMap)) {
-        visitsByTaxonUnique[taxonUnique] = tally.visits;
+        // higher ranks have lower indexes
+        if (tally.rankIndex >= this._highestRankIndex) {
+          visitsByTaxonUnique[taxonUnique] = tally.visits;
+        }
       }
       taxaClusters.push({
         visitsByTaxonUnique,
