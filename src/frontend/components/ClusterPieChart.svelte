@@ -1,32 +1,58 @@
 <script lang="ts">
   import Pie from 'svelte-chartjs/src/Pie.svelte';
+  import type { AnyMessageParams } from 'yup/lib/types';
   import type { PerLocationClusterData } from '../lib/cluster_data';
 
   export let dataByCluster: PerLocationClusterData[];
   export let clusterColors: string[];
+
+  function _toDataLabel(ctx: any) {
+    return ctx.dataset.data[ctx.dataIndex] + ' caves';
+  }
 </script>
 
 <Pie
   data={{
-    labels: dataByCluster.map((_, i) => 'Cluster #' + i),
+    labels: dataByCluster.map((_, i) => 'Caves in cluster #' + (i + 1)),
     datasets: [
       {
         data: dataByCluster.map((data) => data.locationCount),
         backgroundColor: clusterColors,
         hoverOffset: 4
+        // datalabels: {
+        //   anchor: 'center',
+        //   backgroundColor: null,
+        //   borderWidth: 0
+        // }
       }
     ]
   }}
   options={{
     responsive: true,
+    layout: {
+      padding: {
+        bottom: 10
+      }
+    },
     plugins: {
       legend: {
         display: false
       },
+      labels: {
+        display: true,
+        render: _toDataLabel
+      },
       title: {
         display: true,
-        text: `Caves per Cluster (${dataByCluster.length} clusters)`
+        text: `Caves per Cluster (${dataByCluster.length} clusters)`,
+        font: { size: 15 },
+        position: 'bottom',
+        padding: { top: 10 }
       }
+      // datalabels: {
+      //   display: _toDataLabel,
+      //   color: 'black'
+      // }
     }
   }}
 />

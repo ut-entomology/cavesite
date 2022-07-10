@@ -75,7 +75,9 @@
       title: {
         display: true,
         text: `Percent Taxa Common between Clusters`,
-        padding: { top: 0 }
+        font: { size: 15 },
+        position: 'bottom',
+        padding: { top: -30 }
       }
     },
     scales: {
