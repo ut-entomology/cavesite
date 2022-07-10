@@ -6,33 +6,33 @@
   export let dataByCluster: PerLocationClusterData[];
   export let clusterColors: string[];
 
-  // Rotate the clusters clockwise by one cluster so the shaded areas don't
-  // overcrowd the scale, but adjust the cluster numbers everywhere.
-  let rotatedDataByCluster = dataByCluster.slice();
-  const lastCluster = rotatedDataByCluster.pop()!;
-  rotatedDataByCluster.unshift(lastCluster);
+  // // Rotate the clusters clockwise by one cluster so the shaded areas don't
+  // // overcrowd the scale, but adjust the cluster numbers everywhere.
+  // let rotatedDataByCluster = dataByCluster.slice();
+  // const lastCluster = rotatedDataByCluster.pop()!;
+  // rotatedDataByCluster.unshift(lastCluster);
 
   let percentCommonByClusterByCluster: number[][] = [];
 
-  for (const baseClusterData of rotatedDataByCluster) {
+  for (const baseClusterData of dataByCluster) {
     const baseTaxaMap = baseClusterData.visitsByTaxonUnique;
     const percentCommonByCluster: number[] = [];
-    for (const comparedClusterData of rotatedDataByCluster) {
+    for (const comparedClusterData of dataByCluster) {
       if (comparedClusterData === baseClusterData) {
         // shortcut to save processing time
         percentCommonByCluster.push(100);
       } else {
         const comparedTaxaMap = comparedClusterData.visitsByTaxonUnique;
         let commonCount = 0;
-        let totalCount = 0;
         for (const taxon of Object.keys(baseTaxaMap)) {
           if (comparedTaxaMap[taxon]) {
             ++commonCount;
           }
-          ++totalCount;
         }
         percentCommonByCluster.push(
-          parseFloat(((100 * commonCount) / totalCount).toFixed(1))
+          parseFloat(
+            ((100 * commonCount) / Object.keys(comparedTaxaMap).length).toFixed(1)
+          )
         );
       }
     }
@@ -40,7 +40,8 @@
   }
 
   function _toClusterNo(datasetIndex: number): number {
-    return datasetIndex == 0 ? dataByCluster.length : datasetIndex;
+    return datasetIndex + 1;
+    //return datasetIndex == 0 ? dataByCluster.length : datasetIndex;
   }
 </script>
 
@@ -48,7 +49,7 @@
   data={{
     labels: dataByCluster.map(
       (_, i) =>
-        (i == 1 ? `Cluster ` : '') +
+        (i == 0 ? `Cluster ` : '') +
         `#${_toClusterNo(i)}  (${
           Object.keys(dataByCluster[_toClusterNo(i) - 1].visitsByTaxonUnique).length
         } taxa)`
