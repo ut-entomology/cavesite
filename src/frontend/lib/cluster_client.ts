@@ -4,7 +4,8 @@ import type {
   RawEffortData,
   LocationSpec,
   ClusterSpec,
-  ComparedTaxa
+  ComparedTaxa,
+  TaxaCluster
 } from '../../shared/model';
 
 export async function loadSeeds(
@@ -27,12 +28,12 @@ export async function sortIntoClusters(
   client: AxiosInstance,
   clusterSpec: ClusterSpec,
   seedLocations: LocationSpec[]
-): Promise<number[][]> {
+): Promise<TaxaCluster[]> {
   let res = await client.post('api/cluster/get_clusters', {
     clusterSpec,
     seedIDs: seedLocations.map((location) => location.locationID)
   });
-  const clusters: number[][] = res.data.clusters;
+  const clusters: TaxaCluster[] = res.data.clusters;
   if (!clusters) throw Error('Failed to load clusters');
   return clusters;
 }
@@ -40,13 +41,13 @@ export async function sortIntoClusters(
 export async function loadPoints(
   client: AxiosInstance,
   effortComparedTaxa: ComparedTaxa,
-  locationIDsByClusterIndex: number[][]
+  taxaClusters: TaxaCluster[]
 ): Promise<RawEffortData[][]> {
   const resultsByCluster: RawEffortData[][] = [];
-  for (const locationIDs of locationIDsByClusterIndex) {
-    if (locationIDs.length > 0) {
+  for (const taxaCluster of taxaClusters) {
+    if (taxaCluster.locationIDs.length > 0) {
       const res = await client.post('api/location/get_effort', {
-        locationIDs: locationIDs,
+        locationIDs: taxaCluster.locationIDs,
         comparedTaxa: effortComparedTaxa
       });
       resultsByCluster.push(res.data.efforts);

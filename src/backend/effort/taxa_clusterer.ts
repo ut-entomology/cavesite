@@ -259,17 +259,8 @@ export abstract class TaxaClusterer extends Clusterer {
       clusterByLocationID[seedEffort.locationID] = i;
       const taxonTallyMap = await this._tallyTaxa(seedEffort);
       taxonTallyMapsByCluster.push(taxonTallyMap);
-
-      const taxonTallyMapCopy: TaxonTallyMap = {};
-      for (const tally of Object.values(taxonTallyMap)) {
-        taxonTallyMapCopy[tally.taxonUnique] = {
-          taxonUnique: tally.taxonUnique,
-          rankIndex: tally.rankIndex,
-          localities: tally.localities,
-          visits: tally.visits
-        };
-      }
-      nextTaxonTallyMapsByCluster.push(taxonTallyMapCopy);
+      // Shallow copy, as dynamic tally data not altered in taxonTallyMapsByCluster.
+      nextTaxonTallyMapsByCluster.push(Object.assign({}, taxonTallyMap));
     }
 
     // Provide an initial assignment of each location to its nearest cluster,

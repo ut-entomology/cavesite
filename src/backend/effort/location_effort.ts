@@ -233,7 +233,7 @@ export class LocationEffort extends TaxonVisitCounter {
             (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
           ) + 1;
 
-        totalSpecies = firstVisitOfLocation!.getSpeciesCount();
+        totalSpecies = taxonVisitCounter!.getSpeciesCount();
         totalDays = visit.endEpochDay - firstEpochDay + 1;
 
         if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
