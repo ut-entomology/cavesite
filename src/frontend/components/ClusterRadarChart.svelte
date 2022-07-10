@@ -58,7 +58,7 @@
       ...percentCommonByClusterByCluster.map((percentCommonByCluster, i) => {
         const colorIndex = _toClusterNo(i) - 1;
         return {
-          label: `% taxa common with #${_toClusterNo(i)}`, // labels the point
+          label: `% of these taxa also in #${_toClusterNo(i)}`, // labels the point
           data: percentCommonByCluster,
           borderColor: clusterColors[colorIndex],
           backgroundColor: hslStringToRGBA(clusterColors[colorIndex], 0.2),
