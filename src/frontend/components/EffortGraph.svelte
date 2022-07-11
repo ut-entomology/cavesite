@@ -11,6 +11,9 @@
   export let models: PlottableModel[] = [];
   export let yFormula: string | null = null;
 
+  $: xAxisLabel = spec.graphSpecs[0].xAxisLabel;
+  $: yAxisLabel = spec.graphSpecs[0].yAxisLabel;
+
   function _legendFilter(item: any) {
     // When using a sized spec, show a legend for the first line and then
     // one for each model; otherwise show all legends.
@@ -54,16 +57,14 @@
       x: {
         title: {
           display: true,
-          text: spec.graphSpecs[0].xAxisLabel + ' (x)',
+          text: xAxisLabel + ' (x)',
           font: { size: 16 }
         }
       },
       y: {
         title: {
           display: true,
-          text: yFormula
-            ? `${spec.graphSpecs[0].yAxisLabel} (${yFormula})`
-            : spec.graphSpecs[0].yAxisLabel,
+          text: yFormula ? `${yAxisLabel} (${yFormula})` : yAxisLabel,
           font: { size: 16 }
         }
       }
