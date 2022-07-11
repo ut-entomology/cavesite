@@ -101,12 +101,12 @@ scp uploadable.csv user@caves.tacc.utexas.edu:~/
 cd /var/www
 node build/tools/load-csv.js ~/uploadable.csv
 
-(14) To run the server for testing purposes and see console log output:
+(14) Only do one of these if not previously done. To set up the server for testing purposes and see console log output:
 
     cd /var/www
     sudo -u www-data node build/backend/server.js
 
-To have the server run in the background and restart on reboots and crashes:
+To set up the server to run in the background and restart on reboots and crashes:
 
     sudo pm2 start --name server -u www-data --cwd /var/www node build/backend/server.js
     sudo pm2 startup
