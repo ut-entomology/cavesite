@@ -76,7 +76,7 @@
       },
       title: {
         display: true,
-        text: `Percent Taxa Common between Clusters`,
+        text: `Percent Overlap in Taxa among Clusters`,
         font: { size: 15 },
         position: 'bottom',
         padding: { top: dataByCluster.length == 3 ? -90 : -30 }
