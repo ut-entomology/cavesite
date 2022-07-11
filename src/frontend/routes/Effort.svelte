@@ -227,10 +227,10 @@
         );
       }
       dataByCluster.sort((a, b) => {
-        const aPointCount = a.perPersonVisitTotalsGraphs.pointCount;
-        const bPointCount = b.perPersonVisitTotalsGraphs.pointCount;
-        if (aPointCount == bPointCount) return 0;
-        return bPointCount - aPointCount; // sort most points first
+        const aTaxaCount = Object.keys(a.visitsByTaxonUnique).length;
+        const bTaxaCount = Object.keys(b.visitsByTaxonUnique).length;
+        if (aTaxaCount == bTaxaCount) return 0;
+        return bTaxaCount - aTaxaCount; // sort most taxa first
       });
       clustering.set({
         config,
