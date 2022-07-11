@@ -14,6 +14,13 @@ test('date season date ranges', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2021, 2, 24),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Theridiidae',
+    genusName: 'Steatoda',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Steatoda',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -21,6 +28,13 @@ test('date season date ranges', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2021, 11, 31),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Theridiidae',
+    genusName: 'Latrodectus',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Latrodectus',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -28,6 +42,13 @@ test('date season date ranges', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -35,6 +56,13 @@ test('date season date ranges', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2023, 6, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Pholcidae',
+    genusName: 'Pholcus',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Pholcus',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -84,6 +112,13 @@ test('distribution of specimens between start and end dates', () => {
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 30), // 2 days in 1st month
     collectionEndDate: new Date(2022, 1, 2), // 2 days in 2nd month
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 4
   });
@@ -111,6 +146,13 @@ test('overlapping dates for different taxa and specimen and result counts', () =
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -118,6 +160,13 @@ test('overlapping dates for different taxa and specimen and result counts', () =
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Theridiidae',
+    genusName: 'Steatoda',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Steatoda',
     specimenCount: 2,
     lifeStage: 'adult'
@@ -125,6 +174,13 @@ test('overlapping dates for different taxa and specimen and result counts', () =
   tallier.addTimeQueryRow({
     resultCount: 5,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Theridiidae',
+    genusName: 'Latrodectus',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Latrodectus',
     specimenCount: 3,
     lifeStage: 'adult'
@@ -166,6 +222,13 @@ test('overlapping dates and taxa for different specimen counts', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Theridiidae',
+    genusName: 'Steatoda',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Steatoda',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -173,6 +236,13 @@ test('overlapping dates and taxa for different specimen counts', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -180,6 +250,13 @@ test('overlapping dates and taxa for different specimen counts', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 3,
     lifeStage: 'adult'
@@ -221,6 +298,13 @@ test('separation of different life stages', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 1,
     lifeStage: 'adult'
@@ -228,6 +312,13 @@ test('separation of different life stages', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 2,
     lifeStage: 'immature'
@@ -235,6 +326,13 @@ test('separation of different life stages', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 3,
     lifeStage: 'juvie'
@@ -242,6 +340,13 @@ test('separation of different life stages', () => {
   tallier.addTimeQueryRow({
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 10
     // lifeStage unspecified
@@ -309,6 +414,13 @@ test('life stage indications in remarks', () => {
     // 1 adult, 2 immature
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 3,
     lifeStage: 'adult',
@@ -318,6 +430,13 @@ test('life stage indications in remarks', () => {
     // 1 adult, 6 immature
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 7,
     lifeStage: 'immature',
@@ -327,6 +446,13 @@ test('life stage indications in remarks', () => {
     // 3 adults, 2 unspecified
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 5,
     occurrenceRemarks: '3 adults'
@@ -335,6 +461,13 @@ test('life stage indications in remarks', () => {
     // 2 adults, 1 immature, 7 unspecified
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 10,
     occurrenceRemarks: '2 adults, 1 im.'
@@ -343,6 +476,13 @@ test('life stage indications in remarks', () => {
     // 5 immatures
     resultCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
+    phylumName: 'Arthropoda',
+    className: 'Arachnida',
+    orderName: 'Araneae',
+    familyName: 'Hahniidae',
+    genusName: 'Cicurina',
+    speciesName: null,
+    subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 5,
     lifeStage: 'immature',
