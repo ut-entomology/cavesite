@@ -79,7 +79,7 @@
         text: `Percent Taxa Common between Clusters`,
         font: { size: 15 },
         position: 'bottom',
-        padding: { top: -30 }
+        padding: { top: dataByCluster.length == 3 ? -90 : -30 }
       }
     },
     scales: {
