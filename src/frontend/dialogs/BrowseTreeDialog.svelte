@@ -99,8 +99,8 @@
     selectedSpecsStore.set(selectionsTree.getSelectionSpecs());
   };
 
-  function _addSelection(spec: ModelSpec) {
-    addSelection(spec);
+  async function _addSelection(spec: ModelSpec) {
+    await addSelection(spec); // async version of AddSelection
     _updatedSelections(false);
   }
 
@@ -135,6 +135,7 @@
         allChildrenSelected = true;
       }
     }
+    visibleContainingSpecNodes = visibleContainingSpecNodes; // redraw ancestors
   }
 </script>
 
