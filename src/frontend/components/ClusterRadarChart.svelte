@@ -62,7 +62,8 @@
           data: percentCommonByCluster,
           borderColor: clusterColors[colorIndex],
           backgroundColor: hslStringToRGBA(clusterColors[colorIndex], 0.2),
-          fill: true
+          fill: true,
+          order: dataByCluster.length - i
         };
       })
     ]
