@@ -16,9 +16,9 @@
   import TimePage from './routes/time/TimePage.svelte';
   import EffortPage from './routes/effort/EffortPage.svelte';
   import UsersPage from './routes/admin/users/UsersPage.svelte';
-  import Coords from './routes/admin/Coords.svelte';
-  import Logs from './routes/admin/Logs.svelte';
-  import Schedule from './routes/admin/Schedule.svelte';
+  import CoordsPage from './routes/admin/coords/CoordsPage.svelte';
+  import LogsPage from './routes/admin/logs/LogsPage.svelte';
+  import SchedulePage from './routes/admin/schedule/SchedulePage.svelte';
   import NotFound from './routes/NotFound.svelte';
   import Notice from './common/Notice.svelte';
   import { DialogSpec } from './common/VariableDialog.svelte';
@@ -37,9 +37,9 @@
     '/query': QueryPage,
 
     '/admin/users': UsersPage,
-    '/admin/coords': Coords,
-    '/admin/logs': Logs,
-    '/admin/schedule': Schedule,
+    '/admin/coords': CoordsPage,
+    '/admin/logs': LogsPage,
+    '/admin/schedule': SchedulePage,
 
     '*': NotFound
   };
