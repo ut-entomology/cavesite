@@ -15,7 +15,7 @@
   import QueryPage from './routes/query/QueryPage.svelte';
   import TimePage from './routes/time/TimePage.svelte';
   import EffortPage from './routes/effort/EffortPage.svelte';
-  import Users from './routes/admin/Users.svelte';
+  import UsersPage from './routes/admin/users/UsersPage.svelte';
   import Coords from './routes/admin/Coords.svelte';
   import Logs from './routes/admin/Logs.svelte';
   import Schedule from './routes/admin/Schedule.svelte';
@@ -36,7 +36,7 @@
     '/effort': EffortPage,
     '/query': QueryPage,
 
-    '/admin/users': Users,
+    '/admin/users': UsersPage,
     '/admin/coords': Coords,
     '/admin/logs': Logs,
     '/admin/schedule': Schedule,

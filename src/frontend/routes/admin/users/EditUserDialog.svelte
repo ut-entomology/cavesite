@@ -1,11 +1,11 @@
 <script lang="ts">
   import * as yup from 'yup';
-  import { createForm, ContextForm, Input, Select } from '../common/forms';
-  import ModalDialog from '../common/ModalDialog.svelte';
-  import { Permission, AdminUserInfo, NewUserInfo } from '../../shared/user_auth';
-  import { client, errorReason } from '../stores/client';
-  import { flashMessage } from '../common/VariableFlash.svelte';
-  import { showNotice } from '../common/VariableNotice.svelte';
+  import { createForm, ContextForm, Input, Select } from '../../../common/forms';
+  import ModalDialog from '../../../common/ModalDialog.svelte';
+  import { Permission, AdminUserInfo, NewUserInfo } from '../../../../shared/user_auth';
+  import { client, errorReason } from '../../../stores/client';
+  import { flashMessage } from '../../../common/VariableFlash.svelte';
+  import { showNotice } from '../../../common/VariableNotice.svelte';
 
   enum AccessLevel {
     None = 'none',

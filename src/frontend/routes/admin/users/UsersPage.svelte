@@ -3,18 +3,18 @@
     Permission,
     type AdminUserInfo,
     type NewUserInfo
-  } from '../../../shared/user_auth';
-  import AdminTabRoute from '../../components/AdminTabRoute.svelte';
-  import TabHeader from '../../components/TabHeader.svelte';
-  import ServerError from '../../components/ServerError.svelte';
+  } from '../../../../shared/user_auth';
+  import AdminTabRoute from '../../../components/AdminTabRoute.svelte';
+  import TabHeader from '../../../components/TabHeader.svelte';
+  import ServerError from '../../../components/ServerError.svelte';
   import ConfirmationRequest, {
     ConfirmationDetails
-  } from '../../common/ConfirmationRequest.svelte';
-  import EditUserDialog from '../../dialogs/EditUserDialog.svelte';
-  import { flashMessage } from '../../common/VariableFlash.svelte';
-  import { showNotice } from '../../common/VariableNotice.svelte';
-  import { client, errorReason } from '../../stores/client';
-  import { pageName } from '../../stores/pageName';
+  } from '../../../common/ConfirmationRequest.svelte';
+  import EditUserDialog from './EditUserDialog.svelte';
+  import { flashMessage } from '../../../common/VariableFlash.svelte';
+  import { showNotice } from '../../../common/VariableNotice.svelte';
+  import { client, errorReason } from '../../../stores/client';
+  import { pageName } from '../../../stores/pageName';
 
   $pageName = 'Registered Users';
 
