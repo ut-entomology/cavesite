@@ -1,24 +1,27 @@
 <script lang="ts">
   import type { SvelteComponent } from 'svelte';
 
-  import ConfirmationRequest from '../common/ConfirmationRequest.svelte';
-  import DataTabRoute from '../components/DataTabRoute.svelte';
-  import TabHeader from '../components/TabHeader.svelte';
-  import TaxonLookup from '../components/TaxonLookup.svelte';
-  import EmptyTab from '../components/EmptyTab.svelte';
-  import ExpandableSelectableTree from '../components/ExpandableSelectableTree.svelte';
-  import SelectableTaxon from '../components/SelectableTaxon.svelte';
-  import BrowseTreeDialog from '../dialogs/BrowseTreeDialog.svelte';
-  import TabFootnote from '../components/TabFootnote.svelte';
-  import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
-  import { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
-  import { type TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
-  import type { ExpandableNode, SpecNode } from '../../frontend-core/selections_tree';
-  import { pageName } from '../stores/pageName';
-  import { selectedTaxa } from '../stores/selectedTaxa';
-  import { client } from '../stores/client';
-  import { ROOT_TAXON_UNIQUE } from '../../shared/model';
-  import { noTypeCheck } from '../util/svelte_types';
+  import ConfirmationRequest from '../../common/ConfirmationRequest.svelte';
+  import DataTabRoute from '../../components/DataTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
+  import TaxonLookup from './TaxonLookup.svelte';
+  import EmptyTab from '../../components/EmptyTab.svelte';
+  import ExpandableSelectableTree from '../../components/ExpandableSelectableTree.svelte';
+  import SelectableTaxon from './SelectableTaxon.svelte';
+  import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
+  import TabFootnote from '../../components/TabFootnote.svelte';
+  import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
+  import { TaxonSelectionsTree } from '../../../frontend-core/taxon_selections_tree';
+  import { type TaxonSpec, createContainingTaxonSpecs } from '../../../shared/model';
+  import type {
+    ExpandableNode,
+    SpecNode
+  } from '../../../frontend-core/selections_tree';
+  import { pageName } from '../../stores/pageName';
+  import { selectedTaxa } from '../../stores/selectedTaxa';
+  import { client } from '../../stores/client';
+  import { ROOT_TAXON_UNIQUE } from '../../../shared/model';
+  import { noTypeCheck } from '../../util/svelte_types';
 
   $pageName = 'Selected Taxa';
 

@@ -10,7 +10,7 @@
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
-  import Taxa from './routes/Taxa.svelte';
+  import TaxaPage from './routes/taxa/TaxaPage.svelte';
   import Locations from './routes/Locations.svelte';
   import Query from './routes/Query.svelte';
   import Time from './routes/Time.svelte';
@@ -30,7 +30,7 @@
 
   const routes: Record<string, typeof SvelteComponent> = {
     '/': Welcome,
-    '/taxa': Taxa,
+    '/taxa': TaxaPage,
     '/locations': Locations,
     '/time': Time,
     '/effort': Effort,

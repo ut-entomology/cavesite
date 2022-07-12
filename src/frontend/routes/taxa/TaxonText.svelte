@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ModelSpec, TaxonRank, TaxonSpec, italicRanks } from '../../shared/model';
+  import { ModelSpec, TaxonRank, TaxonSpec, italicRanks } from '../../../shared/model';
 
   let classes = '';
   export { classes as class };
@@ -30,7 +30,7 @@
 </span>
 
 <style lang="scss">
-  @import '../variables.scss';
+  @import '../../variables.scss';
 
   .italic {
     font-style: italic;

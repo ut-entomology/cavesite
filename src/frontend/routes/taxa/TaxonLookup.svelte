@@ -1,6 +1,6 @@
 <script lang="ts">
-  import SelectableLookup from '../components/SelectableLookup.svelte';
-  import { client } from '../stores/client';
+  import SelectableLookup from '../../components/SelectableLookup.svelte';
+  import { client } from '../../stores/client';
   import {
     type ModelSpec,
     ROOT_TAXON_UNIQUE,
@@ -10,14 +10,14 @@
     taxonRanks,
     italicRanks,
     createContainingTaxonSpecs
-  } from '../../shared/model';
+  } from '../../../shared/model';
   import type {
     SpecNode,
     AddSelection,
     RemoveSelection
-  } from '../../frontend-core/selections_tree';
-  import type { TaxonSelectionsTree } from '../../frontend-core/taxon_selections_tree';
-  import { noTypeCheck } from '../util/svelte_types';
+  } from '../../../frontend-core/selections_tree';
+  import type { TaxonSelectionsTree } from '../../../frontend-core/taxon_selections_tree';
+  import { noTypeCheck } from '../../util/svelte_types';
 
   export let selectionsTree: TaxonSelectionsTree;
   export let getContainingTaxa: (
