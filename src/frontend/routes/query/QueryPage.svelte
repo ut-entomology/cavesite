@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
-  import { createSessionStore } from '../util/session_store';
-  import { GeneralQuery, QueryColumnID, QueryRow } from '../../shared/general_query';
+  import { createSessionStore } from '../../util/session_store';
+  import { GeneralQuery, QueryColumnID, QueryRow } from '../../../shared/general_query';
 
   interface CachedResults {
     query: GeneralQuery;
@@ -19,19 +19,19 @@
 
 <script lang="ts">
   import { onMount, afterUpdate } from 'svelte';
-  import { pageName } from '../stores/pageName';
+  import { pageName } from '../../stores/pageName';
 
-  import DataTabRoute from '../components/DataTabRoute.svelte';
-  import TabHeader from '../components/TabHeader.svelte';
-  import EmptyTab from '../components/EmptyTab.svelte';
-  import QueryFilterDialog from '../dialogs/QueryFilterDialog.svelte';
+  import DataTabRoute from '../../components/DataTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
+  import EmptyTab from '../../components/EmptyTab.svelte';
+  import QueryFilterDialog from './QueryFilterDialog.svelte';
   import RowControls, {
     type RowControlsConfig
-  } from '../components/RowControls.svelte';
-  import ColumnResizer from '../components/ColumnResizer.svelte';
-  import { showNotice } from '../common/VariableNotice.svelte';
-  import { columnInfoMap } from '../../shared/general_query';
-  import { client, errorReason } from '../stores/client';
+  } from '../../components/RowControls.svelte';
+  import ColumnResizer from '../../components/ColumnResizer.svelte';
+  import { showNotice } from '../../common/VariableNotice.svelte';
+  import { columnInfoMap } from '../../../shared/general_query';
+  import { client, errorReason } from '../../stores/client';
 
   $pageName = 'Query Results';
 

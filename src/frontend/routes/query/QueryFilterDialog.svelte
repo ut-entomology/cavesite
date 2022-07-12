@@ -2,15 +2,15 @@
   import { dndzone, Item } from 'svelte-dnd-action';
   import { flip } from 'svelte/animate';
 
-  import ModalDialog from '../common/ModalDialog.svelte';
-  import DateRangeInput from '../components/DateRangeInput.svelte';
-  import { columnInfoMap, type QueryColumnInfo } from '../../shared/general_query';
+  import ModalDialog from '../../common/ModalDialog.svelte';
+  import DateRangeInput from '../../components/DateRangeInput.svelte';
+  import { columnInfoMap, type QueryColumnInfo } from '../../../shared/general_query';
   import {
     EARLIEST_RECORD_DATE,
     type QueryDateFilter,
     type GeneralQuery
-  } from '../../shared/general_query';
-  import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
+  } from '../../../shared/general_query';
+  import { getLocationFilter, getTaxonFilter } from '../../lib/query_filtering';
 
   type DraggableItem = Item & {
     info: QueryColumnInfo;
@@ -281,7 +281,7 @@
 >
 
 <style lang="scss">
-  @import '../variables.scss';
+  @import '../../variables.scss';
 
   .included_columns,
   .excluded_columns {

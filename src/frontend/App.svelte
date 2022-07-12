@@ -12,7 +12,7 @@
   import Welcome from './routes/Welcome.svelte';
   import TaxaPage from './routes/taxa/TaxaPage.svelte';
   import LocationsPage from './routes/locations/LocationsPage.svelte';
-  import Query from './routes/Query.svelte';
+  import QueryPage from './routes/query/QueryPage.svelte';
   import Time from './routes/Time.svelte';
   import Effort from './routes/Effort.svelte';
   import Users from './routes/admin/Users.svelte';
@@ -34,7 +34,7 @@
     '/locations': LocationsPage,
     '/time': Time,
     '/effort': Effort,
-    '/query': Query,
+    '/query': QueryPage,
 
     '/admin/users': Users,
     '/admin/coords': Coords,
