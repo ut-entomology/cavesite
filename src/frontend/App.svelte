@@ -9,7 +9,7 @@
   import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
-  import Welcome from './routes/Welcome.svelte';
+  import WelcomePage from './routes/welcome/WelcomePage.svelte';
   import TaxaPage from './routes/taxa/TaxaPage.svelte';
   import LocationsPage from './routes/locations/LocationsPage.svelte';
   import QueryPage from './routes/query/QueryPage.svelte';
@@ -29,7 +29,7 @@
   // Initialize client-side routes.
 
   const routes: Record<string, typeof SvelteComponent> = {
-    '/': Welcome,
+    '/': WelcomePage,
     '/taxa': TaxaPage,
     '/locations': LocationsPage,
     '/time': TimePage,

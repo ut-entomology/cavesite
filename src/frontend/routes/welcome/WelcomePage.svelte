@@ -1,7 +1,7 @@
 <script lang="ts">
-  import DataTabRoute from '../components/DataTabRoute.svelte';
-  import TabHeader from '../components/TabHeader.svelte';
-  import { pageName } from '../stores/pageName';
+  import DataTabRoute from '../../components/DataTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
+  import { pageName } from '../../stores/pageName';
 
   $pageName = 'Welcome';
 </script>
