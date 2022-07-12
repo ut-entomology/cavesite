@@ -1,8 +1,8 @@
 <script lang="ts" context="module">
-  import { createSessionStore } from '../util/session_store';
+  import { createSessionStore } from '../../util/session_store';
 
-  import { type EffortData, toEffortDataSetByCluster } from '../lib/effort_data';
-  import type { PlottableModelFactory } from '../lib/plottable_model';
+  import { type EffortData, toEffortDataSetByCluster } from '../../lib/effort_data';
+  import type { PlottableModelFactory } from '../../lib/plottable_model';
   import {
     YAxisModel,
     type ClusteringConfig,
@@ -10,7 +10,7 @@
     toPerLocationClusterData,
     toPerLocationModels,
     SizedEffortGraphSpec
-  } from '../lib/cluster_data';
+  } from '../../lib/cluster_data';
 
   interface Clustering {
     config: ClusteringConfig;
@@ -24,33 +24,33 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import DataTabRoute from '../components/DataTabRoute.svelte';
-  import TabHeader from '../components/TabHeader.svelte';
-  import BusyMessage from '../common/BusyMessage.svelte';
-  import ConfigClustersDialog from '../dialogs/ConfigClustersDialog.svelte';
-  import ClusterPieChart from '../components/ClusterPieChart.svelte';
-  import ClusterRadarChart from '../components/ClusterRadarChart.svelte';
-  import ModelStats from '../components/ModelStats.svelte';
-  import EffortGraph from '../components/EffortGraph.svelte';
-  import ResidualsPlot from '../components/ResidualsPlot.svelte';
-  import { showNotice } from '../common/VariableNotice.svelte';
+  import DataTabRoute from '../../components/DataTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
+  import BusyMessage from '../../common/BusyMessage.svelte';
+  import ConfigClustersDialog from './ConfigClustersDialog.svelte';
+  import ClusterPieChart from './ClusterPieChart.svelte';
+  import ClusterRadarChart from './ClusterRadarChart.svelte';
+  import ModelStats from './ModelStats.svelte';
+  import EffortGraph from './EffortGraph.svelte';
+  import ResidualsPlot from './ResidualsPlot.svelte';
+  import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
     DissimilarityBasis,
     DissimilarityTransform,
     TaxonWeight,
     ComparedTaxa
-  } from '../../shared/model';
-  import { client } from '../stores/client';
-  import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
+  } from '../../../shared/model';
+  import { client } from '../../stores/client';
+  import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import {
     type PlottableModel,
     LinearXModel,
     PowerXModel
-  } from '../lib/plottable_model';
-  import { ClusterColorSet } from '../lib/cluster_color_set';
-  import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
-  import { pageName } from '../stores/pageName';
+  } from '../../lib/plottable_model';
+  import { ClusterColorSet } from '../../lib/cluster_color_set';
+  import { EffortGraphSpec, YAxisType } from '../../lib/effort_graphs';
+  import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collection Effort';
 
@@ -491,7 +491,7 @@
 {/if}
 
 <style lang="scss">
-  @import '../variables.scss';
+  @import '../../variables.scss';
 
   .cluster_summary_info {
     font-size: 0.85rem;

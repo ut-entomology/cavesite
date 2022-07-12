@@ -14,7 +14,7 @@
   import LocationsPage from './routes/locations/LocationsPage.svelte';
   import QueryPage from './routes/query/QueryPage.svelte';
   import TimePage from './routes/time/TimePage.svelte';
-  import Effort from './routes/Effort.svelte';
+  import EffortPage from './routes/effort/EffortPage.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
   import Logs from './routes/admin/Logs.svelte';
@@ -33,7 +33,7 @@
     '/taxa': TaxaPage,
     '/locations': LocationsPage,
     '/time': TimePage,
-    '/effort': Effort,
+    '/effort': EffortPage,
     '/query': QueryPage,
 
     '/admin/users': Users,

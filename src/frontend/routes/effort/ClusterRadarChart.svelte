@@ -1,8 +1,8 @@
 <script lang="ts">
   import Radar from 'svelte-chartjs/src/Radar.svelte';
 
-  import type { ClusterColorSet } from '../lib/cluster_color_set';
-  import type { PerLocationClusterData } from '../lib/cluster_data';
+  import type { ClusterColorSet } from '../../lib/cluster_color_set';
+  import type { PerLocationClusterData } from '../../lib/cluster_data';
 
   export let dataByCluster: PerLocationClusterData[];
   export let clusterColors: ClusterColorSet[];

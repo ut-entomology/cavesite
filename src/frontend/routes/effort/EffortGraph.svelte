@@ -1,8 +1,8 @@
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { PlottableModel } from '../lib/plottable_model';
-  import type { SizedEffortGraphSpec } from '../lib/cluster_data';
+  import type { PlottableModel } from '../../lib/plottable_model';
+  import type { SizedEffortGraphSpec } from '../../lib/cluster_data';
 
   const POINTS_IN_MODEL_PLOT = 200;
 
