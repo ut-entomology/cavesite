@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ModelSpec, LocationSpec } from '../../shared/model';
+  import type { ModelSpec, LocationSpec } from '../../../shared/model';
 
   let classes = '';
   export { classes as class };
@@ -20,7 +20,7 @@
 </span>
 
 <style lang="scss">
-  @import '../variables.scss';
+  @import '../../variables.scss';
   .clickable {
     color: $blueLinkForeColor;
     text-decoration: underline;

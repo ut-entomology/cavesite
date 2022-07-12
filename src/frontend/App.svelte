@@ -11,7 +11,7 @@
   import Layout from './routes/_Layout.svelte';
   import Welcome from './routes/Welcome.svelte';
   import TaxaPage from './routes/taxa/TaxaPage.svelte';
-  import Locations from './routes/Locations.svelte';
+  import LocationsPage from './routes/locations/LocationsPage.svelte';
   import Query from './routes/Query.svelte';
   import Time from './routes/Time.svelte';
   import Effort from './routes/Effort.svelte';
@@ -31,7 +31,7 @@
   const routes: Record<string, typeof SvelteComponent> = {
     '/': Welcome,
     '/taxa': TaxaPage,
-    '/locations': Locations,
+    '/locations': LocationsPage,
     '/time': Time,
     '/effort': Effort,
     '/query': Query,

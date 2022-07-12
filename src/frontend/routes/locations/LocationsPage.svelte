@@ -1,23 +1,29 @@
 <script lang="ts">
   import type { SvelteComponent } from 'svelte';
 
-  import ConfirmationRequest from '../common/ConfirmationRequest.svelte';
-  import DataTabRoute from '../components/DataTabRoute.svelte';
-  import TabHeader from '../components/TabHeader.svelte';
-  import LocationLookup from '../components/LocationLookup.svelte';
-  import EmptyTab from '../components/EmptyTab.svelte';
-  import ExpandableSelectableTree from '../components/ExpandableSelectableTree.svelte';
-  import SelectableLocation from '../components/SelectableLocation.svelte';
-  import { plusIcon, checkmarkIcon } from '../components/SelectionButton.svelte';
-  import BrowseTreeDialog from '../dialogs/BrowseTreeDialog.svelte';
-  import { LocationSelectionsTree } from '../../frontend-core/location_selections_tree';
-  import { type LocationSpec, createContainingLocationSpecs } from '../../shared/model';
-  import type { ExpandableNode, SpecNode } from '../../frontend-core/selections_tree';
-  import { pageName } from '../stores/pageName';
-  import { selectedLocations } from '../stores/selectedLocations';
-  import { client } from '../stores/client';
-  import { type ModelSpec, ROOT_LOCATION_UNIQUE } from '../../shared/model';
-  import { noTypeCheck } from '../util/svelte_types';
+  import ConfirmationRequest from '../../common/ConfirmationRequest.svelte';
+  import DataTabRoute from '../../components/DataTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
+  import LocationLookup from './LocationLookup.svelte';
+  import EmptyTab from '../../components/EmptyTab.svelte';
+  import ExpandableSelectableTree from '../../components/ExpandableSelectableTree.svelte';
+  import SelectableLocation from './SelectableLocation.svelte';
+  import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
+  import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
+  import { LocationSelectionsTree } from '../../../frontend-core/location_selections_tree';
+  import {
+    type LocationSpec,
+    createContainingLocationSpecs
+  } from '../../../shared/model';
+  import type {
+    ExpandableNode,
+    SpecNode
+  } from '../../../frontend-core/selections_tree';
+  import { pageName } from '../../stores/pageName';
+  import { selectedLocations } from '../../stores/selectedLocations';
+  import { client } from '../../stores/client';
+  import { type ModelSpec, ROOT_LOCATION_UNIQUE } from '../../../shared/model';
+  import { noTypeCheck } from '../../util/svelte_types';
 
   $pageName = 'Selected Locations';
 

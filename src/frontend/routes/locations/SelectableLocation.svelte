@@ -1,12 +1,12 @@
 <script lang="ts">
-  import ExpandableSelectable from './ExpandableSelectable.svelte';
-  import LocationText from '../components/LocationText.svelte';
-  import type { ModelSpec } from '../../shared/model';
+  import ExpandableSelectable from '../../components/ExpandableSelectable.svelte';
+  import LocationText from './LocationText.svelte';
+  import type { ModelSpec } from '../../../shared/model';
   import type {
     SpecNode,
     AddSelection,
     RemoveSelection
-  } from '../../frontend-core/selections_tree';
+  } from '../../../frontend-core/selections_tree';
 
   export let prefixed = true;
   export let expandable = true;
