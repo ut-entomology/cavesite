@@ -41,16 +41,13 @@
   } from '../../shared/model';
   import { client } from '../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../lib/cluster_client';
-  import { shortenPValue, shortenRMSE, shortenR2 } from '../lib/regression';
   import {
     type PlottableModel,
     LinearXModel,
     PowerXModel
   } from '../lib/plottable_model';
   import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
-  import { type ModelSummary, summarizeModels } from '../lib/model_summary';
   import { pageName } from '../stores/pageName';
-  import Taxa from './Taxa.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -113,9 +110,9 @@
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let modelsByCluster: PlottableModel[][] = [];
-  let modelSummaries: ModelSummary[] = [];
   let clusterColors: string[] = [];
   let localityCountByCluster: number[] = [];
+  let clusterIndex = 0;
 
   $: if ($clustering) {
     loadState = LoadState.fittingModels;
@@ -143,12 +140,6 @@
       );
       localityCountByCluster[i] = clusterData.locationCount;
     }
-    modelSummaries = summarizeModels(
-      MIN_CAVES_PER_SUMMARY,
-      MIN_POINTS_PER_SUMMARY,
-      modelsByCluster,
-      localityCountByCluster
-    );
   }
 
   function _clearData() {
@@ -266,6 +257,8 @@
     _loadData(config); // don't wait, so we can close dialog
     clusteringRequest = null;
   }
+
+  function _regressPlot() {}
 </script>
 
 <DataTabRoute activeTab="Effort">
@@ -280,41 +273,6 @@
         <button class="btn btn-major" type="button" on:click={_openConfigDialog}
           >{$clustering ? 'Change' : 'Load'} Data</button
         >
-      </span>
-      <span slot="work-buttons">
-        {#if $clustering}
-          <div class="btn-group" role="group" aria-label="Switch datasets">
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={datasetID}
-              name="dataset"
-              id={DatasetID.days}
-              value={DatasetID.days}
-            />
-            <label class="btn btn-outline-primary" for={DatasetID.days}>Days</label>
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={datasetID}
-              name="dataset"
-              id={DatasetID.visits}
-              value={DatasetID.visits}
-            />
-            <label class="btn btn-outline-primary" for={DatasetID.visits}>Visits</label>
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={datasetID}
-              name="dataset"
-              id={DatasetID.personVisits}
-              value={DatasetID.personVisits}
-            />
-            <label class="btn btn-outline-primary" for={DatasetID.personVisits}
-              >Person-Visits</label
-            >
-          </div>
-        {/if}
       </span>
     </TabHeader>
 
@@ -375,85 +333,111 @@
         </div>
       </div>
 
-      <div class="model_summary_info">
-        <div class="row mt-3">
-          <div class="col-3 text-center">weighted-avg/avg/best</div>
-          <div class="col"><span>p-value</span></div>
-          <div class="col"><span>RMSE</span></div>
-          <div class="col"><span>R2</span></div>
-        </div>
-        {#each modelSummaries as summary}
-          <div class="row">
-            <div class="col-3"><span>{summary.modelName}</span></div>
-            <div class="col">
-              {shortenPValue(summary.weightedPValue)}<span>/</span>{shortenPValue(
-                summary.averagePValue
-              )}<span>/</span>{shortenPValue(summary.bestPValue)}
-            </div>
-            <div class="col">
-              {shortenRMSE(summary.weightedRMSE)}<span>/</span>{shortenRMSE(
-                summary.averageRMSE
-              )}<span>/</span>{shortenRMSE(summary.bestRMSE)}
-            </div>
-            <div class="col">
-              {shortenR2(summary.weightedR2)}<span>/</span>{shortenR2(
-                summary.averageR2
-              )}<span>/</span>{shortenR2(summary.bestR2)}
-            </div>
-          </div>
-        {/each}
-      </div>
-
       <div class="row justify-content-center">
-        <div class="col d-flex align-items-center" style="max-width: 300px">
-          <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
-        </div>
         <div class="col" style="max-width: 480px">
           <ClusterRadarChart
             dataByCluster={$clustering.dataByCluster}
             {clusterColors}
           />
         </div>
+        <div class="col d-flex align-items-center" style="max-width: 300px">
+          <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
+        </div>
       </div>
 
-      {#each $clustering.dataByCluster as clusterData, i}
-        {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
-        {@const graphSpec = _getGraphData(datasetID, clusterData)}
-        {@const models = modelsByCluster[i]}
-        {@const graphTitle =
-          (multipleClusters ? `#${i + 1}: ` : '') +
-          _getGraphTitle(graphSpec) +
-          ` (${clusterData.locationCount} caves)`}
-        {#if models.length > 0}
-          <div class="row mt-3 mb-1">
-            <div class="col" style="height: 350px">
-              <EffortGraph
-                title={graphTitle}
-                spec={graphSpec}
-                {models}
-                yFormula={models ? models[0].getYFormula() : 'y'}
+      {#if $clustering}
+        <div class="row justify-content-between mt-4 ms-4 me-4">
+          <div class="col-auto">
+            <select
+              bind:value={clusterIndex}
+              class="cluster_selector form-select form-select-sm item_select"
+            >
+              {#each $clustering.dataByCluster as _, i}
+                <option value={i}>Cluster #{i + 1}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="col-auto">
+            <div class="btn-group" role="group" aria-label="Switch datasets">
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={datasetID}
+                name="dataset"
+                id={DatasetID.days}
+                value={DatasetID.days}
               />
+              <label class="btn btn-outline-primary" for={DatasetID.days}>Days</label>
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={datasetID}
+                name="dataset"
+                id={DatasetID.visits}
+                value={DatasetID.visits}
+              />
+              <label class="btn btn-outline-primary" for={DatasetID.visits}
+                >Visits</label
+              >
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={datasetID}
+                name="dataset"
+                id={DatasetID.personVisits}
+                value={DatasetID.personVisits}
+              />
+              <label class="btn btn-outline-primary" for={DatasetID.personVisits}
+                >Person-Visits</label
+              >
             </div>
           </div>
-          <div class="row mb-3 gx-0 ms-4">
-            {#each models as model}
-              <div class="col-sm-6"><ResidualsPlot {model} /></div>
-            {/each}
+          <div class="col-auto">
+            <button class="btn btn-major" type="button" on:click={_regressPlot}
+              >Fit Curve</button
+            >
           </div>
+        </div>
+      {/if}
+
+      {@const clusterData = $clustering.dataByCluster[clusterIndex]}
+      {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
+      {@const graphSpec = _getGraphData(datasetID, clusterData)}
+      {@const models = modelsByCluster[clusterIndex]}
+      {@const graphTitle =
+        (multipleClusters ? `#${clusterIndex + 1}: ` : '') +
+        _getGraphTitle(graphSpec) +
+        ` (${clusterData.locationCount} caves)`}
+
+      {#if models.length > 0}
+        <div class="row mt-3 mb-1">
+          <div class="col" style="height: 350px">
+            <EffortGraph
+              title={graphTitle}
+              spec={graphSpec}
+              {models}
+              yFormula={models ? models[0].getYFormula() : 'y'}
+            />
+          </div>
+        </div>
+        <div class="row mb-3 gx-0 ms-4">
           {#each models as model}
-            <ModelStats {model} />
+            <div class="col-sm-6"><ResidualsPlot {model} /></div>
           {/each}
-        {:else}
-          <div class="row mt-3 mb-1">
-            <div class="col" style="height: 350px">
-              <EffortGraph title={graphTitle} spec={graphSpec} />
-            </div>
+        </div>
+        {#each models as model}
+          <ModelStats {model} />
+        {/each}
+      {:else}
+        <div class="row mt-3 mb-1">
+          <div class="col" style="height: 350px">
+            <EffortGraph title={graphTitle} spec={graphSpec} />
           </div>
-          <div class="row mb-3 gx-0 ms-4">
-            <div class="col-sm-6">Too few points to perform a regression.</div>
-          </div>
-        {/if}
-      {/each}
+        </div>
+        <div class="row mb-3 gx-0 ms-4">
+          <div class="col-sm-6">Too few points to perform a regression.</div>
+        </div>
+      {/if}
     {/if}
   </div>
 </DataTabRoute>
@@ -480,7 +464,9 @@
   {/if}
 {/if}
 
-<style>
+<style lang="scss">
+  @import '../variables.scss';
+
   .cluster_summary_info {
     font-size: 0.85rem;
     color: #999;
@@ -489,14 +475,7 @@
     color: #000;
   }
 
-  .model_summary_info {
-    font-size: 0.85rem;
-    color: #000;
-  }
-  .model_summary_info span {
-    color: #999;
-  }
-  .model_summary_info .row > div + div {
-    text-align: center;
+  .cluster_selector {
+    background-color: $majorButtonColor;
   }
 </style>

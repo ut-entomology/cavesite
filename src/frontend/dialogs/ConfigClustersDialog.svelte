@@ -44,11 +44,7 @@
         <div><b>Maximum clusters</b> into which to group the caves</div>
       </div>
       <div class="col-sm-2">
-        <select
-          bind:value={maxClusters}
-          class="form-select form-select-sm item_select"
-          aria-label=".form-select-sm example"
-        >
+        <select bind:value={maxClusters} class="form-select form-select-sm item_select">
           {#each { length: MAX_ALLOWED_CLUSTERS } as _, i}
             <option value={i + 1}>{i + 1}</option>
           {/each}
@@ -63,7 +59,6 @@
         <select
           bind:value={comparedTaxa}
           class="form-select form-select-sm item_select"
-          aria-label=".form-select-sm example"
         >
           <option value={ComparedTaxa.all}>All taxa</option>
           <option value={ComparedTaxa.generaHavingCaveObligates}
@@ -81,7 +76,6 @@
         <select
           bind:value={ignoreSubgenera}
           class="form-select form-select-sm item_select"
-          aria-label=".form-select-sm example"
         >
           <option value={true}>Yes, ignore</option>
           <option value={false}>No, don't ignore</option>
@@ -96,7 +90,6 @@
         <select
           bind:value={highestComparedRank}
           class="form-select form-select-sm item_select"
-          aria-label=".form-select-sm example"
         >
           <option value={TaxonRank.Kingdom}>Kingdom</option>
           <option value={TaxonRank.Phylum}>Phylum</option>
@@ -116,7 +109,6 @@
         <select
           bind:value={maxPointsToRegress}
           class="form-select form-select-sm item_select"
-          aria-label=".form-select-sm example"
         >
           {#each { length: MAX_MAX_POINTS_TO_REGRESS } as _, i}
             <option value={i + 1}>{i + 1}</option>
