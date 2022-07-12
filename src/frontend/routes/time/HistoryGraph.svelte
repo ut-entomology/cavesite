@@ -1,14 +1,14 @@
 <script lang="ts">
-  import Line from 'svelte-chartjs/src/Line.svelte';
+  import Bar from 'svelte-chartjs/src/Bar.svelte';
 
-  import type { TimeGraphSpec } from '../lib/time_graphs';
+  import type { TimeGraphSpec } from '../../lib/time_graphs';
 
   export let spec: TimeGraphSpec;
 
   $: additiveText = spec.isAdditive ? ' (additive)' : ' (non-additive)';
 </script>
 
-<Line
+<Bar
   data={{
     labels: spec.xValues,
     datasets: [
@@ -16,10 +16,7 @@
         return {
           label: trend.label,
           data: trend.yValues,
-          cubicInterpolationMode: 'monotone',
-          borderWidth: 1,
-          borderColor: trend.plotColor,
-          backgroundColor: trend.fillColor,
+          backgroundColor: trend.plotColor,
           fill: true
         };
       })
@@ -49,11 +46,6 @@
         display: true,
         text: spec.graphTitle,
         font: { size: 17 }
-      }
-    },
-    elements: {
-      point: {
-        radius: 2
       }
     },
     animation: false

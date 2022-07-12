@@ -13,7 +13,7 @@
   import TaxaPage from './routes/taxa/TaxaPage.svelte';
   import LocationsPage from './routes/locations/LocationsPage.svelte';
   import QueryPage from './routes/query/QueryPage.svelte';
-  import Time from './routes/Time.svelte';
+  import TimePage from './routes/time/TimePage.svelte';
   import Effort from './routes/Effort.svelte';
   import Users from './routes/admin/Users.svelte';
   import Coords from './routes/admin/Coords.svelte';
@@ -32,7 +32,7 @@
     '/': Welcome,
     '/taxa': TaxaPage,
     '/locations': LocationsPage,
-    '/time': Time,
+    '/time': TimePage,
     '/effort': Effort,
     '/query': QueryPage,
 

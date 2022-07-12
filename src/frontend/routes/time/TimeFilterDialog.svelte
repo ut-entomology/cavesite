@@ -8,9 +8,9 @@
 </script>
 
 <script lang="ts">
-  import ModalDialog from '../common/ModalDialog.svelte';
-  import DateRangeInput from '../components/DateRangeInput.svelte';
-  import { EARLIEST_RECORD_DATE } from '../../shared/general_query';
+  import ModalDialog from '../../common/ModalDialog.svelte';
+  import DateRangeInput from '../../components/DateRangeInput.svelte';
+  import { EARLIEST_RECORD_DATE } from '../../../shared/general_query';
 
   export let initialQueryRequest: TimeGraphQueryRequest;
   export let onClose: () => void;
@@ -93,7 +93,7 @@
 </ModalDialog>
 
 <style lang="scss">
-  @import '../variables.scss';
+  @import '../../variables.scss';
 
   .dialog_controls button {
     width: 6rem;

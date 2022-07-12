@@ -1,16 +1,16 @@
 <script lang="ts" context="module">
-  import { createSessionStore } from '../util/session_store';
+  import { createSessionStore } from '../../util/session_store';
 
   import {
     type TimeGraphQuery,
     convertTimeQuery,
     TimeChartTallier
-  } from '../../shared/time_query';
+  } from '../../../shared/time_query';
   import {
     type TimeGraphSpec,
     createHistoryGraphSpec,
     createSeasonalityGraphSpec
-  } from '../lib/time_graphs';
+  } from '../../lib/time_graphs';
 
   interface TimeGraphSpecPair {
     species: TimeGraphSpec;
@@ -41,25 +41,25 @@
 </script>
 
 <script lang="ts">
-  import DataTabRoute from '../components/DataTabRoute.svelte';
-  import TabHeader from '../components/TabHeader.svelte';
-  import EmptyTab from '../components/EmptyTab.svelte';
-  import BusyMessage from '../common/BusyMessage.svelte';
+  import DataTabRoute from '../../components/DataTabRoute.svelte';
+  import TabHeader from '../../components/TabHeader.svelte';
+  import EmptyTab from '../../components/EmptyTab.svelte';
+  import BusyMessage from '../../common/BusyMessage.svelte';
   import TimeFilterDialog, {
     type TimeGraphQueryRequest
-  } from '../dialogs/TimeFilterDialog.svelte';
-  import SeasonalityGraph from '../components/SeasonalityGraph.svelte';
-  import HistoryGraph from '../components/HistoryGraph.svelte';
-  import TabFootnote from '../components/TabFootnote.svelte';
-  import { pageName } from '../stores/pageName';
-  import { showNotice } from '../common/VariableNotice.svelte';
-  import type { GeneralQuery, QueryRow } from '../../shared/general_query';
-  import { EARLIEST_RECORD_DATE } from '../../shared/general_query';
-  import { getLocationFilter, getTaxonFilter } from '../lib/query_filtering';
-  import { client, errorReason } from '../stores/client';
-  import { selectedTaxa } from '../stores/selectedTaxa';
-  import { selectedLocations } from '../stores/selectedLocations';
-  import { LocationRank } from '../../shared/model';
+  } from './TimeFilterDialog.svelte';
+  import SeasonalityGraph from './SeasonalityGraph.svelte';
+  import HistoryGraph from './HistoryGraph.svelte';
+  import TabFootnote from '../../components/TabFootnote.svelte';
+  import { pageName } from '../../stores/pageName';
+  import { showNotice } from '../../common/VariableNotice.svelte';
+  import type { GeneralQuery, QueryRow } from '../../../shared/general_query';
+  import { EARLIEST_RECORD_DATE } from '../../../shared/general_query';
+  import { getLocationFilter, getTaxonFilter } from '../../lib/query_filtering';
+  import { client, errorReason } from '../../stores/client';
+  import { selectedTaxa } from '../../stores/selectedTaxa';
+  import { selectedLocations } from '../../stores/selectedLocations';
+  import { LocationRank } from '../../../shared/model';
 
   $pageName = 'Seasonality and History';
 
