@@ -1,10 +1,11 @@
 <script lang="ts">
   import Radar from 'svelte-chartjs/src/Radar.svelte';
+
+  import type { ClusterColorSet } from '../lib/cluster_color_set';
   import type { PerLocationClusterData } from '../lib/cluster_data';
-  import { hslStringToRGBA } from '../lib/graphics';
 
   export let dataByCluster: PerLocationClusterData[];
-  export let clusterColors: string[];
+  export let clusterColors: ClusterColorSet[];
 
   // // Rotate the clusters clockwise by one cluster so the shaded areas don't
   // // overcrowd the scale, but adjust the cluster numbers everywhere.
@@ -60,8 +61,8 @@
         return {
           label: `% of these taxa also in #${_toClusterNo(i)}`, // labels the point
           data: percentCommonByCluster,
-          borderColor: clusterColors[colorIndex],
-          backgroundColor: hslStringToRGBA(clusterColors[colorIndex], 0.2),
+          borderColor: clusterColors[colorIndex].foreground,
+          backgroundColor: clusterColors[colorIndex].lightBackground,
           fill: true,
           order: dataByCluster.length - i
         };

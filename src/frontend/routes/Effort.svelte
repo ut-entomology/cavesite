@@ -22,6 +22,8 @@
 </script>
 
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   import DataTabRoute from '../components/DataTabRoute.svelte';
   import TabHeader from '../components/TabHeader.svelte';
   import BusyMessage from '../common/BusyMessage.svelte';
@@ -46,6 +48,7 @@
     LinearXModel,
     PowerXModel
   } from '../lib/plottable_model';
+  import { ClusterColorSet } from '../lib/cluster_color_set';
   import { EffortGraphSpec, YAxisType } from '../lib/effort_graphs';
   import { pageName } from '../stores/pageName';
 
@@ -109,7 +112,7 @@
   // @ts-ignore
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-  let clusterColors: string[] = [];
+  let clusterColors: ClusterColorSet[] = [];
   let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
   let models: PlottableModel[];
@@ -123,13 +126,15 @@
     for (let i = 0; i < $clustering.dataByCluster.length; ++i) {
       const clusterData = $clustering.dataByCluster[i];
       localityCountByCluster[i] = clusterData.locationCount;
-      clusterColors[i] = `hsl(${
-        i * (360 / $clustering!.dataByCluster.length)
-      }, 60%, 60%)`;
+      clusterColors[i] = new ClusterColorSet(
+        `hsl(${i * (360 / $clustering!.dataByCluster.length)}, 60%, 60%)`
+      );
     }
   }
 
   $: if ($clustering) {
+    _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
+
     const clusterData = $clustering.dataByCluster[clusterIndex];
     const graphData = _getPerLocationGraphData(
       datasetID,
@@ -260,7 +265,21 @@
     clusteringRequest = null;
   }
 
+  function _setClusterSelectorColor(clusterIndex: number) {
+    const clusterColor = document.getElementById('cluster_color');
+    const clusterSelector = document.getElementById('cluster_selector');
+    if (clusterSelector) {
+      const foreground = clusterColors[clusterIndex].foreground;
+      const background = clusterColors[clusterIndex].lightBackground;
+      clusterColor!.style.backgroundColor = foreground;
+      clusterSelector.style.borderColor = foreground;
+      clusterSelector.style.backgroundColor = background;
+    }
+  }
+
   function _regressPlot() {}
+
+  onMount(() => _setClusterSelectorColor(clusterIndex));
 </script>
 
 <DataTabRoute activeTab="Effort">
@@ -349,15 +368,21 @@
 
       {#if $clustering}
         <div class="row justify-content-between mt-4 ms-4 me-4">
-          <div class="col-auto">
-            <select
-              bind:value={clusterIndex}
-              class="cluster_selector form-select form-select-sm item_select"
-            >
-              {#each $clustering.dataByCluster as _, i}
-                <option value={i}>Cluster #{i + 1}</option>
-              {/each}
-            </select>
+          <div class="col-auto d-flex align-items-center">
+            <div class="form-group">
+              <div class="input-group">
+                <div id="cluster_color" />
+                <select
+                  id="cluster_selector"
+                  class="form-select form-select-sm item_select ms-1"
+                  bind:value={clusterIndex}
+                >
+                  {#each $clustering.dataByCluster as _, i}
+                    <option value={i}>Cluster #{i + 1}</option>
+                  {/each}
+                </select>
+              </div>
+            </div>
           </div>
           <div class="col-auto">
             <div class="btn-group" role="group" aria-label="Switch datasets">
@@ -476,7 +501,11 @@
     color: #000;
   }
 
-  .cluster_selector {
-    background-color: $majorButtonColor;
+  #cluster_selector {
+    display: inline-block;
+  }
+  #cluster_color {
+    display: inline-block;
+    width: 1.3rem;
   }
 </style>

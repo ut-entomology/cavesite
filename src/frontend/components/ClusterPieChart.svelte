@@ -1,10 +1,12 @@
 <script lang="ts">
   import Pie from 'svelte-chartjs/src/Pie.svelte';
-  import type { AnyMessageParams } from 'yup/lib/types';
+
+  import type { ClusterColorSet } from '../lib/cluster_color_set';
   import type { PerLocationClusterData } from '../lib/cluster_data';
 
   export let dataByCluster: PerLocationClusterData[];
-  export let clusterColors: string[];
+  export let clusterColors: ClusterColorSet[];
+  console.log('**** clusterColors', clusterColors);
 
   function _toDataLabel(ctx: any) {
     return ctx.dataset.data[ctx.dataIndex] + ' caves';
@@ -17,7 +19,7 @@
     datasets: [
       {
         data: dataByCluster.map((data) => data.locationCount),
-        backgroundColor: clusterColors,
+        backgroundColor: clusterColors.map((set) => set.foreground),
         hoverOffset: 4
         // datalabels: {
         //   anchor: 'center',
