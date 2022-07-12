@@ -109,37 +109,39 @@
   // @ts-ignore
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
-  let modelsByCluster: PlottableModel[][] = [];
   let clusterColors: string[] = [];
   let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
+  let models: PlottableModel[];
 
   $: if ($clustering) {
     loadState = LoadState.fittingModels;
-    modelsByCluster = [];
     clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
     clusterSpec.ignoreSubgenera = $clustering.config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = $clustering.config.highestComparedRank;
 
-    clusterColors = $clustering.dataByCluster.map(
-      (_, i) => `hsl(${i * (360 / $clustering!.dataByCluster.length)}, 60%, 60%)`
-    );
-
     for (let i = 0; i < $clustering.dataByCluster.length; ++i) {
       const clusterData = $clustering.dataByCluster[i];
-      const graphData = _getPerLocationGraphData(
-        datasetID,
-        clusterData as PerLocationClusterData
-      );
-      modelsByCluster[i] = toPerLocationModels(
-        modelFactories,
-        yAxisModel,
-        graphData,
-        MIN_X_ALLOWING_REGRESS,
-        MODEL_WEIGHT_POWER
-      );
       localityCountByCluster[i] = clusterData.locationCount;
+      clusterColors[i] = `hsl(${
+        i * (360 / $clustering!.dataByCluster.length)
+      }, 60%, 60%)`;
     }
+  }
+
+  $: if ($clustering) {
+    const clusterData = $clustering.dataByCluster[clusterIndex];
+    const graphData = _getPerLocationGraphData(
+      datasetID,
+      clusterData as PerLocationClusterData
+    );
+    models = toPerLocationModels(
+      modelFactories,
+      yAxisModel,
+      graphData,
+      MIN_X_ALLOWING_REGRESS,
+      MODEL_WEIGHT_POWER
+    );
   }
 
   function _clearData() {
@@ -403,7 +405,6 @@
       {@const clusterData = $clustering.dataByCluster[clusterIndex]}
       {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
       {@const graphSpec = _getGraphData(datasetID, clusterData)}
-      {@const models = modelsByCluster[clusterIndex]}
       {@const graphTitle =
         (multipleClusters ? `#${clusterIndex + 1}: ` : '') +
         _getGraphTitle(graphSpec) +
