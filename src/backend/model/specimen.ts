@@ -503,7 +503,7 @@ export class Specimen implements TaxonPathSpec {
     let groupCountTerm: string | null = null;
     let selectDistinctResults = true;
     const selectedColumns: string[] = [];
-    const whereComponents: string[] = [];
+    const whereComponents: string[] = ['committed = true'];
     const columnOrders: string[] = [];
 
     if (dateFilter !== null) {

@@ -685,6 +685,7 @@ describe('general specimen query', () => {
     await Specimen.dropAll(db);
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
+    await Specimen.commit(db);
 
     let dateSpec = _toColumnSpec(QueryColumnID.CollectionStartDate, true);
 
@@ -870,6 +871,7 @@ describe('general specimen query', () => {
     await Specimen.dropAll(db);
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -982,6 +984,7 @@ describe('general specimen query', () => {
     await Specimen.dropAll(db);
     await _createSpecimen1(db);
     await _createSpecimen2(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -1023,6 +1026,7 @@ describe('general specimen query', () => {
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let locationFilter: QueryLocationFilter = {
       countyIDs: [specimen2!.countyID!],
@@ -1128,6 +1132,7 @@ describe('general specimen query', () => {
     await _createSpecimen2(db); // 2021-01-04
     await _createSpecimen3(db); // 2020-01-01
     await _createSpecimen4(db); // 2020-01-01
+    await Specimen.commit(db);
 
     let dateFilter: QueryDateFilter = {
       fromDateMillis: new Date('2021-01-01').getTime(),
@@ -1208,6 +1213,7 @@ describe('general specimen query', () => {
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let taxonFilter: QueryTaxonFilter = {
       phylumIDs: [specimen2!.phylumID!],
@@ -1358,6 +1364,7 @@ describe('general specimen query', () => {
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -1397,6 +1404,7 @@ describe('general specimen query', () => {
     await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let taxonFilter = {
       phylumIDs: null,
@@ -1428,6 +1436,7 @@ describe('general specimen query', () => {
     await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let taxonFilter = {
       phylumIDs: null,
@@ -1457,6 +1466,7 @@ describe('general specimen query', () => {
   test('returning no results', async () => {
     await Specimen.dropAll(db);
     await _createSpecimen1(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
