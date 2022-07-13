@@ -42,7 +42,6 @@ async function loadCSV() {
 async function loadDB() {
   const db = getDB();
   let importFailureCount = 0;
-  let partialStartDateCount = 0;
   for (const record of records) {
     const specimenSource = {
       catalogNumber: record.catalogNumber,
@@ -54,8 +53,8 @@ async function loadDB() {
       order: record.order,
       family: record.family,
       genus: record.genus,
-      specificEpithet: record.species,
-      infraspecificEpithet: record.subspecies,
+      specificEpithet: toSpeciesOrSubspecies(record.species),
+      infraspecificEpithet: toSpeciesOrSubspecies(record.subspecies),
       scientificName: toScientificName(record),
 
       continent: 'North America',
@@ -67,12 +66,13 @@ async function loadDB() {
       decimalLongitude: record.longitude,
 
       startDate: record.startDate,
+      eventRemarks: toEventRemarks(record),
       collectors: toNameField(record.collectors),
       determinationDate: record.determinedDate,
       determiners: toNameField(record.determiners),
       collectionRemarks: record.localityAndHabitatNotes,
       occurrenceRemarks: record.coaRemarks,
-      determinationRemarks: record.determinationRemarks,
+      determinationRemarks: toDetRemarks(record),
       typeStatus: record.typeStatus,
       organismQuantity: record.count,
       lifeStage: record.lifeStage
@@ -87,19 +87,28 @@ async function loadDB() {
       }
     } catch (err: any) {
       ++importFailureCount;
-      if (
-        err.message == 'Invalid time value' &&
-        isNaN(new Date(specimenSource.startDate).getTime())
-      ) {
-        ++partialStartDateCount;
-      } else {
-        console.log(`Cat# ${record.catalogNumber}:`, err.message);
-      }
+      console.log(`Cat# ${record.catalogNumber}:`, err.message);
     }
   }
-  console.log(
-    `\n${importFailureCount} import failures, ${partialStartDateCount} of which are partial start dates\n`
-  );
+  console.log(`\n${importFailureCount} import failures\n`);
+}
+
+function toDetRemarks(record: CsvSpecimen): string {
+  const species = record.species;
+  if (species.includes('sp.') && !record.determinationRemarks.includes('sp.')) {
+    if (record.determinationRemarks == '') return species;
+    return record.determinationRemarks + '; ' + species;
+  }
+  return record.determinationRemarks;
+}
+
+function toEventRemarks(record: CsvSpecimen): string {
+  const eventRemarks: string[] = [];
+  const started = toPartialDate(record.startDate);
+  if (started) eventRemarks.push('started: ' + started);
+  const ended = toPartialDate(record.endDate);
+  if (ended) eventRemarks.push('ended: ' + ended);
+  return eventRemarks.join('; ');
 }
 
 function toNameField(names: PersonName[]): string {
@@ -121,6 +130,13 @@ function toNameField(names: PersonName[]): string {
   return nameField;
 }
 
+function toPartialDate(csvDate: string): string | null {
+  if (!csvDate.includes('00/')) return null;
+  const parts = csvDate.split('/');
+  if (parts[0] == '00') return parts[2];
+  return `${parts[0]}/${parts[2]}`;
+}
+
 function toScientificName(record: CsvSpecimen): string {
   if (record.genus) {
     let name = record.genus;
@@ -140,6 +156,10 @@ function toScientificName(record: CsvSpecimen): string {
   if (record.class) return record.class;
   if (record.phylum) return record.phylum;
   return ROOT_TAXON_UNIQUE;
+}
+
+function toSpeciesOrSubspecies(name: string): string {
+  return name.includes('.') ? '' : name;
 }
 
 (async () => {
