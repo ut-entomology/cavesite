@@ -308,12 +308,19 @@ setColumnInfo({
 });
 setColumnInfo({
   columnID: QueryColumnID.TypeStatus,
-  fullName: 'Specimen Type Status',
-  abbrName: 'Type Status',
-  description: 'The type status of this particular specimen',
+  fullName: 'Type Status',
+  abbrName: null,
+  description:
+    'Type status of this particular specimen, and whether it is undescribed.',
   defaultSelection: true,
   column1: 'type_status',
-  options: nullableOptions,
+  options: [
+    { text: 'Any value', sql: null },
+    { text: 'Undescribed', sql: "X='undescribed'" },
+    { text: 'Any type', sql: "X is not null and X!='undescribed'" },
+    { text: 'Non-blank', sql: 'X is not null' },
+    { text: 'Blank', sql: 'X is null' }
+  ],
   defaultEmWidth: 7,
   columnClass: null,
   getValue: (row: QueryRow) => row.typeStatus || ''

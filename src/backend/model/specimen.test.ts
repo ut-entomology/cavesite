@@ -51,8 +51,8 @@ const baseSource = {
   identifiedBy: 'Person A | Person B',
   eventRemarks: 'meadow; ' + endDateStr,
   occurrenceRemarks: 'occurrence remark',
-  determinationRemarks: 'big one',
-  typeStatus: 'normal',
+  identificationRemarks: 'big one',
+  typeStatus: '',
   organismQuantity: '1'
 };
 
@@ -118,8 +118,8 @@ describe('basic specimen methods', () => {
         determiners: 'Person A|Person B',
         collectionRemarks: 'meadow',
         occurrenceRemarks: baseSource.occurrenceRemarks,
-        determinationRemarks: baseSource.determinationRemarks,
-        typeStatus: baseSource.typeStatus,
+        determinationRemarks: baseSource.identificationRemarks,
+        typeStatus: null,
         specimenCount: 1,
         lifeStage: null,
         problems: null,
@@ -327,7 +327,7 @@ describe('basic specimen methods', () => {
     const specimen = await Specimen.create(
       db,
       Object.assign({}, baseSource, {
-        determinationRemarks: 'CAVEDATA[subgenus Subby]'
+        identificationRemarks: 'blind; subgenus Subby; more notes'
       })
     );
     expect(specimen).toEqual({
@@ -345,8 +345,8 @@ describe('basic specimen methods', () => {
       determiners: 'Person A|Person B',
       collectionRemarks: 'meadow',
       occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: null,
-      typeStatus: baseSource.typeStatus,
+      determinationRemarks: 'blind; subgenus Subby; more notes',
+      typeStatus: null,
       specimenCount: 1,
       lifeStage: null,
       problems: null,
@@ -401,13 +401,13 @@ describe('basic specimen methods', () => {
       Object.assign({}, baseSource, {
         specificEpithet: '',
         scientificName: 'Argiope',
-        determinationRemarks: 'big one; CAVEDATA[n. sp. A]'
+        identificationRemarks: 'big one; n. sp. A'
       })
     );
     expect(specimen).toEqual({
       catalogNumber: baseSource.catalogNumber,
       occurrenceGuid: baseSource.occurrenceID,
-      taxonID: 7,
+      taxonID: 6,
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
@@ -419,8 +419,8 @@ describe('basic specimen methods', () => {
       determiners: 'Person A|Person B',
       collectionRemarks: 'meadow',
       occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: 'big one',
-      typeStatus: baseSource.typeStatus,
+      determinationRemarks: 'big one; n. sp. A',
+      typeStatus: 'undescribed',
       specimenCount: 1,
       lifeStage: null,
       problems: null,
@@ -436,11 +436,11 @@ describe('basic specimen methods', () => {
       familyID: 5,
       genusName: 'Argiope',
       genusID: 6,
-      speciesName: 'n. sp. A',
-      speciesID: 7,
+      speciesName: null,
+      speciesID: null,
       subspeciesName: null,
       subspeciesID: null,
-      taxonUnique: 'Argiope n. sp. A',
+      taxonUnique: 'Argiope',
       taxonAuthor: null,
       obligate: null,
       countyName: 'Travis County',
@@ -453,7 +453,6 @@ describe('basic specimen methods', () => {
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
     expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
     expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Argiope');
-    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('n. sp. A');
     expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
     expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
     expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
@@ -487,7 +486,7 @@ describe('basic specimen methods', () => {
       collectionRemarks: null,
       occurrenceRemarks: null,
       determinationRemarks: null,
-      typeStatus: baseSource.typeStatus,
+      typeStatus: null,
       specimenCount: null,
       lifeStage: null,
       problems: null,
@@ -878,7 +877,7 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
-        determinationRemarks: baseSource.determinationRemarks
+        determinationRemarks: baseSource.identificationRemarks
       },
       { collectionStartDate: startDate2, determinationRemarks: null }
     ]);
@@ -994,9 +993,9 @@ describe('general specimen query', () => {
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [_toColumnSpec(QueryColumnID.TypeStatus, false)],
+      db, [_toColumnSpec(QueryColumnID.TypeStatus, true)],
       null, null, null, 0, 10);
-    expect(results[0]).toEqual([{ typeStatus: 'paratype' }, { typeStatus: 'normal' }]);
+    expect(results[0]).toEqual([{ typeStatus: 'paratype' }, { typeStatus: null }]);
     expect(results[1]).toEqual(2);
 
     // prettier-ignore
@@ -1687,7 +1686,7 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
     eventRemarks: 'had fun!',
     dateIdentified: detDate.toISOString(),
     identifiedBy: 'Person A',
-    typeStatus: 'normal',
+    typeStatus: '',
     organismQuantity: '3'
   };
   return await Specimen.create(db, source3);
@@ -1718,7 +1717,7 @@ async function _createSpecimen4(db: DB): Promise<Specimen | null> {
 
     eventDate: startDate.toISOString(),
     recordedBy: 'Some One',
-    typeStatus: 'normal'
+    typeStatus: ''
   };
   return await Specimen.create(db, source4);
 }

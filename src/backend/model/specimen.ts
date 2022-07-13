@@ -27,7 +27,7 @@ const PARTIAL_DATES_REGEX =
   /(start|end)(?:ed|s)?[:= ]+(\d{4})(?:[-](\d{1,2}))?(?:[-](\d{1,2}))?/gi;
 
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
-const CAVEDATA_REGEX = /CAVEDATA\[([^\]]*)\]/;
+const SUBGENUS_REGEX = /subgenus[:= ]+([A-Za-z]+)/i;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
 
@@ -187,6 +187,7 @@ export class Specimen implements TaxonPathSpec {
     let specimen: Specimen;
     let detRemarks = source.identificationRemarks;
     let determiners = source.identifiedBy?.replace(/ ?[|] ?/g, '|') || null;
+    let typeStatus: string | null = source.typeStatus || null;
 
     // Perform crucial initial actions that might prevent the import on error.
 
@@ -209,38 +210,15 @@ export class Specimen implements TaxonPathSpec {
 
       let taxonSource: TaxonSource = source;
       if (detRemarks) {
-        const match = detRemarks.match(CAVEDATA_REGEX);
-        if (match) {
-          detRemarks = (
-            detRemarks.substring(0, match.index) +
-            ' ' +
-            detRemarks.substring(match.index! + match[0].length)
-          )
-            .replace('; ;', '; ')
-            .replace('  ', ' ')
-            .trim() /* needed here */;
-          if ([';', ','].includes(detRemarks[0])) {
-            detRemarks = detRemarks.substring(1);
-          }
-          if ([';', ','].includes(detRemarks[detRemarks.length - 1])) {
-            detRemarks = detRemarks.substring(0, detRemarks.length - 1);
-          }
-          detRemarks = detRemarks.trim();
+        // Extract subgenus.
 
-          const caveDataItems = match[1].split(';');
-          for (let item of caveDataItems) {
-            item = item.trim();
-            if (item.startsWith('subgenus')) {
-              taxonSource.subgenus = item.substring('subgenus '.length).trim();
-            } else if (item.includes('n.')) {
-              if (item.includes('subsp')) {
-                taxonSource.infraspecificEpithet = item;
-              } else {
-                taxonSource.specificEpithet = item;
-              }
-            }
-          }
+        const match = detRemarks.match(SUBGENUS_REGEX);
+        if (match) {
+          taxonSource.subgenus = match[1];
         }
+
+        // Extract additional determiners, since Specify only allowed uploading one.
+
         const detAlsoBy = 'det. also by';
         if (determiners && detRemarks.includes(detAlsoBy)) {
           const remarks = detRemarks.split(';');
@@ -252,6 +230,22 @@ export class Specimen implements TaxonPathSpec {
             }
           }
           detRemarks = remarks.join(';').trim();
+        }
+
+        // Extract undescribed status.
+
+        if (typeStatus === null) {
+          const lowerDetRemarks = detRemarks.toLowerCase();
+          if (
+            lowerDetRemarks.includes('n. sp.') ||
+            lowerDetRemarks.includes('n. spp.') ||
+            lowerDetRemarks.includes('new species') ||
+            lowerDetRemarks.includes('new genus') ||
+            lowerDetRemarks.includes('new family') ||
+            lowerDetRemarks.includes('undescribed')
+          ) {
+            typeStatus = 'undescribed';
+          }
         }
       }
 
@@ -431,7 +425,7 @@ export class Specimen implements TaxonPathSpec {
       collectionRemarks: collectionRemarks,
       occurrenceRemarks: source.occurrenceRemarks || null,
       determinationRemarks: detRemarks || null,
-      typeStatus: source.typeStatus || null,
+      typeStatus,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
       lifeStage: lifeStage || null,
       problems: problemList.length > 0 ? problemList.join('|') : null,
