@@ -289,19 +289,22 @@ export class Specimen implements TaxonPathSpec {
         if (collectionRemarks == '') collectionRemarks = null;
         if (!END_DATE_REGEX.test(match[1])) {
           problemList.push(
-            'Invalid end date syntax in event remarks; assuming no end date'
+            'Invalid end date syntax in event remarks; assumed no end date'
           );
         } else {
           // Assume end dates are in Texas time (Central)
           endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');
           if (!startDate) {
             problemList.push(
-              'End date given but no start date; assuming start date is end date'
+              'End date given but no start date; assumed start date is end date'
             );
             startDate = endDate;
+            endDate = null;
           } else if (startDate.getTime() > endDate.getTime()) {
-            problemList.push('Start date follows end date; both dates ignored');
-            startDate = endDate = null;
+            problemList.push(
+              `Start date follows end date ${startDate.toDateString()}; end date ignored`
+            );
+            endDate = null;
           } else if (
             _toEpochDay(endDate) - _toEpochDay(startDate) >
             MAX_PITFALL_TRAP_COLLECTION_DAYS
@@ -309,9 +312,10 @@ export class Specimen implements TaxonPathSpec {
             problemList.push(
               `End date ${endDate.toDateString()} follows start date ` +
                 `${startDate.toDateString()} by more than ` +
-                `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropping end date`
+                `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropped end date`
             );
             endDate = startDate;
+            endDate = null;
           }
         }
       }

@@ -598,11 +598,11 @@ describe('basic specimen methods', () => {
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('dropping end date');
+    expect(specimen?.problems).toContain('dropped end date');
     let found = await containsLog(
       db,
       source.catalogNumber,
-      'End date Fri Oct 10 1980 follows start date Sat Oct 10 1970 by more than 124 days; dropping end date',
+      'End date Fri Oct 10 1980 follows start date Sat Oct 10 1970 by more than 124 days; dropped end date',
       false
     );
     expect(found).toEqual(true);
@@ -810,7 +810,7 @@ describe('general specimen query', () => {
       { collectionStartDate: startDate1, problems: null },
       {
         collectionStartDate: startDate2,
-        problems: 'Invalid end date syntax in event remarks; assuming no end date'
+        problems: 'Invalid end date syntax in event remarks; assumed no end date'
       }
     ]);
 
