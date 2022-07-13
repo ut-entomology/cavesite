@@ -23,15 +23,16 @@ import {
 
 export type SpecimenData = DataOf<Specimen>;
 
-const END_DATE_CONTEXT_REGEX = /[;|./]? *[*]end date:? *([^ ;|./]*) */i;
-const END_DATE_REGEX = /\d{4}(?:[-/]\d{1,2}){2}(?:$|[^\d])/;
+const PARTIAL_DATES_REGEX =
+  /(start|end)(?:ed|s)?[:= ]+(\d{4})(?:[-](\d{1,2}))?(?:[-](\d{1,2}))?/gi;
+
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 const CAVEDATA_REGEX = /CAVEDATA\[([^\]]*)\]/;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
 
 export interface SpecimenSource {
-  // GBIF field names
+  // DarwinCore / GBIF field names
 
   catalogNumber: string;
   occurrenceID: string;
@@ -54,13 +55,13 @@ export interface SpecimenSource {
   decimalLatitude?: string;
   decimalLongitude?: string;
 
-  startDate?: string;
-  collectors?: string; // |-delimited names, last name last
-  determinationDate?: string;
-  determiners?: string; // |-delimited names, last name last
-  collectionRemarks?: string;
+  eventDate?: string;
+  recordedBy?: string; // collectors, |-delimited names, last name last
+  dateIdentified?: string; // determination date (not just year)
+  identifiedBy?: string; // determiners, |-delimited names, last name last
+  eventRemarks?: string; // collecting event/info/habitat/end date
   occurrenceRemarks?: string;
-  determinationRemarks?: string;
+  identificationRemarks?: string;
   typeStatus?: string;
   organismQuantity?: string;
   lifeStage?: string;
@@ -72,7 +73,9 @@ export class Specimen implements TaxonPathSpec {
   taxonID: number; // ID of most specific taxon
   localityID: number;
   collectionStartDate: Date | null;
+  partialStartDate: string | null;
   collectionEndDate: Date | null;
+  partialEndDate: string | null;
   collectors: string | null; // |-delimited names, last name last
   // |-delimited lowercase last names, alphabetically sorted
   normalizedCollectors: string | null;
@@ -124,7 +127,9 @@ export class Specimen implements TaxonPathSpec {
     this.taxonID = data.taxonID; // ID of most specific taxon
     this.localityID = data.localityID;
     this.collectionStartDate = data.collectionStartDate;
+    this.partialStartDate = data.partialStartDate;
     this.collectionEndDate = data.collectionEndDate;
+    this.partialEndDate = data.partialEndDate;
     this.collectors = data.collectors; // |-delimited names, last name last
     this.normalizedCollectors = data.normalizedCollectors;
     this.determinationYear = data.determinationYear;
@@ -180,8 +185,8 @@ export class Specimen implements TaxonPathSpec {
     let locationNames: (string | null)[];
     let locationIDs: (string | null)[];
     let specimen: Specimen;
-    let detRemarks = source.determinationRemarks;
-    let determiners = source.determiners?.replace(/ ?[|] ?/g, '|') || null;
+    let detRemarks = source.identificationRemarks;
+    let determiners = source.identifiedBy?.replace(/ ?[|] ?/g, '|') || null;
 
     // Perform crucial initial actions that might prevent the import on error.
 
@@ -277,46 +282,92 @@ export class Specimen implements TaxonPathSpec {
     // Extract the start and end dates, getting the end date from
     // collectionRemarks, when present.
 
-    let startDate = source.startDate ? new Date(source.startDate) : null;
+    let startDate = source.eventDate ? new Date(source.eventDate) : null;
+    let startMatch: RegExpMatchArray | null = null;
+    let partialStartDate: string | null = null;
     let endDate: Date | null = null;
-    let collectionRemarks = source.collectionRemarks || null;
+    let endMatch: RegExpMatchArray | null = null;
+    let partialEndDate: string | null = null;
+
+    let collectionRemarks = source.eventRemarks || null;
     if (collectionRemarks) {
-      const match = END_DATE_CONTEXT_REGEX.exec(collectionRemarks);
-      if (match) {
-        collectionRemarks =
-          collectionRemarks.substring(0, match.index) +
-          collectionRemarks.substring(match.index + match[0].length);
-        if (collectionRemarks == '') collectionRemarks = null;
-        if (!END_DATE_REGEX.test(match[1])) {
-          problemList.push(
-            'Invalid end date syntax in event remarks; assumed no end date'
-          );
-        } else {
-          // Assume end dates are in Texas time (Central)
-          endDate = new Date(match[1].replace(/[/]/g, '-') + 'T06:00:00.000Z');
-          if (!startDate) {
-            problemList.push(
-              'End date given but no start date; assumed start date is end date'
-            );
-            startDate = endDate;
-            endDate = null;
-          } else if (startDate.getTime() > endDate.getTime()) {
-            problemList.push(
-              `Start date follows end date ${startDate.toDateString()}; end date ignored`
-            );
-            endDate = null;
-          } else if (
-            _toEpochDay(endDate) - _toEpochDay(startDate) >
-            MAX_PITFALL_TRAP_COLLECTION_DAYS
-          ) {
-            problemList.push(
-              `End date ${endDate.toDateString()} follows start date ` +
-                `${startDate.toDateString()} by more than ` +
-                `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropped end date`
-            );
-            endDate = startDate;
-            endDate = null;
+      const matches = collectionRemarks.matchAll(PARTIAL_DATES_REGEX);
+      if (matches) {
+        // Extract the partial start date or partial/full end date, doing so
+        // in reverse order of matching so that we can safely remove each
+        // from collectionRemarks as it is encountered.
+
+        for (const match of Array.from(matches).reverse()) {
+          // Assumes eventRemarks dates are in Texas time (Central).
+          if (match[1].toLowerCase() == 'start') {
+            [startDate, partialStartDate] = _parseStartDate(match);
+            startMatch = match;
+          } else {
+            [endDate, partialEndDate] = _parseEndDate(match);
+            endMatch = match;
           }
+          collectionRemarks =
+            collectionRemarks.substring(0, match.index) +
+            collectionRemarks.substring(match.index! + match[0].length);
+        }
+
+        // Clean up collectionRemarks punctuation after date removals.
+
+        collectionRemarks = collectionRemarks
+          .replaceAll('; ;', '; ')
+          .replaceAll(', ,', ', ')
+          .replace('  ', ' ')
+          .trim();
+        if (collectionRemarks == '') {
+          collectionRemarks = null;
+        } else {
+          if (',;'.includes(collectionRemarks[0])) {
+            collectionRemarks = collectionRemarks.substring(1).trim();
+          }
+          if (',;'.includes(collectionRemarks[collectionRemarks.length - 1])) {
+            collectionRemarks = collectionRemarks
+              .substring(0, collectionRemarks.length - 1)
+              .trim();
+          }
+        }
+
+        // Check dates for problems and provide reasonable recoveries.
+
+        if (!startDate) {
+          // Regex must have matched an end date.
+          problemList.push(
+            'End date given but no start date; assumed start date is end date'
+          );
+          [startDate, partialStartDate] = _parseStartDate(endMatch!);
+          endDate = null;
+          partialEndDate = null;
+        }
+        if (endDate && startDate.getTime() > endDate.getTime()) {
+          problemList.push(
+            `Start date follows end date ${endDate.toDateString()}; end date ignored`
+          );
+          endDate = null;
+          partialEndDate = null;
+        }
+        if (
+          endDate &&
+          (!partialStartDate || partialStartDate.includes('-')) &&
+          (!partialEndDate || partialEndDate.includes('-')) &&
+          _toEpochDay(endDate) - _toEpochDay(startDate) >
+            MAX_PITFALL_TRAP_COLLECTION_DAYS
+        ) {
+          problemList.push(
+            `End date ${endDate.toDateString()} follows start date ` +
+              `${startDate.toDateString()} by more than ` +
+              `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropped end date`
+          );
+          endDate = null;
+          partialEndDate = null;
+        }
+        if (partialStartDate && !partialEndDate) {
+          // partial dates imply a range of searchable dates
+          [endDate, partialEndDate] = _parseEndDate(startMatch!);
+          partialEndDate = null;
         }
       }
     }
@@ -325,8 +376,8 @@ export class Specimen implements TaxonPathSpec {
     // from, the month and day may be zeros or random values.
 
     let determinationYear: number | null = null;
-    if (source.determinationDate) {
-      const match = source.determinationDate.match(/\d{4}/);
+    if (source.dateIdentified) {
+      const match = source.dateIdentified.match(/\d{4}/);
       if (match) {
         determinationYear = parseInt(match[0]);
       }
@@ -352,7 +403,7 @@ export class Specimen implements TaxonPathSpec {
 
     // Normalize the list of collectors.
 
-    const collectors = source.collectors?.replace(/ ?[|] ?/g, '|') || null;
+    const collectors = source.recordedBy?.replace(/ ?[|] ?/g, '|') || null;
     let normalizedCollectors = null;
     if (collectors !== null) {
       const matches = collectors.toLowerCase().matchAll(LAST_NAMES_REGEX);
@@ -370,7 +421,9 @@ export class Specimen implements TaxonPathSpec {
       taxonID: taxon.taxonID,
       localityID: location.locationID,
       collectionStartDate: startDate,
+      partialStartDate,
       collectionEndDate: endDate,
+      partialEndDate,
       collectors,
       normalizedCollectors,
       determinationYear,
@@ -413,7 +466,7 @@ export class Specimen implements TaxonPathSpec {
     await db.query(
       `insert into specimens(
           catalog_number, occurrence_guid, taxon_id, locality_id,
-          collection_start_date, collection_end_date,
+          collection_start_date, partial_start_date, collection_end_date, partial_end_date,
           collectors, normalized_collectors, determination_year, determiners,
           collection_remarks, occurrence_remarks, determination_remarks,
           type_status, specimen_count, life_stage, problems, kingdom_name, kingdom_id,
@@ -421,16 +474,18 @@ export class Specimen implements TaxonPathSpec {
           family_name, family_id, genus_name, genus_id, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author, obligate,
           county_name, county_id, locality_name, public_latitude, public_longitude
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-          $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
-          $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+          $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
         specimen.taxonID,
         specimen.localityID,
         specimen.collectionStartDate?.toISOString() || null,
+        partialStartDate,
         specimen.collectionEndDate?.toISOString() || null,
+        partialEndDate,
         specimen.collectors,
         specimen.normalizedCollectors,
         specimen.determinationYear,
@@ -709,6 +764,40 @@ function _collectInIntegerList(
 ): void {
   if (integerList) {
     conditionals.push(`${columnName} in (${integerList.join(',')})`);
+  }
+}
+
+function _parseStartDate(match: RegExpMatchArray): [Date, string | null] {
+  const year = parseInt(match[2]);
+  if (match[3] === undefined) {
+    return [new Date(year, 0, 1), match[2]];
+  } else {
+    const month = parseInt(match[3]) - 1;
+    if (match[4] === undefined) {
+      const date = new Date(year, month, 1);
+      return [date, `${match[2]}-${match[3]}`];
+    }
+    const day = parseInt(match[4]);
+    return [new Date(year, month, day), null];
+  }
+}
+
+function _parseEndDate(match: RegExpMatchArray): [Date, string | null] {
+  let year = parseInt(match[2]);
+  if (match[3] === undefined) {
+    return [new Date(year, 11, 31), match[2]];
+  } else {
+    let month = parseInt(match[3]) - 1;
+    if (match[4] === undefined) {
+      if (++month == 11) {
+        ++year;
+        month = 0;
+      }
+      const date = new Date(new Date(year, month, 1).getTime() - MILLIS_PER_DAY);
+      return [date, `${match[2]}-${match[3]}`];
+    }
+    const day = parseInt(match[4]);
+    return [new Date(year, month, day), null];
   }
 }
 

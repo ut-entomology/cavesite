@@ -15,7 +15,7 @@ import { Logs, LogType } from './logs';
 
 const startDate = toLocalDate(new Date('2020-01-01'));
 const endDate = toLocalDate(new Date('2020-01-04'));
-const endDateISO = endDate.toISOString();
+const endDateStr = _toEndDate(2020, 1, 4);
 const detDate = toLocalDate(new Date('2020-06-10'));
 
 const startDate1 = toLocalDate(new Date('2021-01-01'));
@@ -45,12 +45,11 @@ const baseSource = {
   decimalLatitude: '23.45',
   decimalLongitude: '-93.21',
 
-  startDate: startDate.toISOString(),
-  collectors: 'Some One | Another P. Someone, II | Foo | Baz, Jr.',
-  determinationDate: detDate.toISOString(),
-  determiners: 'Person A | Person B',
-  collectionRemarks:
-    'meadow; *end date ' + endDateISO.substring(0, endDateISO.indexOf('T')),
+  eventDate: startDate.toISOString(),
+  recordedBy: 'Some One | Another P. Someone, II | Foo | Baz, Jr.',
+  dateIdentified: detDate.toISOString(),
+  identifiedBy: 'Person A | Person B',
+  eventRemarks: 'meadow; ' + endDateStr,
   occurrenceRemarks: 'occurrence remark',
   determinationRemarks: 'big one',
   typeStatus: 'normal',
@@ -111,6 +110,8 @@ describe('basic specimen methods', () => {
         localityID: 5,
         collectionStartDate: startDate,
         collectionEndDate: endDate,
+        partialStartDate: null,
+        partialEndDate: null,
         collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
         normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
         determinationYear: detDate.getUTCFullYear(),
@@ -182,9 +183,9 @@ describe('basic specimen methods', () => {
         stateProvince: 'Texas',
         locality: 'Their backyard',
 
-        startDate: startDate.toISOString(),
-        collectors: 'Any Body',
-        determiners: 'Person C'
+        eventDate: startDate.toISOString(),
+        recordedBy: 'Any Body',
+        identifiedBy: 'Person C'
       };
       const specimen = await Specimen.create(db, source);
       expect(specimen).toEqual({
@@ -194,6 +195,8 @@ describe('basic specimen methods', () => {
         localityID: 6,
         collectionStartDate: startDate,
         collectionEndDate: null,
+        partialStartDate: null,
+        partialEndDate: null,
         collectors: 'Any Body',
         normalizedCollectors: 'body',
         determinationYear: null,
@@ -334,6 +337,8 @@ describe('basic specimen methods', () => {
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
+      partialStartDate: null,
+      partialEndDate: null,
       collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
       normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
@@ -406,6 +411,8 @@ describe('basic specimen methods', () => {
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
+      partialStartDate: null,
+      partialEndDate: null,
       collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
       normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
@@ -471,6 +478,8 @@ describe('basic specimen methods', () => {
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: null,
+      partialStartDate: null,
+      partialEndDate: null,
       collectors: 'Some One',
       normalizedCollectors: 'one',
       determinationYear: null,
@@ -517,30 +526,12 @@ describe('basic specimen methods', () => {
     expect(readSpecimen).toEqual(specimen);
   });
 
-  test('bad end date', async () => {
-    const source = Object.assign({}, baseSource);
-    // @ts-ignore
-    source.catalogNumber = 'C3';
-    source.occurrenceID = 'X3';
-    source.collectionRemarks = '*end date foo';
-
-    await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('end date syntax');
-    let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
-    expect(found).toEqual(true);
-
-    // make sure problem was written to the database
-    const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
-    expect(readSpecimen).toEqual(specimen);
-  });
-
   test('end date but no start date', async () => {
     {
       const source = Object.assign({}, baseSource);
       source.catalogNumber = 'C4';
       source.occurrenceID = 'X4';
-      source.startDate = '';
+      source.eventDate = '';
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -553,7 +544,7 @@ describe('basic specimen methods', () => {
       source.catalogNumber = 'C5';
       source.occurrenceID = 'X5';
       // @ts-ignore
-      source.startDate = undefined;
+      source.eventDate = undefined;
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -569,9 +560,9 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C6';
     source.occurrenceID = 'X6';
-    source.startDate = endDate.toISOString();
-    source.collectionRemarks =
-      '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
+    source.eventDate = endDateStr;
+    source.eventRemarks =
+      'ended ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
@@ -592,9 +583,8 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C99';
     source.occurrenceID = 'X99';
-    source.startDate = startDateISO;
-    source.collectionRemarks =
-      '*end date ' + endDateISO.substring(0, startDateISO.indexOf('T'));
+    source.eventDate = startDateISO;
+    source.eventRemarks = 'ended ' + endDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
@@ -611,17 +601,17 @@ describe('basic specimen methods', () => {
   test('partial determination dates', async () => {
     let source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET1';
-    source.determinationDate = '1985';
+    source.dateIdentified = '1985';
     await Specimen.create(db, source);
 
     source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET2';
-    source.determinationDate = '00/00/1999';
+    source.dateIdentified = '00/00/1999';
     await Specimen.create(db, source);
 
     source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET3';
-    source.determinationDate = '01-00-2001';
+    source.dateIdentified = '01-00-2001';
     await Specimen.create(db, source);
 
     await Specimen.commit(db);
@@ -657,14 +647,19 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C10';
     source.occurrenceID = 'X10';
-    source.collectionRemarks = '*end date foo';
+    source.eventRemarks = 'ended 1900-01-01';
     source.organismQuantity = 'foo';
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('end date syntax');
+    expect(specimen?.problems).toContain('Start date follows end date');
     expect(specimen?.problems).toContain('Invalid specimen count');
-    let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
+    let found = await containsLog(
+      db,
+      source.catalogNumber,
+      'Start date follows end date',
+      false
+    );
     expect(found).toEqual(true);
     found = await containsLog(
       db,
@@ -677,6 +672,110 @@ describe('basic specimen methods', () => {
     // make sure problem was written to the database
     const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
     expect(readSpecimen).toEqual(specimen);
+  });
+});
+
+describe('partial start and end dates', () => {
+  test('start date missing month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventRemarks = _toStartDate(2022);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 0, 1));
+    expect(specimen?.partialStartDate).toEqual('2022');
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(specimen?.partialEndDate).toBe(null);
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 0, 1));
+    expect(readSpecimen?.partialStartDate).toEqual('2022');
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(readSpecimen?.partialEndDate).toBe(null);
+  });
+
+  test('start date missing day of month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventRemarks = _toStartDate(2022, 6);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(specimen?.partialStartDate).toEqual('2022-6');
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(specimen?.partialEndDate).toBe(null);
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(readSpecimen?.partialStartDate).toEqual('2022-6');
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(readSpecimen?.partialEndDate).toBe(null);
+  });
+
+  test('end date missing month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventDate = new Date(2022, 5, 12).toISOString();
+    source.eventRemarks = _toEndDate(2022);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(specimen?.partialStartDate).toBe(null);
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(specimen?.partialEndDate).toBe('2022');
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(readSpecimen?.partialStartDate).toBe(null);
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(readSpecimen?.partialEndDate).toBe('2022');
+  });
+
+  test('end date missing day of month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventDate = new Date(2022, 5, 12).toISOString();
+    source.eventRemarks = _toEndDate(2022, 6);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(specimen?.partialStartDate).toBe(null);
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(specimen?.partialEndDate).toBe('2022-6');
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(readSpecimen?.partialStartDate).toBe(null);
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(readSpecimen?.partialEndDate).toBe('2022-6');
+  });
+
+  test('start and end dates of differnt months missing day of month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventRemarks = _toStartDate(2022, 6) + '; ' + _toEndDate(2022, 8);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(specimen?.partialStartDate).toEqual('2022-6');
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 7, 31));
+    expect(specimen?.partialEndDate).toBe('2022-8');
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(readSpecimen?.partialStartDate).toEqual('2022-6');
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 7, 31));
+    expect(readSpecimen?.partialEndDate).toBe('2022-8');
   });
 });
 
@@ -810,7 +909,7 @@ describe('general specimen query', () => {
       { collectionStartDate: startDate1, problems: null },
       {
         collectionStartDate: startDate2,
-        problems: 'Invalid end date syntax in event remarks; assumed no end date'
+        problems: 'Start date follows end date Mon Jan 01 1900; end date ignored'
       }
     ]);
 
@@ -1520,9 +1619,9 @@ async function _createSpecimen1(db: DB): Promise<Specimen | null> {
   const source: SpecimenSource = Object.assign({}, baseSource);
   source.catalogNumber = 'Q1';
   source.occurrenceID = 'GQ1';
-  source.startDate = startDate1.toISOString();
-  source.collectionRemarks =
-    'cave; *end date ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
+  source.eventDate = startDate1.toISOString();
+  source.eventRemarks =
+    'cave; ended ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
   return await Specimen.create(db, source);
 }
 
@@ -1549,11 +1648,11 @@ async function _createSpecimen2(db: DB): Promise<Specimen | null> {
     decimalLatitude: '24.00',
     decimalLongitude: '-92.00',
 
-    startDate: startDate2.toISOString(),
-    collectors: 'Person X',
-    determinationDate: detDate2.toISOString(),
-    collectionRemarks: '*end date foo',
-    determiners: 'Person Y',
+    eventDate: startDate2.toISOString(),
+    recordedBy: 'Person X',
+    eventRemarks: _toEndDate(1900, 1, 1),
+    dateIdentified: detDate2.toISOString(),
+    identifiedBy: 'Person Y',
     typeStatus: 'paratype',
     organismQuantity: '2'
   };
@@ -1583,11 +1682,11 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
     decimalLatitude: '20.2',
     decimalLongitude: '-90.9',
 
-    startDate: startDate.toISOString(),
-    collectors: 'Some One',
-    collectionRemarks: 'had fun!',
-    determinationDate: detDate.toISOString(),
-    determiners: 'Person A',
+    eventDate: startDate.toISOString(),
+    recordedBy: 'Some One',
+    eventRemarks: 'had fun!',
+    dateIdentified: detDate.toISOString(),
+    identifiedBy: 'Person A',
     typeStatus: 'normal',
     organismQuantity: '3'
   };
@@ -1617,8 +1716,8 @@ async function _createSpecimen4(db: DB): Promise<Specimen | null> {
     decimalLatitude: '23.45',
     decimalLongitude: '-93.21',
 
-    startDate: startDate.toISOString(),
-    collectors: 'Some One',
+    eventDate: startDate.toISOString(),
+    recordedBy: 'Some One',
     typeStatus: 'normal'
   };
   return await Specimen.create(db, source4);
@@ -1635,4 +1734,18 @@ function _toColumnSpec(
   optionText: string = 'Any value'
 ): QueryColumnSpec {
   return { columnID, ascending, optionText };
+}
+
+function _toEndDate(year: number, month?: number, day?: number): string {
+  return 'ended ' + _toEventDate(year, month, day);
+}
+
+function _toStartDate(year: number, month?: number, day?: number): string {
+  return 'started ' + _toEventDate(year, month, day);
+}
+
+function _toEventDate(year: number, month?: number, day?: number): string {
+  if (!month) return year.toString();
+  if (!day) return `${year}-${month}`;
+  return `${year}-${month}-${day}`;
 }

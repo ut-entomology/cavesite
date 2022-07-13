@@ -65,12 +65,11 @@ async function loadDB() {
       decimalLatitude: record.latitude,
       decimalLongitude: record.longitude,
 
-      startDate: record.startDate,
+      eventDate: record.startDate,
       eventRemarks: toEventRemarks(record),
-      collectors: toNameField(record.collectors),
-      determinationDate: record.determinedDate,
-      determiners: toNameField(record.determiners),
-      collectionRemarks: record.localityAndHabitatNotes,
+      recordedBy: toNameField(record.collectors),
+      dateIdentified: record.determinedDate,
+      identifiedBy: toNameField(record.determiners),
       occurrenceRemarks: record.coaRemarks,
       determinationRemarks: toDetRemarks(record),
       typeStatus: record.typeStatus,
@@ -103,12 +102,23 @@ function toDetRemarks(record: CsvSpecimen): string {
 }
 
 function toEventRemarks(record: CsvSpecimen): string {
-  const eventRemarks: string[] = [];
-  const started = toPartialDate(record.startDate);
-  if (started) eventRemarks.push('started: ' + started);
-  const ended = toPartialDate(record.endDate);
-  if (ended) eventRemarks.push('ended: ' + ended);
+  const eventRemarks: string[] =
+    record.localityAndHabitatNotes == '' ? [] : [record.localityAndHabitatNotes];
+  const started = toEventRemarksDate(record.startDate, true);
+  if (started) eventRemarks.push('started ' + started);
+  const ended = toEventRemarksDate(record.endDate, false);
+  if (ended) eventRemarks.push('ended ' + ended);
   return eventRemarks.join('; ');
+}
+
+function toEventRemarksDate(csvDate: string, onlyIfPartial: boolean): string | null {
+  if (csvDate == '' || (onlyIfPartial && !csvDate.includes('00/'))) {
+    return null;
+  }
+  const parts = csvDate.split('/');
+  if (parts[0] == '00') return parts[2];
+  if (parts[1] == '00') return `${parts[2]}-${parts[0]}`;
+  return `${parts[2]}-${parts[0]}-${parts[1]}`;
 }
 
 function toNameField(names: PersonName[]): string {
@@ -128,13 +138,6 @@ function toNameField(names: PersonName[]): string {
     }
   }
   return nameField;
-}
-
-function toPartialDate(csvDate: string): string | null {
-  if (!csvDate.includes('00/')) return null;
-  const parts = csvDate.split('/');
-  if (parts[0] == '00') return parts[2];
-  return `${parts[0]}/${parts[2]}`;
 }
 
 function toScientificName(record: CsvSpecimen): string {
