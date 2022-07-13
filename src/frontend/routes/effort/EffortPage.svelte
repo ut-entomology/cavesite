@@ -45,22 +45,19 @@
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import { type PlottableModel, LinearXModel, PowerXModel } from './plottable_model';
   import { ClusterColorSet } from './cluster_color_set';
-  import { EffortGraphSpec, YAxisType } from './effort_graphs';
+  import type { EffortGraphSpec } from './effort_graphs';
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collection Effort';
 
-  const yAxisType = YAxisType.totalSpecies;
   const yAxisModel = YAxisModel.none;
   const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 10;
-  const LOWER_BOUND_X = 0;
+  const LOWER_BOUND_X = 10;
   const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 10;
   const MIN_UNCHANGED_Y = 1;
-  const MIN_CAVES_PER_SUMMARY = 10;
-  const MIN_POINTS_PER_SUMMARY = 50;
-  const MODEL_WEIGHT_POWER = 2;
+  const MODEL_WEIGHT_POWER = 0;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -212,11 +209,10 @@
         dataByCluster.push(
           toPerLocationClusterData(
             taxaClusters[i].visitsByTaxonUnique,
-            yAxisType,
             effortDataSet,
             LOWER_BOUND_X,
-            UPPER_BOUND_X,
-            MIN_UNCHANGED_Y,
+            config.minPointsToRegress,
+            config.maxPointsToRegress,
             USE_ZERO_Y_BASELINE
           )
         );
@@ -248,6 +244,7 @@
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         ignoreSubgenera: false,
         highestComparedRank: TaxonRank.Genus,
+        minPointsToRegress: 3,
         maxPointsToRegress: 12
       };
     }
@@ -302,7 +299,7 @@
             <span>{$clustering.config.maxClusters} clusters max</span>
           </div>
           <div class="col">comparing: <span>{clusterSpec.comparedTaxa}</span></div>
-          <div class="col"><span>{yAxisModel}</span>: <span>{yAxisType}</span></div>
+          <div class="col" />
         </div>
         <div class="row">
           <div class="col"><span>{clusterSpec.metric.basis}</span></div>
@@ -336,10 +333,7 @@
           <div class="col">
             min. x => regression: <span>{MIN_X_ALLOWING_REGRESS}</span>
           </div>
-          <div class="col">
-            min. caves<span>/</span>pts/sum:
-            <span>{MIN_CAVES_PER_SUMMARY}/{MIN_POINTS_PER_SUMMARY}</span>
-          </div>
+          <div class="col" />
         </div>
         <div class="row">
           <div class="col">

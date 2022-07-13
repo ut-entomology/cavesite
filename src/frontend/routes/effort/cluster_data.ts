@@ -2,7 +2,6 @@ import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { EffortData } from './effort_data';
 import {
-  type YAxisType,
   type EffortGraphSpec,
   type EffortGraphSpecPerXUnit,
   createEffortGraphSpecPerXUnit
@@ -30,6 +29,7 @@ export interface ClusteringConfig {
   comparedTaxa: ComparedTaxa;
   ignoreSubgenera: boolean;
   highestComparedRank: TaxonRank;
+  minPointsToRegress: number;
   maxPointsToRegress: number;
 }
 
@@ -61,21 +61,19 @@ export interface SizedEffortGraphSpec {
 
 export function toJumbledClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  yAxisType: YAxisType,
   effortDataSet: EffortData[],
   lowerBoundX: number,
-  upperBoundX: number,
-  minUnchangedY: number,
+  minPointsToRegress: number,
+  maxPointsToRegress: number,
   zeroYBaseline: boolean
 ): JumbledClusterData {
   let effortGraphSpecPerUnitX: EffortGraphSpecPerXUnit | null = null;
   for (const effortData of effortDataSet) {
     const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
-      yAxisType,
       effortData,
       lowerBoundX,
-      upperBoundX,
-      minUnchangedY,
+      minPointsToRegress,
+      maxPointsToRegress,
       zeroYBaseline
     );
     if (!effortGraphSpecPerUnitX) {
@@ -102,11 +100,10 @@ export function toJumbledClusterData(
 
 export function toPerLocationClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  yAxisType: YAxisType,
   effortDataSet: EffortData[],
   lowerBoundX: number,
-  upperBoundX: number,
-  minUnchangedY: number,
+  minPointsToRegress: number,
+  maxPointsToRegress: number,
   zeroYBaseline: boolean
 ): PerLocationClusterData {
   let clusterData: PerLocationClusterData = {
@@ -119,11 +116,10 @@ export function toPerLocationClusterData(
   };
   for (const effortData of effortDataSet) {
     const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
-      yAxisType,
       effortData,
       lowerBoundX,
-      upperBoundX,
-      minUnchangedY,
+      minPointsToRegress,
+      maxPointsToRegress,
       zeroYBaseline
     );
     _addGraphSpec(clusterData.perDayTotalsGraphs, graphSpecPerXUnit.perDayTotalsGraph);

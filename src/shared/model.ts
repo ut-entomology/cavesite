@@ -220,7 +220,7 @@ export function pointSorter(a: number[], b: number[]) {
 
 //// Cluster /////////////////////////////////////////////////////////////////
 
-export const MAX_ALLOWED_CLUSTERS = 40;
+export const MAX_ALLOWED_CLUSTERS = 32;
 
 export enum DissimilarityBasis {
   // dissimilarity = -1 * no. of taxa the test cave has in common with the mode

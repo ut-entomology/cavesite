@@ -3,6 +3,7 @@
   import { MAX_ALLOWED_CLUSTERS, TaxonRank, ComparedTaxa } from '../../../shared/model';
   import type { ClusteringConfig } from './cluster_data';
 
+  const MIN_MIN_POINTS_TO_REGRESS = 3;
   const MAX_MAX_POINTS_TO_REGRESS = 20;
 
   export let config: ClusteringConfig;
@@ -13,7 +14,13 @@
   let comparedTaxa = config.comparedTaxa;
   let ignoreSubgenera = config.ignoreSubgenera;
   let highestComparedRank = config.highestComparedRank;
+  let minPointsToRegress = config.minPointsToRegress;
   let maxPointsToRegress = config.maxPointsToRegress;
+
+  let allowedPointsToRegress: number[] = [];
+  for (let i = MIN_MIN_POINTS_TO_REGRESS; i <= MAX_MAX_POINTS_TO_REGRESS; ++i) {
+    allowedPointsToRegress.push(i);
+  }
 
   function onSubmit() {
     submit({
@@ -21,8 +28,21 @@
       comparedTaxa,
       ignoreSubgenera,
       highestComparedRank,
+      minPointsToRegress,
       maxPointsToRegress
     });
+  }
+
+  function _changedMinPoints() {
+    if (maxPointsToRegress < minPointsToRegress) {
+      maxPointsToRegress = minPointsToRegress;
+    }
+  }
+
+  function _changedMaxPoints() {
+    if (maxPointsToRegress < minPointsToRegress) {
+      minPointsToRegress = maxPointsToRegress;
+    }
   }
 </script>
 
@@ -103,15 +123,29 @@
     </div>
     <div class="row mt-3 mb-2 gx-2 align-items-center">
       <div class="col-sm-7">
-        <div><b>Maximum points to regress</b> for determining discovery rates</div>
+        <div>
+          <b>Min. and max. points to regress</b> for modeling species encounter rates
+        </div>
+      </div>
+      <div class="col-sm-2">
+        <select
+          bind:value={minPointsToRegress}
+          class="form-select form-select-sm item_select"
+          on:change={_changedMinPoints}
+        >
+          {#each allowedPointsToRegress as minPoints}
+            <option value={minPoints}>{minPoints}</option>
+          {/each}
+        </select>
       </div>
       <div class="col-sm-2">
         <select
           bind:value={maxPointsToRegress}
           class="form-select form-select-sm item_select"
+          on:change={_changedMaxPoints}
         >
-          {#each { length: MAX_MAX_POINTS_TO_REGRESS } as _, i}
-            <option value={i + 1}>{i + 1}</option>
+          {#each allowedPointsToRegress as maxPoints}
+            <option value={maxPoints}>{maxPoints}</option>
           {/each}
           <option value={Infinity}>All</option>
         </select>
