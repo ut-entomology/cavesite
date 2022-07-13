@@ -22,7 +22,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { afterUpdate } from 'svelte';
 
   import DataTabRoute from '../../components/DataTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
@@ -114,7 +114,6 @@
   let models: PlottableModel[];
 
   $: if ($clustering) {
-    loadState = LoadState.fittingModels;
     clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
     clusterSpec.ignoreSubgenera = $clustering.config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = $clustering.config.highestComparedRank;
@@ -129,6 +128,7 @@
   }
 
   $: if ($clustering) {
+    loadState = LoadState.fittingModels;
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
 
     const clusterData = $clustering.dataByCluster[clusterIndex];
@@ -143,6 +143,7 @@
       MIN_X_ALLOWING_REGRESS,
       MODEL_WEIGHT_POWER
     );
+    loadState = LoadState.ready;
   }
 
   function _clearData() {
@@ -259,6 +260,7 @@
   function _onSubmitConfigDialog(config: ClusteringConfig) {
     _loadData(config); // don't wait, so we can close dialog
     clusteringRequest = null;
+    clusterIndex = 0;
   }
 
   function _setClusterSelectorColor(clusterIndex: number) {
@@ -275,7 +277,7 @@
 
   function _regressPlot() {}
 
-  onMount(() => _setClusterSelectorColor(clusterIndex));
+  afterUpdate(() => _setClusterSelectorColor(clusterIndex));
 </script>
 
 <DataTabRoute activeTab="Effort">
