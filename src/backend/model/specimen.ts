@@ -311,7 +311,6 @@ export class Specimen implements TaxonPathSpec {
                 `${startDate.toDateString()} by more than ` +
                 `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropping end date`
             );
-            console.log(problemList[problemList.length - 1]);
             endDate = startDate;
           }
         }
