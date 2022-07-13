@@ -1,4 +1,4 @@
-import type { Point } from '../../shared/point';
+import type { Point } from '../../../shared/point';
 import {
   type XTransform,
   type YTransform,

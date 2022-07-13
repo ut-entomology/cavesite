@@ -1,7 +1,7 @@
 import type { EffortGraphSpec } from './effort_graphs';
 import type { PlottableModel, PlottableModelFactory } from './plottable_model';
 import type { FittedY, YTransform } from './regression';
-import type { Point } from '../../shared/point';
+import type { Point } from '../../../shared/point';
 
 export abstract class ModelAverager {
   abstract addModel(

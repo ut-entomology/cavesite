@@ -1,4 +1,4 @@
-import { hslStringToRGBA } from './graphics';
+import { hslStringToRGBA } from '../../lib/graphics';
 
 export class ClusterColorSet {
   foreground: string;

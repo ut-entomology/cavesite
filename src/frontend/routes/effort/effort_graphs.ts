@@ -1,4 +1,4 @@
-import type { Point } from '../../shared/point';
+import type { Point } from '../../../shared/point';
 import type { EffortData } from './effort_data';
 import { PowerXModel } from './plottable_model';
 

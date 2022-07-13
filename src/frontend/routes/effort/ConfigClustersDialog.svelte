@@ -1,7 +1,7 @@
 <script lang="ts">
   import ModalDialog from '../../common/ModalDialog.svelte';
   import { MAX_ALLOWED_CLUSTERS, TaxonRank, ComparedTaxa } from '../../../shared/model';
-  import type { ClusteringConfig } from '../../lib/cluster_data';
+  import type { ClusteringConfig } from './cluster_data';
 
   const MAX_MAX_POINTS_TO_REGRESS = 20;
 

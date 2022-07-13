@@ -1,6 +1,6 @@
 import * as jstat from 'jstat';
 
-import type { Point } from '../../shared/point';
+import type { Point } from '../../../shared/point';
 
 export type XTransform = (x: number) => number[];
 export type YTransform = (y: number) => number;

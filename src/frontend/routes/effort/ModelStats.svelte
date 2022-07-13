@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { shortenPValue, shortenRMSE, shortenR2 } from '../../lib/regression';
-  import type { PlottableModel } from '../../lib/plottable_model';
+  import { shortenPValue, shortenRMSE, shortenR2 } from './regression';
+  import type { PlottableModel } from './plottable_model';
 
   export let model: PlottableModel;
 

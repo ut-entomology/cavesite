@@ -2,7 +2,7 @@
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { Point } from '../../../shared/point';
-  import type { PlottableModel } from '../../lib/plottable_model';
+  import type { PlottableModel } from './plottable_model';
 
   export let model: PlottableModel;
 

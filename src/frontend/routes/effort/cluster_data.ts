@@ -1,5 +1,5 @@
-import type { Point } from '../../shared/point';
-import type { TaxonRank, ComparedTaxa } from '../../shared/model';
+import type { Point } from '../../../shared/point';
+import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { EffortData } from './effort_data';
 import {
   type YAxisType,

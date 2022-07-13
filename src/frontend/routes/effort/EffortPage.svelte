@@ -1,8 +1,8 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { type EffortData, toEffortDataSetByCluster } from '../../lib/effort_data';
-  import type { PlottableModelFactory } from '../../lib/plottable_model';
+  import { type EffortData, toEffortDataSetByCluster } from './effort_data';
+  import type { PlottableModelFactory } from './plottable_model';
   import {
     YAxisModel,
     type ClusteringConfig,
@@ -10,7 +10,7 @@
     toPerLocationClusterData,
     toPerLocationModels,
     SizedEffortGraphSpec
-  } from '../../lib/cluster_data';
+  } from './cluster_data';
 
   interface Clustering {
     config: ClusteringConfig;
@@ -43,13 +43,9 @@
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
-  import {
-    type PlottableModel,
-    LinearXModel,
-    PowerXModel
-  } from '../../lib/plottable_model';
-  import { ClusterColorSet } from '../../lib/cluster_color_set';
-  import { EffortGraphSpec, YAxisType } from '../../lib/effort_graphs';
+  import { type PlottableModel, LinearXModel, PowerXModel } from './plottable_model';
+  import { ClusterColorSet } from './cluster_color_set';
+  import { EffortGraphSpec, YAxisType } from './effort_graphs';
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collection Effort';
