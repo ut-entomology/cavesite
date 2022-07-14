@@ -55,7 +55,6 @@
   const LOWER_BOUND_X = 10;
   const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 10;
-  const MIN_UNCHANGED_Y = 1;
   const MODEL_WEIGHT_POWER = 0;
 
   const clusterSpec = {
@@ -338,9 +337,7 @@
             metric weight: <span>{clusterSpec.metric.weight}</span>
           </div>
           <div class="col">model weight power: <span>{MODEL_WEIGHT_POWER}</span></div>
-          <div class="col">
-            min. unchanged y: <span>{MIN_UNCHANGED_Y}</span>
-          </div>
+          <div class="col" />
         </div>
       </div>
 

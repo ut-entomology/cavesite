@@ -1,11 +1,7 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { EffortData } from './effort_data';
-import {
-  type EffortGraphSpec,
-  type EffortGraphSpecPerXUnit,
-  createEffortGraphSpecPerXUnit
-} from './effort_graphs';
+import { type EffortGraphSpec, createEffortGraphSpecPerXUnit } from './effort_graphs';
 import {
   type PlottableModelFactory,
   PlottableModel,
@@ -33,19 +29,9 @@ export interface ClusteringConfig {
   maxPointsToRegress: number;
 }
 
-export enum ClusterDataType {
-  jumbled = 'jumbled',
-  perLocation = 'per-location'
-}
-
 export interface ClusterData {
-  type: ClusterDataType;
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
-}
-
-export interface JumbledClusterData extends ClusterData {
-  graphSpecPerXUnit: EffortGraphSpecPerXUnit;
 }
 
 export interface PerLocationClusterData extends ClusterData {
@@ -59,43 +45,6 @@ export interface SizedEffortGraphSpec {
   graphSpecs: EffortGraphSpec[];
 }
 
-export function toJumbledClusterData(
-  visitsByTaxonUnique: Record<string, number>,
-  effortDataSet: EffortData[],
-  lowerBoundX: number,
-  minPointsToRegress: number,
-  maxPointsToRegress: number
-): JumbledClusterData {
-  let effortGraphSpecPerUnitX: EffortGraphSpecPerXUnit | null = null;
-  for (const effortData of effortDataSet) {
-    const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
-      effortData,
-      lowerBoundX,
-      minPointsToRegress,
-      maxPointsToRegress
-    );
-    if (!effortGraphSpecPerUnitX) {
-      effortGraphSpecPerUnitX = graphSpecPerXUnit;
-    } else {
-      effortGraphSpecPerUnitX.perDayTotalsGraph.points.push(
-        ...graphSpecPerXUnit.perDayTotalsGraph.points
-      );
-      effortGraphSpecPerUnitX.perVisitTotalsGraph.points.push(
-        ...graphSpecPerXUnit.perVisitTotalsGraph.points
-      );
-      effortGraphSpecPerUnitX.perPersonVisitTotalsGraph.points.push(
-        ...graphSpecPerXUnit.perPersonVisitTotalsGraph.points
-      );
-    }
-  }
-  return {
-    type: ClusterDataType.jumbled,
-    locationCount: effortDataSet.length,
-    visitsByTaxonUnique,
-    graphSpecPerXUnit: effortGraphSpecPerUnitX!
-  };
-}
-
 export function toPerLocationClusterData(
   visitsByTaxonUnique: Record<string, number>,
   effortDataSet: EffortData[],
@@ -104,7 +53,6 @@ export function toPerLocationClusterData(
   maxPointsToRegress: number
 ): PerLocationClusterData {
   let clusterData: PerLocationClusterData = {
-    type: ClusterDataType.perLocation,
     locationCount: effortDataSet.length,
     visitsByTaxonUnique,
     perDayTotalsGraphs: { pointCount: 0, graphSpecs: [] },
@@ -129,27 +77,6 @@ export function toPerLocationClusterData(
     );
   }
   return clusterData;
-}
-
-export function toJumbledModels(
-  modelFactories: PlottableModelFactory[],
-  yAxisModel: YAxisModel,
-  graphSpec: EffortGraphSpec,
-  minXAllowingRegression: number
-): PlottableModel[] {
-  const models: PlottableModel[] = [];
-  const createModel = _makeModelFactory(yAxisModel);
-  const points = graphSpec.points;
-  for (const modelFactory of modelFactories) {
-    const lastPoint = points[points.length - 1];
-    if (
-      points.length >= MIN_POINTS_TO_REGRESS &&
-      lastPoint.x >= minXAllowingRegression
-    ) {
-      models.push(createModel(modelFactory, points));
-    }
-  }
-  return models;
 }
 
 export function toPerLocationModels(
