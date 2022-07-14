@@ -51,7 +51,6 @@
   $pageName = 'Collection Effort';
 
   const yAxisModel = YAxisModel.none;
-  const USE_ZERO_Y_BASELINE = false;
   const MAX_CLUSTERS = 10;
   const LOWER_BOUND_X = 10;
   const UPPER_BOUND_X = Infinity;
@@ -212,8 +211,7 @@
             effortDataSet,
             LOWER_BOUND_X,
             config.minPointsToRegress,
-            config.maxPointsToRegress,
-            USE_ZERO_Y_BASELINE
+            config.maxPointsToRegress
           )
         );
       }

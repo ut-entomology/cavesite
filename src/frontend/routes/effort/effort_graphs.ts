@@ -11,30 +11,26 @@ export function createEffortGraphSpecPerXUnit(
   effortData: EffortData,
   lowerBoundX: number,
   minPointsToRegress: number,
-  maxPointsToRegress: number,
-  zeroYBaseline: boolean
+  maxPointsToRegress: number
 ): EffortGraphSpecPerXUnit {
   return {
     perDayTotalsGraph: new SpeciesByDaysGraphSpec(
       effortData,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      zeroYBaseline
+      maxPointsToRegress
     ),
     perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
       effortData,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      zeroYBaseline
+      maxPointsToRegress
     ),
     perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
       effortData,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      zeroYBaseline
+      maxPointsToRegress
     )
   };
 }
@@ -45,8 +41,6 @@ export abstract class EffortGraphSpec {
   yAxisLabel!: string;
   points: Point[] = [];
 
-  protected _yBaseline = 0;
-
   constructor(
     effortData: EffortData,
     title: string,
@@ -54,13 +48,8 @@ export abstract class EffortGraphSpec {
     yAxisLabel: string,
     lowerBoundX: number,
     minPointsToRegress: number,
-    maxPointsToRegress: number,
-    useZeroBaseline: boolean
+    maxPointsToRegress: number
   ) {
-    if (useZeroBaseline) {
-      title = 'Baselined ' + title[0].toLowerCase() + title.substring(1);
-      yAxisLabel = 'baselined ' + yAxisLabel;
-    }
     this.graphTitle = title;
     this.xAxisLabel = xAxisLabel;
     this.yAxisLabel = yAxisLabel;
@@ -73,26 +62,12 @@ export abstract class EffortGraphSpec {
           if (effortPoints.length - i < minPointsToRegress) break;
           if (effortPoints.length - i > maxPointsToRegress) continue;
         }
-        if (useZeroBaseline && this._yBaseline == 0) {
-          this._yBaseline = this._getBaselineY(point);
-        }
-        this.points.push(this._transformPoint(point));
+        this.points.push(point);
       }
     }
   }
 
   protected abstract _getEffortPoints(effortData: EffortData): Point[];
-
-  protected _getBaselineY(point: Point): number {
-    return point.y;
-  }
-
-  protected _transformPoint(point: Point): Point {
-    if (this._yBaseline != 0) {
-      return { x: point.x, y: point.y - this._yBaseline };
-    }
-    return point;
-  }
 }
 
 export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
@@ -100,8 +75,7 @@ export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
     effortData: EffortData,
     minDays: number,
     minPointsToRegress: number,
-    maxPointsToRegress: number,
-    useZeroBaseline: boolean
+    maxPointsToRegress: number
   ) {
     super(
       effortData,
@@ -110,8 +84,7 @@ export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
       'cumulative species',
       minDays,
       minPointsToRegress,
-      maxPointsToRegress,
-      useZeroBaseline
+      maxPointsToRegress
     );
   }
 
@@ -125,8 +98,7 @@ export class SpeciesByVisitsGraphSpec extends EffortGraphSpec {
     effortData: EffortData,
     minVisits: number,
     minPointsToRegress: number,
-    maxPointsToRegress: number,
-    useZeroBaseline: boolean
+    maxPointsToRegress: number
   ) {
     super(
       effortData,
@@ -135,8 +107,7 @@ export class SpeciesByVisitsGraphSpec extends EffortGraphSpec {
       'cumulative species',
       minVisits,
       minPointsToRegress,
-      maxPointsToRegress,
-      useZeroBaseline
+      maxPointsToRegress
     );
   }
 
@@ -150,8 +121,7 @@ export class SpeciesByPersonVisitsGraphSpec extends EffortGraphSpec {
     effortData: EffortData,
     minPersonVisits: number,
     minPointsToRegress: number,
-    maxPointsToRegress: number,
-    useZeroBaseline: boolean
+    maxPointsToRegress: number
   ) {
     super(
       effortData,
@@ -160,8 +130,7 @@ export class SpeciesByPersonVisitsGraphSpec extends EffortGraphSpec {
       'cumulative species',
       minPersonVisits,
       minPointsToRegress,
-      maxPointsToRegress,
-      useZeroBaseline
+      maxPointsToRegress
     );
   }
 

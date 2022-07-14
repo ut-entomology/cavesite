@@ -64,8 +64,7 @@ export function toJumbledClusterData(
   effortDataSet: EffortData[],
   lowerBoundX: number,
   minPointsToRegress: number,
-  maxPointsToRegress: number,
-  zeroYBaseline: boolean
+  maxPointsToRegress: number
 ): JumbledClusterData {
   let effortGraphSpecPerUnitX: EffortGraphSpecPerXUnit | null = null;
   for (const effortData of effortDataSet) {
@@ -73,8 +72,7 @@ export function toJumbledClusterData(
       effortData,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      zeroYBaseline
+      maxPointsToRegress
     );
     if (!effortGraphSpecPerUnitX) {
       effortGraphSpecPerUnitX = graphSpecPerXUnit;
@@ -103,8 +101,7 @@ export function toPerLocationClusterData(
   effortDataSet: EffortData[],
   lowerBoundX: number,
   minPointsToRegress: number,
-  maxPointsToRegress: number,
-  zeroYBaseline: boolean
+  maxPointsToRegress: number
 ): PerLocationClusterData {
   let clusterData: PerLocationClusterData = {
     type: ClusterDataType.perLocation,
@@ -119,8 +116,7 @@ export function toPerLocationClusterData(
       effortData,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      zeroYBaseline
+      maxPointsToRegress
     );
     _addGraphSpec(clusterData.perDayTotalsGraphs, graphSpecPerXUnit.perDayTotalsGraph);
     _addGraphSpec(
