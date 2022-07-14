@@ -15,7 +15,7 @@ const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_DAYS_TREATED_AS_PER_PERSON = 3;
 const PITFALL_TRAP_DAYS_PER_VISIT = 3;
 
-export type EffortData = Pick<
+export type LocationEffortData = Pick<
   DataOf<LocationEffort>,
   | 'startDate'
   | 'endDate'
@@ -96,7 +96,7 @@ export class LocationEffort {
     comparedTaxa: ComparedTaxa,
     locationID: number,
     isCave: boolean,
-    data: EffortData,
+    data: LocationEffortData,
     counterData: TaxonVisitCounterData
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(

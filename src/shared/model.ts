@@ -202,7 +202,7 @@ const PUNCT_REGEX = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_
 
 //// Effort //////////////////////////////////////////////////////////////////
 
-export interface RawEffortData {
+export interface RawLocationEffortData {
   locationID: number;
   startDate: Date;
   endDate: Date;

@@ -2,7 +2,7 @@ import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Location } from '../model/location';
 import { type TaxonVisitCounterData } from './taxon_visit_counter';
-import { type EffortData, LocationEffort } from './location_effort';
+import { type LocationEffortData, LocationEffort } from './location_effort';
 import {
   TaxonRank,
   LocationRank,
@@ -260,7 +260,7 @@ async function _getClusters(
   return await clusterer.getClusteredLocationIDs(seedLocationIDs);
 }
 
-function _toEffortData(data: Partial<EffortData>): EffortData {
+function _toEffortData(data: Partial<LocationEffortData>): LocationEffortData {
   return Object.assign(
     {
       startDate: new Date(),

@@ -1,6 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
-import type { EffortData } from './effort_data';
+import type { LocationEffortData } from './effort_data';
 import { type EffortGraphSpec, createEffortGraphSpecPerXUnit } from './effort_graphs';
 import {
   type PlottableModelFactory,
@@ -47,7 +47,7 @@ export interface SizedEffortGraphSpec {
 
 export function toPerLocationClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  effortDataSet: EffortData[],
+  effortDataSet: LocationEffortData[],
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
@@ -59,9 +59,9 @@ export function toPerLocationClusterData(
     perVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perPersonVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] }
   };
-  for (const effortData of effortDataSet) {
+  for (const locationEffortData of effortDataSet) {
     const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
-      effortData,
+      locationEffortData,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress

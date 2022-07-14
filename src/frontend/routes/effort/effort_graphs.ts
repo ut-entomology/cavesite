@@ -1,5 +1,5 @@
 import type { Point } from '../../../shared/point';
-import type { EffortData } from './effort_data';
+import type { LocationEffortData } from './effort_data';
 
 export interface EffortGraphSpecPerXUnit {
   perDayTotalsGraph: EffortGraphSpec;
@@ -8,26 +8,26 @@ export interface EffortGraphSpecPerXUnit {
 }
 
 export function createEffortGraphSpecPerXUnit(
-  effortData: EffortData,
+  locationEffortData: LocationEffortData,
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
 ): EffortGraphSpecPerXUnit {
   return {
     perDayTotalsGraph: new SpeciesByDaysGraphSpec(
-      effortData,
+      locationEffortData,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
     ),
     perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
-      effortData,
+      locationEffortData,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
     ),
     perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
-      effortData,
+      locationEffortData,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
@@ -42,7 +42,7 @@ export abstract class EffortGraphSpec {
   points: Point[] = [];
 
   constructor(
-    effortData: EffortData,
+    locationEffortData: LocationEffortData,
     title: string,
     xAxisLabel: string,
     yAxisLabel: string,
@@ -54,7 +54,7 @@ export abstract class EffortGraphSpec {
     this.xAxisLabel = xAxisLabel;
     this.yAxisLabel = yAxisLabel;
 
-    const effortPoints = this._getEffortPoints(effortData);
+    const effortPoints = this._getEffortPoints(locationEffortData);
     for (let i = 0; i < effortPoints.length; ++i) {
       const point = effortPoints[i];
       if (point.x >= lowerBoundX) {
@@ -67,18 +67,18 @@ export abstract class EffortGraphSpec {
     }
   }
 
-  protected abstract _getEffortPoints(effortData: EffortData): Point[];
+  protected abstract _getEffortPoints(locationEffortData: LocationEffortData): Point[];
 }
 
 export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
   constructor(
-    effortData: EffortData,
+    locationEffortData: LocationEffortData,
     minDays: number,
     minPointsToRegress: number,
     maxPointsToRegress: number
   ) {
     super(
-      effortData,
+      locationEffortData,
       'Cumulative species across days',
       'days',
       'cumulative species',
@@ -88,20 +88,20 @@ export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getEffortPoints(effortData: EffortData): Point[] {
-    return effortData.perDayPoints;
+  protected _getEffortPoints(locationEffortData: LocationEffortData): Point[] {
+    return locationEffortData.perDayPoints;
   }
 }
 
 export class SpeciesByVisitsGraphSpec extends EffortGraphSpec {
   constructor(
-    effortData: EffortData,
+    locationEffortData: LocationEffortData,
     minVisits: number,
     minPointsToRegress: number,
     maxPointsToRegress: number
   ) {
     super(
-      effortData,
+      locationEffortData,
       'Cumulative species across visits',
       'visits',
       'cumulative species',
@@ -111,20 +111,20 @@ export class SpeciesByVisitsGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getEffortPoints(effortData: EffortData): Point[] {
-    return effortData.perVisitPoints;
+  protected _getEffortPoints(locationEffortData: LocationEffortData): Point[] {
+    return locationEffortData.perVisitPoints;
   }
 }
 
 export class SpeciesByPersonVisitsGraphSpec extends EffortGraphSpec {
   constructor(
-    effortData: EffortData,
+    locationEffortData: LocationEffortData,
     minPersonVisits: number,
     minPointsToRegress: number,
     maxPointsToRegress: number
   ) {
     super(
-      effortData,
+      locationEffortData,
       'Cumulative species across person-visits',
       'person-visits',
       'cumulative species',
@@ -134,7 +134,7 @@ export class SpeciesByPersonVisitsGraphSpec extends EffortGraphSpec {
     );
   }
 
-  protected _getEffortPoints(effortData: EffortData): Point[] {
-    return effortData.perPersonVisitPoints;
+  protected _getEffortPoints(locationEffortData: LocationEffortData): Point[] {
+    return locationEffortData.perPersonVisitPoints;
   }
 }

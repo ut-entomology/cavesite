@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { type EffortData, toEffortDataSetByCluster } from './effort_data';
+  import { type LocationEffortData, toEffortDataSetByCluster } from './effort_data';
   import type { PlottableModelFactory } from './plottable_model';
   import {
     YAxisModel,
@@ -17,7 +17,10 @@
     dataByCluster: PerLocationClusterData[];
   }
 
-  const effortStore = createSessionStore<EffortData[][] | null>('effort_data', null);
+  const effortStore = createSessionStore<LocationEffortData[][] | null>(
+    'effort_data',
+    null
+  );
   const clustering = createSessionStore<Clustering | null>('clustering', null);
 </script>
 
