@@ -87,6 +87,9 @@ async function loadDB() {
     } catch (err: any) {
       ++importFailureCount;
       console.log(`Cat# ${record.catalogNumber}:`, err.message);
+      // if (err.message.includes('Cannot read')) {
+      //   console.log(err);
+      // }
     }
   }
   console.log(`\n${importFailureCount} import failures\n`);

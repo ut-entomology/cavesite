@@ -286,12 +286,13 @@ export class Specimen implements TaxonPathSpec {
     let collectionRemarks = source.eventRemarks || null;
     if (collectionRemarks) {
       const matches = collectionRemarks.matchAll(PARTIAL_DATES_REGEX);
-      if (matches) {
+      const reverseMatchesArray = Array.from(matches).reverse();
+      if (reverseMatchesArray.length > 0) {
         // Extract the partial start date or partial/full end date, doing so
         // in reverse order of matching so that we can safely remove each
         // from collectionRemarks as it is encountered.
 
-        for (const match of Array.from(matches).reverse()) {
+        for (const match of reverseMatchesArray) {
           // Assumes eventRemarks dates are in Texas time (Central).
           if (match[1].toLowerCase() == 'start') {
             [startDate, partialStartDate] = _parseStartDate(match);
