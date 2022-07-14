@@ -38,21 +38,19 @@ export function createEffortGraphSpecPerXUnit(
 export abstract class EffortGraphSpec {
   graphTitle: string;
   xAxisLabel!: string;
-  yAxisLabel!: string;
+  yAxisLabel = 'cumulative species';
   points: Point[] = [];
 
   constructor(
     locationEffortData: LocationEffortData,
     title: string,
     xAxisLabel: string,
-    yAxisLabel: string,
     lowerBoundX: number,
     minPointsToRegress: number,
     maxPointsToRegress: number
   ) {
     this.graphTitle = title;
     this.xAxisLabel = xAxisLabel;
-    this.yAxisLabel = yAxisLabel;
 
     const effortPoints = this._getEffortPoints(locationEffortData);
     for (let i = 0; i < effortPoints.length; ++i) {
@@ -81,7 +79,6 @@ export class SpeciesByDaysGraphSpec extends EffortGraphSpec {
       locationEffortData,
       'Cumulative species across days',
       'days',
-      'cumulative species',
       minDays,
       minPointsToRegress,
       maxPointsToRegress
@@ -104,7 +101,6 @@ export class SpeciesByVisitsGraphSpec extends EffortGraphSpec {
       locationEffortData,
       'Cumulative species across visits',
       'visits',
-      'cumulative species',
       minVisits,
       minPointsToRegress,
       maxPointsToRegress
@@ -127,7 +123,6 @@ export class SpeciesByPersonVisitsGraphSpec extends EffortGraphSpec {
       locationEffortData,
       'Cumulative species across person-visits',
       'person-visits',
-      'cumulative species',
       minPersonVisits,
       minPointsToRegress,
       maxPointsToRegress
