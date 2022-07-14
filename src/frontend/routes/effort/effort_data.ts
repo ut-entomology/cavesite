@@ -1,11 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { RawLocationEffortData } from '../../../shared/model';
 
-const ORIGIN = { x: 0, y: 0 };
-
-// I split this out from cluster_client.ts so that a server-side daemon
-// can also parse the data.
-
 export interface LocationEffortData {
   locationID: number;
   startDate: Date;
@@ -22,7 +17,7 @@ export function toEffortDataSetByCluster(
   for (const clusterResults of rawEffortDataSetByCluster) {
     const clusterEffortData: LocationEffortData[] = [];
     for (const rawEffortData of clusterResults) {
-      clusterEffortData.push(_toEffortData(rawEffortData));
+      clusterEffortData.push(_toLocationEffortData(rawEffortData));
     }
     effortDataSetByCluster.push(clusterEffortData);
   }
@@ -33,15 +28,17 @@ function _pairToPoint(pair: number[]) {
   return { x: pair[0], y: pair[1] };
 }
 
-function _toEffortData(rawEffortData: RawLocationEffortData): LocationEffortData {
+function _toLocationEffortData(
+  rawEffortData: RawLocationEffortData
+): LocationEffortData {
   const perDayPointPairs: number[][] = JSON.parse(rawEffortData.perDayPoints);
-  const perDayPoints: Point[] = [ORIGIN];
+  const perDayPoints: Point[] = [];
   for (const pair of perDayPointPairs) {
     perDayPoints.push(_pairToPoint(pair));
   }
 
   const perVisitPointPairs: number[][] = JSON.parse(rawEffortData.perVisitPoints);
-  const perVisitPoints: Point[] = [ORIGIN];
+  const perVisitPoints: Point[] = [];
   for (const pair of perVisitPointPairs) {
     perVisitPoints.push(_pairToPoint(pair));
   }
@@ -49,7 +46,7 @@ function _toEffortData(rawEffortData: RawLocationEffortData): LocationEffortData
   const perPersonVisitPointPairs: number[][] = JSON.parse(
     rawEffortData.perPersonVisitPoints
   );
-  const perPersonVisitPoints: Point[] = [ORIGIN];
+  const perPersonVisitPoints: Point[] = [];
   for (const pair of perPersonVisitPointPairs) {
     perPersonVisitPoints.push(_pairToPoint(pair));
   }
