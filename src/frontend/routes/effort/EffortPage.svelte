@@ -8,8 +8,7 @@
   import {
     type ClusteringConfig,
     type ClusterData,
-    toClusterData,
-    toFittedModel
+    toClusterData
   } from './cluster_data';
 
   interface Clustering {
@@ -51,7 +50,7 @@
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
-  import type { FittedModel } from './fitted_model';
+  import { FittedModel } from './fitted_model';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 
@@ -260,7 +259,7 @@
     } else {
       const clusterData = $clustering!.dataByCluster[clusterIndex];
       const graphSpec = _getGraphSpec(datasetID, clusterData as ClusterData);
-      clusterModel = toFittedModel(
+      clusterModel = FittedModel.create(
         graphSpec.multiPointSet,
         MIN_X_ALLOWING_REGRESS,
         MODEL_WEIGHT_POWER

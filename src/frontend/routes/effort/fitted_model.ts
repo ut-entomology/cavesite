@@ -1,6 +1,9 @@
 import type { Point } from '../../../shared/point';
 import { Regression, shortenValue } from './regression';
+import type { ClusterPoints } from './cluster_data';
 import { ModelAverager } from './model_averager';
+
+const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regression
 const MODEL_COEF_PRECISION = 3;
 
 export type FittedModelFactory = (dataPoints: Point[]) => FittedModel;
@@ -19,7 +22,7 @@ export class FittedModel {
   regression: Regression;
   power: number;
 
-  constructor(dataPoints: Point[]) {
+  private constructor(dataPoints: Point[]) {
     for (const point of dataPoints) {
       if (point.x < this.lowestX) this.lowestX = point.x;
       if (point.x > this.highestX) this.highestX = point.x;
@@ -43,6 +46,45 @@ export class FittedModel {
     );
     this.power = power;
     this.regression = regression;
+  }
+
+  static create(
+    clusterPoints: ClusterPoints,
+    minXAllowingRegression: number,
+    modelWeightPower: number
+  ): FittedModel | null {
+    const allPoints: Point[] = [];
+    let modelAverager: ModelAverager | null = null;
+    let lowestX = Infinity;
+    let highestX = 0;
+
+    // Loop for each graph spec at one per location in the cluster.
+
+    for (const points of clusterPoints.pointSets) {
+      const lastPoint = points[points.length - 1];
+      if (
+        points.length >= MIN_POINTS_TO_REGRESS &&
+        lastPoint.x >= minXAllowingRegression
+      ) {
+        const locationModel = new FittedModel(points);
+        if (modelAverager == null) {
+          modelAverager = locationModel.getModelAverager();
+        }
+        modelAverager.addModel(points, locationModel, modelWeightPower);
+      }
+      if (points.length > 0) {
+        allPoints.push(...points);
+        if (points[0].x < lowestX) lowestX = points[0].x;
+        if (lastPoint.x > highestX) highestX = lastPoint.x;
+      }
+    }
+
+    // Combine the models if we were able to generate at least one model.
+
+    if (modelAverager === null) return null;
+    const averageModel = modelAverager.getAverageModel(lowestX, highestX);
+    averageModel.regression.evaluate(allPoints);
+    return averageModel;
   }
 
   getFirstDerivative(): (x: number) => number {
