@@ -416,13 +416,13 @@
 
       {#if clusterModel === null}
         {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
-        {@const graphTitle =
-          graphTitlePrefix +
-          graphSpec.graphTitle +
-          ` (${clusterData.locationCount} caves)`}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
-            <EffortGraph title={graphTitle} hexColor={PINK_HEXCOLOR} spec={graphSpec} />
+            <EffortGraph
+              title={graphTitlePrefix + graphSpec.graphTitle}
+              hexColor={PINK_HEXCOLOR}
+              spec={graphSpec}
+            />
           </div>
         </div>
         <div class="row mb-3 gx-0 ms-4">
@@ -430,14 +430,10 @@
         </div>
       {:else}
         {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
-        {@const graphTitle =
-          graphTitlePrefix +
-          graphSpec.graphTitle +
-          ` (${clusterData.locationCount} caves)`}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
-              title={graphTitle}
+              title={graphTitlePrefix + graphSpec.graphTitle}
               hexColor={PINK_HEXCOLOR}
               spec={graphSpec}
               model={clusterModel}

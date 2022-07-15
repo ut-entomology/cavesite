@@ -12,20 +12,32 @@
   export let title = spec.graphTitle;
   export let model: FittedModel | null = null;
 
+  let caveCount: number;
   let pointCount: number;
   let pointSets: Point[][];
+  let titleSuffix: string;
 
   $: xAxisLabel = spec.xAxisLabel;
   $: yAxisLabel = spec.yAxisLabel;
   $: models = model === null ? [] : [model];
 
   $: {
+    caveCount = 0;
     pointCount = 0;
     pointSets = [];
     for (const graphData of spec.graphDataSet) {
       const pointSet = spec.pointExtractor(graphData);
-      pointSets.push(pointSet);
-      pointCount += pointSet.length;
+      if (pointSet.length > 0) {
+        ++caveCount;
+        pointSets.push(pointSet);
+        pointCount += pointSet.length;
+      }
+    }
+
+    if (caveCount == spec.graphDataSet.length) {
+      titleSuffix = ` (${caveCount} caves)`;
+    } else {
+      titleSuffix = ` (${caveCount} of ${spec.graphDataSet.length} caves)`;
     }
   }
 
@@ -82,7 +94,7 @@
     plugins: {
       title: {
         display: true,
-        text: title,
+        text: title + titleSuffix,
         font: { size: 17 }
       },
       legend: {
