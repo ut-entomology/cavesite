@@ -1,7 +1,7 @@
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
-  import type { PlottableModel } from './plottable_model';
+  import type { FittedModel } from './fitted_model';
   import type { SizedEffortGraphSpec } from './cluster_data';
 
   const POINTS_IN_MODEL_PLOT = 200;
@@ -9,7 +9,7 @@
   export let title: string;
   export let hexColor: string;
   export let spec: SizedEffortGraphSpec;
-  export let model: PlottableModel | null = null;
+  export let model: FittedModel | null = null;
   export let yFormula: string | null = null;
 
   $: xAxisLabel = spec.graphSpecs[0].xAxisLabel;
@@ -33,10 +33,7 @@
         return {
           showLine: true,
           label: spec.pointCount + ' points',
-          data:
-            model !== null
-              ? model.convertDataPoints(graphSpec.points)
-              : graphSpec.points,
+          data: graphSpec.points,
           // borderColor: _toLocationHexColor(i),
           borderWidth: 1,
           hoverBorderWidth: 3,

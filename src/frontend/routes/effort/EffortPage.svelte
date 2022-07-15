@@ -49,7 +49,7 @@
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
-  import type { PlottableModel } from './plottable_model';
+  import type { FittedModel } from './fitted_model';
   import { ClusterColorSet } from './cluster_color_set';
   import type { EffortGraphSpec } from './effort_graphs';
   import { pageName } from '../../stores/pageName';
@@ -98,7 +98,7 @@
   let clusterColors: ClusterColorSet[] = [];
   let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
-  let clusterModel: PlottableModel | null = null;
+  let clusterModel: FittedModel | null = null;
 
   $: if ($clustering) {
     clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;

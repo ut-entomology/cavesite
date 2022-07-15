@@ -3,7 +3,7 @@ import { Regression, shortenValue } from './regression';
 import { type ModelAverager, PlotAverager } from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
-export type PlottableModelFactory = (dataPoints: Point[]) => PlottableModel;
+export type FittedModelFactory = (dataPoints: Point[]) => FittedModel;
 
 interface RegressionSearchConfig {
   lowerBoundScalar: number;
@@ -13,7 +13,7 @@ interface RegressionSearchConfig {
 
 type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
-export class PlottableModel {
+export class FittedModel {
   power: number;
   equation!: string;
   lowestX = Infinity;
@@ -60,10 +60,6 @@ export class PlottableModel {
     ].join(' ');
   }
 
-  convertDataPoints(dataPoints: Point[]): Point[] {
-    return dataPoints;
-  }
-
   getFirstDerivative(): (x: number) => number {
     const coefs = this.regression.jstats.coef;
     return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
@@ -71,7 +67,7 @@ export class PlottableModel {
 
   getModelAverager(): ModelAverager {
     return new PlotAverager((points: Point[]) => {
-      return new PlottableModel(points);
+      return new FittedModel(points);
     });
   }
 

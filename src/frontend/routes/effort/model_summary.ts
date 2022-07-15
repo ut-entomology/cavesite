@@ -1,4 +1,4 @@
-import type { PlottableModel } from './plottable_model';
+import type { FittedModel } from './fitted_model';
 
 export interface ModelSummary {
   modelName: string;
@@ -18,7 +18,7 @@ export interface ModelSummary {
 export function summarizeModels(
   minCavesAllowed: number,
   minPointsAllowed: number,
-  modelsByCluster: PlottableModel[][],
+  modelsByCluster: FittedModel[][],
   localityCountByCluster: number[]
 ): ModelSummary[] {
   const summaries: ModelSummary[] = [];

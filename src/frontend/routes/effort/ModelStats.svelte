@@ -1,9 +1,9 @@
 <script lang="ts">
   import { shortenPValue, shortenRMSE, shortenR2 } from './regression';
-  import type { PlottableModel } from './plottable_model';
+  import type { FittedModel } from './fitted_model';
 
   export let hexColor: string;
-  export let model: PlottableModel;
+  export let model: FittedModel;
 
   const regression = model.regression;
 </script>

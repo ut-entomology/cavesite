@@ -2,10 +2,10 @@
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { Point } from '../../../shared/point';
-  import type { PlottableModel } from './plottable_model';
+  import type { FittedModel } from './fitted_model';
 
   export let hexColor: string;
-  export let model: PlottableModel;
+  export let model: FittedModel;
 
   // Chart.js plugin adapted from
   //  https://nishimura.eti.br/blog/2021/02/07/chartjs-point-with-vertical/
