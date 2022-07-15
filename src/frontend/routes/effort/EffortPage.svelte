@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { toClientEffortSetByCluster } from './location_graph_data';
+  import { toLocationGraphDataSetByCluster } from './location_graph_data';
   import {
     type ClusteringConfig,
     type ClusterData,
@@ -136,13 +136,13 @@
         return {
           graphTitle: 'Cumulative species across visits',
           xAxisLabel: 'visits',
-          pointExtractor: (graphData) => graphData.modelledGroup!.perVisitPoints
+          pointExtractor: (graphData) => graphData.sourceGroup.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
           graphTitle: 'Cumulative species across person-visits',
           xAxisLabel: 'person-visits',
-          pointExtractor: (graphData) => graphData.modelledGroup!.perPersonVisitPoints
+          pointExtractor: (graphData) => graphData.sourceGroup.perPersonVisitPoints
         };
     }
   }
@@ -169,7 +169,7 @@
         config.comparedTaxa,
         taxaClusters
       );
-      const locationGraphDataSetByCluster = toClientEffortSetByCluster(
+      const locationGraphDataSetByCluster = toLocationGraphDataSetByCluster(
         rawClientEffortSetByCluster
       );
 

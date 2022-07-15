@@ -1,7 +1,7 @@
 import type { Point } from '../../../shared/point';
 import type { RawLocationEffort } from '../../../shared/model';
 
-const ORIGIN = { x: 0, y: 0 };
+// const ORIGIN = { x: 0, y: 0 };
 
 export interface LocationGraphData {
   locationID: number;
@@ -37,13 +37,13 @@ function _pairToPoint(pair: number[]) {
 
 function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGraphData {
   const perDayPointPairs: number[][] = JSON.parse(rawLocationEffort.perDayPoints);
-  const perDayPoints: Point[] = [ORIGIN];
+  const perDayPoints: Point[] = [];
   for (const pair of perDayPointPairs) {
     perDayPoints.push(_pairToPoint(pair));
   }
 
   const perVisitPointPairs: number[][] = JSON.parse(rawLocationEffort.perVisitPoints);
-  const perVisitPoints: Point[] = [ORIGIN];
+  const perVisitPoints: Point[] = [];
   for (const pair of perVisitPointPairs) {
     perVisitPoints.push(_pairToPoint(pair));
   }
@@ -51,7 +51,7 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
   const perPersonVisitPointPairs: number[][] = JSON.parse(
     rawLocationEffort.perPersonVisitPoints
   );
-  const perPersonVisitPoints: Point[] = [ORIGIN];
+  const perPersonVisitPoints: Point[] = [];
   for (const pair of perPersonVisitPointPairs) {
     perPersonVisitPoints.push(_pairToPoint(pair));
   }
