@@ -1,5 +1,5 @@
 import type { Point } from '../../../shared/point';
-import type { ClientLocationEffort } from './effort_data';
+import type { ClientLocationEffort } from './client_location_effort';
 
 export interface EffortGraphSpecPerXUnit {
   perDayTotalsGraph: EffortGraphSpec;

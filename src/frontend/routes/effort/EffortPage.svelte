@@ -1,7 +1,10 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { type ClientLocationEffort, toClientEffortSetByCluster } from './effort_data';
+  import {
+    type ClientLocationEffort,
+    toClientEffortSetByCluster
+  } from './client_location_effort';
   import {
     type ClusteringConfig,
     type PerLocationClusterData,
@@ -16,7 +19,7 @@
   }
 
   const effortStore = createSessionStore<ClientLocationEffort[][] | null>(
-    'effort_data',
+    'client_location_effort',
     null
   );
   const clustering = createSessionStore<Clustering | null>('clustering', null);
