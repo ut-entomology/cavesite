@@ -14,11 +14,6 @@
   }
 
   const clusterStore = createSessionStore<ClusterStore | null>('clusters', null);
-
-  const PINK_HEXCOLOR = '#FF0088';
-  const AQUA_HEXCOLOR = '#00DCD8';
-  const PURPLE_HEXCOLOR = '#A95CFF';
-  const GREEN_HEXCOLOR = '#00D40E';
 </script>
 
 <script lang="ts">
@@ -415,6 +410,7 @@
       {/if}
 
       {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
+      {@const clusterColor = clusterColors[clusterIndex].foreground}
       {@const multipleClusters =
         $clusterStore && $clusterStore.dataByCluster.length > 1}
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
@@ -425,7 +421,7 @@
           <div class="col" style="height: 350px">
             <EffortGraph
               title={graphTitlePrefix + graphSpec.graphTitle}
-              hexColor={PINK_HEXCOLOR}
+              hexColor={clusterColor}
               spec={graphSpec}
             />
           </div>
@@ -436,7 +432,7 @@
           <div class="col" style="height: 350px">
             <EffortGraph
               title={graphTitlePrefix + graphSpec.graphTitle}
-              hexColor={PINK_HEXCOLOR}
+              hexColor={clusterColor}
               spec={graphSpec}
               model={clusterModel}
             />
@@ -444,10 +440,10 @@
         </div>
         <div class="row mb-3 gx-0 ms-4">
           <div class="col-sm-6">
-            <ResidualsPlot hexColor={PINK_HEXCOLOR} model={clusterModel} />
+            <ResidualsPlot hexColor={clusterColor} model={clusterModel} />
           </div>
         </div>
-        <ModelStats hexColor={PINK_HEXCOLOR} model={clusterModel} />
+        <ModelStats hexColor={clusterColor} model={clusterModel} />
       {:else}
         <div class="regression_placeholder">
           <div>Too few points to perform regression</div>
