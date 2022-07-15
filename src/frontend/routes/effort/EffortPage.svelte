@@ -1,26 +1,19 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import {
-    type ClientLocationEffort,
-    toClientEffortSetByCluster
-  } from './client_location_effort';
+  import { toClientEffortSetByCluster } from './client_location_effort';
   import {
     type ClusteringConfig,
     type ClusterData,
     toClusterData
   } from './cluster_data';
 
-  interface Clustering {
+  interface ClusterStore {
     config: ClusteringConfig;
     dataByCluster: ClusterData[];
   }
 
-  const effortStore = createSessionStore<ClientLocationEffort[][] | null>(
-    'client_location_effort',
-    null
-  );
-  const clustering = createSessionStore<Clustering | null>('clustering', null);
+  const clusterStore = createSessionStore<ClusterStore | null>('clusters', null);
 
   const PINK_HEXCOLOR = '#FF0088';
   const AQUA_HEXCOLOR = '#00DCD8';
@@ -99,29 +92,28 @@
   let clusterIndex = 0;
   let clusterModel: FittedModel | null = null;
 
-  $: if ($clustering) {
-    clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
-    clusterSpec.ignoreSubgenera = $clustering.config.ignoreSubgenera;
-    clusterSpec.metric.highestComparedRank = $clustering.config.highestComparedRank;
+  $: if ($clusterStore) {
+    clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
+    clusterSpec.ignoreSubgenera = $clusterStore.config.ignoreSubgenera;
+    clusterSpec.metric.highestComparedRank = $clusterStore.config.highestComparedRank;
 
-    for (let i = 0; i < $clustering.dataByCluster.length; ++i) {
-      const clusterData = $clustering.dataByCluster[i];
+    for (let i = 0; i < $clusterStore.dataByCluster.length; ++i) {
+      const clusterData = $clusterStore.dataByCluster[i];
       localityCountByCluster[i] = clusterData.locationCount;
       clusterColors[i] = new ClusterColorSet(
-        `hsl(${i * (360 / $clustering!.dataByCluster.length)}, 60%, 60%)`
+        `hsl(${i * (360 / $clusterStore!.dataByCluster.length)}, 60%, 60%)`
       );
     }
   }
 
-  $: if ($clustering) {
+  $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
     loadState = LoadState.ready;
   }
 
   function _clearData() {
-    effortStore.set(null);
-    clustering.set(null);
-    $clustering = null;
+    clusterStore.set(null);
+    $clusterStore = null;
   }
 
   function _getGraphSpec(
@@ -155,8 +147,7 @@
   }
 
   async function _loadData(config: ClusteringConfig) {
-    effortStore.set(null);
-    clustering.set(null);
+    clusterStore.set(null);
 
     clusterSpec.comparedTaxa = config.comparedTaxa;
     clusterSpec.ignoreSubgenera = config.ignoreSubgenera;
@@ -180,7 +171,6 @@
       const clientEffortSetByCluster = toClientEffortSetByCluster(
         rawClientEffortSetByCluster
       );
-      effortStore.set(clientEffortSetByCluster);
 
       // Process the loaded data.
 
@@ -204,7 +194,7 @@
         if (aTaxaCount == bTaxaCount) return 0;
         return bTaxaCount - aTaxaCount; // sort most taxa first
       });
-      clustering.set({
+      clusterStore.set({
         config,
         dataByCluster
       });
@@ -217,8 +207,8 @@
 
   function _openConfigDialog() {
     // Setting clusteringRequest opens dialog.
-    if ($clustering) {
-      clusteringRequest = $clustering.config;
+    if ($clusterStore) {
+      clusteringRequest = $clusterStore.config;
     } else {
       clusteringRequest = {
         maxClusters: MAX_CLUSTERS,
@@ -257,7 +247,7 @@
     if (clusterModel) {
       clusterModel = null;
     } else {
-      const clusterData = $clustering!.dataByCluster[clusterIndex];
+      const clusterData = $clusterStore!.dataByCluster[clusterIndex];
       const graphSpec = _getGraphSpec(datasetID, clusterData as ClusterData);
       clusterModel = FittedModel.create(
         graphSpec.multiPointSet,
@@ -274,22 +264,22 @@
   <div class="container-fluid mb-3">
     <TabHeader title={$pageName}>
       <span slot="main-buttons">
-        {#if $clustering}
+        {#if $clusterStore}
           <button class="btn btn-minor" type="button" on:click={_clearData}
             >Clear</button
           >
         {/if}
         <button class="btn btn-major" type="button" on:click={_openConfigDialog}
-          >{$clustering ? 'Change' : 'Load'} Data</button
+          >{$clusterStore ? 'Change' : 'Load'} Data</button
         >
       </span>
     </TabHeader>
 
-    {#if $clustering !== null}
+    {#if $clusterStore !== null}
       <div class="cluster_summary_info">
         <div class="row mt-3">
           <div class="col">
-            <span>{$clustering.config.maxClusters} clusters max</span>
+            <span>{$clusterStore.config.maxClusters} clusters max</span>
           </div>
           <div class="col">comparing: <span>{clusterSpec.comparedTaxa}</span></div>
           <div class="col" />
@@ -337,16 +327,19 @@
       <div class="row justify-content-center">
         <div class="col" style="max-width: 480px">
           <ClusterRadarChart
-            dataByCluster={$clustering.dataByCluster}
+            dataByCluster={$clusterStore.dataByCluster}
             {clusterColors}
           />
         </div>
         <div class="col d-flex align-items-center" style="max-width: 300px">
-          <ClusterPieChart dataByCluster={$clustering.dataByCluster} {clusterColors} />
+          <ClusterPieChart
+            dataByCluster={$clusterStore.dataByCluster}
+            {clusterColors}
+          />
         </div>
       </div>
 
-      {#if $clustering}
+      {#if $clusterStore}
         <div class="row justify-content-between mt-4 ms-4 me-4">
           <div class="col-auto d-flex align-items-center">
             <div class="form-group">
@@ -357,7 +350,7 @@
                   class="form-select form-select-sm item_select ms-1"
                   bind:value={clusterIndex}
                 >
-                  {#each $clustering.dataByCluster as _, i}
+                  {#each $clusterStore.dataByCluster as _, i}
                     <option value={i}>Cluster #{i + 1}</option>
                   {/each}
                 </select>
@@ -407,8 +400,9 @@
         </div>
       {/if}
 
-      {@const clusterData = $clustering.dataByCluster[clusterIndex]}
-      {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
+      {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
+      {@const multipleClusters =
+        $clusterStore && $clusterStore.dataByCluster.length > 1}
       {@const graphSpec = _getGraphSpec(datasetID, clusterData)}
       {@const graphTitle =
         (multipleClusters ? `#${clusterIndex + 1}: ` : '') +
@@ -454,7 +448,7 @@
   />
 {/if}
 
-{#if $clustering === null}
+{#if $clusterStore === null}
   {#if loadState == LoadState.determiningSeeds}
     <BusyMessage message="Determining seed locations..." />
   {:else if loadState == LoadState.sortingIntoClusters}

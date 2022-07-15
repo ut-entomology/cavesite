@@ -14,6 +14,7 @@ export interface ClusteringConfig {
 export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
+  clientEffortSet: ClientLocationEffort[];
   perDayTotalsPointSets: ClusterPoints;
   perVisitTotalsPointSets: ClusterPoints;
   perPersonVisitTotalsPointSets: ClusterPoints;
@@ -34,6 +35,7 @@ export function toClusterData(
   let clusterData: ClusterData = {
     locationCount: clientEffortSet.length,
     visitsByTaxonUnique,
+    clientEffortSet,
     perDayTotalsPointSets: { pointCount: 0, pointSets: [] },
     perVisitTotalsPointSets: { pointCount: 0, pointSets: [] },
     perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
