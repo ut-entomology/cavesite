@@ -332,7 +332,7 @@
       </div>
 
       <div class="row justify-content-center">
-        <div class="col" style="max-width: 480px">
+        <div class="col" style="max-width: 460px">
           <ClusterRadarChart
             dataByCluster={$clusterStore.dataByCluster}
             {clusterColors}
