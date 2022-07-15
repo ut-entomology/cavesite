@@ -18,7 +18,6 @@
   let titleSuffix: string;
 
   $: xAxisLabel = spec.xAxisLabel;
-  $: yAxisLabel = spec.yAxisLabel;
   $: models = model === null ? [] : [model];
 
   $: {
@@ -83,7 +82,7 @@
       y: {
         title: {
           display: true,
-          text: yAxisLabel,
+          text: 'cumulative species',
           font: { size: 16 }
         }
       }

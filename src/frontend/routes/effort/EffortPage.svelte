@@ -129,7 +129,6 @@
         return {
           graphTitle: 'Regressed cumulative species across visits',
           xAxisLabel: 'visits in regressed range',
-          yAxisLabel: 'cumulative species',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perVisitPoints
         };
@@ -137,7 +136,6 @@
         return {
           graphTitle: 'Regressed cumulative species across person-visits',
           xAxisLabel: 'person-visits in regressed range',
-          yAxisLabel: 'cumulative species',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perPersonVisitPoints
         };
@@ -154,7 +152,6 @@
         return {
           graphTitle: 'Cumulative species across visits',
           xAxisLabel: 'visits',
-          yAxisLabel: 'cumulative species',
           graphDataSet: clusterData.sourceDataSet,
           pointExtractor: (graphData) => graphData.perVisitPoints
         };
@@ -162,7 +159,6 @@
         return {
           graphTitle: 'Cumulative species across person-visits',
           xAxisLabel: 'person-visits',
-          yAxisLabel: 'cumulative species',
           graphDataSet: clusterData.sourceDataSet,
           pointExtractor: (graphData) => graphData.perPersonVisitPoints
         };
