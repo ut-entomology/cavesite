@@ -282,7 +282,7 @@
       </span>
     </TabHeader>
 
-    {#if $clusterStore !== null}
+    {#if $clusterStore}
       <div class="cluster_summary_info">
         <div class="row mt-3">
           <div class="col">
@@ -346,57 +346,53 @@
         </div>
       </div>
 
-      {#if $clusterStore}
-        <div class="row justify-content-between mt-4 ms-4 me-4">
-          <div class="col-auto d-flex align-items-center">
-            <div class="form-group">
-              <div class="input-group">
-                <select
-                  id="cluster_selector"
-                  class="form-select form-select-sm item_select me-1"
-                  bind:value={clusterIndex}
-                >
-                  {#each $clusterStore.dataByCluster as _, i}
-                    <option value={i}>Cluster #{i + 1}</option>
-                  {/each}
-                </select>
-                <div id="cluster_color" />
-              </div>
+      <div class="row justify-content-between mt-4 ms-4 me-4">
+        <div class="col-auto d-flex align-items-center">
+          <div class="form-group">
+            <div class="input-group">
+              <select
+                id="cluster_selector"
+                class="form-select form-select-sm item_select me-1"
+                bind:value={clusterIndex}
+              >
+                {#each $clusterStore.dataByCluster as _, i}
+                  <option value={i}>Cluster #{i + 1}</option>
+                {/each}
+              </select>
+              <div id="cluster_color" />
             </div>
           </div>
-          <div class="col-auto">
-            <div class="btn-group" role="group" aria-label="Switch datasets">
-              <input
-                type="radio"
-                class="btn-check"
-                bind:group={datasetID}
-                name="dataset"
-                id={DatasetID.visits}
-                value={DatasetID.visits}
-              />
-              <label class="btn btn-outline-primary" for={DatasetID.visits}
-                >Visits</label
-              >
-              <input
-                type="radio"
-                class="btn-check"
-                bind:group={datasetID}
-                name="dataset"
-                id={DatasetID.personVisits}
-                value={DatasetID.personVisits}
-              />
-              <label class="btn btn-outline-primary" for={DatasetID.personVisits}
-                >Person-Visits</label
-              >
-            </div>
-          </div>
-          <div class="col-auto">
-            <button class="btn btn-major" type="button" on:click={_toggleModel}
-              >{showingAverageModel ? 'Hide Avg. Model' : 'Show Avg. Model'}</button
+        </div>
+        <div class="col-auto">
+          <div class="btn-group" role="group" aria-label="Switch datasets">
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={datasetID}
+              name="dataset"
+              id={DatasetID.visits}
+              value={DatasetID.visits}
+            />
+            <label class="btn btn-outline-primary" for={DatasetID.visits}>Visits</label>
+            <input
+              type="radio"
+              class="btn-check"
+              bind:group={datasetID}
+              name="dataset"
+              id={DatasetID.personVisits}
+              value={DatasetID.personVisits}
+            />
+            <label class="btn btn-outline-primary" for={DatasetID.personVisits}
+              >Person-Visits</label
             >
           </div>
         </div>
-      {/if}
+        <div class="col-auto">
+          <button class="btn btn-major" type="button" on:click={_toggleModel}
+            >{showingAverageModel ? 'Hide Avg. Model' : 'Show Avg. Model'}</button
+          >
+        </div>
+      </div>
 
       {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
       {@const clusterColor = clusterColors[clusterIndex].foreground}
@@ -433,8 +429,10 @@
           <div class="col-sm-6">
             <ResidualsPlot color={clusterColor} model={clusterModel} />
           </div>
+          <div class="col-sm-6 d-flex align-items-center">
+            <ModelStats color={clusterColor} model={clusterModel} />
+          </div>
         </div>
-        <ModelStats color={clusterColor} model={clusterModel} />
       {:else}
         <div class="regression_placeholder">
           <div>Too few points to perform regression</div>
