@@ -19,9 +19,6 @@ export interface ClusteringConfig {
 export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
-}
-
-export interface PerLocationClusterData extends ClusterData {
   perDayTotalsGraphs: SizedEffortGraphSpec;
   perVisitTotalsGraphs: SizedEffortGraphSpec;
   perPersonVisitTotalsGraphs: SizedEffortGraphSpec;
@@ -32,14 +29,14 @@ export interface SizedEffortGraphSpec {
   graphSpecs: EffortGraphSpec[];
 }
 
-export function toPerLocationClusterData(
+export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   clientEffortSet: ClientLocationEffort[],
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
-): PerLocationClusterData {
-  let clusterData: PerLocationClusterData = {
+): ClusterData {
+  let clusterData: ClusterData = {
     locationCount: clientEffortSet.length,
     visitsByTaxonUnique,
     perDayTotalsGraphs: { pointCount: 0, graphSpecs: [] },
@@ -66,7 +63,7 @@ export function toPerLocationClusterData(
   return clusterData;
 }
 
-export function toPerLocationModel(
+export function toFittedModel(
   sizedGraphSpec: SizedEffortGraphSpec,
   minXAllowingRegression: number,
   modelWeightPower: number

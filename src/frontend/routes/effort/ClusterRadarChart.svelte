@@ -2,9 +2,9 @@
   import Radar from 'svelte-chartjs/src/Radar.svelte';
 
   import type { ClusterColorSet } from './cluster_color_set';
-  import type { PerLocationClusterData } from './cluster_data';
+  import type { ClusterData } from './cluster_data';
 
-  export let dataByCluster: PerLocationClusterData[];
+  export let dataByCluster: ClusterData[];
   export let clusterColors: ClusterColorSet[];
 
   // // Rotate the clusters clockwise by one cluster so the shaded areas don't

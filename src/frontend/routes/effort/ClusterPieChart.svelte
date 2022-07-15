@@ -2,9 +2,9 @@
   import Pie from 'svelte-chartjs/src/Pie.svelte';
 
   import type { ClusterColorSet } from './cluster_color_set';
-  import type { PerLocationClusterData } from './cluster_data';
+  import type { ClusterData } from './cluster_data';
 
-  export let dataByCluster: PerLocationClusterData[];
+  export let dataByCluster: ClusterData[];
   export let clusterColors: ClusterColorSet[];
 
   function _toDataLabel(ctx: any) {

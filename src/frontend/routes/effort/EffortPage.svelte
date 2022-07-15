@@ -7,15 +7,15 @@
   } from './client_location_effort';
   import {
     type ClusteringConfig,
-    type PerLocationClusterData,
-    toPerLocationClusterData,
-    toPerLocationModel,
+    type ClusterData,
+    toClusterData,
+    toFittedModel,
     SizedEffortGraphSpec
   } from './cluster_data';
 
   interface Clustering {
     config: ClusteringConfig;
-    dataByCluster: PerLocationClusterData[];
+    dataByCluster: ClusterData[];
   }
 
   const effortStore = createSessionStore<ClientLocationEffort[][] | null>(
@@ -132,14 +132,7 @@
     return (graphSpec as SizedEffortGraphSpec).graphSpecs[0].graphTitle;
   }
 
-  function _getGraphData(datasetID: DatasetID, clusterData: PerLocationClusterData) {
-    return _getPerLocationGraphData(datasetID, clusterData as PerLocationClusterData);
-  }
-
-  function _getPerLocationGraphData(
-    datasetID: DatasetID,
-    clusterData: PerLocationClusterData
-  ) {
+  function _getGraphSpec(datasetID: DatasetID, clusterData: ClusterData) {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:
@@ -182,11 +175,11 @@
       // Process the loaded data.
 
       loadState = LoadState.generatingPlotData;
-      const dataByCluster: PerLocationClusterData[] = [];
+      const dataByCluster: ClusterData[] = [];
       for (let i = 0; i < taxaClusters.length; ++i) {
         const clientEffortSet = clientEffortSetByCluster[i];
         dataByCluster.push(
-          toPerLocationClusterData(
+          toClusterData(
             taxaClusters[i].visitsByTaxonUnique,
             clientEffortSet,
             LOWER_BOUND_X,
@@ -255,11 +248,8 @@
       clusterModel = null;
     } else {
       const clusterData = $clustering!.dataByCluster[clusterIndex];
-      const graphData = _getPerLocationGraphData(
-        datasetID,
-        clusterData as PerLocationClusterData
-      );
-      clusterModel = toPerLocationModel(
+      const graphData = _getGraphSpec(datasetID, clusterData as ClusterData);
+      clusterModel = toFittedModel(
         graphData,
         MIN_X_ALLOWING_REGRESS,
         MODEL_WEIGHT_POWER
@@ -412,7 +402,7 @@
 
       {@const clusterData = $clustering.dataByCluster[clusterIndex]}
       {@const multipleClusters = $clustering && $clustering.dataByCluster.length > 1}
-      {@const graphSpec = _getGraphData(datasetID, clusterData)}
+      {@const graphSpec = _getGraphSpec(datasetID, clusterData)}
       {@const graphTitle =
         (multipleClusters ? `#${clusterIndex + 1}: ` : '') +
         _getGraphTitle(graphSpec) +
