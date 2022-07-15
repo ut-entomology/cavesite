@@ -15,13 +15,8 @@ export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
   locationGraphDataSet: LocationGraphData[];
-  perVisitTotalsPointSets: ClusterPoints;
-  perPersonVisitTotalsPointSets: ClusterPoints;
-}
-
-export interface ClusterPoints {
-  pointCount: number;
-  pointSets: Point[][];
+  perVisitTotalsPointSets: Point[][];
+  perPersonVisitTotalsPointSets: Point[][];
 }
 
 export function toClusterData(
@@ -35,12 +30,11 @@ export function toClusterData(
     locationCount: locationGraphDataSet.length,
     visitsByTaxonUnique,
     locationGraphDataSet,
-    perVisitTotalsPointSets: { pointCount: 0, pointSets: [] },
-    perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
+    perVisitTotalsPointSets: [],
+    perPersonVisitTotalsPointSets: []
   };
   for (const locationGraphData of locationGraphDataSet) {
-    _addPointSet(
-      clusterData.perVisitTotalsPointSets,
+    clusterData.perVisitTotalsPointSets.push(
       _toGraphedPointSet(
         locationGraphData.perVisitPoints,
         lowerBoundX,
@@ -48,8 +42,7 @@ export function toClusterData(
         maxPointsToRegress
       )
     );
-    _addPointSet(
-      clusterData.perPersonVisitTotalsPointSets,
+    clusterData.perPersonVisitTotalsPointSets.push(
       _toGraphedPointSet(
         locationGraphData.perPersonVisitPoints,
         lowerBoundX,
@@ -59,11 +52,6 @@ export function toClusterData(
     );
   }
   return clusterData;
-}
-
-function _addPointSet(clusterPoints: ClusterPoints, points: Point[]): void {
-  clusterPoints.pointCount += points.length;
-  clusterPoints.pointSets.push(points);
 }
 
 function _toGraphedPointSet(

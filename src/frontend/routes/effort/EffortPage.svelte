@@ -126,14 +126,14 @@
           graphTitle: 'Cumulative species across visits',
           xAxisLabel: 'visits',
           yAxisLabel: 'cumulative species',
-          multiPointSet: clusterData.perVisitTotalsPointSets
+          pointSets: clusterData.perVisitTotalsPointSets
         };
       case DatasetID.personVisits:
         return {
           graphTitle: 'Cumulative species across person-visits',
           xAxisLabel: 'person-visits',
           yAxisLabel: 'cumulative species',
-          multiPointSet: clusterData.perPersonVisitTotalsPointSets
+          pointSets: clusterData.perPersonVisitTotalsPointSets
         };
     }
   }
@@ -265,7 +265,7 @@
       const clusterData = $clusterStore!.dataByCluster[clusterIndex];
       const graphSpec = _getModelGraphSpec(datasetID, clusterData as ClusterData);
       clusterModel = FittedModel.create(
-        graphSpec.multiPointSet,
+        graphSpec.pointSets,
         MIN_X_ALLOWING_REGRESS,
         MODEL_WEIGHT_POWER
       );

@@ -1,6 +1,5 @@
 import type { Point } from '../../../shared/point';
 import { Regression, shortenValue } from './regression';
-import type { ClusterPoints } from './cluster_data';
 import { ModelAverager } from './model_averager';
 
 const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regression
@@ -49,7 +48,7 @@ export class FittedModel {
   }
 
   static create(
-    clusterPoints: ClusterPoints,
+    pointSets: Point[][],
     minXAllowingRegression: number,
     modelWeightPower: number
   ): FittedModel | null {
@@ -60,7 +59,7 @@ export class FittedModel {
 
     // Loop for each graph spec at one per location in the cluster.
 
-    for (const points of clusterPoints.pointSets) {
+    for (const points of pointSets) {
       const lastPoint = points[points.length - 1];
       if (
         points.length >= MIN_POINTS_TO_REGRESS &&

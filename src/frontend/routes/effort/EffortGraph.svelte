@@ -1,11 +1,11 @@
 <script lang="ts" context="module">
-  import type { ClusterPoints } from './cluster_data';
+  import type { Point } from '../../../shared/point';
 
   export interface EffortGraphSpec {
     graphTitle: string;
     xAxisLabel: string;
     yAxisLabel: string;
-    multiPointSet: ClusterPoints;
+    pointSets: Point[][];
   }
 </script>
 
@@ -21,24 +21,29 @@
   export let title = spec.graphTitle;
   export let model: FittedModel | null = null;
 
+  let pointCount: number;
+
   $: xAxisLabel = spec.xAxisLabel;
   $: yAxisLabel = spec.yAxisLabel;
   $: models = model === null ? [] : [model];
 
+  $: {
+    pointCount = 0;
+    spec.pointSets.forEach((pointSet) => (pointCount += pointSet.length));
+  }
+
   function _legendFilter(item: any) {
-    return (
-      item.datasetIndex == 0 || item.datasetIndex >= spec.multiPointSet.pointSets.length
-    );
+    return item.datasetIndex == 0 || item.datasetIndex >= spec.pointSets.length;
   }
 </script>
 
 <Scatter
   data={{
     datasets: [
-      ...spec.multiPointSet.pointSets.map((points) => {
+      ...spec.pointSets.map((points) => {
         return {
           showLine: true,
-          label: spec.multiPointSet.pointCount + ' points',
+          label: pointCount + ' points',
           data: points,
           // borderColor: _toLocationHexColor(i),
           borderWidth: 1,
