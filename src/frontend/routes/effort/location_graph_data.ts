@@ -1,7 +1,7 @@
 import type { Point } from '../../../shared/point';
-import type { RawClientLocationEffort } from '../../../shared/model';
+import type { RawLocationEffort } from '../../../shared/model';
 
-export interface ClientLocationEffort {
+export interface LocationGraphData {
   locationID: number;
   startDate: Date;
   endDate: Date;
@@ -11,26 +11,24 @@ export interface ClientLocationEffort {
 }
 
 export function toClientEffortSetByCluster(
-  rawClientEffortSetByCluster: RawClientLocationEffort[][]
-): ClientLocationEffort[][] {
-  const clientEffortSetByCluster: ClientLocationEffort[][] = [];
+  rawClientEffortSetByCluster: RawLocationEffort[][]
+): LocationGraphData[][] {
+  const locationGraphDataSetByCluster: LocationGraphData[][] = [];
   for (const clusterResults of rawClientEffortSetByCluster) {
-    const clientEffortSet: ClientLocationEffort[] = [];
+    const locationGraphDataSet: LocationGraphData[] = [];
     for (const rawClientEffort of clusterResults) {
-      clientEffortSet.push(_toClientLocationEffort(rawClientEffort));
+      locationGraphDataSet.push(_toLocationGraphData(rawClientEffort));
     }
-    clientEffortSetByCluster.push(clientEffortSet);
+    locationGraphDataSetByCluster.push(locationGraphDataSet);
   }
-  return clientEffortSetByCluster;
+  return locationGraphDataSetByCluster;
 }
 
 function _pairToPoint(pair: number[]) {
   return { x: pair[0], y: pair[1] };
 }
 
-function _toClientLocationEffort(
-  rawClientEffort: RawClientLocationEffort
-): ClientLocationEffort {
+function _toLocationGraphData(rawClientEffort: RawLocationEffort): LocationGraphData {
   const perDayPointPairs: number[][] = JSON.parse(rawClientEffort.perDayPoints);
   const perDayPoints: Point[] = [];
   for (const pair of perDayPointPairs) {

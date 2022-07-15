@@ -7,7 +7,7 @@ import { Location } from '../model/location';
 import { LocationEffort } from '../effort/location_effort';
 import {
   type LocationSpec,
-  type RawClientLocationEffort,
+  type RawLocationEffort,
   ComparedTaxa,
   checkComparedTaxa,
   MIN_LOOKUP_CHAR_LENGTH
@@ -93,7 +93,7 @@ export function toLocationSpec(location: Location): LocationSpec {
   };
 }
 
-function _toRawEffortData(effort: LocationEffort): RawClientLocationEffort {
+function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
   return {
     locationID: effort.locationID,
     startDate: effort.startDate,

@@ -1,6 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
-import type { ClientLocationEffort } from './client_location_effort';
+import type { LocationGraphData } from './location_graph_data';
 
 export interface ClusteringConfig {
   maxClusters: number;
@@ -14,7 +14,7 @@ export interface ClusteringConfig {
 export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
-  clientEffortSet: ClientLocationEffort[];
+  locationGraphDataSet: LocationGraphData[];
   perVisitTotalsPointSets: ClusterPoints;
   perPersonVisitTotalsPointSets: ClusterPoints;
 }
@@ -26,23 +26,23 @@ export interface ClusterPoints {
 
 export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  clientEffortSet: ClientLocationEffort[],
+  locationGraphDataSet: LocationGraphData[],
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
 ): ClusterData {
   let clusterData: ClusterData = {
-    locationCount: clientEffortSet.length,
+    locationCount: locationGraphDataSet.length,
     visitsByTaxonUnique,
-    clientEffortSet,
+    locationGraphDataSet,
     perVisitTotalsPointSets: { pointCount: 0, pointSets: [] },
     perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
   };
-  for (const clientLocationEffort of clientEffortSet) {
+  for (const locationGraphData of locationGraphDataSet) {
     _addPointSet(
       clusterData.perVisitTotalsPointSets,
       _toGraphedPointSet(
-        clientLocationEffort.perVisitPoints,
+        locationGraphData.perVisitPoints,
         lowerBoundX,
         minPointsToRegress,
         maxPointsToRegress
@@ -51,7 +51,7 @@ export function toClusterData(
     _addPointSet(
       clusterData.perPersonVisitTotalsPointSets,
       _toGraphedPointSet(
-        clientLocationEffort.perPersonVisitPoints,
+        locationGraphData.perPersonVisitPoints,
         lowerBoundX,
         minPointsToRegress,
         maxPointsToRegress

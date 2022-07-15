@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { toClientEffortSetByCluster } from './client_location_effort';
+  import { toClientEffortSetByCluster } from './location_graph_data';
   import {
     type ClusteringConfig,
     type ClusterData,
@@ -115,7 +115,7 @@
     $clusterStore = null;
   }
 
-  function _getGraphSpec(
+  function _getModelGraphSpec(
     datasetID: DatasetID,
     clusterData: ClusterData
   ): EffortGraphSpec {
@@ -137,6 +137,29 @@
         };
     }
   }
+
+  // function _getPlainGraphSpec(
+  //   datasetID: DatasetID,
+  //   clusterData: ClusterData
+  // ): EffortGraphSpec {
+  //   // datasetID is passed in to get reactivity in the HTML
+  //   switch (datasetID) {
+  //     case DatasetID.visits:
+  //       return {
+  //         graphTitle: 'Cumulative species across visits',
+  //         xAxisLabel: 'visits',
+  //         yAxisLabel: 'cumulative species',
+  //         multiPointSet: clusterData.locationGraphDataSet
+  //       };
+  //     case DatasetID.personVisits:
+  //       return {
+  //         graphTitle: 'Cumulative species across person-visits',
+  //         xAxisLabel: 'person-visits',
+  //         yAxisLabel: 'cumulative species',
+  //         multiPointSet: clusterData.perPersonVisitTotalsPointSets
+  //       };
+  //   }
+  // }
 
   async function _loadData(config: ClusteringConfig) {
     clusterStore.set(null);
@@ -160,7 +183,7 @@
         config.comparedTaxa,
         taxaClusters
       );
-      const clientEffortSetByCluster = toClientEffortSetByCluster(
+      const locationGraphDataSetByCluster = toClientEffortSetByCluster(
         rawClientEffortSetByCluster
       );
 
@@ -169,11 +192,11 @@
       loadState = LoadState.generatingPlotData;
       const dataByCluster: ClusterData[] = [];
       for (let i = 0; i < taxaClusters.length; ++i) {
-        const clientEffortSet = clientEffortSetByCluster[i];
+        const locationGraphDataSet = locationGraphDataSetByCluster[i];
         dataByCluster.push(
           toClusterData(
             taxaClusters[i].visitsByTaxonUnique,
-            clientEffortSet,
+            locationGraphDataSet,
             LOWER_BOUND_X,
             config.minPointsToRegress,
             config.maxPointsToRegress
@@ -240,7 +263,7 @@
       clusterModel = null;
     } else {
       const clusterData = $clusterStore!.dataByCluster[clusterIndex];
-      const graphSpec = _getGraphSpec(datasetID, clusterData as ClusterData);
+      const graphSpec = _getModelGraphSpec(datasetID, clusterData as ClusterData);
       clusterModel = FittedModel.create(
         graphSpec.multiPointSet,
         MIN_X_ALLOWING_REGRESS,
@@ -386,13 +409,28 @@
       {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
       {@const multipleClusters =
         $clusterStore && $clusterStore.dataByCluster.length > 1}
-      {@const graphSpec = _getGraphSpec(datasetID, clusterData)}
-      {@const graphTitle =
-        (multipleClusters ? `#${clusterIndex + 1}: ` : '') +
-        graphSpec.graphTitle +
-        ` (${clusterData.locationCount} caves)`}
+      {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
-      {#if clusterModel !== null}
+      {#if clusterModel === null}
+        {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
+        {@const graphTitle =
+          graphTitlePrefix +
+          graphSpec.graphTitle +
+          ` (${clusterData.locationCount} caves)`}
+        <div class="row mt-3 mb-1">
+          <div class="col" style="height: 350px">
+            <EffortGraph title={graphTitle} hexColor={PINK_HEXCOLOR} spec={graphSpec} />
+          </div>
+        </div>
+        <div class="row mb-3 gx-0 ms-4">
+          <div class="col-sm-6">Too few points to perform a regression.</div>
+        </div>
+      {:else}
+        {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
+        {@const graphTitle =
+          graphTitlePrefix +
+          graphSpec.graphTitle +
+          ` (${clusterData.locationCount} caves)`}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
@@ -409,15 +447,6 @@
           </div>
         </div>
         <ModelStats hexColor={PINK_HEXCOLOR} model={clusterModel} />
-      {:else}
-        <div class="row mt-3 mb-1">
-          <div class="col" style="height: 350px">
-            <EffortGraph title={graphTitle} hexColor={PINK_HEXCOLOR} spec={graphSpec} />
-          </div>
-        </div>
-        <div class="row mb-3 gx-0 ms-4">
-          <div class="col-sm-6">Too few points to perform a regression.</div>
-        </div>
       {/if}
     {/if}
   </div>
