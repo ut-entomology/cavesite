@@ -1,7 +1,7 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { ClientLocationEffort } from './client_location_effort';
-import { type GraphPointSet, createEffortGraphSpecPerXUnit } from './effort_graphs';
+import { type GraphedPoints, createGraphedPoints } from './effort_graphs';
 import { FittedModel } from './fitted_model';
 import type { ModelAverager } from './model_averager';
 
@@ -26,7 +26,7 @@ export interface ClusterData {
 
 export interface MultiGraphPointSet {
   pointCount: number;
-  pointSets: GraphPointSet[];
+  pointSets: Point[][];
 }
 
 export function toClusterData(
@@ -44,30 +44,27 @@ export function toClusterData(
     perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
   };
   for (const clientEffort of clientEffortSet) {
-    const pointSetPerXUnit = createEffortGraphSpecPerXUnit(
+    const graphedPoints = createGraphedPoints(
       clientEffort,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
     );
-    _addGraphSpec(
-      clusterData.perDayTotalsPointSets,
-      pointSetPerXUnit.perDayTotalsGraph
-    );
+    _addGraphSpec(clusterData.perDayTotalsPointSets, graphedPoints.perDayTotalsPoints);
     _addGraphSpec(
       clusterData.perVisitTotalsPointSets,
-      pointSetPerXUnit.perVisitTotalsGraph
+      graphedPoints.perVisitTotalsPoints
     );
     _addGraphSpec(
       clusterData.perPersonVisitTotalsPointSets,
-      pointSetPerXUnit.perPersonVisitTotalsGraph
+      graphedPoints.perPersonVisitTotalsPoints
     );
   }
   return clusterData;
 }
 
 export function toFittedModel(
-  sizedGraphSpec: MultiGraphPointSet,
+  multiGraphPointSet: MultiGraphPointSet,
   minXAllowingRegression: number,
   modelWeightPower: number
 ): FittedModel | null {
@@ -78,8 +75,7 @@ export function toFittedModel(
 
   // Loop for each graph spec at one per location in the cluster.
 
-  for (const pointSet of sizedGraphSpec.pointSets) {
-    const points = pointSet.points;
+  for (const points of multiGraphPointSet.pointSets) {
     const lastPoint = points[points.length - 1];
     if (
       points.length >= MIN_POINTS_TO_REGRESS &&
@@ -89,7 +85,7 @@ export function toFittedModel(
       if (modelAverager == null) {
         modelAverager = locationModel.getModelAverager();
       }
-      modelAverager.addModel(pointSet, locationModel, modelWeightPower);
+      modelAverager.addModel(points, locationModel, modelWeightPower);
     }
     if (points.length > 0) {
       allPoints.push(...points);
@@ -106,7 +102,7 @@ export function toFittedModel(
   return averageModel;
 }
 
-function _addGraphSpec(sizedSpec: MultiGraphPointSet, spec: GraphPointSet): void {
-  sizedSpec.pointCount += spec.points.length;
-  sizedSpec.pointSets.push(spec);
+function _addGraphSpec(multiGraphPointSet: MultiGraphPointSet, points: Point[]): void {
+  multiGraphPointSet.pointCount += points.length;
+  multiGraphPointSet.pointSets.push(points);
 }

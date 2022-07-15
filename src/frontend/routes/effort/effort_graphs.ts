@@ -1,33 +1,33 @@
 import type { Point } from '../../../shared/point';
 import type { ClientLocationEffort } from './client_location_effort';
 
-export interface EffortGraphSpecPerXUnit {
-  perDayTotalsGraph: GraphPointSet;
-  perVisitTotalsGraph: GraphPointSet;
-  perPersonVisitTotalsGraph: GraphPointSet;
+export interface GraphedPoints {
+  perDayTotalsPoints: Point[];
+  perVisitTotalsPoints: Point[];
+  perPersonVisitTotalsPoints: Point[];
 }
 
-export function createEffortGraphSpecPerXUnit(
+export function createGraphedPoints(
   clientLocationEffort: ClientLocationEffort,
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
-): EffortGraphSpecPerXUnit {
+): GraphedPoints {
   return {
-    perDayTotalsGraph: new SpeciesByDaysGraphSpec(
-      clientLocationEffort,
+    perDayTotalsPoints: _toGraphedPoints(
+      clientLocationEffort.perDayPoints,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
     ),
-    perVisitTotalsGraph: new SpeciesByVisitsGraphSpec(
-      clientLocationEffort,
+    perVisitTotalsPoints: _toGraphedPoints(
+      clientLocationEffort.perVisitPoints,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
     ),
-    perPersonVisitTotalsGraph: new SpeciesByPersonVisitsGraphSpec(
-      clientLocationEffort,
+    perPersonVisitTotalsPoints: _toGraphedPoints(
+      clientLocationEffort.perPersonVisitPoints,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress
@@ -35,79 +35,23 @@ export function createEffortGraphSpecPerXUnit(
   };
 }
 
-export abstract class GraphPointSet {
-  points: Point[] = [];
+function _toGraphedPoints(
+  dataPoints: Point[],
+  lowerBoundX: number,
+  minPointsToRegress: number,
+  maxPointsToRegress: number
+) {
+  const graphedPoints: Point[] = [];
 
-  constructor(
-    clientLocationEffort: ClientLocationEffort,
-    lowerBoundX: number,
-    minPointsToRegress: number,
-    maxPointsToRegress: number
-  ) {
-    const effortPoints = this._getEffortPoints(clientLocationEffort);
-    for (let i = 0; i < effortPoints.length; ++i) {
-      const point = effortPoints[i];
-      if (point.x >= lowerBoundX) {
-        if (this.points.length == 0) {
-          if (effortPoints.length - i < minPointsToRegress) break;
-          if (effortPoints.length - i > maxPointsToRegress) continue;
-        }
-        this.points.push(point);
+  for (let i = 0; i < dataPoints.length; ++i) {
+    const point = dataPoints[i];
+    if (point.x >= lowerBoundX) {
+      if (graphedPoints.length == 0) {
+        if (dataPoints.length - i < minPointsToRegress) break;
+        if (dataPoints.length - i > maxPointsToRegress) continue;
       }
+      graphedPoints.push(point);
     }
   }
-
-  protected abstract _getEffortPoints(
-    clientLocationEffort: ClientLocationEffort
-  ): Point[];
-}
-
-export class SpeciesByDaysGraphSpec extends GraphPointSet {
-  constructor(
-    clientLocationEffort: ClientLocationEffort,
-    minDays: number,
-    minPointsToRegress: number,
-    maxPointsToRegress: number
-  ) {
-    super(clientLocationEffort, minDays, minPointsToRegress, maxPointsToRegress);
-  }
-
-  protected _getEffortPoints(clientLocationEffort: ClientLocationEffort): Point[] {
-    return clientLocationEffort.perDayPoints;
-  }
-}
-
-export class SpeciesByVisitsGraphSpec extends GraphPointSet {
-  constructor(
-    clientLocationEffort: ClientLocationEffort,
-    minVisits: number,
-    minPointsToRegress: number,
-    maxPointsToRegress: number
-  ) {
-    super(clientLocationEffort, minVisits, minPointsToRegress, maxPointsToRegress);
-  }
-
-  protected _getEffortPoints(clientLocationEffort: ClientLocationEffort): Point[] {
-    return clientLocationEffort.perVisitPoints;
-  }
-}
-
-export class SpeciesByPersonVisitsGraphSpec extends GraphPointSet {
-  constructor(
-    clientLocationEffort: ClientLocationEffort,
-    minPersonVisits: number,
-    minPointsToRegress: number,
-    maxPointsToRegress: number
-  ) {
-    super(
-      clientLocationEffort,
-      minPersonVisits,
-      minPointsToRegress,
-      maxPointsToRegress
-    );
-  }
-
-  protected _getEffortPoints(clientLocationEffort: ClientLocationEffort): Point[] {
-    return clientLocationEffort.perPersonVisitPoints;
-  }
+  return graphedPoints;
 }

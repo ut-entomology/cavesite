@@ -9,8 +9,7 @@
     type ClusteringConfig,
     type ClusterData,
     toClusterData,
-    toFittedModel,
-    MultiGraphPointSet
+    toFittedModel
   } from './cluster_data';
 
   interface Clustering {
@@ -54,7 +53,6 @@
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import type { FittedModel } from './fitted_model';
   import { ClusterColorSet } from './cluster_color_set';
-  import type { GraphPointSet } from './effort_graphs';
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collection Effort';

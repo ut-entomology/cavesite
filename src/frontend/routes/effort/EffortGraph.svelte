@@ -26,8 +26,6 @@
   $: models = model === null ? [] : [model];
 
   function _legendFilter(item: any) {
-    // When using a sized spec, show a legend for the first line and then
-    // one for each model; otherwise show all legends.
     return (
       item.datasetIndex == 0 || item.datasetIndex >= spec.multiPointSet.pointSets.length
     );
@@ -37,11 +35,11 @@
 <Scatter
   data={{
     datasets: [
-      ...spec.multiPointSet.pointSets.map((pointSet) => {
+      ...spec.multiPointSet.pointSets.map((points) => {
         return {
           showLine: true,
           label: spec.multiPointSet.pointCount + ' points',
-          data: pointSet.points,
+          data: points,
           // borderColor: _toLocationHexColor(i),
           borderWidth: 1,
           hoverBorderWidth: 3,
