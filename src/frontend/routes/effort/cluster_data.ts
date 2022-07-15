@@ -5,20 +5,11 @@ import { type EffortGraphSpec, createEffortGraphSpecPerXUnit } from './effort_gr
 import {
   type PlottableModelFactory,
   PlottableModel,
-  LogYModel,
-  LogYPlus1Model,
-  SquareRootYModel
+  PowerXModel
 } from './plottable_model';
 import type { ModelAverager } from './model_averager';
 
 const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regression
-
-export enum YAxisModel {
-  none = 'y',
-  logY = 'log(y)',
-  logYPlus1 = 'log(y+1)',
-  squareRootY = 'sqrt(y)'
-}
 
 export interface ClusteringConfig {
   maxClusters: number;
@@ -79,71 +70,48 @@ export function toPerLocationClusterData(
   return clusterData;
 }
 
-export function toPerLocationModels(
-  modelFactories: PlottableModelFactory[],
-  yAxisModel: YAxisModel,
+export function toPerLocationModel(
+  hexColor: string,
   sizedGraphSpec: SizedEffortGraphSpec,
   minXAllowingRegression: number,
   modelWeightPower: number
-): PlottableModel[] {
-  const models: PlottableModel[] = [];
-  const createModel = _makeModelFactory(yAxisModel);
+): PlottableModel | null {
+  const allPoints: Point[] = [];
+  let modelAverager: ModelAverager | null = null;
+  let lowestX = Infinity;
+  let highestX = 0;
 
-  for (const modelFactory of modelFactories) {
-    const allPoints: Point[] = [];
-    let modelAverager: ModelAverager | null = null;
-    let lowestX = Infinity;
-    let highestX = 0;
+  // Loop for each graph spec at one per location in the cluster.
 
-    // Loop for each graph spec at one per location in the cluster.
-
-    for (const graphSpec of sizedGraphSpec.graphSpecs) {
-      const points = graphSpec.points;
-      const lastPoint = points[points.length - 1];
-      if (
-        points.length >= MIN_POINTS_TO_REGRESS &&
-        lastPoint.x >= minXAllowingRegression
-      ) {
-        const locationModel = createModel(modelFactory, points);
-        if (modelAverager == null) {
-          modelAverager = locationModel.getModelAverager();
-        }
-        modelAverager.addModel(graphSpec, locationModel, modelWeightPower);
+  for (const graphSpec of sizedGraphSpec.graphSpecs) {
+    const points = graphSpec.points;
+    const lastPoint = points[points.length - 1];
+    if (
+      points.length >= MIN_POINTS_TO_REGRESS &&
+      lastPoint.x >= minXAllowingRegression
+    ) {
+      const locationModel = new PowerXModel(hexColor, points);
+      if (modelAverager == null) {
+        modelAverager = locationModel.getModelAverager();
       }
-      if (points.length > 0) {
-        allPoints.push(...points);
-        if (points[0].x < lowestX) lowestX = points[0].x;
-        if (lastPoint.x > highestX) highestX = lastPoint.x;
-      }
+      modelAverager.addModel(graphSpec, locationModel, modelWeightPower);
     }
-
-    // Combine the models if we were able to generate at least one model.
-
-    if (modelAverager !== null) {
-      const averageModel = modelAverager.getAverageModel(lowestX, highestX);
-      averageModel.regression.evaluate(allPoints);
-      models.push(averageModel);
+    if (points.length > 0) {
+      allPoints.push(...points);
+      if (points[0].x < lowestX) lowestX = points[0].x;
+      if (lastPoint.x > highestX) highestX = lastPoint.x;
     }
   }
-  return models;
+
+  // Combine the models if we were able to generate at least one model.
+
+  if (modelAverager === null) return null;
+  const averageModel = modelAverager.getAverageModel(lowestX, highestX);
+  averageModel.regression.evaluate(allPoints);
+  return averageModel;
 }
 
 function _addGraphSpec(sizedSpec: SizedEffortGraphSpec, spec: EffortGraphSpec): void {
   sizedSpec.pointCount += spec.points.length;
   sizedSpec.graphSpecs.push(spec);
-}
-
-function _makeModelFactory(
-  yAxisModel: YAxisModel
-): (factory: PlottableModelFactory, points: Point[]) => PlottableModel {
-  switch (yAxisModel) {
-    case YAxisModel.none:
-      return (modelFactory, points) => modelFactory(points);
-    case YAxisModel.logY:
-      return (modelFactory, points) => new LogYModel(points, modelFactory);
-    case YAxisModel.logYPlus1:
-      return (modelFactory, points) => new LogYPlus1Model(points, modelFactory);
-    case YAxisModel.squareRootY:
-      return (modelFactory, points) => new SquareRootYModel(points, modelFactory);
-  }
 }

@@ -1,7 +1,6 @@
 import type { Point } from '../../../shared/point';
 import {
   type XTransform,
-  type YTransform,
   type FittedYTakingCoefs,
   Regression,
   shortenValue
@@ -9,11 +8,7 @@ import {
 import { type ModelAverager, PolynomialAverager, PlotAverager } from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
-export type PlottableModelFactory = (
-  dataPoints: Point[],
-  yTransform?: YTransform
-) => PlottableModel;
-const identityY: YTransform = (y) => y;
+export type PlottableModelFactory = (dataPoints: Point[]) => PlottableModel;
 
 interface RegressionSearchConfig {
   lowerBoundScalar: number;
@@ -29,24 +24,17 @@ export abstract class PlottableModel {
   equation!: string;
   lowestX = Infinity;
   highestX = 0;
-  yTransform?: YTransform;
   regression!: Regression;
 
   private _modelPoints: Point[] | null = null;
 
-  constructor(
-    name: string,
-    hexColor: string,
-    dataPoints: Point[],
-    yTransform?: YTransform
-  ) {
+  constructor(name: string, hexColor: string, dataPoints: Point[]) {
     this.name = name;
     this.hexColor = hexColor;
     for (const point of dataPoints) {
       if (point.x < this.lowestX) this.lowestX = point.x;
       if (point.x > this.highestX) this.highestX = point.x;
     }
-    this.yTransform = yTransform;
   }
 
   abstract getXFormula(): string;
@@ -87,14 +75,13 @@ export class PowerXModel extends PlottableModel {
   constructor(
     hexColor: string,
     dataPoints: Point[],
-    yTransform = identityY,
     modelFactory?: PlottableModelFactory
   ) {
-    super('power fit', hexColor, dataPoints, yTransform);
+    super('power fit', hexColor, dataPoints);
     this._finalModelFactory = modelFactory
       ? modelFactory
-      : (points: Point[], yTransform?: YTransform) => {
-          return new PowerXModel(hexColor, points, yTransform);
+      : (points: Point[]) => {
+          return new PowerXModel(hexColor, points);
         };
 
     const [regression, power] = _findBestRMSEScalar_nAry(
@@ -108,7 +95,6 @@ export class PowerXModel extends PlottableModel {
       (dataPoints, scalar) => {
         return new Regression(
           (x) => [Math.pow(x, scalar), 1],
-          yTransform,
           (coefs, x) => coefs[0] * Math.pow(x, scalar) + coefs[1],
           dataPoints
         );
@@ -136,221 +122,24 @@ export class PowerXModel extends PlottableModel {
   }
 
   getModelAverager(): ModelAverager {
-    return new PlotAverager(this._finalModelFactory, this.yTransform);
+    return new PlotAverager(this._finalModelFactory);
   }
 }
 
 export class LinearXModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('linear fit', hexColor, dataPoints, yTransform);
+  constructor(hexColor: string, dataPoints: Point[]) {
+    super('linear fit', hexColor, dataPoints);
 
     const xTransform: XTransform = (x) => [x, 1];
     const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
       coefs[0] * x + coefs[1];
 
-    this.regression = new Regression(
-      xTransform,
-      yTransform,
-      fittedYTakingCoefs,
-      dataPoints
-    );
+    this.regression = new Regression(xTransform, fittedYTakingCoefs, dataPoints);
   }
 
   getXFormula(): string {
     const coefs = this.regression.jstats.coef;
     return [_coefHtml(coefs[0], true), ' x ', _coefHtml(coefs[1])].join(' ');
-  }
-}
-
-export class QuadraticXModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('quadratic fit', hexColor, dataPoints, yTransform);
-
-    const xTransform: XTransform = (x) => [x * x, x, 1];
-    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
-      coefs[0] * x * x + coefs[1] * x + coefs[2];
-
-    this.regression = new Regression(
-      xTransform,
-      yTransform,
-      fittedYTakingCoefs,
-      dataPoints
-    );
-  }
-
-  getXFormula(): string {
-    const coefs = this.regression.jstats.coef;
-    return [
-      _coefHtml(coefs[0], true),
-      ' x<sup>2</sup> ',
-      _coefHtml(coefs[1]),
-      ' x ',
-      _coefHtml(coefs[2])
-    ].join(' ');
-  }
-}
-
-export class LogXModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('log fit', hexColor, dataPoints, yTransform);
-
-    const xTransform: XTransform = (x) => [Math.log(x), 1];
-    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
-      coefs[0] * Math.log(x) + coefs[1];
-
-    this.regression = new Regression(
-      xTransform,
-      yTransform,
-      fittedYTakingCoefs,
-      dataPoints
-    );
-  }
-
-  getXFormula(): string {
-    const coefs = this.regression.jstats.coef;
-    return [_coefHtml(coefs[0], true), ' ln(x) ', _coefHtml(coefs[1])].join(' ');
-  }
-}
-
-export class Order3XModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('3rd order fit', hexColor, dataPoints, yTransform);
-
-    const xTransform: XTransform = (x) => [x * x * x, x * x, x, 1];
-    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
-      coefs[0] * x * x * x + coefs[1] * x * x + coefs[2] * x + coefs[3];
-
-    this.regression = new Regression(
-      xTransform,
-      yTransform,
-      fittedYTakingCoefs,
-      dataPoints
-    );
-  }
-
-  getXFormula(): string {
-    const coefs = this.regression.jstats.coef;
-    return [
-      _coefHtml(coefs[0], true),
-      ' x<sup>3</sup> ',
-      _coefHtml(coefs[1]),
-      ' x<sup>2</sup> ',
-      _coefHtml(coefs[2]),
-      ' x ',
-      _coefHtml(coefs[3])
-    ].join(' ');
-  }
-}
-
-export class Order4XModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[], yTransform = identityY) {
-    super('4th order fit', hexColor, dataPoints, yTransform);
-
-    const xTransform: XTransform = (x) => [Math.pow(x, 4), Math.pow(x, 3), x * x, x, 1];
-    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
-      coefs[0] * Math.pow(x, 4) +
-      coefs[1] * Math.pow(x, 3) +
-      coefs[2] * x * x +
-      coefs[3] * x +
-      coefs[4];
-
-    this.regression = new Regression(
-      xTransform,
-      yTransform,
-      fittedYTakingCoefs,
-      dataPoints
-    );
-  }
-
-  getXFormula(): string {
-    const coefs = this.regression.jstats.coef;
-    return [
-      _coefHtml(coefs[0], true),
-      ' x<sup>4</sup> ',
-      _coefHtml(coefs[1]),
-      ' x<sup>3</sup> ',
-      _coefHtml(coefs[2]),
-      ' x<sup>2</sup> ',
-      _coefHtml(coefs[3]),
-      ' x ',
-      _coefHtml(coefs[4])
-    ].join(' ');
-  }
-}
-
-export abstract class YModel extends PlottableModel {
-  yTransform!: (y: number) => number;
-  protected _xFormula!: string;
-
-  constructor(dataPoints: Point[]) {
-    // Deferred properties get copied over within _findBestYScalar().
-    super('' /* deferred */, '' /* deferred */, dataPoints);
-  }
-
-  convertDataPoints(dataPoints: Point[]): Point[] {
-    return dataPoints.map((p) => {
-      return { x: p.x, y: this.yTransform(p.y) };
-    });
-  }
-
-  getXFormula(): string {
-    return this._xFormula;
-  }
-
-  abstract getYFormula(): string;
-}
-
-export class LogYModel extends YModel {
-  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
-    super(dataPoints);
-
-    this.yTransform = (y: number) => Math.log(y);
-
-    const model = baseModelFactory(dataPoints, this.yTransform);
-    Object.assign(this, model);
-
-    this.name += ' vs. ln(y)';
-    this._xFormula = (model as PlottableModel).getXFormula();
-  }
-
-  getYFormula(): string {
-    return `log(y)`;
-  }
-}
-
-export class LogYPlus1Model extends YModel {
-  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
-    super(dataPoints);
-
-    this.yTransform = (y: number) => Math.log(y + 1);
-
-    const model = baseModelFactory(dataPoints, this.yTransform);
-    Object.assign(this, model);
-
-    this.name += ' vs. ln(y+1)';
-    this._xFormula = (model as PlottableModel).getXFormula();
-  }
-
-  getYFormula(): string {
-    return `log(y+1)`;
-  }
-}
-
-export class SquareRootYModel extends YModel {
-  constructor(dataPoints: Point[], baseModelFactory: PlottableModelFactory) {
-    super(dataPoints);
-
-    this.yTransform = (y: number) => Math.sqrt(y);
-
-    const model = baseModelFactory(dataPoints, this.yTransform);
-    Object.assign(this, model);
-
-    this.name += ' vs. sqrt(y)';
-    this._xFormula = (model as PlottableModel).getXFormula();
-  }
-
-  getYFormula(): string {
-    return `sqrt(y)`;
   }
 }
 

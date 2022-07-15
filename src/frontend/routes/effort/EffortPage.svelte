@@ -2,13 +2,11 @@
   import { createSessionStore } from '../../util/session_store';
 
   import { type LocationEffortData, toEffortDataSetByCluster } from './effort_data';
-  import type { PlottableModelFactory } from './plottable_model';
   import {
-    YAxisModel,
     type ClusteringConfig,
     type PerLocationClusterData,
     toPerLocationClusterData,
-    toPerLocationModels,
+    toPerLocationModel,
     SizedEffortGraphSpec
   } from './cluster_data';
 
@@ -46,16 +44,15 @@
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
-  import { type PlottableModel, LinearXModel, PowerXModel } from './plottable_model';
+  import type { PlottableModel } from './plottable_model';
   import { ClusterColorSet } from './cluster_color_set';
   import type { EffortGraphSpec } from './effort_graphs';
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collection Effort';
 
-  const yAxisModel = YAxisModel.none;
   const MAX_CLUSTERS = 10;
-  const LOWER_BOUND_X = 10;
+  const LOWER_BOUND_X = 0;
   const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 10;
   const MODEL_WEIGHT_POWER = 0;
@@ -94,14 +91,6 @@
     personVisits = 'per-person-visit-set'
   }
 
-  const modelFactories: PlottableModelFactory[] = [];
-  modelFactories.push((dataPoints, yTransform) => {
-    return new PowerXModel(PINK_HEXCOLOR, dataPoints, yTransform);
-  });
-  modelFactories.push((dataPoints, yTransform) => {
-    return new LinearXModel(AQUA_HEXCOLOR, dataPoints, yTransform);
-  });
-
   let clusteringRequest: ClusteringConfig | null = null;
   // @ts-ignore
   let loadState = LoadState.idle;
@@ -109,7 +98,7 @@
   let clusterColors: ClusterColorSet[] = [];
   let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
-  let models: PlottableModel[];
+  let clusterModel: PlottableModel | null = null;
 
   $: if ($clustering) {
     clusterSpec.comparedTaxa = $clustering.config.comparedTaxa;
@@ -126,21 +115,7 @@
   }
 
   $: if ($clustering) {
-    loadState = LoadState.fittingModels;
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
-
-    const clusterData = $clustering.dataByCluster[clusterIndex];
-    const graphData = _getPerLocationGraphData(
-      datasetID,
-      clusterData as PerLocationClusterData
-    );
-    models = toPerLocationModels(
-      modelFactories,
-      yAxisModel,
-      graphData,
-      MIN_X_ALLOWING_REGRESS,
-      MODEL_WEIGHT_POWER
-    );
     loadState = LoadState.ready;
   }
 
@@ -272,7 +247,23 @@
     }
   }
 
-  function _regressPlot() {}
+  function _toggleModel() {
+    if (clusterModel) {
+      clusterModel = null;
+    } else {
+      const clusterData = $clustering!.dataByCluster[clusterIndex];
+      const graphData = _getPerLocationGraphData(
+        datasetID,
+        clusterData as PerLocationClusterData
+      );
+      clusterModel = toPerLocationModel(
+        PINK_HEXCOLOR,
+        graphData,
+        MIN_X_ALLOWING_REGRESS,
+        MODEL_WEIGHT_POWER
+      );
+    }
+  }
 
   afterUpdate(() => _setClusterSelectorColor(clusterIndex));
 </script>
@@ -410,7 +401,7 @@
             </div>
           </div>
           <div class="col-auto">
-            <button class="btn btn-major" type="button" on:click={_regressPlot}
+            <button class="btn btn-major" type="button" on:click={_toggleModel}
               >Fit Curve</button
             >
           </div>
@@ -425,25 +416,21 @@
         _getGraphTitle(graphSpec) +
         ` (${clusterData.locationCount} caves)`}
 
-      {#if models.length > 0}
+      {#if clusterModel !== null}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
               title={graphTitle}
               spec={graphSpec}
-              {models}
-              yFormula={models ? models[0].getYFormula() : 'y'}
+              model={clusterModel}
+              yFormula="y"
             />
           </div>
         </div>
         <div class="row mb-3 gx-0 ms-4">
-          {#each models as model}
-            <div class="col-sm-6"><ResidualsPlot {model} /></div>
-          {/each}
+          <div class="col-sm-6"><ResidualsPlot model={clusterModel} /></div>
         </div>
-        {#each models as model}
-          <ModelStats {model} />
-        {/each}
+        <ModelStats model={clusterModel} />
       {:else}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">

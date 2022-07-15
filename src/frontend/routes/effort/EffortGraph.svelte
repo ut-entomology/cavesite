@@ -8,11 +8,12 @@
 
   export let title: string;
   export let spec: SizedEffortGraphSpec;
-  export let models: PlottableModel[] = [];
+  export let model: PlottableModel | null = null;
   export let yFormula: string | null = null;
 
   $: xAxisLabel = spec.graphSpecs[0].xAxisLabel;
   $: yAxisLabel = spec.graphSpecs[0].yAxisLabel;
+  $: models = model === null ? [] : [model];
 
   function _legendFilter(item: any) {
     // When using a sized spec, show a legend for the first line and then
@@ -32,8 +33,8 @@
           showLine: true,
           label: spec.pointCount + ' points',
           data:
-            models.length > 0
-              ? models[0].convertDataPoints(graphSpec.points)
+            model !== null
+              ? model.convertDataPoints(graphSpec.points)
               : graphSpec.points,
           // borderColor: _toLocationHexColor(i),
           borderWidth: 1,

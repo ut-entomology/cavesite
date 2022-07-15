@@ -3,7 +3,6 @@ import * as jstat from 'jstat';
 import type { Point } from '../../../shared/point';
 
 export type XTransform = (x: number) => number[];
-export type YTransform = (y: number) => number;
 export type FittedY = (x: number) => number;
 export type FittedYTakingCoefs = (coefs: number[], x: number) => number;
 
@@ -23,7 +22,6 @@ export class Regression {
 
   constructor(
     xTransform: XTransform,
-    yTransform: YTransform,
     fittedYTakingCoefs: FittedYTakingCoefs,
     dataPoints: Point[]
   ) {
@@ -31,7 +29,7 @@ export class Regression {
     const dependentValues: number[] = [];
     for (const point of dataPoints) {
       independentValues.push(xTransform(point.x));
-      dependentValues.push(yTransform(point.y));
+      dependentValues.push(point.y);
     }
     // Copy jstats into a new structure to jettison unused baggage.
     const jstats = jstat.models.ols(dependentValues, independentValues);

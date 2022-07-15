@@ -1,6 +1,6 @@
 import type { EffortGraphSpec } from './effort_graphs';
 import type { PlottableModel, PlottableModelFactory } from './plottable_model';
-import type { FittedY, YTransform } from './regression';
+import type { FittedY } from './regression';
 import type { Point } from '../../../shared/point';
 
 export abstract class ModelAverager {
@@ -66,15 +66,13 @@ interface _ModelInfo {
 
 export class PlotAverager extends ModelAverager {
   private _modelFactory: PlottableModelFactory;
-  private _yTransform?: YTransform;
   private _baseModel: PlottableModel | null = null;
   private _modelInfos: _ModelInfo[] = [];
   private _totalWeight = 0;
 
-  constructor(modelFactory: PlottableModelFactory, yTransform?: YTransform) {
+  constructor(modelFactory: PlottableModelFactory) {
     super();
     this._modelFactory = modelFactory;
-    this._yTransform = yTransform;
   }
 
   addModel(
@@ -106,6 +104,6 @@ export class PlotAverager extends ModelAverager {
       }
       points.push({ x, y: weightedYSum / this._totalWeight });
     }
-    return this._modelFactory(points, this._yTransform);
+    return this._modelFactory(points);
   }
 }
