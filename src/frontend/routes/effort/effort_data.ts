@@ -1,7 +1,7 @@
 import type { Point } from '../../../shared/point';
-import type { RawLocationEffortData } from '../../../shared/model';
+import type { RawClientLocationEffort } from '../../../shared/model';
 
-export interface LocationEffortData {
+export interface ClientLocationEffort {
   locationID: number;
   startDate: Date;
   endDate: Date;
@@ -10,41 +10,41 @@ export interface LocationEffortData {
   perPersonVisitPoints: Point[];
 }
 
-export function toEffortDataSetByCluster(
-  rawEffortDataSetByCluster: RawLocationEffortData[][]
-): LocationEffortData[][] {
-  const effortDataSetByCluster: LocationEffortData[][] = [];
-  for (const clusterResults of rawEffortDataSetByCluster) {
-    const clusterEffortData: LocationEffortData[] = [];
-    for (const rawEffortData of clusterResults) {
-      clusterEffortData.push(_toLocationEffortData(rawEffortData));
+export function toClientEffortSetByCluster(
+  rawClientEffortSetByCluster: RawClientLocationEffort[][]
+): ClientLocationEffort[][] {
+  const clientEffortSetByCluster: ClientLocationEffort[][] = [];
+  for (const clusterResults of rawClientEffortSetByCluster) {
+    const clientEffortSet: ClientLocationEffort[] = [];
+    for (const rawClientEffort of clusterResults) {
+      clientEffortSet.push(_toClientLocationEffort(rawClientEffort));
     }
-    effortDataSetByCluster.push(clusterEffortData);
+    clientEffortSetByCluster.push(clientEffortSet);
   }
-  return effortDataSetByCluster;
+  return clientEffortSetByCluster;
 }
 
 function _pairToPoint(pair: number[]) {
   return { x: pair[0], y: pair[1] };
 }
 
-function _toLocationEffortData(
-  rawEffortData: RawLocationEffortData
-): LocationEffortData {
-  const perDayPointPairs: number[][] = JSON.parse(rawEffortData.perDayPoints);
+function _toClientLocationEffort(
+  rawClientEffort: RawClientLocationEffort
+): ClientLocationEffort {
+  const perDayPointPairs: number[][] = JSON.parse(rawClientEffort.perDayPoints);
   const perDayPoints: Point[] = [];
   for (const pair of perDayPointPairs) {
     perDayPoints.push(_pairToPoint(pair));
   }
 
-  const perVisitPointPairs: number[][] = JSON.parse(rawEffortData.perVisitPoints);
+  const perVisitPointPairs: number[][] = JSON.parse(rawClientEffort.perVisitPoints);
   const perVisitPoints: Point[] = [];
   for (const pair of perVisitPointPairs) {
     perVisitPoints.push(_pairToPoint(pair));
   }
 
   const perPersonVisitPointPairs: number[][] = JSON.parse(
-    rawEffortData.perPersonVisitPoints
+    rawClientEffort.perPersonVisitPoints
   );
   const perPersonVisitPoints: Point[] = [];
   for (const pair of perPersonVisitPointPairs) {
@@ -52,9 +52,9 @@ function _toLocationEffortData(
   }
 
   return {
-    locationID: rawEffortData.locationID,
-    startDate: rawEffortData.startDate,
-    endDate: rawEffortData.endDate,
+    locationID: rawClientEffort.locationID,
+    startDate: rawClientEffort.startDate,
+    endDate: rawClientEffort.endDate,
     perDayPoints,
     perVisitPoints,
     perPersonVisitPoints

@@ -1,6 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
-import type { LocationEffortData } from './effort_data';
+import type { ClientLocationEffort } from './effort_data';
 import { type EffortGraphSpec, createEffortGraphSpecPerXUnit } from './effort_graphs';
 import { FittedModel } from './fitted_model';
 import type { ModelAverager } from './model_averager';
@@ -34,21 +34,21 @@ export interface SizedEffortGraphSpec {
 
 export function toPerLocationClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  effortDataSet: LocationEffortData[],
+  clientEffortSet: ClientLocationEffort[],
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
 ): PerLocationClusterData {
   let clusterData: PerLocationClusterData = {
-    locationCount: effortDataSet.length,
+    locationCount: clientEffortSet.length,
     visitsByTaxonUnique,
     perDayTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] },
     perPersonVisitTotalsGraphs: { pointCount: 0, graphSpecs: [] }
   };
-  for (const locationEffortData of effortDataSet) {
+  for (const clientEffort of clientEffortSet) {
     const graphSpecPerXUnit = createEffortGraphSpecPerXUnit(
-      locationEffortData,
+      clientEffort,
       lowerBoundX,
       minPointsToRegress,
       maxPointsToRegress

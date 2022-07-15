@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { type LocationEffortData, toEffortDataSetByCluster } from './effort_data';
+  import { type ClientLocationEffort, toClientEffortSetByCluster } from './effort_data';
   import {
     type ClusteringConfig,
     type PerLocationClusterData,
@@ -15,7 +15,7 @@
     dataByCluster: PerLocationClusterData[];
   }
 
-  const effortStore = createSessionStore<LocationEffortData[][] | null>(
+  const effortStore = createSessionStore<ClientLocationEffort[][] | null>(
     'effort_data',
     null
   );
@@ -166,26 +166,26 @@
       const taxaClusters = await sortIntoClusters($client, clusterSpec, seedLocations);
 
       loadState = LoadState.loadingPoints;
-      const rawEffortDataSetByCluster = await loadPoints(
+      const rawClientEffortSetByCluster = await loadPoints(
         $client,
         config.comparedTaxa,
         taxaClusters
       );
-      const effortDataSetByCluster = toEffortDataSetByCluster(
-        rawEffortDataSetByCluster
+      const clientEffortSetByCluster = toClientEffortSetByCluster(
+        rawClientEffortSetByCluster
       );
-      effortStore.set(effortDataSetByCluster);
+      effortStore.set(clientEffortSetByCluster);
 
       // Process the loaded data.
 
       loadState = LoadState.generatingPlotData;
       const dataByCluster: PerLocationClusterData[] = [];
       for (let i = 0; i < taxaClusters.length; ++i) {
-        const effortDataSet = effortDataSetByCluster[i];
+        const clientEffortSet = clientEffortSetByCluster[i];
         dataByCluster.push(
           toPerLocationClusterData(
             taxaClusters[i].visitsByTaxonUnique,
-            effortDataSet,
+            clientEffortSet,
             LOWER_BOUND_X,
             config.minPointsToRegress,
             config.maxPointsToRegress

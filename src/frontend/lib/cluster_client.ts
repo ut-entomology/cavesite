@@ -1,7 +1,7 @@
 import type { AxiosInstance } from 'axios';
 
 import type {
-  RawLocationEffortData,
+  RawClientLocationEffort,
   LocationSpec,
   ClusterSpec,
   ComparedTaxa,
@@ -42,8 +42,8 @@ export async function loadPoints(
   client: AxiosInstance,
   effortComparedTaxa: ComparedTaxa,
   taxaClusters: TaxaCluster[]
-): Promise<RawLocationEffortData[][]> {
-  const resultsByCluster: RawLocationEffortData[][] = [];
+): Promise<RawClientLocationEffort[][]> {
+  const resultsByCluster: RawClientLocationEffort[][] = [];
   for (const taxaCluster of taxaClusters) {
     if (taxaCluster.locationIDs.length > 0) {
       const res = await client.post('api/location/get_effort', {
