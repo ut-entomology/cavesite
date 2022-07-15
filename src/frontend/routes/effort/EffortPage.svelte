@@ -126,14 +126,14 @@
     switch (datasetID) {
       case DatasetID.visits:
         return {
-          graphTitle: 'Regressed cumulative species across visits',
+          graphTitle: 'Avg. regressed cumulative species across visits',
           xAxisLabel: 'visits in regressed range',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
-          graphTitle: 'Regressed cumulative species across person-visits',
+          graphTitle: 'Avg. regressed cumulative species across person-visits',
           xAxisLabel: 'person-visits in regressed range',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perPersonVisitPoints
