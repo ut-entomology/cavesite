@@ -15,7 +15,6 @@ export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
   clientEffortSet: ClientLocationEffort[];
-  perDayTotalsPointSets: ClusterPoints;
   perVisitTotalsPointSets: ClusterPoints;
   perPersonVisitTotalsPointSets: ClusterPoints;
 }
@@ -36,20 +35,10 @@ export function toClusterData(
     locationCount: clientEffortSet.length,
     visitsByTaxonUnique,
     clientEffortSet,
-    perDayTotalsPointSets: { pointCount: 0, pointSets: [] },
     perVisitTotalsPointSets: { pointCount: 0, pointSets: [] },
     perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
   };
   for (const clientLocationEffort of clientEffortSet) {
-    _addPointSet(
-      clusterData.perDayTotalsPointSets,
-      _toGraphedPointSet(
-        clientLocationEffort.perDayPoints,
-        lowerBoundX,
-        minPointsToRegress,
-        maxPointsToRegress
-      )
-    );
     _addPointSet(
       clusterData.perVisitTotalsPointSets,
       _toGraphedPointSet(

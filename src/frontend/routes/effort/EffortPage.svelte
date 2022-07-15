@@ -78,7 +78,6 @@
   }
 
   enum DatasetID {
-    days = 'days',
     visits = 'per-visit-set',
     personVisits = 'per-person-visit-set'
   }
@@ -122,13 +121,6 @@
   ): EffortGraphSpec {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
-      case DatasetID.days:
-        return {
-          graphTitle: 'Cumulative species across days',
-          xAxisLabel: 'days',
-          yAxisLabel: 'cumulative species',
-          multiPointSet: clusterData.perDayTotalsPointSets
-        };
       case DatasetID.visits:
         return {
           graphTitle: 'Cumulative species across visits',
@@ -359,15 +351,6 @@
           </div>
           <div class="col-auto">
             <div class="btn-group" role="group" aria-label="Switch datasets">
-              <input
-                type="radio"
-                class="btn-check"
-                bind:group={datasetID}
-                name="dataset"
-                id={DatasetID.days}
-                value={DatasetID.days}
-              />
-              <label class="btn btn-outline-primary" for={DatasetID.days}>Days</label>
               <input
                 type="radio"
                 class="btn-check"
