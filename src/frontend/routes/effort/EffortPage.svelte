@@ -371,16 +371,16 @@
           <div class="col-auto d-flex align-items-center">
             <div class="form-group">
               <div class="input-group">
-                <div id="cluster_color" />
                 <select
                   id="cluster_selector"
-                  class="form-select form-select-sm item_select ms-1"
+                  class="form-select form-select-sm item_select me-1"
                   bind:value={clusterIndex}
                 >
                   {#each $clusterStore.dataByCluster as _, i}
                     <option value={i}>Cluster #{i + 1}</option>
                   {/each}
                 </select>
+                <div id="cluster_color" />
               </div>
             </div>
           </div>
