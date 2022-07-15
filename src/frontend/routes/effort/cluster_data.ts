@@ -1,8 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { ClientLocationEffort } from './client_location_effort';
-import { FittedModel } from './fitted_model';
-import type { ModelAverager } from './model_averager';
 
 export interface ClusteringConfig {
   maxClusters: number;
@@ -43,7 +41,7 @@ export function toClusterData(
   for (const clientLocationEffort of clientEffortSet) {
     _addPointSet(
       clusterData.perDayTotalsPointSets,
-      _toGraphedPoints(
+      _toGraphedPointSet(
         clientLocationEffort.perDayPoints,
         lowerBoundX,
         minPointsToRegress,
@@ -52,7 +50,7 @@ export function toClusterData(
     );
     _addPointSet(
       clusterData.perVisitTotalsPointSets,
-      _toGraphedPoints(
+      _toGraphedPointSet(
         clientLocationEffort.perVisitPoints,
         lowerBoundX,
         minPointsToRegress,
@@ -61,7 +59,7 @@ export function toClusterData(
     );
     _addPointSet(
       clusterData.perPersonVisitTotalsPointSets,
-      _toGraphedPoints(
+      _toGraphedPointSet(
         clientLocationEffort.perPersonVisitPoints,
         lowerBoundX,
         minPointsToRegress,
@@ -77,7 +75,7 @@ function _addPointSet(clusterPoints: ClusterPoints, points: Point[]): void {
   clusterPoints.pointSets.push(points);
 }
 
-function _toGraphedPoints(
+function _toGraphedPointSet(
   dataPoints: Point[],
   lowerBoundX: number,
   minPointsToRegress: number,
