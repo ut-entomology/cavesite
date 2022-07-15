@@ -1,7 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { ClientLocationEffort } from './client_location_effort';
-import { type GraphedPoints, createGraphedPoints } from './effort_graphs';
 import { FittedModel } from './fitted_model';
 import type { ModelAverager } from './model_averager';
 
@@ -29,6 +28,12 @@ export interface MultiGraphPointSet {
   pointSets: Point[][];
 }
 
+interface _GraphedPoints {
+  perDayTotalsPoints: Point[];
+  perVisitTotalsPoints: Point[];
+  perPersonVisitTotalsPoints: Point[];
+}
+
 export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   clientEffortSet: ClientLocationEffort[],
@@ -44,7 +49,7 @@ export function toClusterData(
     perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
   };
   for (const clientEffort of clientEffortSet) {
-    const graphedPoints = createGraphedPoints(
+    const graphedPoints = _createGraphedPoints(
       clientEffort,
       lowerBoundX,
       minPointsToRegress,
@@ -105,4 +110,53 @@ export function toFittedModel(
 function _addGraphSpec(multiGraphPointSet: MultiGraphPointSet, points: Point[]): void {
   multiGraphPointSet.pointCount += points.length;
   multiGraphPointSet.pointSets.push(points);
+}
+
+function _createGraphedPoints(
+  clientLocationEffort: ClientLocationEffort,
+  lowerBoundX: number,
+  minPointsToRegress: number,
+  maxPointsToRegress: number
+): _GraphedPoints {
+  return {
+    perDayTotalsPoints: _toGraphedPoints(
+      clientLocationEffort.perDayPoints,
+      lowerBoundX,
+      minPointsToRegress,
+      maxPointsToRegress
+    ),
+    perVisitTotalsPoints: _toGraphedPoints(
+      clientLocationEffort.perVisitPoints,
+      lowerBoundX,
+      minPointsToRegress,
+      maxPointsToRegress
+    ),
+    perPersonVisitTotalsPoints: _toGraphedPoints(
+      clientLocationEffort.perPersonVisitPoints,
+      lowerBoundX,
+      minPointsToRegress,
+      maxPointsToRegress
+    )
+  };
+}
+
+function _toGraphedPoints(
+  dataPoints: Point[],
+  lowerBoundX: number,
+  minPointsToRegress: number,
+  maxPointsToRegress: number
+) {
+  const graphedPoints: Point[] = [];
+
+  for (let i = 0; i < dataPoints.length; ++i) {
+    const point = dataPoints[i];
+    if (point.x >= lowerBoundX) {
+      if (graphedPoints.length == 0) {
+        if (dataPoints.length - i < minPointsToRegress) break;
+        if (dataPoints.length - i > maxPointsToRegress) continue;
+      }
+      graphedPoints.push(point);
+    }
+  }
+  return graphedPoints;
 }

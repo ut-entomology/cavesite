@@ -1,4 +1,3 @@
-import type { GraphedPoints } from './effort_graphs';
 import type { FittedModel, FittedModelFactory } from './fitted_model';
 import type { FittedY } from './regression';
 import type { Point } from '../../../shared/point';
