@@ -28,12 +28,6 @@ export interface MultiGraphPointSet {
   pointSets: Point[][];
 }
 
-interface _GraphedPoints {
-  perDayTotalsPoints: Point[];
-  perVisitTotalsPoints: Point[];
-  perPersonVisitTotalsPoints: Point[];
-}
-
 export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   clientEffortSet: ClientLocationEffort[],
@@ -48,21 +42,33 @@ export function toClusterData(
     perVisitTotalsPointSets: { pointCount: 0, pointSets: [] },
     perPersonVisitTotalsPointSets: { pointCount: 0, pointSets: [] }
   };
-  for (const clientEffort of clientEffortSet) {
-    const graphedPoints = _createGraphedPoints(
-      clientEffort,
-      lowerBoundX,
-      minPointsToRegress,
-      maxPointsToRegress
+  for (const clientLocationEffort of clientEffortSet) {
+    _addGraphSpec(
+      clusterData.perDayTotalsPointSets,
+      _toGraphedPoints(
+        clientLocationEffort.perDayPoints,
+        lowerBoundX,
+        minPointsToRegress,
+        maxPointsToRegress
+      )
     );
-    _addGraphSpec(clusterData.perDayTotalsPointSets, graphedPoints.perDayTotalsPoints);
     _addGraphSpec(
       clusterData.perVisitTotalsPointSets,
-      graphedPoints.perVisitTotalsPoints
+      _toGraphedPoints(
+        clientLocationEffort.perVisitPoints,
+        lowerBoundX,
+        minPointsToRegress,
+        maxPointsToRegress
+      )
     );
     _addGraphSpec(
       clusterData.perPersonVisitTotalsPointSets,
-      graphedPoints.perPersonVisitTotalsPoints
+      _toGraphedPoints(
+        clientLocationEffort.perPersonVisitPoints,
+        lowerBoundX,
+        minPointsToRegress,
+        maxPointsToRegress
+      )
     );
   }
   return clusterData;
@@ -110,34 +116,6 @@ export function toFittedModel(
 function _addGraphSpec(multiGraphPointSet: MultiGraphPointSet, points: Point[]): void {
   multiGraphPointSet.pointCount += points.length;
   multiGraphPointSet.pointSets.push(points);
-}
-
-function _createGraphedPoints(
-  clientLocationEffort: ClientLocationEffort,
-  lowerBoundX: number,
-  minPointsToRegress: number,
-  maxPointsToRegress: number
-): _GraphedPoints {
-  return {
-    perDayTotalsPoints: _toGraphedPoints(
-      clientLocationEffort.perDayPoints,
-      lowerBoundX,
-      minPointsToRegress,
-      maxPointsToRegress
-    ),
-    perVisitTotalsPoints: _toGraphedPoints(
-      clientLocationEffort.perVisitPoints,
-      lowerBoundX,
-      minPointsToRegress,
-      maxPointsToRegress
-    ),
-    perPersonVisitTotalsPoints: _toGraphedPoints(
-      clientLocationEffort.perPersonVisitPoints,
-      lowerBoundX,
-      minPointsToRegress,
-      maxPointsToRegress
-    )
-  };
 }
 
 function _toGraphedPoints(
