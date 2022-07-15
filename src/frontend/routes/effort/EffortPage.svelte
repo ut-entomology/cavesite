@@ -31,7 +31,7 @@
   import ClusterPieChart from './ClusterPieChart.svelte';
   import ClusterRadarChart from './ClusterRadarChart.svelte';
   import ModelStats from './ModelStats.svelte';
-  import EffortGraph, { type EffortGraphSpec } from './EffortGraph.svelte';
+  import EffortGraph from './EffortGraph.svelte';
   import ResidualsPlot from './ResidualsPlot.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
@@ -44,6 +44,7 @@
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import { FittedModel } from './fitted_model';
+  import type { EffortGraphSpec } from './effort_graph_spec';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 
@@ -126,14 +127,16 @@
           graphTitle: 'Cumulative species across visits',
           xAxisLabel: 'visits',
           yAxisLabel: 'cumulative species',
-          pointSets: clusterData.perVisitTotalsPointSets
+          graphDataSet: clusterData.modelledDataSet,
+          pointExtractor: (graphData) => graphData.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
           graphTitle: 'Cumulative species across person-visits',
           xAxisLabel: 'person-visits',
           yAxisLabel: 'cumulative species',
-          pointSets: clusterData.perPersonVisitTotalsPointSets
+          graphDataSet: clusterData.modelledDataSet,
+          pointExtractor: (graphData) => graphData.perPersonVisitPoints
         };
     }
   }
@@ -265,7 +268,7 @@
       const clusterData = $clusterStore!.dataByCluster[clusterIndex];
       const graphSpec = _getModelGraphSpec(datasetID, clusterData as ClusterData);
       clusterModel = FittedModel.create(
-        graphSpec.pointSets,
+        graphSpec,
         MIN_X_ALLOWING_REGRESS,
         MODEL_WEIGHT_POWER
       );

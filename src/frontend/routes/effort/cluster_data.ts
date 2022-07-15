@@ -14,42 +14,41 @@ export interface ClusteringConfig {
 export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
-  locationGraphDataSet: LocationGraphData[];
-  perVisitTotalsPointSets: Point[][];
-  perPersonVisitTotalsPointSets: Point[][];
+  sourceDataSet: LocationGraphData[];
+  modelledDataSet: LocationGraphData[];
 }
 
 export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  locationGraphDataSet: LocationGraphData[],
+  sourceDataSet: LocationGraphData[],
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
 ): ClusterData {
   let clusterData: ClusterData = {
-    locationCount: locationGraphDataSet.length,
+    locationCount: sourceDataSet.length,
     visitsByTaxonUnique,
-    locationGraphDataSet,
-    perVisitTotalsPointSets: [],
-    perPersonVisitTotalsPointSets: []
+    sourceDataSet,
+    modelledDataSet: []
   };
-  for (const locationGraphData of locationGraphDataSet) {
-    clusterData.perVisitTotalsPointSets.push(
-      _toGraphedPointSet(
-        locationGraphData.perVisitPoints,
-        lowerBoundX,
-        minPointsToRegress,
-        maxPointsToRegress
-      )
+  for (const sourceLocationGraphData of sourceDataSet) {
+    const modelledLocationGraphData = Object.assign({}, sourceLocationGraphData);
+    modelledLocationGraphData.perDayPoints = []; // not modelled, so remove
+    _toGraphedPointSet(
+      sourceLocationGraphData.perVisitPoints,
+      lowerBoundX,
+      minPointsToRegress,
+      maxPointsToRegress,
+      (points) => (modelledLocationGraphData.perVisitPoints = points)
     );
-    clusterData.perPersonVisitTotalsPointSets.push(
-      _toGraphedPointSet(
-        locationGraphData.perPersonVisitPoints,
-        lowerBoundX,
-        minPointsToRegress,
-        maxPointsToRegress
-      )
+    _toGraphedPointSet(
+      sourceLocationGraphData.perPersonVisitPoints,
+      lowerBoundX,
+      minPointsToRegress,
+      maxPointsToRegress,
+      (points) => (modelledLocationGraphData.perPersonVisitPoints = points)
     );
+    clusterData.modelledDataSet.push(modelledLocationGraphData);
   }
   return clusterData;
 }
@@ -58,8 +57,9 @@ function _toGraphedPointSet(
   dataPoints: Point[],
   lowerBoundX: number,
   minPointsToRegress: number,
-  maxPointsToRegress: number
-) {
+  maxPointsToRegress: number,
+  assignPoints: (points: Point[]) => void
+): void {
   const graphedPoints: Point[] = [];
 
   for (let i = 0; i < dataPoints.length; ++i) {
@@ -72,5 +72,5 @@ function _toGraphedPointSet(
       graphedPoints.push(point);
     }
   }
-  return graphedPoints;
+  assignPoints(graphedPoints);
 }

@@ -1,17 +1,8 @@
-<script lang="ts" context="module">
-  import type { Point } from '../../../shared/point';
-
-  export interface EffortGraphSpec {
-    graphTitle: string;
-    xAxisLabel: string;
-    yAxisLabel: string;
-    pointSets: Point[][];
-  }
-</script>
-
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
+  import type { Point } from '../../../shared/point';
+  import type { EffortGraphSpec } from './effort_graph_spec';
   import type { FittedModel } from './fitted_model';
 
   const POINTS_IN_MODEL_PLOT = 200;
@@ -22,6 +13,7 @@
   export let model: FittedModel | null = null;
 
   let pointCount: number;
+  let pointSets: Point[][];
 
   $: xAxisLabel = spec.xAxisLabel;
   $: yAxisLabel = spec.yAxisLabel;
@@ -29,18 +21,23 @@
 
   $: {
     pointCount = 0;
-    spec.pointSets.forEach((pointSet) => (pointCount += pointSet.length));
+    pointSets = [];
+    for (const graphData of spec.graphDataSet) {
+      const pointSet = spec.pointExtractor(graphData);
+      pointSets.push(pointSet);
+      pointCount += pointSet.length;
+    }
   }
 
   function _legendFilter(item: any) {
-    return item.datasetIndex == 0 || item.datasetIndex >= spec.pointSets.length;
+    return item.datasetIndex == 0 || item.datasetIndex >= pointSets.length;
   }
 </script>
 
 <Scatter
   data={{
     datasets: [
-      ...spec.pointSets.map((points) => {
+      ...pointSets.map((points) => {
         return {
           showLine: true,
           label: pointCount + ' points',
