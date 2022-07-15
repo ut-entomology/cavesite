@@ -108,6 +108,9 @@
 
   $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
+    if (clusterModel) {
+      _showModel();
+    }
     loadState = LoadState.ready;
   }
 
@@ -124,16 +127,16 @@
     switch (datasetID) {
       case DatasetID.visits:
         return {
-          graphTitle: 'Cumulative species across visits',
-          xAxisLabel: 'visits',
+          graphTitle: 'Regressed cumulative species across visits',
+          xAxisLabel: 'visits in regressed range',
           yAxisLabel: 'cumulative species',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
-          graphTitle: 'Cumulative species across person-visits',
-          xAxisLabel: 'person-visits',
+          graphTitle: 'Regressed cumulative species across person-visits',
+          xAxisLabel: 'person-visits in regressed range',
           yAxisLabel: 'cumulative species',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perPersonVisitPoints
@@ -141,28 +144,30 @@
     }
   }
 
-  // function _getPlainGraphSpec(
-  //   datasetID: DatasetID,
-  //   clusterData: ClusterData
-  // ): EffortGraphSpec {
-  //   // datasetID is passed in to get reactivity in the HTML
-  //   switch (datasetID) {
-  //     case DatasetID.visits:
-  //       return {
-  //         graphTitle: 'Cumulative species across visits',
-  //         xAxisLabel: 'visits',
-  //         yAxisLabel: 'cumulative species',
-  //         multiPointSet: clusterData.locationGraphDataSet
-  //       };
-  //     case DatasetID.personVisits:
-  //       return {
-  //         graphTitle: 'Cumulative species across person-visits',
-  //         xAxisLabel: 'person-visits',
-  //         yAxisLabel: 'cumulative species',
-  //         multiPointSet: clusterData.perPersonVisitTotalsPointSets
-  //       };
-  //   }
-  // }
+  function _getPlainGraphSpec(
+    datasetID: DatasetID,
+    clusterData: ClusterData
+  ): EffortGraphSpec {
+    // datasetID is passed in to get reactivity in the HTML
+    switch (datasetID) {
+      case DatasetID.visits:
+        return {
+          graphTitle: 'Cumulative species across visits',
+          xAxisLabel: 'visits',
+          yAxisLabel: 'cumulative species',
+          graphDataSet: clusterData.sourceDataSet,
+          pointExtractor: (graphData) => graphData.perVisitPoints
+        };
+      case DatasetID.personVisits:
+        return {
+          graphTitle: 'Cumulative species across person-visits',
+          xAxisLabel: 'person-visits',
+          yAxisLabel: 'cumulative species',
+          graphDataSet: clusterData.sourceDataSet,
+          pointExtractor: (graphData) => graphData.perPersonVisitPoints
+        };
+    }
+  }
 
   async function _loadData(config: ClusteringConfig) {
     clusterStore.set(null);
@@ -261,17 +266,21 @@
     }
   }
 
+  function _showModel() {
+    const clusterData = $clusterStore!.dataByCluster[clusterIndex];
+    const graphSpec = _getModelGraphSpec(datasetID, clusterData);
+    clusterModel = FittedModel.create(
+      graphSpec,
+      MIN_X_ALLOWING_REGRESS,
+      MODEL_WEIGHT_POWER
+    );
+  }
+
   function _toggleModel() {
     if (clusterModel) {
       clusterModel = null;
     } else {
-      const clusterData = $clusterStore!.dataByCluster[clusterIndex];
-      const graphSpec = _getModelGraphSpec(datasetID, clusterData as ClusterData);
-      clusterModel = FittedModel.create(
-        graphSpec,
-        MIN_X_ALLOWING_REGRESS,
-        MODEL_WEIGHT_POWER
-      );
+      _showModel();
     }
   }
 
@@ -403,7 +412,7 @@
           </div>
           <div class="col-auto">
             <button class="btn btn-major" type="button" on:click={_toggleModel}
-              >Fit Curve</button
+              >{clusterModel ? 'Hide Regression' : 'Show Regression'}</button
             >
           </div>
         </div>
@@ -415,7 +424,7 @@
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
       {#if clusterModel === null}
-        {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
+        {@const graphSpec = _getPlainGraphSpec(datasetID, clusterData)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
