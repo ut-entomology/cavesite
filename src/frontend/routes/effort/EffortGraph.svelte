@@ -1,11 +1,11 @@
 <script lang="ts" context="module">
-  import type { MultiGraphPointSet } from './cluster_data';
+  import type { ClusterPoints } from './cluster_data';
 
   export interface EffortGraphSpec {
     graphTitle: string;
     xAxisLabel: string;
     yAxisLabel: string;
-    multiPointSet: MultiGraphPointSet;
+    multiPointSet: ClusterPoints;
   }
 </script>
 

@@ -18,12 +18,12 @@ export interface ClusteringConfig {
 export interface ClusterData {
   locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
-  perDayTotalsPointSets: MultiGraphPointSet;
-  perVisitTotalsPointSets: MultiGraphPointSet;
-  perPersonVisitTotalsPointSets: MultiGraphPointSet;
+  perDayTotalsPointSets: ClusterPoints;
+  perVisitTotalsPointSets: ClusterPoints;
+  perPersonVisitTotalsPointSets: ClusterPoints;
 }
 
-export interface MultiGraphPointSet {
+export interface ClusterPoints {
   pointCount: number;
   pointSets: Point[][];
 }
@@ -75,7 +75,7 @@ export function toClusterData(
 }
 
 export function toFittedModel(
-  multiGraphPointSet: MultiGraphPointSet,
+  clusterPoints: ClusterPoints,
   minXAllowingRegression: number,
   modelWeightPower: number
 ): FittedModel | null {
@@ -86,7 +86,7 @@ export function toFittedModel(
 
   // Loop for each graph spec at one per location in the cluster.
 
-  for (const points of multiGraphPointSet.pointSets) {
+  for (const points of clusterPoints.pointSets) {
     const lastPoint = points[points.length - 1];
     if (
       points.length >= MIN_POINTS_TO_REGRESS &&
@@ -113,9 +113,9 @@ export function toFittedModel(
   return averageModel;
 }
 
-function _addGraphSpec(multiGraphPointSet: MultiGraphPointSet, points: Point[]): void {
-  multiGraphPointSet.pointCount += points.length;
-  multiGraphPointSet.pointSets.push(points);
+function _addGraphSpec(clusterPoints: ClusterPoints, points: Point[]): void {
+  clusterPoints.pointCount += points.length;
+  clusterPoints.pointSets.push(points);
 }
 
 function _toGraphedPoints(
