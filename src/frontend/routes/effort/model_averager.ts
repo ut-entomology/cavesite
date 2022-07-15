@@ -3,56 +3,6 @@ import type { FittedModel, FittedModelFactory } from './fitted_model';
 import type { FittedY } from './regression';
 import type { Point } from '../../../shared/point';
 
-export abstract class ModelAverager {
-  abstract addModel(
-    graphSpec: EffortGraphSpec,
-    model: FittedModel,
-    weightPower: number
-  ): void;
-
-  abstract getAverageModel(lowestX: number, highestX: number): FittedModel;
-
-  protected _toWeight(graphSpec: EffortGraphSpec, weightPower: number): number {
-    const lastX = graphSpec.points[graphSpec.points.length - 1].x;
-    return lastX ** weightPower;
-  }
-}
-
-export class PolynomialAverager extends ModelAverager {
-  private _baseModel: FittedModel | null = null;
-  private _weightedCoefSums: number[] = [];
-  private _totalWeight = 0;
-
-  addModel(graphSpec: EffortGraphSpec, model: FittedModel, weightPower: number): void {
-    const coefs = model.regression.jstats.coef;
-    const weight = this._toWeight(graphSpec, weightPower);
-
-    for (let i = 0; i < coefs.length; ++i) {
-      if (this._baseModel == null) {
-        this._weightedCoefSums[i] = weight * coefs[i];
-      } else {
-        this._weightedCoefSums[i] += weight * coefs[i];
-      }
-    }
-    this._totalWeight += weight;
-
-    if (!this._baseModel) this._baseModel = model;
-  }
-
-  getAverageModel(lowestX: number, highestX: number): FittedModel {
-    // The average of the equations for y can be computed by averaging
-    // the coefficients of the terms of the polynomial.
-    const baseModel = this._baseModel!;
-    for (let i = 0; i < this._weightedCoefSums.length; ++i) {
-      baseModel.regression.jstats.coef[i] =
-        this._weightedCoefSums[i] / this._totalWeight;
-    }
-    baseModel.lowestX = lowestX;
-    baseModel.highestX = highestX;
-    return baseModel;
-  }
-}
-
 const AVERAGED_MODEL_POINTS = 20; // shouldn't need very many
 
 interface _ModelInfo {
@@ -60,14 +10,13 @@ interface _ModelInfo {
   weight: number;
 }
 
-export class PlotAverager extends ModelAverager {
+export class ModelAverager {
   private _modelFactory: FittedModelFactory;
   private _baseModel: FittedModel | null = null;
   private _modelInfos: _ModelInfo[] = [];
   private _totalWeight = 0;
 
   constructor(modelFactory: FittedModelFactory) {
-    super();
     this._modelFactory = modelFactory;
   }
 
@@ -97,5 +46,10 @@ export class PlotAverager extends ModelAverager {
       points.push({ x, y: weightedYSum / this._totalWeight });
     }
     return this._modelFactory(points);
+  }
+
+  protected _toWeight(graphSpec: EffortGraphSpec, weightPower: number): number {
+    const lastX = graphSpec.points[graphSpec.points.length - 1].x;
+    return lastX ** weightPower;
   }
 }

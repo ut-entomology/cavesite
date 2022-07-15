@@ -1,6 +1,6 @@
 import type { Point } from '../../../shared/point';
 import { Regression, shortenValue } from './regression';
-import { type ModelAverager, PlotAverager } from './model_averager';
+import { ModelAverager } from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
 export type FittedModelFactory = (dataPoints: Point[]) => FittedModel;
@@ -14,13 +14,10 @@ interface RegressionSearchConfig {
 type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
 export class FittedModel {
-  power: number;
-  equation!: string;
   lowestX = Infinity;
   highestX = 0;
-  regression!: Regression;
-
-  private _modelPoints: Point[] | null = null;
+  regression: Regression;
+  power: number;
 
   constructor(dataPoints: Point[]) {
     for (const point of dataPoints) {
@@ -48,6 +45,30 @@ export class FittedModel {
     this.regression = regression;
   }
 
+  getFirstDerivative(): (x: number) => number {
+    const coefs = this.regression.jstats.coef;
+    return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
+  }
+
+  getModelAverager(): ModelAverager {
+    return new ModelAverager((points: Point[]) => {
+      return new FittedModel(points);
+    });
+  }
+
+  getModelPoints(pointCount: number): Point[] {
+    const modelPoints: Point[] = [];
+    const deltaX = (this.highestX - this.lowestX) / pointCount;
+    let x = this.lowestX;
+    while (x <= this.highestX) {
+      const y = this.regression.fittedY(x);
+      // Don't plot model points for y < 0.
+      if (y >= 0) modelPoints.push({ x, y });
+      x += deltaX;
+    }
+    return modelPoints;
+  }
+
   getXFormula(): string {
     const coefs = this.regression.jstats.coef;
     return [
@@ -58,32 +79,6 @@ export class FittedModel {
       '</sup> ',
       _coefHtml(coefs[1])
     ].join(' ');
-  }
-
-  getFirstDerivative(): (x: number) => number {
-    const coefs = this.regression.jstats.coef;
-    return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
-  }
-
-  getModelAverager(): ModelAverager {
-    return new PlotAverager((points: Point[]) => {
-      return new FittedModel(points);
-    });
-  }
-
-  getModelPoints(pointCount: number): Point[] {
-    if (!this._modelPoints || this._modelPoints.length != pointCount) {
-      this._modelPoints = [];
-      const deltaX = (this.highestX - this.lowestX) / pointCount;
-      let x = this.lowestX;
-      while (x <= this.highestX) {
-        const y = this.regression.fittedY(x);
-        // Don't plot model points for y < 0.
-        if (y >= 0) this._modelPoints.push({ x, y });
-        x += deltaX;
-      }
-    }
-    return this._modelPoints;
   }
 }
 
