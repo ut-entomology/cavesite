@@ -6,6 +6,11 @@
 
   const POINTS_IN_MODEL_PLOT = 200;
 
+  const PINK_HEXCOLOR = '#FF0088';
+  const AQUA_HEXCOLOR = '#00DCD8';
+  const PURPLE_HEXCOLOR = '#A95CFF';
+  const GREEN_HEXCOLOR = '#00D40E';
+
   export let title: string;
   export let spec: SizedEffortGraphSpec;
   export let model: PlottableModel | null = null;
@@ -45,9 +50,9 @@
       ...models.map((model) => {
         return {
           showLine: true,
-          label: model.name,
+          label: 'power fit of recent data',
           data: model.getModelPoints(POINTS_IN_MODEL_PLOT),
-          backgroundColor: '#' + model.hexColor
+          backgroundColor: PINK_HEXCOLOR
         };
       })
     ]

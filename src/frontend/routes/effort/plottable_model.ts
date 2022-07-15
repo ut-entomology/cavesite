@@ -1,10 +1,5 @@
 import type { Point } from '../../../shared/point';
-import {
-  type XTransform,
-  type FittedYTakingCoefs,
-  Regression,
-  shortenValue
-} from './regression';
+import { Regression, shortenValue } from './regression';
 import { type ModelAverager, PolynomialAverager, PlotAverager } from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
@@ -19,8 +14,6 @@ interface RegressionSearchConfig {
 type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
 export abstract class PlottableModel {
-  name: string;
-  hexColor: string;
   equation!: string;
   lowestX = Infinity;
   highestX = 0;
@@ -28,9 +21,7 @@ export abstract class PlottableModel {
 
   private _modelPoints: Point[] | null = null;
 
-  constructor(name: string, hexColor: string, dataPoints: Point[]) {
-    this.name = name;
-    this.hexColor = hexColor;
+  constructor(dataPoints: Point[]) {
     for (const point of dataPoints) {
       if (point.x < this.lowestX) this.lowestX = point.x;
       if (point.x > this.highestX) this.highestX = point.x;
@@ -72,16 +63,12 @@ export class PowerXModel extends PlottableModel {
 
   private _finalModelFactory: PlottableModelFactory;
 
-  constructor(
-    hexColor: string,
-    dataPoints: Point[],
-    modelFactory?: PlottableModelFactory
-  ) {
-    super('power fit', hexColor, dataPoints);
+  constructor(dataPoints: Point[], modelFactory?: PlottableModelFactory) {
+    super(dataPoints);
     this._finalModelFactory = modelFactory
       ? modelFactory
       : (points: Point[]) => {
-          return new PowerXModel(hexColor, points);
+          return new PowerXModel(points);
         };
 
     const [regression, power] = _findBestRMSEScalar_nAry(
@@ -123,23 +110,6 @@ export class PowerXModel extends PlottableModel {
 
   getModelAverager(): ModelAverager {
     return new PlotAverager(this._finalModelFactory);
-  }
-}
-
-export class LinearXModel extends PlottableModel {
-  constructor(hexColor: string, dataPoints: Point[]) {
-    super('linear fit', hexColor, dataPoints);
-
-    const xTransform: XTransform = (x) => [x, 1];
-    const fittedYTakingCoefs: FittedYTakingCoefs = (coefs, x) =>
-      coefs[0] * x + coefs[1];
-
-    this.regression = new Regression(xTransform, fittedYTakingCoefs, dataPoints);
-  }
-
-  getXFormula(): string {
-    const coefs = this.regression.jstats.coef;
-    return [_coefHtml(coefs[0], true), ' x ', _coefHtml(coefs[1])].join(' ');
   }
 }
 

@@ -70,11 +70,6 @@
     }
   };
 
-  const PINK_HEXCOLOR = 'FF0088';
-  const AQUA_HEXCOLOR = '00DCD8';
-  const PURPLE_HEXCOLOR = 'A95CFF';
-  const GREEN_HEXCOLOR = '00D40E';
-
   enum LoadState {
     idle,
     determiningSeeds,
@@ -257,7 +252,6 @@
         clusterData as PerLocationClusterData
       );
       clusterModel = toPerLocationModel(
-        PINK_HEXCOLOR,
         graphData,
         MIN_X_ALLOWING_REGRESS,
         MODEL_WEIGHT_POWER

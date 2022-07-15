@@ -2,11 +2,7 @@ import type { Point } from '../../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../../shared/model';
 import type { LocationEffortData } from './effort_data';
 import { type EffortGraphSpec, createEffortGraphSpecPerXUnit } from './effort_graphs';
-import {
-  type PlottableModelFactory,
-  PlottableModel,
-  PowerXModel
-} from './plottable_model';
+import { PlottableModel, PowerXModel } from './plottable_model';
 import type { ModelAverager } from './model_averager';
 
 const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regression
@@ -71,7 +67,6 @@ export function toPerLocationClusterData(
 }
 
 export function toPerLocationModel(
-  hexColor: string,
   sizedGraphSpec: SizedEffortGraphSpec,
   minXAllowingRegression: number,
   modelWeightPower: number
@@ -90,7 +85,7 @@ export function toPerLocationModel(
       points.length >= MIN_POINTS_TO_REGRESS &&
       lastPoint.x >= minXAllowingRegression
     ) {
-      const locationModel = new PowerXModel(hexColor, points);
+      const locationModel = new PowerXModel(points);
       if (modelAverager == null) {
         modelAverager = locationModel.getModelAverager();
       }
