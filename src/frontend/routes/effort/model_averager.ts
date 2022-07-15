@@ -1,4 +1,4 @@
-import type { EffortGraphSpec } from './effort_graphs';
+import type { GraphPointSet } from './effort_graphs';
 import type { FittedModel, FittedModelFactory } from './fitted_model';
 import type { FittedY } from './regression';
 import type { Point } from '../../../shared/point';
@@ -20,8 +20,8 @@ export class ModelAverager {
     this._modelFactory = modelFactory;
   }
 
-  addModel(graphSpec: EffortGraphSpec, model: FittedModel, weightPower: number): void {
-    const weight = this._toWeight(graphSpec, weightPower);
+  addModel(pointSet: GraphPointSet, model: FittedModel, weightPower: number): void {
+    const weight = this._toWeight(pointSet, weightPower);
     this._modelInfos.push({
       fittedY: model.regression.fittedY,
       weight
@@ -48,8 +48,8 @@ export class ModelAverager {
     return this._modelFactory(points);
   }
 
-  protected _toWeight(graphSpec: EffortGraphSpec, weightPower: number): number {
-    const lastX = graphSpec.points[graphSpec.points.length - 1].x;
+  protected _toWeight(pointSet: GraphPointSet, weightPower: number): number {
+    const lastX = pointSet.points[pointSet.points.length - 1].x;
     return lastX ** weightPower;
   }
 }

@@ -1,27 +1,35 @@
+<script lang="ts" context="module">
+  import type { MultiGraphPointSet } from './cluster_data';
+
+  export interface EffortGraphSpec {
+    graphTitle: string;
+    xAxisLabel: string;
+    yAxisLabel: string;
+    multiPointSet: MultiGraphPointSet;
+  }
+</script>
+
 <script lang="ts">
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { FittedModel } from './fitted_model';
-  import type { SizedEffortGraphSpec } from './cluster_data';
 
   const POINTS_IN_MODEL_PLOT = 200;
 
-  export let title: string;
   export let hexColor: string;
-  export let spec: SizedEffortGraphSpec;
+  export let spec: EffortGraphSpec;
+  export let title = spec.graphTitle;
   export let model: FittedModel | null = null;
-  export let yFormula: string | null = null;
 
-  $: xAxisLabel = spec.graphSpecs[0].xAxisLabel;
-  $: yAxisLabel = spec.graphSpecs[0].yAxisLabel;
+  $: xAxisLabel = spec.xAxisLabel;
+  $: yAxisLabel = spec.yAxisLabel;
   $: models = model === null ? [] : [model];
 
   function _legendFilter(item: any) {
     // When using a sized spec, show a legend for the first line and then
     // one for each model; otherwise show all legends.
     return (
-      item.datasetIndex == 0 ||
-      item.datasetIndex >= (spec as SizedEffortGraphSpec).graphSpecs.length
+      item.datasetIndex == 0 || item.datasetIndex >= spec.multiPointSet.pointSets.length
     );
   }
 </script>
@@ -29,11 +37,11 @@
 <Scatter
   data={{
     datasets: [
-      ...spec.graphSpecs.map((graphSpec) => {
+      ...spec.multiPointSet.pointSets.map((pointSet) => {
         return {
           showLine: true,
-          label: spec.pointCount + ' points',
-          data: graphSpec.points,
+          label: spec.multiPointSet.pointCount + ' points',
+          data: pointSet.points,
           // borderColor: _toLocationHexColor(i),
           borderWidth: 1,
           hoverBorderWidth: 3,
@@ -63,7 +71,7 @@
       y: {
         title: {
           display: true,
-          text: yFormula ? `${yAxisLabel} (${yFormula})` : yAxisLabel,
+          text: yAxisLabel,
           font: { size: 16 }
         }
       }

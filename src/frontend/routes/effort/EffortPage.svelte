@@ -10,7 +10,7 @@
     type ClusterData,
     toClusterData,
     toFittedModel,
-    SizedEffortGraphSpec
+    MultiGraphPointSet
   } from './cluster_data';
 
   interface Clustering {
@@ -40,7 +40,7 @@
   import ClusterPieChart from './ClusterPieChart.svelte';
   import ClusterRadarChart from './ClusterRadarChart.svelte';
   import ModelStats from './ModelStats.svelte';
-  import EffortGraph from './EffortGraph.svelte';
+  import EffortGraph, { type EffortGraphSpec } from './EffortGraph.svelte';
   import ResidualsPlot from './ResidualsPlot.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
@@ -54,7 +54,7 @@
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import type { FittedModel } from './fitted_model';
   import { ClusterColorSet } from './cluster_color_set';
-  import type { EffortGraphSpec } from './effort_graphs';
+  import type { GraphPointSet } from './effort_graphs';
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collection Effort';
@@ -128,19 +128,33 @@
     $clustering = null;
   }
 
-  function _getGraphTitle(graphSpec: EffortGraphSpec | SizedEffortGraphSpec) {
-    return (graphSpec as SizedEffortGraphSpec).graphSpecs[0].graphTitle;
-  }
-
-  function _getGraphSpec(datasetID: DatasetID, clusterData: ClusterData) {
+  function _getGraphSpec(
+    datasetID: DatasetID,
+    clusterData: ClusterData
+  ): EffortGraphSpec {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.days:
-        return clusterData.perDayTotalsGraphs;
+        return {
+          graphTitle: 'Cumulative species across days',
+          xAxisLabel: 'days',
+          yAxisLabel: 'cumulative species',
+          multiPointSet: clusterData.perDayTotalsPointSets
+        };
       case DatasetID.visits:
-        return clusterData.perVisitTotalsGraphs;
+        return {
+          graphTitle: 'Cumulative species across visits',
+          xAxisLabel: 'visits',
+          yAxisLabel: 'cumulative species',
+          multiPointSet: clusterData.perVisitTotalsPointSets
+        };
       case DatasetID.personVisits:
-        return clusterData.perPersonVisitTotalsGraphs;
+        return {
+          graphTitle: 'Cumulative species across person-visits',
+          xAxisLabel: 'person-visits',
+          yAxisLabel: 'cumulative species',
+          multiPointSet: clusterData.perPersonVisitTotalsPointSets
+        };
     }
   }
 
@@ -248,9 +262,9 @@
       clusterModel = null;
     } else {
       const clusterData = $clustering!.dataByCluster[clusterIndex];
-      const graphData = _getGraphSpec(datasetID, clusterData as ClusterData);
+      const graphSpec = _getGraphSpec(datasetID, clusterData as ClusterData);
       clusterModel = toFittedModel(
-        graphData,
+        graphSpec.multiPointSet,
         MIN_X_ALLOWING_REGRESS,
         MODEL_WEIGHT_POWER
       );
@@ -405,7 +419,7 @@
       {@const graphSpec = _getGraphSpec(datasetID, clusterData)}
       {@const graphTitle =
         (multipleClusters ? `#${clusterIndex + 1}: ` : '') +
-        _getGraphTitle(graphSpec) +
+        graphSpec.graphTitle +
         ` (${clusterData.locationCount} caves)`}
 
       {#if clusterModel !== null}
@@ -416,7 +430,6 @@
               hexColor={PINK_HEXCOLOR}
               spec={graphSpec}
               model={clusterModel}
-              yFormula="y"
             />
           </div>
         </div>
