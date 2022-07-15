@@ -62,7 +62,7 @@
       ...models.map((model) => {
         return {
           showLine: true,
-          label: 'power fit of recent data',
+          label: 'weighted average of power-fit per-location models',
           data: model.getModelPoints(POINTS_IN_MODEL_PLOT),
           backgroundColor: hexColor
         };

@@ -53,7 +53,7 @@
   const MAX_CLUSTERS = 10;
   const LOWER_BOUND_X = 0;
   const MIN_X_ALLOWING_REGRESS = 10;
-  const MODEL_WEIGHT_POWER = 0;
+  const MODEL_WEIGHT_POWER = 1;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -126,14 +126,14 @@
     switch (datasetID) {
       case DatasetID.visits:
         return {
-          graphTitle: 'Avg. regressed cumulative species across visits',
+          graphTitle: 'Avg. model of cumulative species across visits',
           xAxisLabel: 'visits in regressed range',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
-          graphTitle: 'Avg. regressed cumulative species across person-visits',
+          graphTitle: 'Avg. model of cumulative species across person-visits',
           xAxisLabel: 'person-visits in regressed range',
           graphDataSet: clusterData.modelledDataSet,
           pointExtractor: (graphData) => graphData.perPersonVisitPoints
