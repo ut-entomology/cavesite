@@ -90,7 +90,7 @@
   let clusterColors: ClusterColorSet[] = [];
   let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
-  let showingRegression = false;
+  let showingAverageModel = false;
   let clusterModel: FittedModel | null = null;
 
   $: if ($clusterStore) {
@@ -109,7 +109,7 @@
 
   $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
-    if (showingRegression) _showModel();
+    if (showingAverageModel) _showModel();
     loadState = LoadState.ready;
   }
 
@@ -272,7 +272,7 @@
   }
 
   function _toggleModel() {
-    showingRegression = !showingRegression;
+    showingAverageModel = !showingAverageModel;
     if (clusterModel) {
       clusterModel = null;
     } else {
@@ -408,7 +408,7 @@
           </div>
           <div class="col-auto">
             <button class="btn btn-major" type="button" on:click={_toggleModel}
-              >{showingRegression ? 'Hide Regression' : 'Show Regression'}</button
+              >{showingAverageModel ? 'Hide Avg. Model' : 'Show Avg. Model'}</button
             >
           </div>
         </div>
@@ -419,7 +419,7 @@
         $clusterStore && $clusterStore.dataByCluster.length > 1}
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
-      {#if !showingRegression}
+      {#if !showingAverageModel}
         {@const graphSpec = _getPlainGraphSpec(datasetID, clusterData)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
