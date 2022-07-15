@@ -15,7 +15,7 @@
   let ignoreSubgenera = config.ignoreSubgenera;
   let highestComparedRank = config.highestComparedRank;
   let minPointsToRegress = config.minPointsToRegress;
-  let maxPointsToRegress = config.maxPointsToRegress;
+  let maxPointsToRegress = config.maxPointsToRegress || Infinity;
 
   let allowedPointsToRegress: number[] = [];
   for (let i = MIN_MIN_POINTS_TO_REGRESS; i <= MAX_MAX_POINTS_TO_REGRESS; ++i) {

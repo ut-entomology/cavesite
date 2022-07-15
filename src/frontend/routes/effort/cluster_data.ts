@@ -8,7 +8,7 @@ export interface ClusteringConfig {
   ignoreSubgenera: boolean;
   highestComparedRank: TaxonRank;
   minPointsToRegress: number;
-  maxPointsToRegress: number;
+  maxPointsToRegress: number | null;
 }
 
 export interface ClusterData {

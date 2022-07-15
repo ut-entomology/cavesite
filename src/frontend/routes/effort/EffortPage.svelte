@@ -197,7 +197,7 @@
             locationGraphDataSet,
             LOWER_BOUND_X,
             config.minPointsToRegress,
-            config.maxPointsToRegress
+            config.maxPointsToRegress || Infinity
           )
         );
       }
