@@ -17,7 +17,7 @@
     labels: dataByCluster.map((_, i) => 'Caves in cluster #' + (i + 1)),
     datasets: [
       {
-        data: dataByCluster.map((data) => data.locationCount),
+        data: dataByCluster.map((data) => data.locationGraphDataSet.length),
         backgroundColor: clusterColors.map((set) => set.foreground),
         hoverOffset: 4
         // datalabels: {

@@ -4,7 +4,7 @@
   import type { Point } from '../../../shared/point';
   import type { FittedModel } from './fitted_model';
 
-  export let hexColor: string;
+  export let color: string;
   export let model: FittedModel;
 
   // Chart.js plugin adapted from
@@ -33,7 +33,7 @@
     datasets: [
       {
         label: 'residuals',
-        borderColor: hexColor,
+        borderColor: color,
         data: model.regression.residuals,
         fill: false
       }

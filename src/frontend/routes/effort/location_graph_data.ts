@@ -5,6 +5,11 @@ export interface LocationGraphData {
   locationID: number;
   startDate: Date;
   endDate: Date;
+  sourceGroup: PointGroup;
+  modelledGroup?: PointGroup;
+}
+
+export interface PointGroup {
   perDayPoints: Point[];
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
@@ -53,8 +58,10 @@ function _toLocationGraphData(rawClientEffort: RawLocationEffort): LocationGraph
     locationID: rawClientEffort.locationID,
     startDate: rawClientEffort.startDate,
     endDate: rawClientEffort.endDate,
-    perDayPoints,
-    perVisitPoints,
-    perPersonVisitPoints
+    sourceGroup: {
+      perDayPoints,
+      perVisitPoints,
+      perPersonVisitPoints
+    }
   };
 }

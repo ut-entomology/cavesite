@@ -12,43 +12,41 @@ export interface ClusteringConfig {
 }
 
 export interface ClusterData {
-  locationCount: number;
   visitsByTaxonUnique: Record<string, number>;
-  sourceDataSet: LocationGraphData[];
-  modelledDataSet: LocationGraphData[];
+  locationGraphDataSet: LocationGraphData[];
 }
 
 export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
-  sourceDataSet: LocationGraphData[],
+  locationGraphDataSet: LocationGraphData[],
   lowerBoundX: number,
   minPointsToRegress: number,
   maxPointsToRegress: number
 ): ClusterData {
   let clusterData: ClusterData = {
-    locationCount: sourceDataSet.length,
     visitsByTaxonUnique,
-    sourceDataSet,
-    modelledDataSet: []
+    locationGraphDataSet
   };
-  for (const sourceLocationGraphData of sourceDataSet) {
-    const modelledLocationGraphData = Object.assign({}, sourceLocationGraphData);
-    modelledLocationGraphData.perDayPoints = []; // not modelled, so remove
-    _toGraphedPointSet(
-      sourceLocationGraphData.perVisitPoints,
+  for (const locationGraphData of locationGraphDataSet) {
+    const sourceGroup = locationGraphData.sourceGroup;
+
+    const perVisitPoints = _toGraphedPointSet(
+      sourceGroup.perVisitPoints,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      (points) => (modelledLocationGraphData.perVisitPoints = points)
+      maxPointsToRegress
     );
-    _toGraphedPointSet(
-      sourceLocationGraphData.perPersonVisitPoints,
+    const perPersonVisitPoints = _toGraphedPointSet(
+      sourceGroup.perPersonVisitPoints,
       lowerBoundX,
       minPointsToRegress,
-      maxPointsToRegress,
-      (points) => (modelledLocationGraphData.perPersonVisitPoints = points)
+      maxPointsToRegress
     );
-    clusterData.modelledDataSet.push(modelledLocationGraphData);
+    locationGraphData.modelledGroup = {
+      perDayPoints: [],
+      perVisitPoints,
+      perPersonVisitPoints
+    };
   }
   return clusterData;
 }
@@ -57,9 +55,8 @@ function _toGraphedPointSet(
   dataPoints: Point[],
   lowerBoundX: number,
   minPointsToRegress: number,
-  maxPointsToRegress: number,
-  assignPoints: (points: Point[]) => void
-): void {
+  maxPointsToRegress: number
+): Point[] {
   const graphedPoints: Point[] = [];
 
   for (let i = 0; i < dataPoints.length; ++i) {
@@ -72,5 +69,5 @@ function _toGraphedPointSet(
       graphedPoints.push(point);
     }
   }
-  assignPoints(graphedPoints);
+  return graphedPoints;
 }

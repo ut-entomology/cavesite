@@ -83,7 +83,6 @@
   let loadState = LoadState.idle;
   let datasetID = DatasetID.personVisits;
   let clusterColors: ClusterColorSet[] = [];
-  let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
   let clusterModel: FittedModel | null = null;
@@ -95,7 +94,6 @@
 
     for (let i = 0; i < $clusterStore.dataByCluster.length; ++i) {
       const clusterData = $clusterStore.dataByCluster[i];
-      localityCountByCluster[i] = clusterData.locationCount;
       clusterColors[i] = new ClusterColorSet(
         `hsl(${i * (360 / $clusterStore!.dataByCluster.length)}, 60%, 60%)`
       );
@@ -113,48 +111,38 @@
     $clusterStore = null;
   }
 
-  function _getModelGraphSpec(
-    datasetID: DatasetID,
-    clusterData: ClusterData
-  ): EffortGraphSpec {
+  function _getModelGraphSpec(datasetID: DatasetID): EffortGraphSpec {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.visits:
         return {
           graphTitle: 'Avg. model of cumulative species across visits',
           xAxisLabel: 'visits in regressed range',
-          graphDataSet: clusterData.modelledDataSet,
-          pointExtractor: (graphData) => graphData.perVisitPoints
+          pointExtractor: (graphData) => graphData.modelledGroup!.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
           graphTitle: 'Avg. model of cumulative species across person-visits',
           xAxisLabel: 'person-visits in regressed range',
-          graphDataSet: clusterData.modelledDataSet,
-          pointExtractor: (graphData) => graphData.perPersonVisitPoints
+          pointExtractor: (graphData) => graphData.modelledGroup!.perPersonVisitPoints
         };
     }
   }
 
-  function _getPlainGraphSpec(
-    datasetID: DatasetID,
-    clusterData: ClusterData
-  ): EffortGraphSpec {
+  function _getPlainGraphSpec(datasetID: DatasetID): EffortGraphSpec {
     // datasetID is passed in to get reactivity in the HTML
     switch (datasetID) {
       case DatasetID.visits:
         return {
           graphTitle: 'Cumulative species across visits',
           xAxisLabel: 'visits',
-          graphDataSet: clusterData.sourceDataSet,
-          pointExtractor: (graphData) => graphData.perVisitPoints
+          pointExtractor: (graphData) => graphData.modelledGroup!.perVisitPoints
         };
       case DatasetID.personVisits:
         return {
           graphTitle: 'Cumulative species across person-visits',
           xAxisLabel: 'person-visits',
-          graphDataSet: clusterData.sourceDataSet,
-          pointExtractor: (graphData) => graphData.perPersonVisitPoints
+          pointExtractor: (graphData) => graphData.modelledGroup!.perPersonVisitPoints
         };
     }
   }
@@ -258,8 +246,9 @@
 
   function _showModel() {
     const clusterData = $clusterStore!.dataByCluster[clusterIndex];
-    const graphSpec = _getModelGraphSpec(datasetID, clusterData);
+    const graphSpec = _getModelGraphSpec(datasetID);
     clusterModel = FittedModel.create(
+      clusterData.locationGraphDataSet,
       graphSpec,
       MIN_X_ALLOWING_REGRESS,
       MODEL_WEIGHT_POWER
@@ -416,23 +405,25 @@
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
       {#if !showingAverageModel}
-        {@const graphSpec = _getPlainGraphSpec(datasetID, clusterData)}
+        {@const graphSpec = _getPlainGraphSpec(datasetID)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
               title={graphTitlePrefix + graphSpec.graphTitle}
-              hexColor={clusterColor}
+              color={clusterColor}
+              graphDataSet={clusterData.locationGraphDataSet}
               spec={graphSpec}
             />
           </div>
         </div>
       {:else if clusterModel}
-        {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
+        {@const graphSpec = _getModelGraphSpec(datasetID)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
               title={graphTitlePrefix + graphSpec.graphTitle}
-              hexColor={clusterColor}
+              color={clusterColor}
+              graphDataSet={clusterData.locationGraphDataSet}
               spec={graphSpec}
               model={clusterModel}
             />
@@ -440,10 +431,10 @@
         </div>
         <div class="row mb-3 gx-0 ms-4">
           <div class="col-sm-6">
-            <ResidualsPlot hexColor={clusterColor} model={clusterModel} />
+            <ResidualsPlot color={clusterColor} model={clusterModel} />
           </div>
         </div>
-        <ModelStats hexColor={clusterColor} model={clusterModel} />
+        <ModelStats color={clusterColor} model={clusterModel} />
       {:else}
         <div class="regression_placeholder">
           <div>Too few points to perform regression</div>

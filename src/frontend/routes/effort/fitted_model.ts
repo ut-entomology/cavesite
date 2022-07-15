@@ -1,5 +1,6 @@
 import type { Point } from '../../../shared/point';
 import type { EffortGraphSpec } from './effort_graph_spec';
+import type { LocationGraphData } from './location_graph_data';
 import { Regression, shortenValue } from './regression';
 import { ModelAverager } from './model_averager';
 
@@ -49,6 +50,7 @@ export class FittedModel {
   }
 
   static create(
+    graphDataSet: LocationGraphData[],
     graphSpec: EffortGraphSpec,
     minXAllowingRegression: number,
     modelWeightPower: number
@@ -60,7 +62,7 @@ export class FittedModel {
 
     // Loop for each graph spec at one per location in the cluster.
 
-    const pointSets = graphSpec.graphDataSet.map((graphData) =>
+    const pointSets = graphDataSet.map((graphData) =>
       graphSpec.pointExtractor(graphData)
     );
     for (const points of pointSets) {

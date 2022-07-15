@@ -2,12 +2,14 @@
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { Point } from '../../../shared/point';
+  import type { LocationGraphData } from './location_graph_data';
   import type { EffortGraphSpec } from './effort_graph_spec';
   import type { FittedModel } from './fitted_model';
 
   const POINTS_IN_MODEL_PLOT = 200;
 
-  export let hexColor: string;
+  export let color: string;
+  export let graphDataSet: LocationGraphData[];
   export let spec: EffortGraphSpec;
   export let title = spec.graphTitle;
   export let model: FittedModel | null = null;
@@ -24,7 +26,7 @@
     caveCount = 0;
     pointCount = 0;
     pointSets = [];
-    for (const graphData of spec.graphDataSet) {
+    for (const graphData of graphDataSet) {
       const pointSet = spec.pointExtractor(graphData);
       if (pointSet.length > 0) {
         ++caveCount;
@@ -33,10 +35,10 @@
       }
     }
 
-    if (caveCount == spec.graphDataSet.length) {
+    if (caveCount == graphDataSet.length) {
       titleSuffix = ` (${caveCount} caves)`;
     } else {
-      titleSuffix = ` (${caveCount} of ${spec.graphDataSet.length} caves)`;
+      titleSuffix = ` (${caveCount} of ${graphDataSet.length} caves)`;
     }
   }
 
@@ -62,9 +64,9 @@
       ...models.map((model) => {
         return {
           showLine: true,
-          label: 'weighted average of power-fit per-location models',
+          label: 'weighted average of models power-fit to each location',
           data: model.getModelPoints(POINTS_IN_MODEL_PLOT),
-          backgroundColor: hexColor
+          backgroundColor: color
         };
       })
     ]
