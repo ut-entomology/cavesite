@@ -1,6 +1,6 @@
 import type { Point } from '../../../shared/point';
 import { Regression, shortenValue } from './regression';
-import { type ModelAverager, PolynomialAverager, PlotAverager } from './model_averager';
+import { type ModelAverager, PlotAverager } from './model_averager';
 const MODEL_COEF_PRECISION = 3;
 
 export type PlottableModelFactory = (dataPoints: Point[]) => PlottableModel;
@@ -13,7 +13,8 @@ interface RegressionSearchConfig {
 
 type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
-export abstract class PlottableModel {
+export class PlottableModel {
+  power: number;
   equation!: string;
   lowestX = Infinity;
   highestX = 0;
@@ -26,50 +27,6 @@ export abstract class PlottableModel {
       if (point.x < this.lowestX) this.lowestX = point.x;
       if (point.x > this.highestX) this.highestX = point.x;
     }
-  }
-
-  abstract getXFormula(): string;
-
-  getYFormula(): string {
-    return 'y';
-  }
-
-  convertDataPoints(dataPoints: Point[]): Point[] {
-    return dataPoints;
-  }
-
-  getModelAverager(): ModelAverager {
-    return new PolynomialAverager();
-  }
-
-  getModelPoints(pointCount: number): Point[] {
-    if (!this._modelPoints || this._modelPoints.length != pointCount) {
-      this._modelPoints = [];
-      const deltaX = (this.highestX - this.lowestX) / pointCount;
-      let x = this.lowestX;
-      while (x <= this.highestX) {
-        const y = this.regression.fittedY(x);
-        // Don't plot model points for y < 0.
-        if (y >= 0) this._modelPoints.push({ x, y });
-        x += deltaX;
-      }
-    }
-    return this._modelPoints;
-  }
-}
-
-export class PowerXModel extends PlottableModel {
-  private power: number;
-
-  private _finalModelFactory: PlottableModelFactory;
-
-  constructor(dataPoints: Point[], modelFactory?: PlottableModelFactory) {
-    super(dataPoints);
-    this._finalModelFactory = modelFactory
-      ? modelFactory
-      : (points: Point[]) => {
-          return new PowerXModel(points);
-        };
 
     const [regression, power] = _findBestRMSEScalar_nAry(
       {
@@ -91,11 +48,6 @@ export class PowerXModel extends PlottableModel {
     this.regression = regression;
   }
 
-  getFirstDerivative(): (x: number) => number {
-    const coefs = this.regression.jstats.coef;
-    return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
-  }
-
   getXFormula(): string {
     const coefs = this.regression.jstats.coef;
     return [
@@ -108,8 +60,34 @@ export class PowerXModel extends PlottableModel {
     ].join(' ');
   }
 
+  convertDataPoints(dataPoints: Point[]): Point[] {
+    return dataPoints;
+  }
+
+  getFirstDerivative(): (x: number) => number {
+    const coefs = this.regression.jstats.coef;
+    return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
+  }
+
   getModelAverager(): ModelAverager {
-    return new PlotAverager(this._finalModelFactory);
+    return new PlotAverager((points: Point[]) => {
+      return new PlottableModel(points);
+    });
+  }
+
+  getModelPoints(pointCount: number): Point[] {
+    if (!this._modelPoints || this._modelPoints.length != pointCount) {
+      this._modelPoints = [];
+      const deltaX = (this.highestX - this.lowestX) / pointCount;
+      let x = this.lowestX;
+      while (x <= this.highestX) {
+        const y = this.regression.fittedY(x);
+        // Don't plot model points for y < 0.
+        if (y >= 0) this._modelPoints.push({ x, y });
+        x += deltaX;
+      }
+    }
+    return this._modelPoints;
   }
 }
 

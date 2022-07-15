@@ -20,6 +20,11 @@
     null
   );
   const clustering = createSessionStore<Clustering | null>('clustering', null);
+
+  const PINK_HEXCOLOR = '#FF0088';
+  const AQUA_HEXCOLOR = '#00DCD8';
+  const PURPLE_HEXCOLOR = '#A95CFF';
+  const GREEN_HEXCOLOR = '#00D40E';
 </script>
 
 <script lang="ts">
@@ -415,6 +420,7 @@
           <div class="col" style="height: 350px">
             <EffortGraph
               title={graphTitle}
+              hexColor={PINK_HEXCOLOR}
               spec={graphSpec}
               model={clusterModel}
               yFormula="y"
@@ -422,13 +428,15 @@
           </div>
         </div>
         <div class="row mb-3 gx-0 ms-4">
-          <div class="col-sm-6"><ResidualsPlot model={clusterModel} /></div>
+          <div class="col-sm-6">
+            <ResidualsPlot hexColor={PINK_HEXCOLOR} model={clusterModel} />
+          </div>
         </div>
-        <ModelStats model={clusterModel} />
+        <ModelStats hexColor={PINK_HEXCOLOR} model={clusterModel} />
       {:else}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
-            <EffortGraph title={graphTitle} spec={graphSpec} />
+            <EffortGraph title={graphTitle} hexColor={PINK_HEXCOLOR} spec={graphSpec} />
           </div>
         </div>
         <div class="row mb-3 gx-0 ms-4">

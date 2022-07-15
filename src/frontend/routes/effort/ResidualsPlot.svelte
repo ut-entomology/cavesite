@@ -4,6 +4,7 @@
   import type { Point } from '../../../shared/point';
   import type { PlottableModel } from './plottable_model';
 
+  export let hexColor: string;
   export let model: PlottableModel;
 
   // Chart.js plugin adapted from
@@ -31,8 +32,8 @@
     labels: [1, 2, 3, 4, 5, 6, 7],
     datasets: [
       {
-        label: model.name + ' residuals',
-        borderColor: '#' + model.hexColor,
+        label: 'residuals',
+        borderColor: hexColor,
         data: model.regression.residuals,
         fill: false
       }

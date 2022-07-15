@@ -2,6 +2,7 @@
   import { shortenPValue, shortenRMSE, shortenR2 } from './regression';
   import type { PlottableModel } from './plottable_model';
 
+  export let hexColor: string;
   export let model: PlottableModel;
 
   const regression = model.regression;
@@ -10,7 +11,7 @@
 <div class="row mt-1 stats gx-0">
   <div class="col-1" />
   <div class="col-6">
-    <span style="color: #{model.hexColor}">{@html model.getYFormula()}</span> = {@html model.getXFormula()}
+    <span style="color: {hexColor}">y</span> = {@html model.getXFormula()}
   </div>
   <div class="col-2">p-value {shortenPValue(regression.jstats.f.pvalue)}</div>
   <div class="col">RMSE {shortenRMSE(regression.rmse)}</div>
