@@ -90,6 +90,7 @@
   let clusterColors: ClusterColorSet[] = [];
   let localityCountByCluster: number[] = [];
   let clusterIndex = 0;
+  let showingRegression = false;
   let clusterModel: FittedModel | null = null;
 
   $: if ($clusterStore) {
@@ -108,9 +109,7 @@
 
   $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
-    if (clusterModel) {
-      _showModel();
-    }
+    if (showingRegression) _showModel();
     loadState = LoadState.ready;
   }
 
@@ -273,6 +272,7 @@
   }
 
   function _toggleModel() {
+    showingRegression = !showingRegression;
     if (clusterModel) {
       clusterModel = null;
     } else {
@@ -408,7 +408,7 @@
           </div>
           <div class="col-auto">
             <button class="btn btn-major" type="button" on:click={_toggleModel}
-              >{clusterModel ? 'Hide Regression' : 'Show Regression'}</button
+              >{showingRegression ? 'Hide Regression' : 'Show Regression'}</button
             >
           </div>
         </div>
@@ -419,7 +419,7 @@
         $clusterStore && $clusterStore.dataByCluster.length > 1}
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
-      {#if clusterModel === null}
+      {#if !showingRegression}
         {@const graphSpec = _getPlainGraphSpec(datasetID, clusterData)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
@@ -430,10 +430,7 @@
             />
           </div>
         </div>
-        <div class="row mb-3 gx-0 ms-4">
-          <div class="col-sm-6">Too few points to perform a regression.</div>
-        </div>
-      {:else}
+      {:else if clusterModel}
         {@const graphSpec = _getModelGraphSpec(datasetID, clusterData)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
@@ -451,6 +448,10 @@
           </div>
         </div>
         <ModelStats hexColor={PINK_HEXCOLOR} model={clusterModel} />
+      {:else}
+        <div class="regression_placeholder">
+          <div>Too few points to perform regression</div>
+        </div>
       {/if}
     {/if}
   </div>
@@ -495,5 +496,19 @@
   #cluster_color {
     display: inline-block;
     width: 1.3rem;
+  }
+
+  .regression_placeholder {
+    margin: 2rem 1rem 1rem 1rem;
+    border-radius: $border-radius;
+    border: 1px solid #aaa;
+    padding: 0 0.5em;
+  }
+  .regression_placeholder div {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: 2rem 0;
+    text-align: center;
+    color: #aaa;
   }
 </style>
