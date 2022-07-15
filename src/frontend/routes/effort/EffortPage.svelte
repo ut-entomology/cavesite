@@ -59,7 +59,6 @@
 
   const MAX_CLUSTERS = 10;
   const LOWER_BOUND_X = 0;
-  const UPPER_BOUND_X = Infinity;
   const MIN_X_ALLOWING_REGRESS = 10;
   const MODEL_WEIGHT_POWER = 0;
 
@@ -302,10 +301,7 @@
             highest comparison: <span>{clusterSpec.metric.highestComparedRank}</span>
           </div>
           <div class="col">
-            regressed: <span
-              >{LOWER_BOUND_X} &lt;= x &lt;=
-              {@html UPPER_BOUND_X == Infinity ? '&infin;' : UPPER_BOUND_X}</span
-            >
+            min. x regressed: <span>{LOWER_BOUND_X}</span>
           </div>
         </div>
         <div class="row">
