@@ -39,6 +39,7 @@
 
   let minX = $avgModelConfig.minX;
   let minPointCount = $avgModelConfig.minPointCount;
+  let maxPointCount: number;
   let weightPower = $avgModelConfig.weightPower;
   let minPointCountOptions: number[];
   let model: PowerFitModel | null;
@@ -48,7 +49,8 @@
   $: xAxisUnits = graphSpec.xAxisLabel.match(X_UNITS_REGEX)![0];
 
   $: {
-    let maxMinPointCount = clusteringConfig.maxPointsToRegress || Infinity;
+    maxPointCount = clusteringConfig.maxPointsToRegress || Infinity;
+    let maxMinPointCount = maxPointCount;
     if (maxMinPointCount > MAX_MIN_POINT_COUNT) {
       maxMinPointCount = MAX_MIN_POINT_COUNT;
     }
@@ -72,6 +74,7 @@
       sourceDataSet,
       graphSpec,
       minPointCount,
+      maxPointCount,
       minX,
       weightPower
     );

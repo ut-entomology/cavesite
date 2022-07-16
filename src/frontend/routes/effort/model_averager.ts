@@ -1,7 +1,7 @@
 import { PowerFitModel, type FittedModelFactory } from './power_fit_model';
 import type { FittedY } from './regression';
 import type { Point } from '../../../shared/point';
-import type { EffortGraphSpec } from './effort_graph_spec';
+import { type EffortGraphSpec, slicePointSet } from './effort_graph_spec';
 import type { LocationGraphData } from './location_graph_data';
 
 const AVERAGED_MODEL_POINTS = 20; // shouldn't need very many
@@ -59,6 +59,7 @@ export function createAverageModel(
   sourceDataSet: LocationGraphData[],
   graphSpec: EffortGraphSpec,
   minPointsToRegress: number,
+  maxPointsToRegress: number,
   minXAllowingRegression: number,
   modelWeightPower: number
 ): [PowerFitModel | null, LocationGraphData[]] {
@@ -72,19 +73,26 @@ export function createAverageModel(
   // Loop for each graph spec at one per location in the cluster.
 
   for (const locationGraphData of sourceDataSet) {
-    const points = graphSpec.pointExtractor(locationGraphData);
-    const lastPoint = points[points.length - 1];
-    if (points.length >= minPointsToRegress && lastPoint.x >= minXAllowingRegression) {
-      const locationModel = new PowerFitModel(points);
-      if (modelAverager == null) {
-        modelAverager = new ModelAverager((points) => new PowerFitModel(points));
+    const points = slicePointSet(
+      graphSpec.pointExtractor(locationGraphData),
+      minPointsToRegress,
+      maxPointsToRegress,
+      0
+    );
+    if (points !== null) {
+      const lastPoint = points[points.length - 1];
+      if (lastPoint.x >= minXAllowingRegression) {
+        const locationModel = new PowerFitModel(points);
+        if (modelAverager == null) {
+          modelAverager = new ModelAverager((points) => new PowerFitModel(points));
+        }
+        modelAverager.addModel(points, locationModel, modelWeightPower);
+        fittedPoints.push(...points);
+        if (points[0].x < lowestX) lowestX = points[0].x;
+        if (lastPoint.x > highestX) highestX = lastPoint.x;
+        fittedDataSet.push(locationGraphData);
+        ++locationCount;
       }
-      modelAverager.addModel(points, locationModel, modelWeightPower);
-      fittedPoints.push(...points);
-      if (points[0].x < lowestX) lowestX = points[0].x;
-      if (lastPoint.x > highestX) highestX = lastPoint.x;
-      fittedDataSet.push(locationGraphData);
-      ++locationCount;
     }
   }
 
