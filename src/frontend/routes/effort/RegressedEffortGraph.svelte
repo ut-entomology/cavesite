@@ -41,7 +41,8 @@
   let minPointCountOptions: number[];
   let model: FittedModel | null;
   let fittedDataSet: LocationGraphData[];
-  let xAxisUnits = graphSpec.xAxisLabel.match(X_UNITS_REGEX)![0];
+
+  $: xAxisUnits = graphSpec.xAxisLabel.match(X_UNITS_REGEX)![0];
 
   $: {
     let maxMinPointCount = clusteringConfig.maxPointsToRegress || Infinity;
