@@ -13,7 +13,7 @@
   export let graphSpec: EffortGraphSpec;
   export let title = graphSpec.graphTitle;
   export let model: FittedModel | null = null;
-  export let caveCount = graphDataSet.length;
+  export let totalCaves = graphDataSet.length;
 
   let pointCount: number;
   let pointSets: Point[][];
@@ -33,10 +33,10 @@
       }
     }
 
-    if (caveCount == graphDataSet.length) {
-      titleSuffix = ` (${caveCount} caves)`;
+    if (graphDataSet.length == totalCaves) {
+      titleSuffix = ` (${totalCaves} caves)`;
     } else {
-      titleSuffix = ` (${caveCount} of ${graphDataSet.length} caves)`;
+      titleSuffix = ` (${graphDataSet.length} of ${totalCaves} caves)`;
     }
   }
 

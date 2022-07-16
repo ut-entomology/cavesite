@@ -78,7 +78,7 @@
       <EffortGraph
         {title}
         {color}
-        caveCount={model.datasetCount}
+        totalCaves={sourceDataSet.length}
         graphDataSet={fittedDataSet}
         {graphSpec}
         {model}
