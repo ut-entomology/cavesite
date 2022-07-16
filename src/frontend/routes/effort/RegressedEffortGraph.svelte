@@ -224,17 +224,18 @@
         or person-visits (the x values).
       </li>
       <li>
-        The scatter plot and residuals graph only show data for caves that were included
-        in the average model. The scatter plot's title indicates both the number of
-        caves occuring in the average model and the total number of caves in the
-        cluster.
+        The scatter and residuals plots only show data for caves that were included in
+        the average model, and they only show the points actually being regressed,
+        according to the selected maximum number of recent points to regress. The
+        scatter plot's title indicates both the number of caves used in the average
+        model and the total number of caves in the cluster.
       </li>
       <li>
         <b>IMPORTANT:</b> This modeling makes the largely false assumption that researchers
         collect at least one specimen on each visit to each cave and deposit that specimen
         in the UT Biospeleological collection; receipt of a specimen is what indicates a
-        visit to the cave. The resulting models therefore reflect both human behavior and
-        natural conditions.
+        visit to the cave. The models are therefore a reflection of both natural conditions
+        and human behavior.
       </li>
     </ul>
   </InfoDialog>

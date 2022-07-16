@@ -106,7 +106,7 @@
     <div class="row mt-3 mb-2 gx-2 align-items-center">
       <div class="col-sm-7">
         <div>
-          <b>Max. points to regress</b> for modeling species encounter rates
+          <b>Max. recent points</b> to regress for modeling species encounter rates
         </div>
       </div>
       <div class="col-sm-2">
