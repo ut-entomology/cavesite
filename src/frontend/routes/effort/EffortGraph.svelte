@@ -13,8 +13,8 @@
   export let graphSpec: EffortGraphSpec;
   export let title = graphSpec.graphTitle;
   export let model: FittedModel | null = null;
+  export let caveCount = graphDataSet.length;
 
-  let caveCount: number;
   let pointCount: number;
   let pointSets: Point[][];
   let titleSuffix: string;
@@ -23,13 +23,11 @@
   $: models = model === null ? [] : [model];
 
   $: {
-    caveCount = 0;
     pointCount = 0;
     pointSets = [];
     for (const graphData of graphDataSet) {
       const pointSet = graphSpec.pointExtractor(graphData);
       if (pointSet.length > 0) {
-        ++caveCount;
         pointSets.push(pointSet);
         pointCount += pointSet.length;
       }

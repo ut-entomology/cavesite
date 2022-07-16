@@ -71,7 +71,14 @@
 {#if model}
   <div class="row mt-3 mb-1">
     <div class="col" style="height: 350px">
-      <EffortGraph {title} {color} {graphDataSet} {graphSpec} {model} />
+      <EffortGraph
+        {title}
+        {color}
+        caveCount={model.datasetCount}
+        {graphDataSet}
+        {graphSpec}
+        {model}
+      />
     </div>
   </div>
   <div class="row mb-3 gx-0 ms-4 stats">
