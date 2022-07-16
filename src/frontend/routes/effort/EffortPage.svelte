@@ -5,11 +5,7 @@
     type LocationGraphData,
     toLocationGraphDataSetByCluster
   } from './location_graph_data';
-  import {
-    type ClusteringConfig,
-    type ClusterData,
-    toClusterData
-  } from './cluster_data';
+  import type { ClusteringConfig, ClusterData } from './cluster_data';
 
   interface ClusterStore {
     config: ClusteringConfig;
@@ -125,7 +121,7 @@
         graphTitle = 'Cumulative species across visits';
         xAxisLabel = 'visits';
       }
-      pointExtractor = (graphData) => graphData.sourceGroup.perVisitPoints;
+      pointExtractor = (graphData) => graphData.perVisitPoints;
     } else {
       if (forModel) {
         graphTitle = 'Avg. model of cumulative species across person-visits';
@@ -135,7 +131,7 @@
         graphTitle = 'Cumulative species across person-visits';
         xAxisLabel = 'person-visits';
       }
-      pointExtractor = (graphData) => graphData.sourceGroup.perPersonVisitPoints;
+      pointExtractor = (graphData) => graphData.perPersonVisitPoints;
     }
     return {
       graphTitle,
@@ -180,14 +176,10 @@
       loadState = LoadState.generatingPlotData;
       const dataByCluster: ClusterData[] = [];
       for (let i = 0; i < taxaClusters.length; ++i) {
-        const locationGraphDataSet = locationGraphDataSetByCluster[i];
-        dataByCluster.push(
-          toClusterData(
-            taxaClusters[i].visitsByTaxonUnique,
-            locationGraphDataSet,
-            config.maxPointsToRegress || Infinity
-          )
-        );
+        dataByCluster.push({
+          visitsByTaxonUnique: taxaClusters[i].visitsByTaxonUnique,
+          locationGraphDataSet: locationGraphDataSetByCluster[i]
+        });
       }
       dataByCluster.sort((a, b) => {
         const aTaxaCount = Object.keys(a.visitsByTaxonUnique).length;
