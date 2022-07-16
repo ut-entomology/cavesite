@@ -120,11 +120,7 @@
   }
 </script>
 
-<ModalDialog
-  title="New Query"
-  contentClasses="query-filter-content"
-  dialogClasses="query-filter-dialog"
->
+<ModalDialog title="New Query" contentClasses="query-filter-content">
   <div class="row mb-3">
     <div class="col">
       Drag and drop the values you want in the query results and order them, or click

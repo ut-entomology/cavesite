@@ -32,11 +32,7 @@
   }
 </script>
 
-<ModalDialog
-  title="Configure Cave Clusters"
-  contentClasses="config-effort-content"
-  dialogClasses="config-effort-dialog"
->
+<ModalDialog title="Configure Cave Clusters" contentClasses="config-effort-content">
   <div class="row mb-2">
     <div class="col">
       Specify the criteria for clustering caves by the commonality of their genera and

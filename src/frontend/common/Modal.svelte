@@ -9,6 +9,9 @@
 
   export let dialogClasses = '';
   export let contentClasses = '';
+  export let maxWidth = '';
+
+  $: style = maxWidth == '' ? '' : `max-width: ` + maxWidth;
 
   let modalElement: HTMLElement;
   let triggeringElement: Element | null;
@@ -41,6 +44,7 @@
 >
   <div
     class="modal-dialog {dialogClasses}"
+    {style}
     role="document"
     in:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION }}
     out:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION, easing: quintOut }}

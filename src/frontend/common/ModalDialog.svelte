@@ -7,10 +7,11 @@
   export let title: string;
   export let dialogClasses = '';
   export let contentClasses = '';
+  export let maxWidth = '';
 </script>
 
-<Modal {contentClasses} let:scrollToModelTop>
-  <Dialog {title} class={dialogClasses}>
+<Modal {contentClasses} {dialogClasses} {maxWidth} let:scrollToModelTop>
+  <Dialog {title}>
     <slot {scrollToModelTop} />
   </Dialog>
 </Modal>

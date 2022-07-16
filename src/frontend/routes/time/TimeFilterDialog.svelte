@@ -36,11 +36,7 @@
   }
 </script>
 
-<ModalDialog
-  title="Generate Time Charts"
-  contentClasses="time-filter-content"
-  dialogClasses="time-filter-dialog"
->
+<ModalDialog title="Generate Time Charts" contentClasses="time-filter-content">
   <div class="row mb-4">
     <div class="col">
       Specify the criteria for generating new charts. When not restricting to selected
