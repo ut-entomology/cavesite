@@ -177,8 +177,6 @@
           toClusterData(
             taxaClusters[i].visitsByTaxonUnique,
             locationGraphDataSet,
-            LOWER_BOUND_X,
-            config.minPointsToRegress,
             config.maxPointsToRegress || Infinity
           )
         );
@@ -210,7 +208,6 @@
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         ignoreSubgenera: false,
         highestComparedRank: TaxonRank.Genus,
-        minPointsToRegress: 3,
         maxPointsToRegress: 12
       };
     }

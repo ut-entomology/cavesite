@@ -7,7 +7,6 @@ export interface ClusteringConfig {
   comparedTaxa: ComparedTaxa;
   ignoreSubgenera: boolean;
   highestComparedRank: TaxonRank;
-  minPointsToRegress: number;
   maxPointsToRegress: number | null;
 }
 
@@ -19,8 +18,6 @@ export interface ClusterData {
 export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   locationGraphDataSet: LocationGraphData[],
-  lowerBoundX: number,
-  minPointsToRegress: number,
   maxPointsToRegress: number
 ): ClusterData {
   let clusterData: ClusterData = {
@@ -32,14 +29,14 @@ export function toClusterData(
 
     const perVisitPoints = _toGraphedPointSet(
       sourceGroup.perVisitPoints,
-      lowerBoundX,
-      minPointsToRegress,
+      0,
+      0,
       maxPointsToRegress
     );
     const perPersonVisitPoints = _toGraphedPointSet(
       sourceGroup.perPersonVisitPoints,
-      lowerBoundX,
-      minPointsToRegress,
+      0,
+      0,
       maxPointsToRegress
     );
     locationGraphData.modelledGroup = {

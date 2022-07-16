@@ -14,7 +14,6 @@
   let comparedTaxa = config.comparedTaxa;
   let ignoreSubgenera = config.ignoreSubgenera;
   let highestComparedRank = config.highestComparedRank;
-  let minPointsToRegress = config.minPointsToRegress;
   let maxPointsToRegress = config.maxPointsToRegress || Infinity;
 
   let allowedPointsToRegress: number[] = [];
@@ -28,21 +27,8 @@
       comparedTaxa,
       ignoreSubgenera,
       highestComparedRank,
-      minPointsToRegress,
       maxPointsToRegress
     });
-  }
-
-  function _changedMinPoints() {
-    if (maxPointsToRegress < minPointsToRegress) {
-      maxPointsToRegress = minPointsToRegress;
-    }
-  }
-
-  function _changedMaxPoints() {
-    if (maxPointsToRegress < minPointsToRegress) {
-      minPointsToRegress = maxPointsToRegress;
-    }
   }
 </script>
 
@@ -124,25 +110,13 @@
     <div class="row mt-3 mb-2 gx-2 align-items-center">
       <div class="col-sm-7">
         <div>
-          <b>Min. and max. points to regress</b> for modeling species encounter rates
+          <b>Max. points to regress</b> for modeling species encounter rates
         </div>
-      </div>
-      <div class="col-sm-2">
-        <select
-          bind:value={minPointsToRegress}
-          class="form-select form-select-sm item_select"
-          on:change={_changedMinPoints}
-        >
-          {#each allowedPointsToRegress as minPoints}
-            <option value={minPoints}>{minPoints}</option>
-          {/each}
-        </select>
       </div>
       <div class="col-sm-2">
         <select
           bind:value={maxPointsToRegress}
           class="form-select form-select-sm item_select"
-          on:change={_changedMaxPoints}
         >
           {#each allowedPointsToRegress as maxPoints}
             <option value={maxPoints}>{maxPoints}</option>
