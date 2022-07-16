@@ -77,7 +77,7 @@ export function createAverageModel(
     if (points.length >= minPointsToRegress && lastPoint.x >= minXAllowingRegression) {
       const locationModel = new FittedModel(points);
       if (modelAverager == null) {
-        modelAverager = locationModel.getModelAverager();
+        modelAverager = new ModelAverager((points) => new FittedModel(points));
       }
       modelAverager.addModel(points, locationModel, modelWeightPower);
       if (points.length > 0) {

@@ -1,6 +1,5 @@
 import type { Point } from '../../../shared/point';
 import { Regression, shortenValue } from './regression';
-import { ModelAverager } from './model_averager';
 
 const MODEL_COEF_PRECISION = 3;
 
@@ -50,12 +49,6 @@ export class FittedModel {
   getFirstDerivative(): (x: number) => number {
     const coefs = this.regression.jstats.coef;
     return (x) => this.power * coefs[0] * Math.pow(x, this.power - 1);
-  }
-
-  getModelAverager(): ModelAverager {
-    return new ModelAverager((points: Point[]) => {
-      return new FittedModel(points);
-    });
   }
 
   getModelPoints(pointCount: number): Point[] {
