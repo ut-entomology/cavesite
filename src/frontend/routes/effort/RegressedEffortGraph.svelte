@@ -45,7 +45,7 @@
       maxMinPointCount = MAX_MIN_POINT_COUNT;
     }
     minPointCountOptions = [];
-    for (let i = MIN_MIN_POINT_COUNT; i <= MAX_MIN_POINT_COUNT; ++i) {
+    for (let i = MIN_MIN_POINT_COUNT; i <= maxMinPointCount; ++i) {
       minPointCountOptions.push(i);
     }
     if (minPointCount > maxMinPointCount) {
