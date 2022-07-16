@@ -97,23 +97,6 @@
       <div style="width: 100%">
         <div class="row mt-3 justify-content-center">
           <div class="col-5 text-end">
-            <label for="inputMinX" class="col-form-label">Min. x</label>
-          </div>
-          <div class="col-5">
-            <select
-              id="inputMinX"
-              bind:value={minX}
-              class="form-select form-select-sm item_select"
-            >
-              {#each { length: MAX_MIN_X + 1 } as _, option}
-                <option value={option}>{option}</option>
-              {/each}
-            </select>
-          </div>
-        </div>
-
-        <div class="row justify-content-center">
-          <div class="col-5 text-end">
             <label for="inputMinPointCount" class="col-form-label">Min. pts.</label>
           </div>
           <div class="col-5">
@@ -123,6 +106,23 @@
               class="form-select form-select-sm item_select"
             >
               {#each minPointCountOptions as option}
+                <option value={option}>{option}</option>
+              {/each}
+            </select>
+          </div>
+        </div>
+
+        <div class="row justify-content-center">
+          <div class="col-5 text-end">
+            <label for="inputMinX" class="col-form-label">Min. x</label>
+          </div>
+          <div class="col-5">
+            <select
+              id="inputMinX"
+              bind:value={minX}
+              class="form-select form-select-sm item_select"
+            >
+              {#each { length: MAX_MIN_X + 1 } as _, option}
                 <option value={option}>{option}</option>
               {/each}
             </select>
