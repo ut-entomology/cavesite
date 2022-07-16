@@ -27,6 +27,7 @@
   const MIN_MIN_POINT_COUNT = 3;
   const MAX_MIN_POINT_COUNT = 20;
   const WEIGHT_OPTIONS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+  const X_UNITS_REGEX = /[^ ]+/;
 
   export let title: string;
   export let color: string;
@@ -40,6 +41,7 @@
   let minPointCountOptions: number[];
   let model: FittedModel | null;
   let fittedDataSet: LocationGraphData[];
+  let xAxisUnits = graphSpec.xAxisLabel.match(X_UNITS_REGEX)![0];
 
   $: {
     let maxMinPointCount = clusteringConfig.maxPointsToRegress || Infinity;
@@ -87,7 +89,7 @@
   </div>
   <div class="row mb-3 gx-0 ms-4 stats">
     <div class="col-md-6">
-      <ResidualsPlot {color} {model} />
+      <ResidualsPlot {color} {model} {xAxisUnits} />
     </div>
 
     <div class="col-md-3 d-flex align-items-center">

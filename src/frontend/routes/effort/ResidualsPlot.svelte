@@ -6,6 +6,7 @@
 
   export let color: string;
   export let model: FittedModel;
+  export let xAxisUnits: string;
 
   // Chart.js plugin adapted from
   //  https://nishimura.eti.br/blog/2021/02/07/chartjs-point-with-vertical/
@@ -32,7 +33,7 @@
     labels: [1, 2, 3, 4, 5, 6, 7],
     datasets: [
       {
-        label: 'residuals',
+        label: `residuals (spp. vs. ${xAxisUnits})`,
         borderColor: color,
         data: model.regression.residuals,
         fill: false
