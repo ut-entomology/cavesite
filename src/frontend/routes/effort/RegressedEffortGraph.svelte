@@ -110,7 +110,9 @@
           <div class="col-md-6">
             <div class="row mt-3 justify-content-center">
               <div class="col-5 text-end">
-                <label for="inputMinPointCount" class="col-form-label">Min. pts.</label>
+                <label for="inputMinPointCount" class="col-form-label"
+                  >Min.&nbsp;pts.</label
+                >
               </div>
               <div class="col-5">
                 <select
@@ -127,7 +129,7 @@
 
             <div class="row justify-content-center">
               <div class="col-5 text-end">
-                <label for="inputMinX" class="col-form-label">Min. x</label>
+                <label for="inputMinX" class="col-form-label">Min.&nbsp;x</label>
               </div>
               <div class="col-5">
                 <select
