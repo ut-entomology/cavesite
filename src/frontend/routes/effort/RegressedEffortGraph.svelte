@@ -19,7 +19,6 @@
   import ResidualsPlot from './ResidualsPlot.svelte';
   import ModelStats from './ModelStats.svelte';
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
-  import { DialogSpec } from '../../common/VariableDialog.svelte';
   import type { LocationGraphData } from './location_graph_data';
   import type { EffortGraphSpec } from './effort_graph_spec';
   import { FittedModel } from './fitted_model';
@@ -184,7 +183,7 @@
 
 {#if showingInfoBox}
   <InfoDialog
-    title="About this Model"
+    title="About the Average Model"
     classes="about_model_box"
     maxWidth="45rem"
     onClose={_closeAboutModel}
