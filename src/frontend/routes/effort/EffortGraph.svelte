@@ -82,7 +82,7 @@
       y: {
         title: {
           display: true,
-          text: 'cumulative species',
+          text: 'cumulative species (y)',
           font: { size: 16 }
         }
       }
