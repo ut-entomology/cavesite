@@ -4,19 +4,25 @@ import type { LocationGraphData } from './location_graph_data';
 export interface EffortGraphSpec {
   graphTitle: string;
   xAxisLabel: string;
+  pointSliceSpec: PointSliceSpec;
   pointExtractor: (graphData: LocationGraphData) => Point[];
+}
+
+export interface PointSliceSpec {
+  minPointCount: number;
+  maxPointCount: number;
+  recentPointsToIgnore: number;
 }
 
 export function slicePointSet(
   dataPoints: Point[],
-  minPointsToRegress: number,
-  maxPointsToRegress: number,
-  recentPointsToIgnore: number
+  spec: PointSliceSpec
 ): Point[] | null {
-  const lastPointIndexPlusOne = dataPoints.length - recentPointsToIgnore;
+  const lastPointIndexPlusOne = dataPoints.length - spec.recentPointsToIgnore;
   if (lastPointIndexPlusOne <= 0) return null;
-  let firstPointIndex = lastPointIndexPlusOne - maxPointsToRegress;
+  let firstPointIndex =
+    spec.maxPointCount == Infinity ? 0 : lastPointIndexPlusOne - spec.maxPointCount;
   if (firstPointIndex < 0) firstPointIndex = 0;
-  if (lastPointIndexPlusOne - firstPointIndex < minPointsToRegress) return null;
+  if (lastPointIndexPlusOne - firstPointIndex < spec.minPointCount) return null;
   return dataPoints.slice(firstPointIndex, lastPointIndexPlusOne);
 }

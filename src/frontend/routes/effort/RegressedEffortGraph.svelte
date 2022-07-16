@@ -43,6 +43,7 @@
   let weightPower = $avgModelConfig.weightPower;
   let minPointCountOptions: number[];
   let model: PowerFitModel | null;
+  let modelGraphSpec: EffortGraphSpec;
   let fittedDataSet: LocationGraphData[];
   let showingInfoBox = false;
 
@@ -70,11 +71,16 @@
   });
 
   $: {
+    modelGraphSpec = Object.assign({}, graphSpec, {
+      pointSliceSpec: {
+        minPointCount,
+        maxPointCount,
+        recentPointsToIgnore: 0
+      }
+    });
     [model, fittedDataSet] = createAverageModel(
       sourceDataSet,
-      graphSpec,
-      minPointCount,
-      maxPointCount,
+      modelGraphSpec,
       minX,
       weightPower
     );
@@ -97,7 +103,7 @@
         {color}
         totalCaves={sourceDataSet.length}
         graphDataSet={fittedDataSet}
-        {graphSpec}
+        graphSpec={modelGraphSpec}
         {model}
       />
     </div>

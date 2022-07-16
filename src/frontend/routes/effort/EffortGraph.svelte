@@ -3,7 +3,7 @@
 
   import type { Point } from '../../../shared/point';
   import type { LocationGraphData } from './location_graph_data';
-  import type { EffortGraphSpec } from './effort_graph_spec';
+  import { type EffortGraphSpec, slicePointSet } from './effort_graph_spec';
   import type { PowerFitModel } from './power_fit_model';
 
   const POINTS_IN_MODEL_PLOT = 200;
@@ -26,8 +26,11 @@
     pointCount = 0;
     pointSets = [];
     for (const graphData of graphDataSet) {
-      const pointSet = graphSpec.pointExtractor(graphData);
-      if (pointSet.length > 0) {
+      const pointSet = slicePointSet(
+        graphSpec.pointExtractor(graphData),
+        graphSpec.pointSliceSpec
+      );
+      if (pointSet !== null) {
         pointSets.push(pointSet);
         pointCount += pointSet.length;
       }

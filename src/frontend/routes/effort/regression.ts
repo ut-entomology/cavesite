@@ -25,6 +25,7 @@ export class Regression {
     fittedYTakingCoefs: FittedYTakingCoefs,
     dataPoints: Point[]
   ) {
+    if (dataPoints.length < 3) throw Error('REGRESSING < 3 DATA POINTS');
     const independentValues: number[][] = [];
     const dependentValues: number[] = [];
     for (const point of dataPoints) {

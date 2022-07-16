@@ -58,8 +58,6 @@ export class ModelAverager {
 export function createAverageModel(
   sourceDataSet: LocationGraphData[],
   graphSpec: EffortGraphSpec,
-  minPointsToRegress: number,
-  maxPointsToRegress: number,
   minXAllowingRegression: number,
   modelWeightPower: number
 ): [PowerFitModel | null, LocationGraphData[]] {
@@ -75,9 +73,7 @@ export function createAverageModel(
   for (const locationGraphData of sourceDataSet) {
     const points = slicePointSet(
       graphSpec.pointExtractor(locationGraphData),
-      minPointsToRegress,
-      maxPointsToRegress,
-      0
+      graphSpec.pointSliceSpec
     );
     if (points !== null) {
       const lastPoint = points[points.length - 1];

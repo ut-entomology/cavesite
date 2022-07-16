@@ -1,7 +1,10 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  import { toLocationGraphDataSetByCluster } from './location_graph_data';
+  import {
+    type LocationGraphData,
+    toLocationGraphDataSetByCluster
+  } from './location_graph_data';
   import {
     type ClusteringConfig,
     type ClusterData,
@@ -37,6 +40,7 @@
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
+  import type { Point } from '../../../shared/point';
   import type { EffortGraphSpec } from './effort_graph_spec';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
@@ -104,40 +108,45 @@
     $clusterStore = null;
   }
 
-  function _getModelGraphSpec(datasetID: DatasetID): EffortGraphSpec {
+  function _getGraphSpec(datasetID: DatasetID, forModel: boolean): EffortGraphSpec {
     // datasetID is passed in to get reactivity in the HTML
-    switch (datasetID) {
-      case DatasetID.visits:
-        return {
-          graphTitle: 'Avg. model of cumulative species across visits',
-          xAxisLabel: 'visits in regressed range',
-          pointExtractor: (graphData) => graphData.modelledGroup!.perVisitPoints
-        };
-      case DatasetID.personVisits:
-        return {
-          graphTitle: 'Avg. model of cumulative species across person-visits',
-          xAxisLabel: 'person-visits in regressed range',
-          pointExtractor: (graphData) => graphData.modelledGroup!.perPersonVisitPoints
-        };
-    }
-  }
 
-  function _getPlainGraphSpec(datasetID: DatasetID): EffortGraphSpec {
-    // datasetID is passed in to get reactivity in the HTML
-    switch (datasetID) {
-      case DatasetID.visits:
-        return {
-          graphTitle: 'Cumulative species across visits',
-          xAxisLabel: 'visits',
-          pointExtractor: (graphData) => graphData.sourceGroup.perVisitPoints
-        };
-      case DatasetID.personVisits:
-        return {
-          graphTitle: 'Cumulative species across person-visits',
-          xAxisLabel: 'person-visits',
-          pointExtractor: (graphData) => graphData.sourceGroup.perPersonVisitPoints
-        };
+    let graphTitle: string;
+    let xAxisLabel: string;
+    let maxPointCount = Infinity;
+    let pointExtractor: (graphData: LocationGraphData) => Point[];
+
+    if (datasetID == DatasetID.visits) {
+      if (forModel) {
+        graphTitle = 'Avg. model of cumulative species across visits';
+        xAxisLabel = 'visits in regressed range';
+        maxPointCount = $clusterStore!.config.maxPointsToRegress || Infinity;
+      } else {
+        graphTitle = 'Cumulative species across visits';
+        xAxisLabel = 'visits';
+      }
+      pointExtractor = (graphData) => graphData.sourceGroup.perVisitPoints;
+    } else {
+      if (forModel) {
+        graphTitle = 'Avg. model of cumulative species across person-visits';
+        xAxisLabel = 'person-visits in regressed range';
+        maxPointCount = $clusterStore!.config.maxPointsToRegress || Infinity;
+      } else {
+        graphTitle = 'Cumulative species across person-visits';
+        xAxisLabel = 'person-visits';
+      }
+      pointExtractor = (graphData) => graphData.sourceGroup.perPersonVisitPoints;
     }
+    return {
+      graphTitle,
+      xAxisLabel,
+      pointSliceSpec: {
+        minPointCount: 0,
+        maxPointCount,
+        recentPointsToIgnore: 0
+      },
+      pointExtractor
+    };
   }
 
   async function _loadData(config: ClusteringConfig) {
@@ -371,7 +380,7 @@
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
       {#if !showingAverageModel}
-        {@const graphSpec = _getPlainGraphSpec(datasetID)}
+        {@const graphSpec = _getGraphSpec(datasetID, false)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
@@ -383,7 +392,7 @@
           </div>
         </div>
       {:else}
-        {@const graphSpec = _getModelGraphSpec(datasetID)}
+        {@const graphSpec = _getGraphSpec(datasetID, true)}
         <RegressedEffortGraph
           title={graphTitlePrefix + graphSpec.graphTitle}
           color={clusterColor}
