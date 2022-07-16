@@ -21,7 +21,7 @@
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import type { LocationGraphData } from './location_graph_data';
   import type { EffortGraphSpec } from './effort_graph_spec';
-  import type { FittedModel } from './fitted_model';
+  import type { PowerFitModel } from './power_fit_model';
   import type { ClusteringConfig } from './cluster_data';
   import { createAverageModel } from './model_averager';
 
@@ -41,7 +41,7 @@
   let minPointCount = $avgModelConfig.minPointCount;
   let weightPower = $avgModelConfig.weightPower;
   let minPointCountOptions: number[];
-  let model: FittedModel | null;
+  let model: PowerFitModel | null;
   let fittedDataSet: LocationGraphData[];
   let showingInfoBox = false;
 

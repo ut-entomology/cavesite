@@ -1,9 +1,9 @@
 <script lang="ts">
   import { shortenPValue, shortenRMSE, shortenR2 } from './regression';
-  import type { FittedModel } from './fitted_model';
+  import type { PowerFitModel } from './power_fit_model';
 
   export let color: string;
-  export let model: FittedModel;
+  export let model: PowerFitModel;
 
   $: regression = model.regression;
   $: xFormula = model.getXFormula();

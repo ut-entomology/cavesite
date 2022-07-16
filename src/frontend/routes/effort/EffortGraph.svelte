@@ -4,7 +4,7 @@
   import type { Point } from '../../../shared/point';
   import type { LocationGraphData } from './location_graph_data';
   import type { EffortGraphSpec } from './effort_graph_spec';
-  import type { FittedModel } from './fitted_model';
+  import type { PowerFitModel } from './power_fit_model';
 
   const POINTS_IN_MODEL_PLOT = 200;
 
@@ -12,7 +12,7 @@
   export let graphDataSet: LocationGraphData[];
   export let graphSpec: EffortGraphSpec;
   export let title = graphSpec.graphTitle;
-  export let model: FittedModel | null = null;
+  export let model: PowerFitModel | null = null;
   export let totalCaves = graphDataSet.length;
 
   let pointCount: number;

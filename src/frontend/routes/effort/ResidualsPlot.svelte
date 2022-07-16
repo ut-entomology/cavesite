@@ -2,10 +2,10 @@
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { Point } from '../../../shared/point';
-  import type { FittedModel } from './fitted_model';
+  import type { PowerFitModel } from './power_fit_model';
 
   export let color: string;
-  export let model: FittedModel;
+  export let model: PowerFitModel;
   export let xAxisUnits: string;
 
   // Chart.js plugin adapted from

@@ -3,7 +3,7 @@ import { Regression, shortenValue } from './regression';
 
 const MODEL_COEF_PRECISION = 3;
 
-export type FittedModelFactory = (dataPoints: Point[]) => FittedModel;
+export type FittedModelFactory = (dataPoints: Point[]) => PowerFitModel;
 
 interface RegressionSearchConfig {
   lowerBoundScalar: number;
@@ -13,7 +13,7 @@ interface RegressionSearchConfig {
 
 type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
-export class FittedModel {
+export class PowerFitModel {
   datasetCount = 1;
   lowestX = Infinity;
   highestX = 0;
