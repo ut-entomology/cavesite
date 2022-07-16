@@ -80,11 +80,9 @@ export function createAverageModel(
         modelAverager = new ModelAverager((points) => new PowerFitModel(points));
       }
       modelAverager.addModel(points, locationModel, modelWeightPower);
-      if (points.length > 0) {
-        fittedPoints.push(...points);
-        if (points[0].x < lowestX) lowestX = points[0].x;
-        if (lastPoint.x > highestX) highestX = lastPoint.x;
-      }
+      fittedPoints.push(...points);
+      if (points[0].x < lowestX) lowestX = points[0].x;
+      if (lastPoint.x > highestX) highestX = lastPoint.x;
       fittedDataSet.push(locationGraphData);
       ++locationCount;
     }
