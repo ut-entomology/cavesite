@@ -44,7 +44,6 @@
   $pageName = 'Collection Effort';
 
   const MAX_CLUSTERS = 10;
-  const LOWER_BOUND_X = 0;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -271,9 +270,7 @@
           <div class="col">
             highest comparison: <span>{clusterSpec.metric.highestComparedRank}</span>
           </div>
-          <div class="col">
-            min. x regressed: <span>{LOWER_BOUND_X}</span>
-          </div>
+          <div class="col" />
         </div>
         <div class="row">
           <div class="col">
