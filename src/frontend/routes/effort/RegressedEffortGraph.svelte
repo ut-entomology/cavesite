@@ -30,7 +30,7 @@
 
   export let title: string;
   export let color: string;
-  export let graphDataSet: LocationGraphData[];
+  export let sourceDataSet: LocationGraphData[];
   export let graphSpec: EffortGraphSpec;
   export let clusteringConfig: ClusteringConfig;
 
@@ -38,6 +38,8 @@
   let minPointCount = $avgModelConfig.minPointCount;
   let weightPower = $avgModelConfig.weightPower;
   let minPointCountOptions: number[];
+  let model: FittedModel | null;
+  let fittedDataSet: LocationGraphData[];
 
   $: {
     let maxMinPointCount = clusteringConfig.maxPointsToRegress || Infinity;
@@ -59,13 +61,15 @@
     weightPower
   });
 
-  $: model = FittedModel.create(
-    graphDataSet,
-    graphSpec,
-    minPointCount,
-    minX,
-    weightPower
-  );
+  $: {
+    [model, fittedDataSet] = FittedModel.createFromDataSet(
+      sourceDataSet,
+      graphSpec,
+      minPointCount,
+      minX,
+      weightPower
+    );
+  }
 </script>
 
 {#if model}
@@ -75,7 +79,7 @@
         {title}
         {color}
         caveCount={model.datasetCount}
-        {graphDataSet}
+        graphDataSet={fittedDataSet}
         {graphSpec}
         {model}
       />

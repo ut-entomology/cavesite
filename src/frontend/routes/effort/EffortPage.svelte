@@ -387,7 +387,7 @@
         <RegressedEffortGraph
           title={graphTitlePrefix + graphSpec.graphTitle}
           color={clusterColor}
-          graphDataSet={clusterData.locationGraphDataSet}
+          sourceDataSet={clusterData.locationGraphDataSet}
           {graphSpec}
           clusteringConfig={$clusterStore.config}
         />
