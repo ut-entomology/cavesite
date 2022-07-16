@@ -25,9 +25,8 @@
   import ConfigClustersDialog from './ConfigClustersDialog.svelte';
   import ClusterPieChart from './ClusterPieChart.svelte';
   import ClusterRadarChart from './ClusterRadarChart.svelte';
-  import ModelStats from './ModelStats.svelte';
   import EffortGraph from './EffortGraph.svelte';
-  import ResidualsPlot from './ResidualsPlot.svelte';
+  import RegressedEffortGraph from './RegressedEffortGraph.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -38,7 +37,6 @@
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
-  import { FittedModel } from './fitted_model';
   import type { EffortGraphSpec } from './effort_graph_spec';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
@@ -85,7 +83,6 @@
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
-  let clusterModel: FittedModel | null = null;
 
   $: if ($clusterStore) {
     clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
@@ -102,7 +99,6 @@
 
   $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
-    if (showingAverageModel) _showModel();
     loadState = LoadState.ready;
   }
 
@@ -244,24 +240,8 @@
     }
   }
 
-  function _showModel() {
-    const clusterData = $clusterStore!.dataByCluster[clusterIndex];
-    const graphSpec = _getModelGraphSpec(datasetID);
-    clusterModel = FittedModel.create(
-      clusterData.locationGraphDataSet,
-      graphSpec,
-      MIN_X_ALLOWING_REGRESS,
-      MODEL_WEIGHT_POWER
-    );
-  }
-
   function _toggleModel() {
     showingAverageModel = !showingAverageModel;
-    if (clusterModel) {
-      clusterModel = null;
-    } else {
-      _showModel();
-    }
   }
 
   afterUpdate(() => _setClusterSelectorColor(clusterIndex));
@@ -408,35 +388,19 @@
               title={graphTitlePrefix + graphSpec.graphTitle}
               color={clusterColor}
               graphDataSet={clusterData.locationGraphDataSet}
-              spec={graphSpec}
+              {graphSpec}
             />
-          </div>
-        </div>
-      {:else if clusterModel}
-        {@const graphSpec = _getModelGraphSpec(datasetID)}
-        <div class="row mt-3 mb-1">
-          <div class="col" style="height: 350px">
-            <EffortGraph
-              title={graphTitlePrefix + graphSpec.graphTitle}
-              color={clusterColor}
-              graphDataSet={clusterData.locationGraphDataSet}
-              spec={graphSpec}
-              model={clusterModel}
-            />
-          </div>
-        </div>
-        <div class="row mb-3 gx-0 ms-4">
-          <div class="col-sm-6">
-            <ResidualsPlot color={clusterColor} model={clusterModel} />
-          </div>
-          <div class="col-sm-6 d-flex align-items-center">
-            <ModelStats color={clusterColor} model={clusterModel} />
           </div>
         </div>
       {:else}
-        <div class="regression_placeholder">
-          <div>Too few points to perform regression</div>
-        </div>
+        {@const graphSpec = _getModelGraphSpec(datasetID)}
+        <RegressedEffortGraph
+          title={graphTitlePrefix + graphSpec.graphTitle}
+          color={clusterColor}
+          graphDataSet={clusterData.locationGraphDataSet}
+          {graphSpec}
+          clusteringConfig={$clusterStore.config}
+        />
       {/if}
     {/if}
   </div>
@@ -465,8 +429,6 @@
 {/if}
 
 <style lang="scss">
-  @import '../../variables.scss';
-
   .cluster_summary_info {
     font-size: 0.85rem;
     color: #999;
@@ -481,19 +443,5 @@
   #cluster_color {
     display: inline-block;
     width: 1.3rem;
-  }
-
-  .regression_placeholder {
-    margin: 2rem 1rem 1rem 1rem;
-    border-radius: $border-radius;
-    border: 1px solid #aaa;
-    padding: 0 0.5em;
-  }
-  .regression_placeholder div {
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin: 2rem 0;
-    text-align: center;
-    color: #aaa;
   }
 </style>

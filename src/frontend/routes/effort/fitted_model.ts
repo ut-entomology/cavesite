@@ -4,7 +4,6 @@ import type { LocationGraphData } from './location_graph_data';
 import { Regression, shortenValue } from './regression';
 import { ModelAverager } from './model_averager';
 
-const MIN_POINTS_TO_REGRESS = 3; // strictly min. needed to produce any regression
 const MODEL_COEF_PRECISION = 3;
 
 export type FittedModelFactory = (dataPoints: Point[]) => FittedModel;
@@ -18,6 +17,7 @@ interface RegressionSearchConfig {
 type RegressionFactory = (dataPoints: Point[], scalar: number) => Regression;
 
 export class FittedModel {
+  datasetCount = 1;
   lowestX = Infinity;
   highestX = 0;
   regression: Regression;
@@ -52,6 +52,7 @@ export class FittedModel {
   static create(
     graphDataSet: LocationGraphData[],
     graphSpec: EffortGraphSpec,
+    minPointsToRegress: number,
     minXAllowingRegression: number,
     modelWeightPower: number
   ): FittedModel | null {
@@ -59,6 +60,7 @@ export class FittedModel {
     let modelAverager: ModelAverager | null = null;
     let lowestX = Infinity;
     let highestX = 0;
+    let locationCount = 0;
 
     // Loop for each graph spec at one per location in the cluster.
 
@@ -68,7 +70,7 @@ export class FittedModel {
     for (const points of pointSets) {
       const lastPoint = points[points.length - 1];
       if (
-        points.length >= MIN_POINTS_TO_REGRESS &&
+        points.length >= minPointsToRegress &&
         lastPoint.x >= minXAllowingRegression
       ) {
         const locationModel = new FittedModel(points);
@@ -76,6 +78,7 @@ export class FittedModel {
           modelAverager = locationModel.getModelAverager();
         }
         modelAverager.addModel(points, locationModel, modelWeightPower);
+        ++locationCount;
       }
       if (points.length > 0) {
         allPoints.push(...points);
@@ -89,6 +92,7 @@ export class FittedModel {
     if (modelAverager === null) return null;
     const averageModel = modelAverager.getAverageModel(lowestX, highestX);
     averageModel.regression.evaluate(allPoints);
+    averageModel.datasetCount = locationCount;
     return averageModel;
   }
 

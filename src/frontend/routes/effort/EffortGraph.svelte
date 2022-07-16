@@ -10,8 +10,8 @@
 
   export let color: string;
   export let graphDataSet: LocationGraphData[];
-  export let spec: EffortGraphSpec;
-  export let title = spec.graphTitle;
+  export let graphSpec: EffortGraphSpec;
+  export let title = graphSpec.graphTitle;
   export let model: FittedModel | null = null;
 
   let caveCount: number;
@@ -19,7 +19,7 @@
   let pointSets: Point[][];
   let titleSuffix: string;
 
-  $: xAxisLabel = spec.xAxisLabel;
+  $: xAxisLabel = graphSpec.xAxisLabel;
   $: models = model === null ? [] : [model];
 
   $: {
@@ -27,7 +27,7 @@
     pointCount = 0;
     pointSets = [];
     for (const graphData of graphDataSet) {
-      const pointSet = spec.pointExtractor(graphData);
+      const pointSet = graphSpec.pointExtractor(graphData);
       if (pointSet.length > 0) {
         ++caveCount;
         pointSets.push(pointSet);
