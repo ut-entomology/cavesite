@@ -45,8 +45,6 @@
 
   const MAX_CLUSTERS = 10;
   const LOWER_BOUND_X = 0;
-  const MIN_X_ALLOWING_REGRESS = 10;
-  const MODEL_WEIGHT_POWER = 1;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -297,16 +295,14 @@
           <div class="col">
             metric transform: <span>{clusterSpec.metric.transform}</span>
           </div>
-          <div class="col">
-            min. x => regression: <span>{MIN_X_ALLOWING_REGRESS}</span>
-          </div>
+          <div class="col" />
           <div class="col" />
         </div>
         <div class="row">
           <div class="col">
             metric weight: <span>{clusterSpec.metric.weight}</span>
           </div>
-          <div class="col">model weight power: <span>{MODEL_WEIGHT_POWER}</span></div>
+          <div class="col" />
           <div class="col" />
         </div>
       </div>
