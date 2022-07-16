@@ -1,6 +1,8 @@
-import type { FittedModel, FittedModelFactory } from './fitted_model';
+import { FittedModel, type FittedModelFactory } from './fitted_model';
 import type { FittedY } from './regression';
 import type { Point } from '../../../shared/point';
+import type { EffortGraphSpec } from './effort_graph_spec';
+import type { LocationGraphData } from './location_graph_data';
 
 const AVERAGED_MODEL_POINTS = 20; // shouldn't need very many
 
@@ -51,4 +53,48 @@ export class ModelAverager {
     const lastX = points[points.length - 1].x;
     return lastX ** weightPower;
   }
+}
+
+export function createAverageModel(
+  sourceDataSet: LocationGraphData[],
+  graphSpec: EffortGraphSpec,
+  minPointsToRegress: number,
+  minXAllowingRegression: number,
+  modelWeightPower: number
+): [FittedModel | null, LocationGraphData[]] {
+  const fittedDataSet: LocationGraphData[] = [];
+  const fittedPoints: Point[] = [];
+  let modelAverager: ModelAverager | null = null;
+  let lowestX = Infinity;
+  let highestX = 0;
+  let locationCount = 0;
+
+  // Loop for each graph spec at one per location in the cluster.
+
+  for (const locationGraphData of sourceDataSet) {
+    const points = graphSpec.pointExtractor(locationGraphData);
+    const lastPoint = points[points.length - 1];
+    if (points.length >= minPointsToRegress && lastPoint.x >= minXAllowingRegression) {
+      const locationModel = new FittedModel(points);
+      if (modelAverager == null) {
+        modelAverager = locationModel.getModelAverager();
+      }
+      modelAverager.addModel(points, locationModel, modelWeightPower);
+      if (points.length > 0) {
+        fittedPoints.push(...points);
+        if (points[0].x < lowestX) lowestX = points[0].x;
+        if (lastPoint.x > highestX) highestX = lastPoint.x;
+      }
+      fittedDataSet.push(locationGraphData);
+      ++locationCount;
+    }
+  }
+
+  // Combine the models if we were able to generate at least one model.
+
+  if (modelAverager === null) return [null, sourceDataSet];
+  const averageModel = modelAverager.getAverageModel(lowestX, highestX);
+  averageModel.regression.evaluate(fittedPoints);
+  averageModel.datasetCount = locationCount;
+  return [averageModel, fittedDataSet];
 }

@@ -1,6 +1,4 @@
 import type { Point } from '../../../shared/point';
-import type { EffortGraphSpec } from './effort_graph_spec';
-import type { LocationGraphData } from './location_graph_data';
 import { Regression, shortenValue } from './regression';
 import { ModelAverager } from './model_averager';
 
@@ -23,7 +21,7 @@ export class FittedModel {
   regression: Regression;
   power: number;
 
-  private constructor(dataPoints: Point[]) {
+  constructor(dataPoints: Point[]) {
     for (const point of dataPoints) {
       if (point.x < this.lowestX) this.lowestX = point.x;
       if (point.x > this.highestX) this.highestX = point.x;
@@ -47,53 +45,6 @@ export class FittedModel {
     );
     this.power = power;
     this.regression = regression;
-  }
-
-  static createFromDataSet(
-    sourceDataSet: LocationGraphData[],
-    graphSpec: EffortGraphSpec,
-    minPointsToRegress: number,
-    minXAllowingRegression: number,
-    modelWeightPower: number
-  ): [FittedModel | null, LocationGraphData[]] {
-    const fittedDataSet: LocationGraphData[] = [];
-    const fittedPoints: Point[] = [];
-    let modelAverager: ModelAverager | null = null;
-    let lowestX = Infinity;
-    let highestX = 0;
-    let locationCount = 0;
-
-    // Loop for each graph spec at one per location in the cluster.
-
-    for (const locationGraphData of sourceDataSet) {
-      const points = graphSpec.pointExtractor(locationGraphData);
-      const lastPoint = points[points.length - 1];
-      if (
-        points.length >= minPointsToRegress &&
-        lastPoint.x >= minXAllowingRegression
-      ) {
-        const locationModel = new FittedModel(points);
-        if (modelAverager == null) {
-          modelAverager = locationModel.getModelAverager();
-        }
-        modelAverager.addModel(points, locationModel, modelWeightPower);
-        if (points.length > 0) {
-          fittedPoints.push(...points);
-          if (points[0].x < lowestX) lowestX = points[0].x;
-          if (lastPoint.x > highestX) highestX = lastPoint.x;
-        }
-        fittedDataSet.push(locationGraphData);
-        ++locationCount;
-      }
-    }
-
-    // Combine the models if we were able to generate at least one model.
-
-    if (modelAverager === null) return [null, sourceDataSet];
-    const averageModel = modelAverager.getAverageModel(lowestX, highestX);
-    averageModel.regression.evaluate(fittedPoints);
-    averageModel.datasetCount = locationCount;
-    return [averageModel, fittedDataSet];
   }
 
   getFirstDerivative(): (x: number) => number {

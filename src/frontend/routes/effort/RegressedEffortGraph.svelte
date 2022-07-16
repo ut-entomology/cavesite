@@ -21,8 +21,9 @@
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import type { LocationGraphData } from './location_graph_data';
   import type { EffortGraphSpec } from './effort_graph_spec';
-  import { FittedModel } from './fitted_model';
+  import type { FittedModel } from './fitted_model';
   import type { ClusteringConfig } from './cluster_data';
+  import { createAverageModel } from './model_averager';
 
   const MAX_MIN_X = 20;
   const MIN_MIN_POINT_COUNT = 3;
@@ -67,7 +68,7 @@
   });
 
   $: {
-    [model, fittedDataSet] = FittedModel.createFromDataSet(
+    [model, fittedDataSet] = createAverageModel(
       sourceDataSet,
       graphSpec,
       minPointCount,
