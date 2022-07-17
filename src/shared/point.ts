@@ -9,10 +9,10 @@ export interface Point {
   y: number;
 }
 
-export function pairToPoint(pair: number[]) {
-  return { x: pair[0], y: pair[1] };
+export function pairsToPoints(pairs: number[][]) {
+  return pairs.map((pair) => _pairToPoint(pair));
 }
 
-export function pairsToPoints(pairs: number[][]) {
-  return pairs.map((pair) => pairToPoint(pair));
+function _pairToPoint(pair: number[]) {
+  return { x: pair[0], y: pair[1] };
 }
