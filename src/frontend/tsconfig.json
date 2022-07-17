@@ -8,5 +8,5 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["**/*.ts", "../frontend-core/selections/**/*.ts", "../shared/**/*.ts"]
+  "include": ["**/*.ts", "../frontend-core/**/*.ts", "../shared/**/*.ts"]
 }

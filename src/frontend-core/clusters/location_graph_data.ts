@@ -1,5 +1,5 @@
-import type { Point } from '../../../shared/point';
-import type { RawLocationEffort } from '../../../shared/model';
+import type { Point } from '../../shared/point';
+import type { RawLocationEffort } from '../../shared/model';
 
 // const ORIGIN = { x: 0, y: 0 };
 

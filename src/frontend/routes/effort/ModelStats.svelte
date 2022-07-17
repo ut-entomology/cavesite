@@ -1,6 +1,10 @@
 <script lang="ts">
-  import { shortenPValue, shortenRMSE, shortenR2 } from './regression';
-  import type { PowerFitModel } from './power_fit_model';
+  import {
+    shortenPValue,
+    shortenRMSE,
+    shortenR2
+  } from '../../../frontend-core/clusters/regression';
+  import type { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
 
   export let color: string;
   export let model: PowerFitModel;

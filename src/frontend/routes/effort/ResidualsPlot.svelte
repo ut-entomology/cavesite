@@ -2,7 +2,7 @@
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { Point } from '../../../shared/point';
-  import type { PowerFitModel } from './power_fit_model';
+  import type { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
 
   export let color: string;
   export let model: PowerFitModel;

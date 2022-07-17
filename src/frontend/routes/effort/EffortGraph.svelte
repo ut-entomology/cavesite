@@ -2,9 +2,12 @@
   import Scatter from 'svelte-chartjs/src/Scatter.svelte';
 
   import type { Point } from '../../../shared/point';
-  import type { LocationGraphData } from './location_graph_data';
-  import { type EffortGraphSpec, slicePointSet } from './effort_graph_spec';
-  import type { PowerFitModel } from './power_fit_model';
+  import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
+  import {
+    type EffortGraphSpec,
+    slicePointSet
+  } from '../../../frontend-core/clusters/effort_graph_spec';
+  import type { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
 
   const POINTS_IN_MODEL_PLOT = 200;
 

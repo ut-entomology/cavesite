@@ -19,11 +19,11 @@
   import ResidualsPlot from './ResidualsPlot.svelte';
   import ModelStats from './ModelStats.svelte';
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
-  import type { LocationGraphData } from './location_graph_data';
-  import type { EffortGraphSpec } from './effort_graph_spec';
-  import type { PowerFitModel } from './power_fit_model';
-  import type { ClusteringConfig } from './cluster_data';
-  import { createAverageModel } from './model_averager';
+  import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
+  import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
+  import type { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
+  import type { ClusteringConfig } from '../../../frontend-core/clusters/cluster_data';
+  import { createAverageModel } from '../../../frontend-core/clusters/model_averager';
 
   const MAX_MIN_X = 20;
   const MIN_MIN_POINT_COUNT = 3;

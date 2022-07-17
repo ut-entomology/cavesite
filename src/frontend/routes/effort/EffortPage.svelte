@@ -4,12 +4,12 @@
   import {
     type LocationGraphData,
     toLocationGraphDataSetByCluster
-  } from './location_graph_data';
+  } from '../../../frontend-core/clusters/location_graph_data';
   import {
     type ClusteringConfig,
     type ClusterData,
     toClusterData
-  } from './cluster_data';
+  } from '../../../frontend-core/clusters/cluster_data';
 
   interface ClusterStore {
     config: ClusteringConfig;
@@ -41,7 +41,7 @@
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import type { Point } from '../../../shared/point';
-  import type { EffortGraphSpec } from './effort_graph_spec';
+  import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 

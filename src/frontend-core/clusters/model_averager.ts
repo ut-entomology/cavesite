@@ -1,6 +1,6 @@
 import { PowerFitModel, type FittedModelFactory } from './power_fit_model';
 import type { FittedY } from './regression';
-import type { Point } from '../../../shared/point';
+import type { Point } from '../../shared/point';
 import { type EffortGraphSpec, slicePointSet } from './effort_graph_spec';
 import type { LocationGraphData } from './location_graph_data';
 

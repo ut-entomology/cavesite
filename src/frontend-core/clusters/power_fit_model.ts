@@ -1,4 +1,4 @@
-import type { Point } from '../../../shared/point';
+import type { Point } from '../../shared/point';
 import { Regression, shortenValue } from './regression';
 
 const MODEL_COEF_PRECISION = 3;
