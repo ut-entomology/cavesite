@@ -100,7 +100,6 @@
     clusterSpec.metric.highestComparedRank = $clusterStore.config.highestComparedRank;
 
     for (let i = 0; i < $clusterStore.dataByCluster.length; ++i) {
-      const clusterData = $clusterStore.dataByCluster[i];
       clusterColors[i] = new ClusterColorSet(
         `hsl(${i * (360 / $clusterStore!.dataByCluster.length)}, 60%, 60%)`
       );
