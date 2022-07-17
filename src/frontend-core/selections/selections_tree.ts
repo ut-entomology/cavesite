@@ -5,7 +5,7 @@
  * by not including any implied selections within the tree.
  */
 
-import type { ModelSpec } from '../shared/model';
+import type { ModelSpec } from '../../shared/model';
 
 export interface SpecNode<S extends ModelSpec> {
   spec: S;

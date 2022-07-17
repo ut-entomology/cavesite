@@ -18,4 +18,4 @@ npx jest src/backend/effort/location_visit.test.ts
 npx jest src/backend/effort/location_effort.test.ts
 npx jest src/backend/effort/taxa_clusterer.test.ts
 
-npx jest src/frontend-core/selections_tree.test.ts
+npx jest src/frontend-core/selections/selections_tree.test.ts

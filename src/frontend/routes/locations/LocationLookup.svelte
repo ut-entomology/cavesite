@@ -14,8 +14,8 @@
     SpecNode,
     AddSelection,
     RemoveSelection
-  } from '../../../frontend-core/selections_tree';
-  import type { LocationSelectionsTree } from '../../../frontend-core/location_selections_tree';
+  } from '../../../frontend-core/selections/selections_tree';
+  import type { LocationSelectionsTree } from '../../../frontend-core/selections/location_selections_tree';
   import { noTypeCheck } from '../../util/svelte_types';
 
   const rootUniqueComponent = ROOT_LOCATION_UNIQUE.split('|').pop()!;

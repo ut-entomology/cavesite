@@ -17,7 +17,7 @@
     AddSelection,
     RemoveSelection,
     SelectionsTree
-  } from '../../frontend-core/selections_tree';
+  } from '../../frontend-core/selections/selections_tree';
   import { showNotice } from '../common/VariableNotice.svelte';
 
   const LOAD_DELAY_MILLIS = 333;

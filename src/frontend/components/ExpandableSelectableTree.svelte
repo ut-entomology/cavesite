@@ -2,8 +2,8 @@
   import type { SvelteComponent } from 'svelte';
 
   import type { ModelSpec } from '../../shared/model';
-  import type { ExpandableNode } from '../../frontend-core/selections_tree';
-  import type { SpecNode } from '../../frontend-core/selections_tree';
+  import type { ExpandableNode } from '../../frontend-core/selections/selections_tree';
+  import type { SpecNode } from '../../frontend-core/selections/selections_tree';
 
   export let node: ExpandableNode<ModelSpec>;
   export let showRoot = true;

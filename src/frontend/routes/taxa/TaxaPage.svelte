@@ -11,12 +11,12 @@
   import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
   import TabFootnote from '../../components/TabFootnote.svelte';
   import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
-  import { TaxonSelectionsTree } from '../../../frontend-core/taxon_selections_tree';
+  import { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../../shared/model';
   import type {
     ExpandableNode,
     SpecNode
-  } from '../../../frontend-core/selections_tree';
+  } from '../../../frontend-core/selections/selections_tree';
   import { pageName } from '../../stores/pageName';
   import { selectedTaxa } from '../../stores/selectedTaxa';
   import { client } from '../../stores/client';

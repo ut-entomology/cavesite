@@ -6,7 +6,7 @@
     "pretty": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["**/*.ts", "../frontend-core/**/*.ts", "../shared/**/*.ts"]
+  "include": ["**/*.ts", "../frontend-core/selections/**/*.ts", "../shared/**/*.ts"]
 }

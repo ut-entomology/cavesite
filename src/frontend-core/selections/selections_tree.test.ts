@@ -1,4 +1,4 @@
-import type { ModelSpec } from '../shared/model';
+import type { ModelSpec } from '../../shared/model';
 import { SelectionsTree } from './selections_tree';
 
 class TestSpec implements ModelSpec {

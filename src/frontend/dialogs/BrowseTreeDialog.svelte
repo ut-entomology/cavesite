@@ -9,8 +9,8 @@
     SpecNode,
     AddSelection,
     RemoveSelection
-  } from '../../frontend-core/selections_tree';
-  import type { SelectionsTree } from '../../frontend-core/selections_tree';
+  } from '../../frontend-core/selections/selections_tree';
+  import type { SelectionsTree } from '../../frontend-core/selections/selections_tree';
 
   export let title: string;
   export let singularTypeLabel: string;

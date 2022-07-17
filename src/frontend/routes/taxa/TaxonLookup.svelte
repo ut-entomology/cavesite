@@ -15,8 +15,8 @@
     SpecNode,
     AddSelection,
     RemoveSelection
-  } from '../../../frontend-core/selections_tree';
-  import type { TaxonSelectionsTree } from '../../../frontend-core/taxon_selections_tree';
+  } from '../../../frontend-core/selections/selections_tree';
+  import type { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';
   import { noTypeCheck } from '../../util/svelte_types';
 
   export let selectionsTree: TaxonSelectionsTree;

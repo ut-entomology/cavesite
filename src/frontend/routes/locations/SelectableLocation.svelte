@@ -6,7 +6,7 @@
     SpecNode,
     AddSelection,
     RemoveSelection
-  } from '../../../frontend-core/selections_tree';
+  } from '../../../frontend-core/selections/selections_tree';
 
   export let prefixed = true;
   export let expandable = true;
