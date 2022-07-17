@@ -3,6 +3,7 @@ import type { LocationGraphData } from './location_graph_data';
 import {
   type ClusteringConfig,
   // type PredictionTierStat,
+  sortLocationGraphDataSet,
   _computePredictionTierStats
 } from './cluster_data';
 
@@ -20,7 +21,70 @@ const baseConfig: ClusteringConfig = {
 
 const getPredictedDiff = (graphData: LocationGraphData) =>
   graphData.predictedPerVisitDiff || null;
-const getAllPints = (graphData: LocationGraphData) => graphData.perVisitPoints;
+const getAllPoints = (graphData: LocationGraphData) => graphData.perVisitPoints;
+
+test('sorting location graph data sets', () => {
+  // prettier-ignore
+  let dataset = [_makeGraphData(1, [], null)];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [1]);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [], null),
+    _makeGraphData(2, [], null),
+  ];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [1, 2]);
+
+  // prettier-ignore
+  dataset = [_makeGraphData(1, [], 1)];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [1]);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [], null),
+    _makeGraphData(2, [], 1),
+  ];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [1, 2]);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [], 1),
+    _makeGraphData(2, [], null),
+  ];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [2, 1]);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [], 1),
+    _makeGraphData(2, [], null),
+    _makeGraphData(3, [], null),
+  ];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [2, 3, 1]);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [], 1),
+    _makeGraphData(2, [], null),
+    _makeGraphData(3, [], 2),
+  ];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [2, 3, 1]);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [], 1),
+    _makeGraphData(2, [], 3),
+    _makeGraphData(3, [], 2),
+  ];
+  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  _checkSortOrder(dataset, [2, 3, 1]);
+});
 
 test('too few points to make predictions', () => {
   // prettier-ignore
@@ -30,7 +94,7 @@ test('too few points to make predictions', () => {
     dataset,
     1,
     getPredictedDiff,
-    getAllPints
+    getAllPoints
   );
   expect(stats).toBeNull();
 
@@ -41,7 +105,7 @@ test('too few points to make predictions', () => {
     dataset,
     1,
     getPredictedDiff,
-    getAllPints
+    getAllPoints
   );
   expect(stats).toBeNull();
 
@@ -52,7 +116,7 @@ test('too few points to make predictions', () => {
     dataset,
     1,
     getPredictedDiff,
-    getAllPints
+    getAllPoints
   );
   expect(stats).toBeNull();
 
@@ -66,18 +130,35 @@ test('too few points to make predictions', () => {
     dataset,
     1,
     getPredictedDiff,
-    getAllPints
+    getAllPoints
   );
   expect(stats).toBeNull();
 });
 
-function _makeGraphData(locationID: number, pairs: number[][]): LocationGraphData {
+function _checkSortOrder(
+  locationGraphDataSet: LocationGraphData[],
+  expectedLocationIDs: number[]
+): void {
+  expect(locationGraphDataSet.length).toEqual(expectedLocationIDs.length);
+  for (let i = 0; i < locationGraphDataSet.length; ++i) {
+    const locationID = expectedLocationIDs[i];
+    const graphData = locationGraphDataSet[i];
+    expect(graphData.locationID).toEqual(locationID);
+  }
+}
+
+function _makeGraphData(
+  locationID: number,
+  pairs: number[][],
+  predictedPerVisitDiff?: number | null
+): LocationGraphData {
   return {
     locationID,
     startDate: new Date(),
     endDate: new Date(),
     perDayPoints: [],
     perVisitPoints: pairsToPoints(pairs),
-    perPersonVisitPoints: []
+    perPersonVisitPoints: [],
+    predictedPerVisitDiff
   };
 }
