@@ -1,7 +1,7 @@
 import type { Point } from '../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../shared/model';
 import type { LocationGraphData } from './location_graph_data';
-import { PointSliceSpec, slicePointSet } from './effort_graph_spec';
+import { type PointSliceSpec, slicePointSet } from './effort_graph_spec';
 import { PowerFitModel } from './power_fit_model';
 
 export interface ClusteringConfig {
@@ -247,7 +247,8 @@ function _putPredictionsInDataSet(
   }
 }
 
-function _predictDeltaSpecies(
+// exported for testing purposes
+export function _predictDeltaSpecies(
   dataPoints: Point[],
   sliceSpec: PointSliceSpec
 ): number | null {

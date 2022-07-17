@@ -1,10 +1,12 @@
 import { pairsToPoints } from '../../shared/point';
+import type { PointSliceSpec } from './effort_graph_spec';
 import type { LocationGraphData } from './location_graph_data';
 import {
   type ClusteringConfig,
-  // type PredictionTierStat,
+  type PredictionTierStat,
   sortLocationGraphDataSet,
-  _computePredictionTierStats
+  _computePredictionTierStats,
+  _predictDeltaSpecies
 } from './cluster_data';
 
 const baseConfig: ClusteringConfig = {
@@ -86,7 +88,19 @@ test('sorting location graph data sets', () => {
   _checkSortOrder(dataset, [2, 3, 1]);
 });
 
+test('delta species predictions', () => {
+  const sliceSpec: PointSliceSpec = {
+    minPointCount: 3,
+    maxPointCount: 3,
+    recentPointsToIgnore: 1
+  };
+  let delta = _predictDeltaSpecies(pairsToPoints([[1, 1]]), sliceSpec);
+  expect(delta).toBeNull();
+});
+
 test('too few points to make predictions', () => {
+  // TODO: Reexamine whether I'm testing the right thing.
+
   // prettier-ignore
   let dataset = [_makeGraphData(1, [[1, 1]])];
   let stats = _computePredictionTierStats(
@@ -114,7 +128,7 @@ test('too few points to make predictions', () => {
   stats = _computePredictionTierStats(
     baseConfig,
     dataset,
-    1,
+    3,
     getPredictedDiff,
     getAllPoints
   );
@@ -128,11 +142,29 @@ test('too few points to make predictions', () => {
   stats = _computePredictionTierStats(
     baseConfig,
     dataset,
-    1,
+    3,
     getPredictedDiff,
     getAllPoints
   );
   expect(stats).toBeNull();
+});
+
+test('increasing prediction history depth', () => {
+  // TODO: NOT WORKING
+
+  // prettier-ignore
+  let dataset = [
+    _makeGraphData(1, _makeLinearPairs(4, 1))
+  ];
+  let actualStats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    1,
+    getPredictedDiff,
+    getAllPoints
+  );
+  let expectedStats = _makeTierStats([[1, 1]]);
+  expect(actualStats).toEqual(expectedStats);
 });
 
 function _checkSortOrder(
@@ -161,4 +193,23 @@ function _makeGraphData(
     perPersonVisitPoints: [],
     predictedPerVisitDiff
   };
+}
+
+function _makeLinearPairs(count: number, slope: number): number[][] {
+  const pairs: number[][] = [];
+  for (let x = 1; x <= count; ++x) {
+    pairs.push([x, slope * (x - 1) + 1]);
+  }
+  return pairs;
+}
+
+function _makeTierStats(data: number[][]): PredictionTierStat[] {
+  const stats: PredictionTierStat[] = [];
+  for (const datum of data) {
+    stats.push({
+      fractionCorrect: datum[0],
+      contributingLocations: datum[1]
+    });
+  }
+  return stats;
 }
