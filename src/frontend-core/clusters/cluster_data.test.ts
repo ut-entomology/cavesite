@@ -6,6 +6,7 @@ import {
   type PredictionTierStat,
   sortLocationGraphDataSet,
   _computePredictionTierStats,
+  _putPredictionsInDataSet,
   _predictDeltaSpecies
 } from './cluster_data';
 
@@ -90,23 +91,43 @@ test('sorting location graph data sets', () => {
 
 test('delta species predictions', () => {
   const sliceSpec: PointSliceSpec = {
-    minPointCount: 3,
+    minPointCount: 0, // as hardcoded in cluster_data
     maxPointCount: 3,
     recentPointsToIgnore: 1
   };
-  let delta = _predictDeltaSpecies(pairsToPoints([[1, 1]]), sliceSpec);
+
+  let points = pairsToPoints([[1, 1]]);
+  let delta = _predictDeltaSpecies(points, sliceSpec);
   expect(delta).toBeNull();
+
+  points = pairsToPoints(_makeLinearPairs(2, 1));
+  delta = _predictDeltaSpecies(points, sliceSpec);
+  expect(delta).toBeNull();
+
+  points = pairsToPoints(_makeLinearPairs(3, 1));
+  delta = _predictDeltaSpecies(points, sliceSpec);
+  expect(Math.round(delta!)).toEqual(1);
+
+  points = pairsToPoints(_makeLinearPairs(4, 1));
+  delta = _predictDeltaSpecies(points, sliceSpec);
+  expect(Math.round(delta!)).toEqual(1);
+
+  points = pairsToPoints(_makeLinearPairs(4, 2));
+  delta = _predictDeltaSpecies(points, sliceSpec);
+  expect(Math.round(delta!)).toEqual(2);
 });
 
 test('too few points to make predictions', () => {
-  // TODO: Reexamine whether I'm testing the right thing.
+  let config = baseConfig;
+  let pointsElided = 1;
 
   // prettier-ignore
   let dataset = [_makeGraphData(1, [[1, 1]])];
+  _putPredictionsInDataSet(config, dataset, pointsElided);
   let stats = _computePredictionTierStats(
     baseConfig,
     dataset,
-    1,
+    pointsElided,
     getPredictedDiff,
     getAllPoints
   );
@@ -114,21 +135,26 @@ test('too few points to make predictions', () => {
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2]])];
+  _putPredictionsInDataSet(config, dataset, pointsElided);
   stats = _computePredictionTierStats(
     baseConfig,
     dataset,
-    1,
+    pointsElided,
     getPredictedDiff,
     getAllPoints
   );
   expect(stats).toBeNull();
 
+  config = Object.assign({}, config, { predictionHistorySampleDepth: 3 });
+  pointsElided = 3;
+
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2], [3,3]])];
+  _putPredictionsInDataSet(config, dataset, pointsElided);
   stats = _computePredictionTierStats(
-    baseConfig,
+    config,
     dataset,
-    3,
+    pointsElided,
     getPredictedDiff,
     getAllPoints
   );
@@ -139,10 +165,11 @@ test('too few points to make predictions', () => {
     _makeGraphData(1, [[1, 1]]),
     _makeGraphData(1, [[1, 1], [2, 2], [3,3]])
   ];
+  _putPredictionsInDataSet(config, dataset, pointsElided);
   stats = _computePredictionTierStats(
-    baseConfig,
+    config,
     dataset,
-    3,
+    pointsElided,
     getPredictedDiff,
     getAllPoints
   );
@@ -150,16 +177,18 @@ test('too few points to make predictions', () => {
 });
 
 test('increasing prediction history depth', () => {
-  // TODO: NOT WORKING
+  let config = baseConfig;
+  let pointsElided = 1;
 
   // prettier-ignore
   let dataset = [
     _makeGraphData(1, _makeLinearPairs(4, 1))
   ];
+  _putPredictionsInDataSet(config, dataset, pointsElided);
   let actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
-    1,
+    pointsElided,
     getPredictedDiff,
     getAllPoints
   );

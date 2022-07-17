@@ -77,7 +77,7 @@ export function toClusterData(
 
     _putPredictionsInDataSet(config, locationGraphDataSet, pointsElided);
 
-    // Compute the tiers for the current number of points elided.
+    // Compute the tier stats for the current number of points elided.
 
     const perVisitTierStats = _computePredictionTierStats(
       config,
@@ -94,7 +94,7 @@ export function toClusterData(
       (graphData) => graphData.perPersonVisitPoints
     );
 
-    // Add the points to the averaging structure, but weighting each tier
+    // Add the points to the averaging structure, but weighting each tier stat
     // within the average according to its number of contributing locations.
 
     for (let i = 0; i < config.predictionTiers; ++i) {
@@ -125,8 +125,8 @@ export function toClusterData(
 
   _putPredictionsInDataSet(config, locationGraphDataSet, 0);
 
-  // Return the cluster data complete with its prediction tiers providing
-  // a measure of prediction accuracy for each tier.
+  // Return the cluster data complete with its prediction tier stats
+  // providing a measure of prediction accuracy for each tier.
 
   return {
     visitsByTaxonUnique,
@@ -158,7 +158,7 @@ export function _computePredictionTierStats(
   sortLocationGraphDataSet(locationGraphDataSet, getPredictedDiff);
 
   // Record the IDs of the top config.predictionTiers locations, returning
-  // with no prediction tiers if the data contains no predictions.
+  // with no prediction tier stats if the data contains no predictions.
 
   const firstNonNullIndex = locationGraphDataSet.findIndex(
     (graphData) => getPredictedDiff(graphData) !== null
@@ -207,11 +207,11 @@ export function _computePredictionTierStats(
     }
   }
 
-  // Generate the prediction tiers providing the fraction of locations
+  // Generate the prediction tier stats providing the fraction of locations
   // correctly predicted to occur in the tier and the total number of
   // predicted locations actually occurring in the tier.
 
-  const predictionTierStats: PredictionTierStat[] = [];
+  let predictionTierStats: PredictionTierStat[] = [];
   let totalLocations = 0;
   for (let i = 0; i < config.predictionTiers; ++i) {
     const actualCount = actualLocationsInPredictedTierStat[i];
@@ -222,10 +222,17 @@ export function _computePredictionTierStats(
     });
   }
 
+  // Return at most a number of prediction tier stats equal to the number of
+  // locations in the cluster; any extra stats are uninformative.
+
+  if (locationGraphDataSet.length < predictionTierStats.length) {
+    predictionTierStats = predictionTierStats.slice(0, locationGraphDataSet.length);
+  }
   return predictionTierStats;
 }
 
-function _putPredictionsInDataSet(
+// exported for testing purposes
+export function _putPredictionsInDataSet(
   config: ClusteringConfig,
   locationGraphDataSet: LocationGraphData[],
   pointsElided: number
