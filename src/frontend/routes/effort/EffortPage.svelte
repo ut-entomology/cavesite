@@ -11,7 +11,10 @@
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
 
+  const CLUSTER_STORE_VERSION = 1;
+
   interface ClusterStore {
+    version: number;
     config: ClusteringConfig;
     dataByCluster: ClusterData[];
   }
@@ -86,6 +89,10 @@
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
+
+  $: if ($clusterStore && $clusterStore.version != CLUSTER_STORE_VERSION) {
+    $clusterStore = null;
+  }
 
   $: if ($clusterStore) {
     clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
@@ -197,6 +204,7 @@
         return bTaxaCount - aTaxaCount; // sort most taxa first
       });
       clusterStore.set({
+        version: CLUSTER_STORE_VERSION,
         config,
         dataByCluster
       });
