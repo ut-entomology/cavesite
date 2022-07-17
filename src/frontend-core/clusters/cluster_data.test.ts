@@ -19,7 +19,7 @@ const baseConfig: ClusteringConfig = {
   highestComparedRank: null,
   maxPointsToRegress: 3,
   predictionHistorySampleDepth: 1,
-  predictionTiers: 4
+  maxPredictionTiers: 4
 };
 
 const getPredictedDiff = (graphData: LocationGraphData) =>

@@ -11,7 +11,7 @@ export interface ClusteringConfig {
   highestComparedRank: TaxonRank;
   maxPointsToRegress: number | null;
   predictionHistorySampleDepth: number;
-  predictionTiers: number;
+  maxPredictionTiers: number;
 }
 
 export interface ClusterData {
@@ -51,7 +51,7 @@ export function toClusterData(
 
   const avgPerVisitTierStats: PredictionTierStat[] = [];
   const avgPerPersonVisitTierStats: PredictionTierStat[] = [];
-  for (let i = 0; i < config.predictionTiers; ++i) {
+  for (let i = 0; i < config.maxPredictionTiers; ++i) {
     avgPerVisitTierStats.push({
       fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
       contributingLocations: 0
@@ -97,7 +97,7 @@ export function toClusterData(
     // Add the points to the averaging structure, but weighting each tier stat
     // within the average according to its number of contributing locations.
 
-    for (let i = 0; i < config.predictionTiers; ++i) {
+    for (let i = 0; i < config.maxPredictionTiers; ++i) {
       if (perVisitTierStats !== null) {
         _addToAverageTierStat(avgPerVisitTierStats[i], perVisitTierStats[i]);
       }
@@ -112,7 +112,7 @@ export function toClusterData(
 
   // Turn the intermediate sums into weighted averages for each tier.
 
-  for (let i = 0; i < config.predictionTiers; ++i) {
+  for (let i = 0; i < config.maxPredictionTiers; ++i) {
     let averageTierStat = avgPerVisitTierStats[i];
     averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
     averageTierStat = avgPerPersonVisitTierStats[i];
@@ -157,7 +157,7 @@ export function _computePredictionTierStats(
 
   sortLocationGraphDataSet(locationGraphDataSet, getPredictedDiff);
 
-  // Record the IDs of the top config.predictionTiers locations, returning
+  // Record the IDs of the top config.maxPredictionTiers locations, returning
   // with no prediction tier stats if the data contains no predictions.
 
   const firstNonNullIndex = locationGraphDataSet.findIndex(
@@ -167,7 +167,7 @@ export function _computePredictionTierStats(
 
   let predictedLocationIDs: number[] = [];
   predictedLocationIDs = locationGraphDataSet
-    .slice(firstNonNullIndex, firstNonNullIndex + config.predictionTiers)
+    .slice(firstNonNullIndex, firstNonNullIndex + config.maxPredictionTiers)
     .map((graphData) => graphData.locationID);
 
   // Sort the datasets having predictions by actual species differences.
@@ -179,10 +179,10 @@ export function _computePredictionTierStats(
     if (deltaA == deltaB) return 0;
     return deltaB - deltaA; // sort highest first
   });
-  actualSortSet = actualSortSet.slice(0, config.predictionTiers);
+  actualSortSet = actualSortSet.slice(0, config.maxPredictionTiers);
 
   // Tally the offsets of each expected ID in the actual sort set, setting
-  // the offset to null if it's not in the top config.predictionTiers.
+  // the offset to null if it's not in the top config.maxPredictionTiers.
 
   const actualOffsetByPredictedOffset: (number | null)[] = [];
   for (const predictedID of predictedLocationIDs) {
@@ -196,12 +196,12 @@ export function _computePredictionTierStats(
   // the same tier of the actual sort set.
 
   const actualLocationsInPredictedTierStat: number[] = new Array(
-    config.predictionTiers
+    config.maxPredictionTiers
   ).fill(0);
-  for (let i = 0; i < config.predictionTiers; ++i) {
+  for (let i = 0; i < config.maxPredictionTiers; ++i) {
     const actualOffset = actualOffsetByPredictedOffset[i];
     if (actualOffset !== null) {
-      for (let j = actualOffset; j < config.predictionTiers; ++j) {
+      for (let j = actualOffset; j < config.maxPredictionTiers; ++j) {
         ++actualLocationsInPredictedTierStat[j];
       }
     }
@@ -213,7 +213,7 @@ export function _computePredictionTierStats(
 
   let predictionTierStats: PredictionTierStat[] = [];
   let totalLocations = 0;
-  for (let i = 0; i < config.predictionTiers; ++i) {
+  for (let i = 0; i < config.maxPredictionTiers; ++i) {
     const actualCount = actualLocationsInPredictedTierStat[i];
     totalLocations += actualCount;
     predictionTierStats.push({

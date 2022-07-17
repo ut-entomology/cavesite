@@ -226,7 +226,7 @@
         highestComparedRank: TaxonRank.Genus,
         maxPointsToRegress: 12,
         predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
-        predictionTiers: PREDICTION_TIERS
+        maxPredictionTiers: PREDICTION_TIERS
       };
     }
   }
