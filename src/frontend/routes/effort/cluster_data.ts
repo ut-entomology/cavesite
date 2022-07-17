@@ -18,11 +18,11 @@ export interface ClusteringConfig {
 export interface ClusterData {
   visitsByTaxonUnique: Record<string, number>;
   locationGraphDataSet: LocationGraphData[];
-  avgPerVisitTiers: PredictionTier[];
-  avgPerPersonVisitTiers: PredictionTier[];
+  avgPerVisitTierStats: PredictionTierStat[];
+  avgPerPersonVisitTierStats: PredictionTierStat[];
 }
 
-export interface PredictionTier {
+export interface PredictionTierStat {
   fractionCorrect: number;
   contributingLocations: number;
 }
@@ -50,14 +50,14 @@ export function toClusterData(
   // MAX_POINTS_TO_ELIDE prediction tiers, after initially holding the
   // intermediate sums necessary for producing the average.
 
-  const avgPerVisitTiers: PredictionTier[] = [];
-  const avgPerPersonVisitTiers: PredictionTier[] = [];
+  const avgPerVisitTierStats: PredictionTierStat[] = [];
+  const avgPerPersonVisitTierStats: PredictionTierStat[] = [];
   for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
-    avgPerVisitTiers.push({
+    avgPerVisitTierStats.push({
       fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
       contributingLocations: 0
     });
-    avgPerPersonVisitTiers.push({
+    avgPerPersonVisitTierStats.push({
       fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
       contributingLocations: 0
     });
@@ -76,13 +76,13 @@ export function toClusterData(
 
     // Compute the tiers for the current number of points elided.
 
-    const perVisitTiers = _computePredictionTiers(
+    const perVisitTierStats = _computePredictionTierStats(
       locationGraphDataSet,
       pointsElided,
       (graphData) => graphData.predictedPerVisitDiff || null,
       (graphData) => graphData.perVisitPoints
     );
-    const perPersonVisitTiers = _computePredictionTiers(
+    const perPersonVisitTierStats = _computePredictionTierStats(
       locationGraphDataSet,
       pointsElided,
       (graphData) => graphData.predictedPerPersonVisitDiff || null,
@@ -93,11 +93,14 @@ export function toClusterData(
     // within the average according to its number of contributing locations.
 
     for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
-      if (perVisitTiers !== null) {
-        _addToAverageTier(avgPerVisitTiers[i], perVisitTiers[i]);
+      if (perVisitTierStats !== null) {
+        _addToAverageTierStat(avgPerVisitTierStats[i], perVisitTierStats[i]);
       }
-      if (perPersonVisitTiers !== null) {
-        _addToAverageTier(avgPerPersonVisitTiers[i], perPersonVisitTiers[i]);
+      if (perPersonVisitTierStats !== null) {
+        _addToAverageTierStat(
+          avgPerPersonVisitTierStats[i],
+          perPersonVisitTierStats[i]
+        );
       }
     }
   }
@@ -105,10 +108,10 @@ export function toClusterData(
   // Turn the intermediate sums into weighted averages for each tier.
 
   for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
-    let averageTier = avgPerVisitTiers[i];
-    averageTier.fractionCorrect /= averageTier.contributingLocations;
-    averageTier = avgPerPersonVisitTiers[i];
-    averageTier.fractionCorrect /= averageTier.contributingLocations;
+    let averageTierStat = avgPerVisitTierStats[i];
+    averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
+    averageTierStat = avgPerPersonVisitTierStats[i];
+    averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
   }
 
   // Put the future predictions directly into the location structures. The
@@ -123,23 +126,26 @@ export function toClusterData(
   return {
     visitsByTaxonUnique,
     locationGraphDataSet,
-    avgPerVisitTiers,
-    avgPerPersonVisitTiers
+    avgPerVisitTierStats,
+    avgPerPersonVisitTierStats
   };
 }
 
-function _addToAverageTier(averageTier: PredictionTier, predictedTier: PredictionTier) {
-  let locationCount = predictedTier.contributingLocations;
-  averageTier.fractionCorrect += predictedTier.fractionCorrect * locationCount;
-  averageTier.contributingLocations += locationCount;
+function _addToAverageTierStat(
+  averageTierStat: PredictionTierStat,
+  predictedTierStat: PredictionTierStat
+) {
+  let locationCount = predictedTierStat.contributingLocations;
+  averageTierStat.fractionCorrect += predictedTierStat.fractionCorrect * locationCount;
+  averageTierStat.contributingLocations += locationCount;
 }
 
-function _computePredictionTiers(
+function _computePredictionTierStats(
   locationGraphDataSet: LocationGraphData[],
   pointsElided: number,
   getPredictedDiff: (graphData: LocationGraphData) => number | null,
   getAllPoints: (graphData: LocationGraphData) => Point[]
-): PredictionTier[] | null {
+): PredictionTierStat[] | null {
   // Sort the location data most-predicted species first.
 
   sortLocationGraphDataSet(locationGraphDataSet, getPredictedDiff);
@@ -182,14 +188,14 @@ function _computePredictionTiers(
   // For each tier, determine the number of predicted locations found in
   // the same tier of the actual sort set.
 
-  const actualLocationsInPredictedTier: number[] = new Array(MAX_PREDICTION_TIERS).fill(
-    0
-  );
+  const actualLocationsInPredictedTierStat: number[] = new Array(
+    MAX_PREDICTION_TIERS
+  ).fill(0);
   for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
     const actualOffset = actualOffsetByPredictedOffset[i];
     if (actualOffset !== null) {
       for (let j = actualOffset; j < MAX_PREDICTION_TIERS; ++j) {
-        ++actualLocationsInPredictedTier[j];
+        ++actualLocationsInPredictedTierStat[j];
       }
     }
   }
@@ -198,18 +204,18 @@ function _computePredictionTiers(
   // correctly predicted to occur in the tier and the total number of
   // predicted locations actually occurring in the tier.
 
-  const predictionTiers: PredictionTier[] = [];
+  const predictionTierStats: PredictionTierStat[] = [];
   let totalLocations = 0;
   for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
-    const actualCount = actualLocationsInPredictedTier[i];
+    const actualCount = actualLocationsInPredictedTierStat[i];
     totalLocations += actualCount;
-    predictionTiers.push({
+    predictionTierStats.push({
       contributingLocations: totalLocations,
       fractionCorrect: actualCount / (i + 1)
     });
   }
 
-  return predictionTiers;
+  return predictionTierStats;
 }
 
 function _putPredictionsInDataSet(
