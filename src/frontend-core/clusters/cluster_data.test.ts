@@ -23,8 +23,45 @@ const getPredictedDiff = (graphData: LocationGraphData) =>
 const getAllPints = (graphData: LocationGraphData) => graphData.perVisitPoints;
 
 test('too few points to make predictions', () => {
-  const dataset = [_makeGraphData(1, [[1, 1]])];
-  const stats = _computePredictionTierStats(
+  // prettier-ignore
+  let dataset = [_makeGraphData(1, [[1, 1]])];
+  let stats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    1,
+    getPredictedDiff,
+    getAllPints
+  );
+  expect(stats).toBeNull();
+
+  // prettier-ignore
+  dataset = [_makeGraphData(1, [[1, 1], [2, 2]])];
+  stats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    1,
+    getPredictedDiff,
+    getAllPints
+  );
+  expect(stats).toBeNull();
+
+  // prettier-ignore
+  dataset = [_makeGraphData(1, [[1, 1], [2, 2], [3,3]])];
+  stats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    1,
+    getPredictedDiff,
+    getAllPints
+  );
+  expect(stats).toBeNull();
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, [[1, 1]]),
+    _makeGraphData(1, [[1, 1], [2, 2], [3,3]])
+  ];
+  stats = _computePredictionTierStats(
     baseConfig,
     dataset,
     1,
