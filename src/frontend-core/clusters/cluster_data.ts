@@ -46,8 +46,8 @@ export function toClusterData(
   locationGraphDataSet: LocationGraphData[]
 ): ClusterData {
   // Establish the structures that ultimately provide the average of all
-  // config.predictionHistorySampleDepth prediction tiers, after initially holding the
-  // intermediate sums necessary for producing the average.
+  // predictionHistorySampleDepth prediction tiers, after initially holding
+  // the intermediate sums necessary for producing the average.
 
   const avgPerVisitTierStats: PredictionTierStat[] = [];
   const avgPerPersonVisitTierStats: PredictionTierStat[] = [];
@@ -62,8 +62,8 @@ export function toClusterData(
     });
   }
 
-  // Test predictions for the most recent config.predictionHistorySampleDepth prior to the
-  // current last point, averaging the results at each prediction tier. The
+  // Test predictions for the most recent predictionHistorySampleDepth prior to
+  // the current last point, averaging the results at each prediction tier. The
   // number of points elided is the number of most recent actual points
   // assumed to not yet have been collected for the purpose of the test. Each
   // subsequent point thus serves as a test of the prior prediction.
