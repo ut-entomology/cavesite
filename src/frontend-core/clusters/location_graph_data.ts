@@ -5,6 +5,8 @@ import type { RawLocationEffort } from '../../shared/model';
 
 export interface LocationGraphData {
   locationID: number;
+  countyName: string | null;
+  localityName: string;
   startDate: Date;
   endDate: Date;
   perDayPoints: Point[];
@@ -42,6 +44,8 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
 
   return {
     locationID: rawLocationEffort.locationID,
+    countyName: rawLocationEffort.countyName,
+    localityName: rawLocationEffort.localityName,
     startDate: rawLocationEffort.startDate,
     endDate: rawLocationEffort.endDate,
     perDayPoints,

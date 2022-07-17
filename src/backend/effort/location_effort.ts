@@ -5,10 +5,11 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
+import { Location } from '../model/location';
 import { LocationVisit } from './location_visit';
 import { TaxonCounter } from '../../shared/taxon_counter';
 import { TaxonVisitCounter, type TaxonVisitCounterData } from './taxon_visit_counter';
-import { ComparedTaxa } from '../../shared/model';
+import { ComparedTaxa, LocationRankIndex } from '../../shared/model';
 
 const VISIT_BATCH_SIZE = 200;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -30,6 +31,8 @@ export type LocationEffortData = Pick<
 
 export class LocationEffort {
   locationID: number;
+  countyName: string | null;
+  localityName: string;
   isCave: boolean;
   startDate: Date;
   endDate: Date;
@@ -61,6 +64,8 @@ export class LocationEffort {
 
   private constructor(data: DataOf<LocationEffort>) {
     this.locationID = data.locationID;
+    this.countyName = data.countyName;
+    this.localityName = data.localityName;
     this.isCave = data.isCave;
     this.startDate = data.startDate;
     this.endDate = data.endDate;
@@ -95,6 +100,8 @@ export class LocationEffort {
     db: DB,
     comparedTaxa: ComparedTaxa,
     locationID: number,
+    countyName: string | null,
+    localityName: string,
     isCave: boolean,
     data: LocationEffortData,
     counterData: TaxonVisitCounterData
@@ -103,6 +110,8 @@ export class LocationEffort {
       Object.assign(
         {
           locationID,
+          countyName,
+          localityName,
           isCave,
           kingdomNames: TaxonCounter.toNameSeries(counterData.kingdomNames)!,
           kingdomVisits: TaxonVisitCounter.toVisitsSeries(counterData.kingdomVisits)!,
@@ -129,17 +138,19 @@ export class LocationEffort {
     );
     const result = await db.query(
       `insert into ${comparedTaxa}_for_effort (
-            location_id, is_cave, start_date, end_date, total_days,
-            total_visits, total_person_visits, total_species,
+            location_id, county_name, locality_name, is_cave, start_date, end_date,
+            total_days, total_visits, total_person_visits, total_species,
             kingdom_names, kingdom_visits, phylum_names, phylum_visits,
             class_names, class_visits, order_names, order_visits,
             family_names, family_visits, genus_names, genus_visits,
             species_names, species_visits, subspecies_names, subspecies_visits,
             per_day_points, per_visit_points, per_person_visit_points
-					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
+					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+            $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)`,
       [
         effort.locationID,
+        effort.countyName,
+        effort.localityName,
         // @ts-ignore
         effort.isCave,
         // @ts-ignore
@@ -241,10 +252,18 @@ export class LocationEffort {
       for (const visit of visits) {
         if (visit.locationID != priorLocationID) {
           if (priorLocationID != 0) {
+            const locationID = firstVisitOfLocation!.locationID;
+            const [countyName, locationName] = await _getCountyAndLocality(
+              db,
+              locationID
+            );
+
             await this.create(
               db,
               comparedTaxa,
-              firstVisitOfLocation!.locationID,
+              locationID,
+              countyName,
+              locationName,
               firstVisitOfLocation!.isCave,
               {
                 startDate: startDate!,
@@ -311,10 +330,15 @@ export class LocationEffort {
     }
 
     if (priorLocationID != 0) {
+      const locationID = firstVisitOfLocation!.locationID;
+      const [countyName, locationName] = await _getCountyAndLocality(db, locationID);
+
       await this.create(
         db,
         comparedTaxa,
-        firstVisitOfLocation!.locationID,
+        locationID,
+        countyName,
+        locationName,
         firstVisitOfLocation!.isCave,
         {
           // @ts-ignore
@@ -332,4 +356,14 @@ export class LocationEffort {
       );
     }
   }
+}
+
+async function _getCountyAndLocality(
+  db: DB,
+  locationID: number
+): Promise<[string | null, string]> {
+  const location = (await Location.getByIDs(db, [locationID]))[0];
+  const countyName =
+    location.parentNamePath.split('|')[LocationRankIndex.County] || null;
+  return [countyName, location.locationName];
 }

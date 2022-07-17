@@ -11,7 +11,7 @@
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
 
-  const CLUSTER_STORE_VERSION = 1;
+  const CLUSTER_STORE_VERSION = 2;
 
   interface ClusterStore {
     version: number;

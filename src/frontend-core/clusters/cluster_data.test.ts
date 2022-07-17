@@ -430,6 +430,8 @@ function _makeGraphData(
   if (predictedPerVisitDiff === undefined) predictedPerVisitDiff = null;
   return {
     locationID,
+    countyName: 'Dummy County',
+    localityName: 'Dummy Locality',
     startDate: DATE,
     endDate: DATE,
     perDayPoints: [],

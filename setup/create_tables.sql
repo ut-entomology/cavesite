@@ -328,6 +328,8 @@ create table cave_obligates_for_visits (
 
 create table all_taxa_for_effort (
     location_id integer not null references locations,
+    county_name text,
+    locality_name text not null,
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
@@ -363,6 +365,8 @@ create index on all_taxa_for_effort(total_species);
 
 create table cave_genera_for_effort (
     location_id integer not null references locations,
+    county_name text,
+    locality_name text not null,
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
@@ -398,6 +402,8 @@ create index on cave_genera_for_effort(total_species);
 
 create table cave_obligates_for_effort (
     location_id integer not null references locations,
+    county_name text,
+    locality_name text not null,
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,

@@ -204,6 +204,8 @@ const PUNCT_REGEX = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_
 
 export interface RawLocationEffort {
   locationID: number;
+  countyName: string | null;
+  localityName: string;
   startDate: Date;
   endDate: Date;
   perDayPoints: string;

@@ -96,6 +96,8 @@ export function toLocationSpec(location: Location): LocationSpec {
 function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
   return {
     locationID: effort.locationID,
+    countyName: effort.countyName,
+    localityName: effort.localityName,
     startDate: effort.startDate,
     endDate: effort.endDate,
     perDayPoints: effort.perDayPoints,

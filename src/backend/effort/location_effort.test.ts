@@ -64,6 +64,8 @@ test('tallying species counts per unit effort', async () => {
   let effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: startDate,
@@ -110,6 +112,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -155,6 +159,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -201,6 +207,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -247,6 +255,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -292,6 +302,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -337,6 +349,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -381,6 +395,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -425,6 +441,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -470,6 +488,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -514,6 +534,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -556,6 +578,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -601,6 +625,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -643,6 +669,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -687,6 +715,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -728,6 +758,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 1',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -809,6 +841,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 2',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -895,6 +929,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 2',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -960,6 +996,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 2',
     isCave: true,
     startDate,
     endDate: specimen.collectionStartDate,
@@ -1024,6 +1062,8 @@ test('tallying species counts per unit effort', async () => {
   effort = await _getEffort(specimen.localityID);
   expect(effort).toEqual({
     locationID: specimen.localityID,
+    countyName: 'Travis County',
+    localityName: 'Cave 2',
     isCave: true,
     startDate,
     endDate, // of prior visit

@@ -224,6 +224,8 @@ async function _addEffort(
     db,
     ComparedTaxa.all,
     locationID,
+    'Dummy County',
+    'Dummy Locality',
     true,
     _toEffortData({ totalSpecies }),
     _toTallies(partialTallies)
