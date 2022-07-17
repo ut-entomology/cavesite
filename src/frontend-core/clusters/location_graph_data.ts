@@ -10,8 +10,8 @@ export interface LocationGraphData {
   perDayPoints: Point[];
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
-  predictedPerVisitDiff?: number | null;
-  predictedPerPersonVisitDiff?: number | null;
+  predictedPerVisitDiff: number | null;
+  predictedPerPersonVisitDiff: number | null;
 }
 
 export function toLocationGraphDataSetByCluster(
@@ -46,6 +46,8 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     endDate: rawLocationEffort.endDate,
     perDayPoints,
     perVisitPoints,
-    perPersonVisitPoints
+    perPersonVisitPoints,
+    predictedPerVisitDiff: null,
+    predictedPerPersonVisitDiff: null
   };
 }

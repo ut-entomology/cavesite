@@ -5,6 +5,7 @@ import {
   type ClusteringConfig,
   type PredictionTierStat,
   sortLocationGraphDataSet,
+  toClusterData,
   _computePredictionTierStats,
   _putPredictionsInDataSet,
   _predictDeltaSpecies
@@ -21,9 +22,10 @@ const baseConfig: ClusteringConfig = {
   predictionHistorySampleDepth: 1,
   maxPredictionTiers: 4
 };
+const DATE = new Date();
 
 const getPredictedDiff = (graphData: LocationGraphData) =>
-  graphData.predictedPerVisitDiff!;
+  graphData.predictedPerVisitDiff;
 const getAllPoints = (graphData: LocationGraphData) => graphData.perVisitPoints;
 
 test('sorting location graph data sets', () => {
@@ -356,6 +358,26 @@ test('predictions having zero delta species', () => {
   expect(actualStats).toEqual(expectedStats);
 });
 
+test('averaging prediction stats when producing ClusterData', () => {
+  let config = Object.assign({}, baseConfig);
+  config.predictionHistorySampleDepth = 3;
+
+  // prettier-ignore
+  let pairs = [[1, 1], [2, 2], [3, 4], [4, 8], [5, 12]];
+  // prettier-ignore
+  let dataset = [
+    _makeGraphData(1, _makeLinearPairs(10, 0)),
+    _makeGraphData(2, _makeLinearPairs(5, 3)),
+    _makeGraphData(3, pairs),
+    ];
+  let clusterData = toClusterData(config, {}, dataset);
+  // prettier-ignore
+  let expectedStats = _makeTierStats([[1, 1], [1, 2], [1, 3]]);
+  console.log(clusterData.avgPerVisitTierStats);
+  expect(clusterData.avgPerVisitTierStats).toEqual(expectedStats);
+  expect(clusterData.avgPerPersonVisitTierStats).toEqual(expectedStats);
+});
+
 function _checkSortOrder(
   locationGraphDataSet: LocationGraphData[],
   expectedLocationIDs: number[]
@@ -373,14 +395,16 @@ function _makeGraphData(
   pairs: number[][],
   predictedPerVisitDiff?: number | null
 ): LocationGraphData {
+  if (predictedPerVisitDiff === undefined) predictedPerVisitDiff = null;
   return {
     locationID,
-    startDate: new Date(),
-    endDate: new Date(),
+    startDate: DATE,
+    endDate: DATE,
     perDayPoints: [],
     perVisitPoints: pairsToPoints(pairs),
-    perPersonVisitPoints: [],
-    predictedPerVisitDiff
+    perPersonVisitPoints: pairsToPoints(pairs),
+    predictedPerVisitDiff,
+    predictedPerPersonVisitDiff: predictedPerVisitDiff
   };
 }
 

@@ -68,6 +68,8 @@ export function toClusterData(
   // assumed to not yet have been collected for the purpose of the test. Each
   // subsequent point thus serves as a test of the prior prediction.
 
+  let maxPerVisitTierStats = 0;
+  let maxPerPersonVisitTierStats = 0;
   for (
     let pointsElided = config.predictionHistorySampleDepth;
     pointsElided > 0;
@@ -83,30 +85,41 @@ export function toClusterData(
       config,
       locationGraphDataSet,
       pointsElided,
-      (graphData) => graphData.predictedPerVisitDiff!,
+      (graphData) => graphData.predictedPerVisitDiff,
       (graphData) => graphData.perVisitPoints
     );
     const perPersonVisitTierStats = _computePredictionTierStats(
       config,
       locationGraphDataSet,
       pointsElided,
-      (graphData) => graphData.predictedPerPersonVisitDiff!,
+      (graphData) => graphData.predictedPerPersonVisitDiff,
       (graphData) => graphData.perPersonVisitPoints
     );
 
     // Add the points to the averaging structure, but weighting each tier stat
     // within the average according to its number of contributing locations.
 
-    for (let i = 0; i < config.maxPredictionTiers; ++i) {
-      if (perVisitTierStats !== null) {
+    if (perVisitTierStats !== null) {
+      for (let i = 0; i < perVisitTierStats.length; ++i) {
         _addToAverageTierStat(avgPerVisitTierStats[i], perVisitTierStats[i]);
       }
-      if (perPersonVisitTierStats !== null) {
+    }
+    if (perPersonVisitTierStats !== null) {
+      for (let i = 0; i < perPersonVisitTierStats.length; ++i) {
         _addToAverageTierStat(
           avgPerPersonVisitTierStats[i],
           perPersonVisitTierStats[i]
         );
       }
+    }
+    if (perVisitTierStats && perVisitTierStats.length > maxPerVisitTierStats) {
+      maxPerVisitTierStats = perVisitTierStats.length;
+    }
+    if (
+      perPersonVisitTierStats &&
+      perPersonVisitTierStats.length > maxPerPersonVisitTierStats
+    ) {
+      maxPerPersonVisitTierStats = perPersonVisitTierStats.length;
     }
   }
 
@@ -114,9 +127,13 @@ export function toClusterData(
 
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
     let averageTierStat = avgPerVisitTierStats[i];
-    averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
+    if (averageTierStat.contributingLocations > 0) {
+      averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
+    }
     averageTierStat = avgPerPersonVisitTierStats[i];
-    averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
+    if (averageTierStat.contributingLocations > 0) {
+      averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
+    }
   }
 
   // Put the future predictions directly into the location structures. The
@@ -131,8 +148,11 @@ export function toClusterData(
   return {
     visitsByTaxonUnique,
     locationGraphDataSet,
-    avgPerVisitTierStats,
-    avgPerPersonVisitTierStats
+    avgPerVisitTierStats: avgPerVisitTierStats.slice(0, maxPerVisitTierStats),
+    avgPerPersonVisitTierStats: avgPerPersonVisitTierStats.slice(
+      0,
+      maxPerPersonVisitTierStats
+    )
   };
 }
 
