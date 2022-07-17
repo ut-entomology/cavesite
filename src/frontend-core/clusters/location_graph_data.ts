@@ -1,4 +1,4 @@
-import type { Point } from '../../shared/point';
+import { type Point, pairsToPoints } from '../../shared/point';
 import type { RawLocationEffort } from '../../shared/model';
 
 // const ORIGIN = { x: 0, y: 0 };
@@ -28,30 +28,17 @@ export function toLocationGraphDataSetByCluster(
   return locationGraphDataSetByCluster;
 }
 
-function _pairToPoint(pair: number[]) {
-  return { x: pair[0], y: pair[1] };
-}
-
 function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGraphData {
   const perDayPointPairs: number[][] = JSON.parse(rawLocationEffort.perDayPoints);
-  const perDayPoints: Point[] = [];
-  for (const pair of perDayPointPairs) {
-    perDayPoints.push(_pairToPoint(pair));
-  }
+  const perDayPoints = pairsToPoints(perDayPointPairs);
 
   const perVisitPointPairs: number[][] = JSON.parse(rawLocationEffort.perVisitPoints);
-  const perVisitPoints: Point[] = [];
-  for (const pair of perVisitPointPairs) {
-    perVisitPoints.push(_pairToPoint(pair));
-  }
+  const perVisitPoints = pairsToPoints(perVisitPointPairs);
 
   const perPersonVisitPointPairs: number[][] = JSON.parse(
     rawLocationEffort.perPersonVisitPoints
   );
-  const perPersonVisitPoints: Point[] = [];
-  for (const pair of perPersonVisitPointPairs) {
-    perPersonVisitPoints.push(_pairToPoint(pair));
-  }
+  const perPersonVisitPoints = pairsToPoints(perPersonVisitPointPairs);
 
   return {
     locationID: rawLocationEffort.locationID,
