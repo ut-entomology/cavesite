@@ -221,10 +221,10 @@ export function _computePredictionTierStats(
   }
 
   // Return at most a number of prediction tier stats equal to the number of
-  // locations in the cluster; any extra stats are uninformative.
+  // locations having predictions; any extra stats are uninformative.
 
-  if (locationGraphDataSet.length < predictionTierStats.length) {
-    predictionTierStats = predictionTierStats.slice(0, locationGraphDataSet.length);
+  if (actualSortSet.length < predictionTierStats.length) {
+    predictionTierStats = predictionTierStats.slice(0, actualSortSet.length);
   }
   return predictionTierStats;
 }

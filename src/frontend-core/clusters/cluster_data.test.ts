@@ -231,6 +231,62 @@ test('increasing prediction history depth', () => {
   expect(actualStats).toEqual(expectedStats);
 });
 
+test('predictions tiers in presence of too few points', () => {
+  let config = Object.assign({}, baseConfig);
+  config.predictionHistorySampleDepth = 3;
+
+  // prettier-ignore
+  let pairs = [[1, 1], [2, 2], [3, 4], [4, 8], [5, 12]];
+  // prettier-ignore
+  let dataset = [
+    _makeGraphData(1, pairs),
+    _makeGraphData(2, _makeLinearPairs(5, 3)),
+    _makeGraphData(3, [[1, 1]])
+    ];
+
+  let pointsElided = 1;
+  _putPredictionsInDataSet(config, dataset, pointsElided);
+  let actualStats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    pointsElided,
+    getPredictedDiff,
+    getAllPoints
+  );
+  _checkSortOrder(dataset, [3, 1, 2]);
+  // prettier-ignore
+  let expectedStats = _makeTierStats([[1, 1], [1, 2]]);
+  expect(actualStats).toEqual(expectedStats);
+
+  pointsElided = 2;
+  _putPredictionsInDataSet(config, dataset, pointsElided);
+  actualStats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    pointsElided,
+    getPredictedDiff,
+    getAllPoints
+  );
+  _checkSortOrder(dataset, [3, 2, 1]);
+  // prettier-ignore
+  expectedStats = _makeTierStats([[0, 0], [1, 2]]);
+  expect(actualStats).toEqual(expectedStats);
+
+  pointsElided = 3;
+  _putPredictionsInDataSet(config, dataset, pointsElided);
+  actualStats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    pointsElided,
+    getPredictedDiff,
+    getAllPoints
+  );
+  _checkSortOrder(dataset, [3, 2, 1]);
+  // prettier-ignore
+  expectedStats = _makeTierStats([[1, 1], [1, 2]]);
+  expect(actualStats).toEqual(expectedStats);
+});
+
 function _checkSortOrder(
   locationGraphDataSet: LocationGraphData[],
   expectedLocationIDs: number[]
