@@ -83,14 +83,14 @@ export function toClusterData(
       config,
       locationGraphDataSet,
       pointsElided,
-      (graphData) => graphData.predictedPerVisitDiff || null,
+      (graphData) => graphData.predictedPerVisitDiff!,
       (graphData) => graphData.perVisitPoints
     );
     const perPersonVisitTierStats = _computePredictionTierStats(
       config,
       locationGraphDataSet,
       pointsElided,
-      (graphData) => graphData.predictedPerPersonVisitDiff || null,
+      (graphData) => graphData.predictedPerPersonVisitDiff!,
       (graphData) => graphData.perPersonVisitPoints
     );
 
