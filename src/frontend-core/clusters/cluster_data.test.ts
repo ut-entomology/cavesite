@@ -228,7 +228,7 @@ test('increasing prediction history depth', () => {
   );
   _checkSortOrder(dataset, [2, 1]);
   // prettier-ignore
-  expectedStats = _makeTierStats([[0, 0], [1, 2]]);
+  expectedStats = _makeTierStats([[0, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 3;
@@ -284,7 +284,7 @@ test('predictions tiers in presence of too few points', () => {
   );
   _checkSortOrder(dataset, [3, 2, 1]);
   // prettier-ignore
-  expectedStats = _makeTierStats([[0, 0], [1, 2]]);
+  expectedStats = _makeTierStats([[0, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 3;
@@ -340,7 +340,7 @@ test('predictions having zero delta species', () => {
   );
   _checkSortOrder(dataset, [2, 1, 3]);
   // prettier-ignore
-  expectedStats = _makeTierStats([[0, 0], [1, 2], [1, 3]]);
+  expectedStats = _makeTierStats([[0, 1], [1, 2], [1, 3]]);
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 3;
@@ -372,8 +372,40 @@ test('averaging prediction stats when producing ClusterData', () => {
     ];
   let clusterData = toClusterData(config, {}, dataset);
   // prettier-ignore
-  let expectedStats = _makeTierStats([[1, 1], [1, 2], [1, 3]]);
-  console.log(clusterData.avgPerVisitTierStats);
+  let expectedStats = _makeTierStats([[2/3, 3], [1, 6], [1, 9]]);
+  expect(clusterData.avgPerVisitTierStats).toEqual(expectedStats);
+  expect(clusterData.avgPerPersonVisitTierStats).toEqual(expectedStats);
+
+  // prettier-ignore
+  dataset = [
+    _makeGraphData(1, _makeLinearPairs(3, 0)),
+    _makeGraphData(2, _makeLinearPairs(5, 3)),
+    _makeGraphData(3, pairs),
+    ];
+  clusterData = toClusterData(config, {}, dataset);
+  // prettier-ignore
+  expectedStats = _makeTierStats([[2/3, 3], [1, 6], [1, 3]]);
+  expect(clusterData.avgPerVisitTierStats).toEqual(expectedStats);
+  expect(clusterData.avgPerPersonVisitTierStats).toEqual(expectedStats);
+});
+
+test('truncating prediction stats when producing ClusterData', () => {
+  let config = Object.assign({}, baseConfig);
+  config.predictionHistorySampleDepth = 3;
+
+  // prettier-ignore
+  let pairs = [[1, 1], [2, 2], [3, 4], [4, 8], [5, 12]];
+  // prettier-ignore
+  let dataset = [
+    _makeGraphData(1, _makeLinearPairs(3, 0)),
+    _makeGraphData(2, _makeLinearPairs(5, 2)),
+    _makeGraphData(3, _makeLinearPairs(5, 1)),
+    _makeGraphData(4, _makeLinearPairs(5, 3)),
+    _makeGraphData(5, pairs),
+    ];
+  let clusterData = toClusterData(config, {}, dataset);
+  // prettier-ignore
+  let expectedStats = _makeTierStats([[2/3, 3], [1, 6], [8/9, 9], [1, 12]]);
   expect(clusterData.avgPerVisitTierStats).toEqual(expectedStats);
   expect(clusterData.avgPerPersonVisitTierStats).toEqual(expectedStats);
 });

@@ -234,9 +234,10 @@ export function _computePredictionTierStats(
   let predictionTierStats: PredictionTierStat[] = [];
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
     const actualCount = actualLocationsInPredictedTierStat[i];
+    const expectedCount = i + 1;
     predictionTierStats.push({
-      contributingLocations: actualCount,
-      fractionCorrect: actualCount / (i + 1)
+      contributingLocations: expectedCount,
+      fractionCorrect: actualCount / expectedCount
     });
   }
 
