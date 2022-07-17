@@ -22,13 +22,15 @@
   }
 
   function onSubmit() {
-    submit({
-      maxClusters,
-      comparedTaxa,
-      ignoreSubgenera,
-      highestComparedRank,
-      maxPointsToRegress
-    });
+    submit(
+      Object.assign({}, config, {
+        maxClusters,
+        comparedTaxa,
+        ignoreSubgenera,
+        highestComparedRank,
+        maxPointsToRegress
+      })
+    );
   }
 </script>
 

@@ -4,15 +4,14 @@ import type { LocationGraphData } from './location_graph_data';
 import { PointSliceSpec, slicePointSet } from './effort_graph_spec';
 import { PowerFitModel } from './power_fit_model';
 
-const MAX_POINTS_TO_ELIDE = 3;
-const MAX_PREDICTION_TIERS = 40;
-
 export interface ClusteringConfig {
   maxClusters: number;
   comparedTaxa: ComparedTaxa;
   ignoreSubgenera: boolean;
   highestComparedRank: TaxonRank;
   maxPointsToRegress: number | null;
+  predictionHistorySampleDepth: number;
+  predictionTiers: number;
 }
 
 export interface ClusterData {
@@ -47,12 +46,12 @@ export function toClusterData(
   locationGraphDataSet: LocationGraphData[]
 ): ClusterData {
   // Establish the structures that ultimately provide the average of all
-  // MAX_POINTS_TO_ELIDE prediction tiers, after initially holding the
+  // config.predictionHistorySampleDepth prediction tiers, after initially holding the
   // intermediate sums necessary for producing the average.
 
   const avgPerVisitTierStats: PredictionTierStat[] = [];
   const avgPerPersonVisitTierStats: PredictionTierStat[] = [];
-  for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
+  for (let i = 0; i < config.predictionTiers; ++i) {
     avgPerVisitTierStats.push({
       fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
       contributingLocations: 0
@@ -63,13 +62,17 @@ export function toClusterData(
     });
   }
 
-  // Test predictions for the most recent MAX_POINTS_TO_ELIDE prior to the
+  // Test predictions for the most recent config.predictionHistorySampleDepth prior to the
   // current last point, averaging the results at each prediction tier. The
   // number of points elided is the number of most recent actual points
   // assumed to not yet have been collected for the purpose of the test. Each
   // subsequent point thus serves as a test of the prior prediction.
 
-  for (let pointsElided = MAX_POINTS_TO_ELIDE; pointsElided > 0; --pointsElided) {
+  for (
+    let pointsElided = config.predictionHistorySampleDepth;
+    pointsElided > 0;
+    --pointsElided
+  ) {
     // Put the predictions directly into the locations structures.
 
     _putPredictionsInDataSet(config, locationGraphDataSet, pointsElided);
@@ -77,12 +80,14 @@ export function toClusterData(
     // Compute the tiers for the current number of points elided.
 
     const perVisitTierStats = _computePredictionTierStats(
+      config,
       locationGraphDataSet,
       pointsElided,
       (graphData) => graphData.predictedPerVisitDiff || null,
       (graphData) => graphData.perVisitPoints
     );
     const perPersonVisitTierStats = _computePredictionTierStats(
+      config,
       locationGraphDataSet,
       pointsElided,
       (graphData) => graphData.predictedPerPersonVisitDiff || null,
@@ -92,7 +97,7 @@ export function toClusterData(
     // Add the points to the averaging structure, but weighting each tier
     // within the average according to its number of contributing locations.
 
-    for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
+    for (let i = 0; i < config.predictionTiers; ++i) {
       if (perVisitTierStats !== null) {
         _addToAverageTierStat(avgPerVisitTierStats[i], perVisitTierStats[i]);
       }
@@ -107,7 +112,7 @@ export function toClusterData(
 
   // Turn the intermediate sums into weighted averages for each tier.
 
-  for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
+  for (let i = 0; i < config.predictionTiers; ++i) {
     let averageTierStat = avgPerVisitTierStats[i];
     averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
     averageTierStat = avgPerPersonVisitTierStats[i];
@@ -140,7 +145,9 @@ function _addToAverageTierStat(
   averageTierStat.contributingLocations += locationCount;
 }
 
-function _computePredictionTierStats(
+// exported for testing purposes
+export function _computePredictionTierStats(
+  config: ClusteringConfig,
   locationGraphDataSet: LocationGraphData[],
   pointsElided: number,
   getPredictedDiff: (graphData: LocationGraphData) => number | null,
@@ -150,7 +157,7 @@ function _computePredictionTierStats(
 
   sortLocationGraphDataSet(locationGraphDataSet, getPredictedDiff);
 
-  // Record the IDs of the top MAX_PREDICTION_TIERS locations, returning
+  // Record the IDs of the top config.predictionTiers locations, returning
   // with no prediction tiers if the data contains no predictions.
 
   const firstNonNullIndex = locationGraphDataSet.findIndex(
@@ -160,7 +167,7 @@ function _computePredictionTierStats(
 
   let predictedLocationIDs: number[] = [];
   predictedLocationIDs = locationGraphDataSet
-    .slice(firstNonNullIndex, firstNonNullIndex + MAX_PREDICTION_TIERS)
+    .slice(firstNonNullIndex, firstNonNullIndex + config.predictionTiers)
     .map((graphData) => graphData.locationID);
 
   // Sort the datasets having predictions by actual species differences.
@@ -172,10 +179,10 @@ function _computePredictionTierStats(
     if (deltaA == deltaB) return 0;
     return deltaB - deltaA; // sort highest first
   });
-  actualSortSet = actualSortSet.slice(0, MAX_PREDICTION_TIERS);
+  actualSortSet = actualSortSet.slice(0, config.predictionTiers);
 
   // Tally the offsets of each expected ID in the actual sort set, setting
-  // the offset to null if it's not in the top MAX_PREDICTION_TIERS.
+  // the offset to null if it's not in the top config.predictionTiers.
 
   const actualOffsetByPredictedOffset: (number | null)[] = [];
   for (const predictedID of predictedLocationIDs) {
@@ -189,12 +196,12 @@ function _computePredictionTierStats(
   // the same tier of the actual sort set.
 
   const actualLocationsInPredictedTierStat: number[] = new Array(
-    MAX_PREDICTION_TIERS
+    config.predictionTiers
   ).fill(0);
-  for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
+  for (let i = 0; i < config.predictionTiers; ++i) {
     const actualOffset = actualOffsetByPredictedOffset[i];
     if (actualOffset !== null) {
-      for (let j = actualOffset; j < MAX_PREDICTION_TIERS; ++j) {
+      for (let j = actualOffset; j < config.predictionTiers; ++j) {
         ++actualLocationsInPredictedTierStat[j];
       }
     }
@@ -206,7 +213,7 @@ function _computePredictionTierStats(
 
   const predictionTierStats: PredictionTierStat[] = [];
   let totalLocations = 0;
-  for (let i = 0; i < MAX_PREDICTION_TIERS; ++i) {
+  for (let i = 0; i < config.predictionTiers; ++i) {
     const actualCount = actualLocationsInPredictedTierStat[i];
     totalLocations += actualCount;
     predictionTierStats.push({

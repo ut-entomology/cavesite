@@ -48,6 +48,8 @@
   $pageName = 'Collection Effort';
 
   const MAX_CLUSTERS = 10;
+  const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
+  const PREDICTION_TIERS = 40;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -215,7 +217,9 @@
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         ignoreSubgenera: false,
         highestComparedRank: TaxonRank.Genus,
-        maxPointsToRegress: 12
+        maxPointsToRegress: 12,
+        predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
+        predictionTiers: PREDICTION_TIERS
       };
     }
   }
