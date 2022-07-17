@@ -5,7 +5,11 @@
     type LocationGraphData,
     toLocationGraphDataSetByCluster
   } from './location_graph_data';
-  import type { ClusteringConfig, ClusterData } from './cluster_data';
+  import {
+    type ClusteringConfig,
+    type ClusterData,
+    toClusterData
+  } from './cluster_data';
 
   interface ClusterStore {
     config: ClusteringConfig;
@@ -176,10 +180,13 @@
       loadState = LoadState.generatingPlotData;
       const dataByCluster: ClusterData[] = [];
       for (let i = 0; i < taxaClusters.length; ++i) {
-        dataByCluster.push({
-          visitsByTaxonUnique: taxaClusters[i].visitsByTaxonUnique,
-          locationGraphDataSet: locationGraphDataSetByCluster[i]
-        });
+        dataByCluster.push(
+          toClusterData(
+            config,
+            taxaClusters[i].visitsByTaxonUnique,
+            locationGraphDataSetByCluster[i]
+          )
+        );
       }
       dataByCluster.sort((a, b) => {
         const aTaxaCount = Object.keys(a.visitsByTaxonUnique).length;

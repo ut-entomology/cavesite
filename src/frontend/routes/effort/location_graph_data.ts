@@ -10,6 +10,8 @@ export interface LocationGraphData {
   perDayPoints: Point[];
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
+  predictedPerVisitDiff?: number | null;
+  predictedPerPersonVisitDiff?: number | null;
 }
 
 export function toLocationGraphDataSetByCluster(
