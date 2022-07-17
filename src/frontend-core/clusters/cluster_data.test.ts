@@ -177,13 +177,18 @@ test('too few points to make predictions', () => {
 });
 
 test('increasing prediction history depth', () => {
-  let config = baseConfig;
-  let pointsElided = 1;
+  let config = Object.assign({}, baseConfig);
+  config.predictionHistorySampleDepth = 3;
 
   // prettier-ignore
+  let pairs = [[1, 1], [2, 2], [3, 4], [4, 8], [5, 12]];
+  // prettier-ignore
   let dataset = [
-    _makeGraphData(1, _makeLinearPairs(4, 1))
+    _makeGraphData(1, pairs),
+    _makeGraphData(2, _makeLinearPairs(5, 3))
   ];
+
+  let pointsElided = 1;
   _putPredictionsInDataSet(config, dataset, pointsElided);
   let actualStats = _computePredictionTierStats(
     baseConfig,
@@ -192,7 +197,37 @@ test('increasing prediction history depth', () => {
     getPredictedDiff,
     getAllPoints
   );
-  let expectedStats = _makeTierStats([[1, 1]]);
+  _checkSortOrder(dataset, [1, 2]);
+  // prettier-ignore
+  let expectedStats = _makeTierStats([[1, 1], [1, 2]]);
+  expect(actualStats).toEqual(expectedStats);
+
+  pointsElided = 2;
+  _putPredictionsInDataSet(config, dataset, pointsElided);
+  actualStats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    pointsElided,
+    getPredictedDiff,
+    getAllPoints
+  );
+  _checkSortOrder(dataset, [2, 1]);
+  // prettier-ignore
+  expectedStats = _makeTierStats([[0, 0], [1, 2]]);
+  expect(actualStats).toEqual(expectedStats);
+
+  pointsElided = 3;
+  _putPredictionsInDataSet(config, dataset, pointsElided);
+  actualStats = _computePredictionTierStats(
+    baseConfig,
+    dataset,
+    pointsElided,
+    getPredictedDiff,
+    getAllPoints
+  );
+  _checkSortOrder(dataset, [2, 1]);
+  // prettier-ignore
+  expectedStats = _makeTierStats([[1, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 });
 

@@ -201,7 +201,7 @@ export function _computePredictionTierStats(
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
     const actualOffset = actualOffsetByPredictedOffset[i];
     if (actualOffset !== null) {
-      for (let j = actualOffset; j < config.maxPredictionTiers; ++j) {
+      for (let j = Math.max(i, actualOffset); j < config.maxPredictionTiers; ++j) {
         ++actualLocationsInPredictedTierStat[j];
       }
     }
@@ -212,12 +212,10 @@ export function _computePredictionTierStats(
   // predicted locations actually occurring in the tier.
 
   let predictionTierStats: PredictionTierStat[] = [];
-  let totalLocations = 0;
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
     const actualCount = actualLocationsInPredictedTierStat[i];
-    totalLocations += actualCount;
     predictionTierStats.push({
-      contributingLocations: totalLocations,
+      contributingLocations: actualCount,
       fractionCorrect: actualCount / (i + 1)
     });
   }
