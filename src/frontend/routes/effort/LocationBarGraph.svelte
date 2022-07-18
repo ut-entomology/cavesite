@@ -90,7 +90,7 @@
       </SplitHorizontalBar>
     {:else}
       <SplitHorizontalBar
-        classes="bar_spacer"
+        classes="outer_bar"
         leftSplitSpec={_toLeftSplitSpec(index, increasing)}
         rightSplitSpec={_toRightSplitSpec(item)}
       >
@@ -119,6 +119,8 @@
 {/key}
 
 <style lang="scss">
+  @import '../../variables.scss';
+
   :globel(.location_bar_graph) {
     margin-top: 1rem;
     font-size: 0.95rem;
@@ -127,8 +129,16 @@
     font-size: 0.95em;
     color: #888;
   }
-  :global(.bar_spacer) {
+  :global(.outer_bar) {
     margin-bottom: 2px;
+  }
+  :global(.outer_bar:hover) {
+    color: $blueLinkForeColor;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  :global(.outer_bar:hover .location_name) {
+    text-decoration: underline;
   }
   .percent {
     font-size: 0.9em;

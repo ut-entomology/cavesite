@@ -28,7 +28,7 @@
     <span class="loc_deemph">spp.</span>
   </div>
   <div class="col" on:click={() => openLocation(locationData)}>
-    <span class="name">{locationName}</span>
+    <span class="location_name">{locationName}</span>
     <span class="loc_deemph"
       >({unitValue} {visitUnitName}{unitValue > 1 ? 's' : ''})</span
     >
@@ -36,16 +36,8 @@
 </div>
 
 <style lang="scss">
-  @import '../../variables.scss';
-
   :global(.loc_deemph) {
     color: #6a547f;
     font-size: 0.95em;
-  }
-
-  .name {
-    color: $blueLinkForeColor;
-    cursor: pointer;
-    text-decoration: underline;
   }
 </style>
