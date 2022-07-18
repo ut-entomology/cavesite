@@ -21,7 +21,10 @@
   let canShrink: boolean;
 
   // fit updates to expected row count
-  $: items = items.slice(0, rowCount);
+  $: {
+    canGrow = items.length > rowCount;
+    items = items.slice(0, rowCount);
+  }
 
   async function _updateItems() {
     [items, canGrow] = await getItems(rowCount, increasing);
@@ -67,7 +70,7 @@
   <div class="row ms-4 mb-2 me-3 justify-content-between">
     <div class="col">
       {#if !canGrow}
-        No more rows
+        (no more rows)
       {/if}
     </div>
     <div class="col text-end">
