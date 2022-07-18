@@ -21,6 +21,6 @@
 
 <style>
   .units {
-    color: #655179;
+    color: #6a547f;
   }
 </style>

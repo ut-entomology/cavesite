@@ -14,7 +14,7 @@
   function _toLeftSplitSpec(index: number): BarSplitSpec {
     return {
       percent: index < tierStats!.length ? _toStatPercent(index) : 0,
-      barColor: '#fff5ba',
+      barColor: '#faf2c7',
       backgroundColor: '#ddd'
     };
   }
@@ -27,7 +27,7 @@
   function _toRightSplitSpec(locationData: LocationGraphData): BarSplitSpec {
     return {
       percent: (100 * _toRightValue(locationData)) / greatestValue,
-      barColor: '#d5aaff',
+      barColor: '#d1c0fe',
       backgroundColor: '#ddd'
     };
   }
@@ -65,7 +65,7 @@
         <div slot="left">
           {#if i < tierStats.length}
             {_toPercentStr(_toStatPercent(i))} %
-            <div class="arrow">&#x2906;</div>
+            <div class="above_arrow">&#x2906;</div>
           {:else}
             <div class="no_stats">no stats</div>
           {/if}
@@ -82,19 +82,20 @@
   {/each}
 </div>
 
-<style>
+<style lang="scss">
   .location_bar_graph {
     font-size: 0.95rem;
   }
   :global(.bar_spacer) {
     margin-bottom: 2px;
   }
-  .arrow {
+  .above_arrow {
     display: inline-block;
     transform: rotate(90deg);
-    color: #655179;
+    color: #6a547f;
   }
   .no_stats {
-    background-color: #ffbebc;
+    background-color: #f2cbcb;
+    // background-color: #faf2c7;
   }
 </style>
