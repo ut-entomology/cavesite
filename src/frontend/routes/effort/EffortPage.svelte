@@ -485,6 +485,7 @@
       {/if}
 
       {#if singlePointLocationDataSet.length > 0}
+        <hr />
         <LocationBarGraph
           heading="Caves only visited once"
           getItems={_getSingleVisitLocationSubset}
@@ -495,6 +496,7 @@
         />
       {/if}
       {#if multiPointLocationDataSet.length > 0}
+        <hr />
         <LocationBarGraph
           heading="Caves visited multiple times"
           tierStats={predictionTierStats}

@@ -55,13 +55,13 @@
     </div>
   </div>
 
-  <div class="grower_items mb-3 {itemsClasses}">
+  <div class="grower_items mb-2 {itemsClasses}">
     {#each items as item, index (item)}
       <slot {item} {index} {increasing} />
     {/each}
   </div>
 
-  <div class="row ms-4 mb-3 me-3 justify-content-between">
+  <div class="row ms-4 mb-2 me-3 justify-content-between">
     <div class="col">
       {#if !canGrow}
         No more rows
