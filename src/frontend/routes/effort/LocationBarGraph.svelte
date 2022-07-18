@@ -6,14 +6,14 @@
   import type { PredictionTierStat } from '../../../frontend-core/clusters/cluster_data';
 
   export let dataset: LocationGraphData[];
-  export let tierStats: PredictionTierStat[] | null;
+  export let tierStats: PredictionTierStat[] | null = null;
   export let getValue: (locationData: LocationGraphData) => number | null;
   export let getPoints: (locationData: LocationGraphData) => Point[];
   export let greatestValue: number;
 
   function _toLeftSplitSpec(index: number): BarSplitSpec {
     return {
-      percent: 100 * tierStats![index].fractionCorrect,
+      percent: index < tierStats!.length ? _toStatPercent(index) : 0,
       barColor: '#ffffd1',
       backgroundColor: '#999'
     };
@@ -32,44 +32,58 @@
     };
   }
 
+  function _toStatPercent(index: number): number {
+    return 100 * tierStats![index].fractionCorrect;
+  }
+
   function _toPercentStr(fraction: number): string {
     return fraction.toFixed(1);
   }
 </script>
 
-{#each dataset as locationData, i}
-  {#if tierStats === null}
-    <SplitHorizontalBar rightSplitSpec={_toRightSplitSpec(locationData)}>
-      <div slot="right">
-        <RightLocationSplit
-          {locationData}
-          valueStr={_toRightValue(locationData).toString()}
-          isDelta={false}
-        />
-      </div>
-    </SplitHorizontalBar>
-  {:else}
-    <SplitHorizontalBar
-      leftSplitSpec={_toLeftSplitSpec(i)}
-      rightSplitSpec={_toRightSplitSpec(locationData)}
-    >
-      <div slot="left">
-        <span class="arrow">&#x2906;</span>
-        {_toPercentStr(100 * tierStats[i].fractionCorrect)}
-      </div>
-      <div slot="right">
-        <RightLocationSplit
-          {locationData}
-          valueStr={_toRightValue(locationData).toFixed(1)}
-          isDelta={true}
-        />
-      </div>
-    </SplitHorizontalBar>
-  {/if}
-{/each}
+<div class="location_bar_graph">
+  {#each dataset as locationData, i}
+    {#if tierStats === null}
+      <SplitHorizontalBar rightSplitSpec={_toRightSplitSpec(locationData)}>
+        <div slot="right">
+          <RightLocationSplit
+            {locationData}
+            valueStr={_toRightValue(locationData).toString()}
+            isDelta={false}
+          />
+        </div>
+      </SplitHorizontalBar>
+    {:else}
+      <SplitHorizontalBar
+        leftSplitSpec={_toLeftSplitSpec(i)}
+        rightSplitSpec={_toRightSplitSpec(locationData)}
+      >
+        <div slot="left">
+          {#if i < tierStats.length}
+            {_toPercentStr(_toStatPercent(i))} %
+            <div class="arrow">&#x2906;</div>
+          {:else}
+            no stats
+          {/if}
+        </div>
+        <div slot="right">
+          <RightLocationSplit
+            {locationData}
+            valueStr={_toRightValue(locationData).toFixed(1)}
+            isDelta={true}
+          />
+        </div>
+      </SplitHorizontalBar>
+    {/if}
+  {/each}
+</div>
 
 <style>
+  .location_bar_graph {
+    font-size: 0.95rem;
+  }
   .arrow {
+    display: inline-block;
     transform: rotate(90deg);
   }
 </style>

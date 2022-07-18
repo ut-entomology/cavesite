@@ -11,10 +11,10 @@
       : `${locationData.localityName}, ${locationData.countyName}`;
 </script>
 
-<div class="row">
-  <div class="col">
+<div class="row gx-2">
+  <div class="col-2 text-end">
     {valueStr}
-    {isDelta ? '&#x394;' : ''}spp.
+    {@html isDelta ? '&#x394;' : ''} spp.
   </div>
   <div class="col">{locationName}</div>
 </div>

@@ -11,10 +11,10 @@
   export let rightSplitSpec: BarSplitSpec | null;
 </script>
 
-<div class="row">
+<div class="row gx-2">
   {#if leftSplitSpec !== null}
     {@const leftPercent = leftSplitSpec.percent}
-    <div class="col left_split">
+    <div class="col-3 left_split text-center">
       <div class="full_bar" style="backgroundColor: {leftSplitSpec.barColor}">
         {#if leftPercent > 0}
           <div
@@ -37,6 +37,7 @@
           />
         {/if}
       </div>
+      <slot name="right" />
     </div>
   {/if}
 </div>

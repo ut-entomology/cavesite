@@ -8,6 +8,8 @@
   import {
     type ClusteringConfig,
     type ClusterData,
+    type PredictionTierStat,
+    sortLocationGraphDataSet,
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
 
@@ -33,6 +35,7 @@
   import ClusterRadarChart from './ClusterRadarChart.svelte';
   import EffortGraph from './EffortGraph.svelte';
   import RegressedEffortGraph from './RegressedEffortGraph.svelte';
+  import LocationBarGraph from './LocationBarGraph.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -52,7 +55,7 @@
 
   const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
-  const PREDICTION_TIERS = 40;
+  const PREDICTION_TIERS = 20;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -89,6 +92,13 @@
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
+  let getLocationValue: (locationData: LocationGraphData) => number | null;
+  let getLocationPoints: (locationData: LocationGraphData) => Point[];
+  let singlePointLocationDataSet: LocationGraphData[];
+  let multiPointLocationDataSet: LocationGraphData[];
+  let greatestSinglePointLocationValue: number;
+  let greatestMultiPointLocationValue: number;
+  let predictionTierStats: PredictionTierStat[];
 
   $: if ($clusterStore && $clusterStore.version != CLUSTER_STORE_VERSION) {
     $clusterStore = null;
@@ -108,6 +118,46 @@
 
   $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
+    const clusterData = $clusterStore.dataByCluster[clusterIndex];
+
+    if (datasetID == DatasetID.personVisits) {
+      getLocationValue = (locationData) => locationData.predictedPerVisitDiff;
+      getLocationPoints = (locationData) => locationData.perVisitPoints;
+      predictionTierStats = clusterData.avgPerVisitTierStats;
+    } else {
+      getLocationValue = (locationData) => locationData.predictedPerPersonVisitDiff;
+      getLocationPoints = (locationData) => locationData.perPersonVisitPoints;
+      predictionTierStats = clusterData.avgPerPersonVisitTierStats;
+    }
+
+    const dataset = clusterData.locationGraphDataSet;
+    sortLocationGraphDataSet(dataset, getLocationValue);
+
+    const firstNonNullIndex = dataset.findIndex(
+      (graphData) => getLocationValue(graphData) !== null
+    );
+    if (firstNonNullIndex > 0) {
+      const getValue = (locationData: LocationGraphData) =>
+        getLocationPoints(locationData)[0].y;
+      singlePointLocationDataSet = dataset.slice(0, firstNonNullIndex);
+      multiPointLocationDataSet = dataset.slice(firstNonNullIndex);
+      sortLocationGraphDataSet(singlePointLocationDataSet, getValue);
+      greatestSinglePointLocationValue = getValue(singlePointLocationDataSet[0]);
+    } else {
+      singlePointLocationDataSet = [];
+      multiPointLocationDataSet = dataset;
+    }
+    if (multiPointLocationDataSet.length > 0) {
+      greatestMultiPointLocationValue = getLocationValue(multiPointLocationDataSet[0])!;
+    }
+
+    // TBD: temporarily limit data shown
+    singlePointLocationDataSet = singlePointLocationDataSet.slice(0, 10);
+    console.log('**** single length', singlePointLocationDataSet.length);
+    multiPointLocationDataSet = multiPointLocationDataSet.slice(0, 30);
+    console.log('**** multi length', multiPointLocationDataSet.length);
+    console.log('**** multi', multiPointLocationDataSet);
+
     loadState = LoadState.ready;
   }
 
@@ -409,6 +459,26 @@
           sourceDataSet={clusterData.locationGraphDataSet}
           {graphSpec}
           clusteringConfig={$clusterStore.config}
+        />
+      {/if}
+
+      {#if singlePointLocationDataSet.length > 0}
+        <h2>Single point locations</h2>
+        <LocationBarGraph
+          dataset={singlePointLocationDataSet}
+          greatestValue={greatestSinglePointLocationValue}
+          getValue={getLocationValue}
+          getPoints={getLocationPoints}
+        />
+      {/if}
+      {#if multiPointLocationDataSet.length > 0}
+        <h2>Multi point locations</h2>
+        <LocationBarGraph
+          tierStats={predictionTierStats}
+          dataset={multiPointLocationDataSet}
+          greatestValue={greatestMultiPointLocationValue}
+          getValue={getLocationValue}
+          getPoints={getLocationPoints}
         />
       {/if}
     {/if}
