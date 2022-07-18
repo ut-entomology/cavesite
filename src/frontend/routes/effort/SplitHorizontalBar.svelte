@@ -29,6 +29,8 @@
         >
           &nbsp;
         </div>
+      {:else}
+        <div class="value_bar">&nbsp;</div>
       {/if}
     </div>
   {/if}
@@ -46,6 +48,8 @@
           >
             &nbsp;
           </div>
+        {:else}
+          <div class="value_bar">&nbsp;</div>
         {/if}
       </div>
     </div>
