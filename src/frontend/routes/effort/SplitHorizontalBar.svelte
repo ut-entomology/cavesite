@@ -52,7 +52,7 @@
   {/if}
 </div>
 
-<style>
+<style lang="scss">
   .left_split,
   .right_split {
     position: relative;

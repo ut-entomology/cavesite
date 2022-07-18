@@ -1,19 +1,33 @@
 <script lang="ts">
-  import type { Point } from '../../../shared/point';
+  import SortedRowGrower, { type RowItemGetter } from './SortedRowGrower.svelte';
   import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
   import RightLocationSplit from './RightLocationSplit.svelte';
+  import type { Point } from '../../../shared/point';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import type { PredictionTierStat } from '../../../frontend-core/clusters/cluster_data';
 
-  export let dataset: LocationGraphData[];
+  const MIN_ROWS = 10;
+  const ROW_INCREMENT = 40;
+
+  export let heading: string;
   export let tierStats: PredictionTierStat[] | null = null;
   export let getValue: (locationData: LocationGraphData) => number | null;
   export let getPoints: (locationData: LocationGraphData) => Point[];
   export let greatestValue: number;
+  export let maxItems: number;
+  export let getItems: RowItemGetter;
 
-  function _toLeftSplitSpec(index: number): BarSplitSpec {
+  function _isTierStatIndex(index: number, increasing: boolean): boolean {
+    return increasing
+      ? index >= maxItems - tierStats!.length
+      : index < tierStats!.length;
+  }
+
+  function _toLeftSplitSpec(index: number, increasing: boolean): BarSplitSpec {
     return {
-      percent: index < tierStats!.length ? _toStatPercent(index) : 0,
+      percent: _isTierStatIndex(index, increasing)
+        ? _toStatPercent(index, increasing)
+        : 0,
       barColor: '#faf2c7',
       backgroundColor: '#ddd'
     };
@@ -32,7 +46,8 @@
     };
   }
 
-  function _toStatPercent(index: number): number {
+  function _toStatPercent(index: number, increasing: boolean): number {
+    if (increasing) index = maxItems - index - 1;
     return 100 * tierStats![index].fractionCorrect;
   }
 
@@ -41,49 +56,56 @@
   }
 </script>
 
-<div class="location_bar_graph">
-  {#each dataset as locationData, i}
-    {#if tierStats === null}
-      <SplitHorizontalBar
-        classes="bar_spacer"
-        rightSplitSpec={_toRightSplitSpec(locationData)}
-      >
-        <div slot="right">
-          <RightLocationSplit
-            {locationData}
-            valueStr={_toRightValue(locationData).toString()}
-            isDelta={false}
-          />
-        </div>
-      </SplitHorizontalBar>
-    {:else}
-      <SplitHorizontalBar
-        classes="bar_spacer"
-        leftSplitSpec={_toLeftSplitSpec(i)}
-        rightSplitSpec={_toRightSplitSpec(locationData)}
-      >
-        <div slot="left">
-          {#if i < tierStats.length}
-            {_toPercentStr(_toStatPercent(i))} <span class="percent">%</span>
-            <div class="above_arrow">&#x2906;</div>
-          {:else}
-            <div class="no_stats">no stats</div>
-          {/if}
-        </div>
-        <div slot="right">
-          <RightLocationSplit
-            {locationData}
-            valueStr={_toRightValue(locationData).toFixed(1)}
-            isDelta={true}
-          />
-        </div>
-      </SplitHorizontalBar>
-    {/if}
-  {/each}
-</div>
+<SortedRowGrower
+  {heading}
+  itemsClasses="location_bar_graph"
+  minRows={MIN_ROWS}
+  rowIncrement={ROW_INCREMENT}
+  initiallyIncreasing={false}
+  {getItems}
+  let:item
+  let:index
+  let:increasing
+>
+  {#if tierStats === null}
+    <SplitHorizontalBar classes="bar_spacer" rightSplitSpec={_toRightSplitSpec(item)}>
+      <div slot="right">
+        <RightLocationSplit
+          locationData={item}
+          valueStr={_toRightValue(item).toString()}
+          isDelta={false}
+        />
+      </div>
+    </SplitHorizontalBar>
+  {:else}
+    <SplitHorizontalBar
+      classes="bar_spacer"
+      leftSplitSpec={_toLeftSplitSpec(index, increasing)}
+      rightSplitSpec={_toRightSplitSpec(item)}
+    >
+      <div slot="left">
+        {#if _isTierStatIndex(index, increasing)}
+          {_toPercentStr(_toStatPercent(index, increasing))}
+          <span class="percent">%</span>
+          <div class="above_arrow">&#x2906;</div>
+        {:else}
+          <div class="no_stats">no stats</div>
+        {/if}
+      </div>
+      <div slot="right">
+        <RightLocationSplit
+          locationData={item}
+          valueStr={_toRightValue(item).toFixed(1)}
+          isDelta={true}
+        />
+      </div>
+    </SplitHorizontalBar>
+  {/if}
+</SortedRowGrower>
 
 <style lang="scss">
-  .location_bar_graph {
+  :globel(.location_bar_graph) {
+    margin-top: 1rem;
     font-size: 0.95rem;
   }
   :global(.bar_spacer) {

@@ -92,12 +92,13 @@
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
+  let getFirstPointSpeciesCount: (locationData: LocationGraphData) => number;
   let getLocationValue: (locationData: LocationGraphData) => number | null;
   let getLocationPoints: (locationData: LocationGraphData) => Point[];
   let singlePointLocationDataSet: LocationGraphData[];
   let multiPointLocationDataSet: LocationGraphData[];
-  let greatestSinglePointLocationValue: number;
-  let greatestMultiPointLocationValue: number;
+  let greatestSingleVisitLocationValue: number;
+  let greatestMultiVisitLocationValue: number;
   let predictionTierStats: PredictionTierStat[];
 
   $: if ($clusterStore && $clusterStore.version != CLUSTER_STORE_VERSION) {
@@ -131,29 +132,29 @@
     }
 
     const dataset = clusterData.locationGraphDataSet;
+    // Have to sort here to pull out single-visit locations and get greatest value.
     sortLocationGraphDataSet(dataset, getLocationValue);
 
     const firstNonNullIndex = dataset.findIndex(
       (graphData) => getLocationValue(graphData) !== null
     );
     if (firstNonNullIndex > 0) {
-      const getValue = (locationData: LocationGraphData) =>
+      getFirstPointSpeciesCount = (locationData) =>
         getLocationPoints(locationData)[0].y;
       singlePointLocationDataSet = dataset.slice(0, firstNonNullIndex);
       multiPointLocationDataSet = dataset.slice(firstNonNullIndex);
-      sortLocationGraphDataSet(singlePointLocationDataSet, getValue);
-      greatestSinglePointLocationValue = getValue(singlePointLocationDataSet[0]);
+      // Have to sort here to get greatest value.
+      sortLocationGraphDataSet(singlePointLocationDataSet, getFirstPointSpeciesCount);
+      greatestSingleVisitLocationValue = getFirstPointSpeciesCount(
+        singlePointLocationDataSet[0]
+      );
     } else {
       singlePointLocationDataSet = [];
       multiPointLocationDataSet = dataset;
     }
     if (multiPointLocationDataSet.length > 0) {
-      greatestMultiPointLocationValue = getLocationValue(multiPointLocationDataSet[0])!;
+      greatestMultiVisitLocationValue = getLocationValue(multiPointLocationDataSet[0])!;
     }
-
-    // TBD: temporarily limit data shown
-    singlePointLocationDataSet = singlePointLocationDataSet.slice(0, 50);
-    multiPointLocationDataSet = multiPointLocationDataSet.slice(0, 50);
 
     loadState = LoadState.ready;
   }
@@ -202,6 +203,30 @@
       },
       pointExtractor
     };
+  }
+
+  async function _getSingleVisitLocationSubset(
+    count: number,
+    increasing: boolean
+  ): Promise<[any[], boolean]> {
+    sortLocationGraphDataSet(singlePointLocationDataSet, getFirstPointSpeciesCount);
+    if (increasing) singlePointLocationDataSet.reverse();
+    return [
+      singlePointLocationDataSet.slice(0, count),
+      count < singlePointLocationDataSet.length
+    ];
+  }
+
+  async function _getMultiVisitLocationSubset(
+    count: number,
+    increasing: boolean
+  ): Promise<[any[], boolean]> {
+    sortLocationGraphDataSet(multiPointLocationDataSet, getLocationValue);
+    if (increasing) multiPointLocationDataSet.reverse();
+    return [
+      multiPointLocationDataSet.slice(0, count),
+      count < multiPointLocationDataSet.length
+    ];
   }
 
   async function _loadData(config: ClusteringConfig) {
@@ -460,22 +485,24 @@
       {/if}
 
       {#if singlePointLocationDataSet.length > 0}
-        <h2>Single point locations</h2>
         <LocationBarGraph
-          dataset={singlePointLocationDataSet}
-          greatestValue={greatestSinglePointLocationValue}
+          heading="Caves only visited once"
+          getItems={_getSingleVisitLocationSubset}
+          greatestValue={greatestSingleVisitLocationValue}
           getValue={getLocationValue}
           getPoints={getLocationPoints}
+          maxItems={singlePointLocationDataSet.length}
         />
       {/if}
       {#if multiPointLocationDataSet.length > 0}
-        <h2>Multi point locations</h2>
         <LocationBarGraph
+          heading="Caves visited multiple times"
           tierStats={predictionTierStats}
-          dataset={multiPointLocationDataSet}
-          greatestValue={greatestMultiPointLocationValue}
+          getItems={_getMultiVisitLocationSubset}
+          greatestValue={greatestMultiVisitLocationValue}
           getValue={getLocationValue}
           getPoints={getLocationPoints}
+          maxItems={multiPointLocationDataSet.length}
         />
       {/if}
     {/if}
