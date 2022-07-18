@@ -13,9 +13,14 @@
   export let tierStats: PredictionTierStat[] | null = null;
   export let getValue: (locationData: LocationGraphData) => number | null;
   export let getPoints: (locationData: LocationGraphData) => Point[];
+  export let visitUnitName: string; // singular
   export let greatestValue: number;
   export let items: any[];
   export let getItems: RowItemGetter;
+
+  $: headingSuffix = ` <span class="cave_count">(${items.length} cave${
+    items.length > 1 ? 's' : ''
+  })</span>`;
 
   function _isTierStatIndex(index: number, increasing: boolean): boolean {
     return increasing
@@ -57,7 +62,7 @@
 </script>
 
 <SortedRowGrower
-  {heading}
+  heading={heading + headingSuffix}
   itemsClasses="location_bar_graph"
   minRows={MIN_ROWS}
   rowIncrement={ROW_INCREMENT}
@@ -75,6 +80,8 @@
           locationData={item}
           valueStr={_toRightValue(item).toString()}
           isDelta={false}
+          {visitUnitName}
+          {getPoints}
         />
       </div>
     </SplitHorizontalBar>
@@ -98,6 +105,8 @@
           locationData={item}
           valueStr={_toRightValue(item).toFixed(1)}
           isDelta={true}
+          {visitUnitName}
+          {getPoints}
         />
       </div>
     </SplitHorizontalBar>
@@ -108,6 +117,10 @@
   :globel(.location_bar_graph) {
     margin-top: 1rem;
     font-size: 0.95rem;
+  }
+  :global(.cave_count) {
+    font-size: 0.95em;
+    color: #888;
   }
   :global(.bar_spacer) {
     margin-bottom: 2px;

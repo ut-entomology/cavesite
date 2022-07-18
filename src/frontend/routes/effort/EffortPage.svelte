@@ -95,6 +95,8 @@
   let getFirstPointSpeciesCount: (locationData: LocationGraphData) => number;
   let getLocationValue: (locationData: LocationGraphData) => number | null;
   let getLocationPoints: (locationData: LocationGraphData) => Point[];
+  let visitUnitName: string;
+
   let singlePointLocationDataSet: LocationGraphData[];
   let multiPointLocationDataSet: LocationGraphData[];
   let greatestSingleVisitLocationValue: number;
@@ -121,11 +123,13 @@
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
     const clusterData = $clusterStore.dataByCluster[clusterIndex];
 
-    if (datasetID == DatasetID.personVisits) {
+    if (datasetID == DatasetID.visits) {
+      visitUnitName = 'visit';
       getLocationValue = (locationData) => locationData.predictedPerVisitDiff;
       getLocationPoints = (locationData) => locationData.perVisitPoints;
       predictionTierStats = clusterData.avgPerVisitTierStats;
     } else {
+      visitUnitName = 'person-visit';
       getLocationValue = (locationData) => locationData.predictedPerPersonVisitDiff;
       getLocationPoints = (locationData) => locationData.perPersonVisitPoints;
       predictionTierStats = clusterData.avgPerPersonVisitTierStats;
@@ -493,6 +497,7 @@
           getValue={getLocationValue}
           getPoints={getLocationPoints}
           items={singlePointLocationDataSet}
+          {visitUnitName}
         />
       {/if}
       {#if multiPointLocationDataSet.length > 0}
@@ -505,6 +510,7 @@
           getValue={getLocationValue}
           getPoints={getLocationPoints}
           items={multiPointLocationDataSet}
+          {visitUnitName}
         />
       {/if}
     {/if}

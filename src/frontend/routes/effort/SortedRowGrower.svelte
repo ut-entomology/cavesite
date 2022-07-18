@@ -20,6 +20,9 @@
   let canGrow: boolean;
   let canShrink: boolean;
 
+  // fit updates to expected row count
+  $: items = items.slice(0, rowCount);
+
   async function _updateItems() {
     [items, canGrow] = await getItems(rowCount, increasing);
     canShrink = items.length > minRows;
@@ -38,7 +41,7 @@
 
 {#await _updateItems() then}
   <div class="row gx-2 mb-2">
-    <div class="col heading">{heading}</div>
+    <div class="col heading">{@html heading}</div>
     <div class="col-auto sort_label">
       <label for="sortOrder" class="col-form-label">Sort:</label>
     </div>
