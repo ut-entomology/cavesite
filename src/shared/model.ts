@@ -211,6 +211,7 @@ export interface RawLocationEffort {
   perDayPoints: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
+  visitsByTaxonUnique: Record<string, number>;
 }
 
 export function pointSorter(a: number[], b: number[]) {

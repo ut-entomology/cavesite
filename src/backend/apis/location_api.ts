@@ -94,6 +94,15 @@ export function toLocationSpec(location: Location): LocationSpec {
 }
 
 function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
+  const visitsByTaxonUnique: Record<string, number> = {};
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'phylumNames', 'phylumVisits');
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'classNames', 'classVisits');
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'orderNames', 'orderVisits');
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'familyNames', 'familyVisits');
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'genusNames', 'genusVisits');
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'speciesNames', 'speciesVisits');
+  _addTaxonGroup(visitsByTaxonUnique, effort, 'subspeciesNames', 'subspeciesVisits');
+
   return {
     locationID: effort.locationID,
     countyName: effort.countyName,
@@ -102,6 +111,26 @@ function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
     endDate: effort.endDate,
     perDayPoints: effort.perDayPoints,
     perVisitPoints: effort.perVisitPoints,
-    perPersonVisitPoints: effort.perPersonVisitPoints
+    perPersonVisitPoints: effort.perPersonVisitPoints,
+    visitsByTaxonUnique
   };
+}
+
+function _addTaxonGroup(
+  visitsByTaxonUnique: Record<string, number>,
+  effort: LocationEffort,
+  namesFieldName: string,
+  visitsFieldName: string
+): void {
+  // @ts-ignore quick and dirty for now
+  const namesStr = effort[namesFieldName];
+  // @ts-ignore quick and dirty for now
+  const visitsStr = effort[visitsFieldName];
+  if (namesStr !== null) {
+    const names = namesStr.split('|');
+    const visits = visitsStr!.split(',');
+    for (let i = 0; i < names.length; ++i) {
+      visitsByTaxonUnique[names[i]] = parseInt(visits[i]);
+    }
+  }
 }

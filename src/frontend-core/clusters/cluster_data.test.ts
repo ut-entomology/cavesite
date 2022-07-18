@@ -438,7 +438,8 @@ function _makeGraphData(
     perVisitPoints: pairsToPoints(pairs),
     perPersonVisitPoints: pairsToPoints(pairs),
     predictedPerVisitDiff,
-    predictedPerPersonVisitDiff: predictedPerVisitDiff
+    predictedPerPersonVisitDiff: predictedPerVisitDiff,
+    visitsByTaxonUnique: {}
   };
 }
 

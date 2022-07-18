@@ -505,9 +505,12 @@
 {/if}
 
 {#if locationGraphData !== null && $clusterStore}
+  {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
   <LocationEffortDialog
     config={$clusterStore.config}
+    clusterVisitsByTaxonUnique={clusterData.visitsByTaxonUnique}
     {locationGraphData}
+    locationGraphDataSet={clusterData.locationGraphDataSet}
     close={closeLocation}
   />
 {/if}

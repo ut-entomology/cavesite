@@ -14,6 +14,7 @@ export interface LocationGraphData {
   perPersonVisitPoints: Point[];
   predictedPerVisitDiff: number | null;
   predictedPerPersonVisitDiff: number | null;
+  visitsByTaxonUnique: Record<string, number>;
 }
 
 export function toLocationGraphDataSetByCluster(
@@ -52,6 +53,7 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     perVisitPoints,
     perPersonVisitPoints,
     predictedPerVisitDiff: null,
-    predictedPerPersonVisitDiff: null
+    predictedPerPersonVisitDiff: null,
+    visitsByTaxonUnique: rawLocationEffort.visitsByTaxonUnique
   };
 }

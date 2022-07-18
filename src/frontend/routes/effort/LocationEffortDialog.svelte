@@ -1,31 +1,42 @@
 <script lang="ts">
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import EffortGraph from './EffortGraph.svelte';
+  import TaxonBarGraph from './TaxonBarGraph.svelte';
   import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import { DatasetType, getGraphSpec } from './dataset_type';
   import type { ClusteringConfig } from '../../../frontend-core/clusters/cluster_data';
 
   export let config: ClusteringConfig;
+  export let clusterVisitsByTaxonUnique: Record<string, number>;
   export let locationGraphData: LocationGraphData;
+  export let locationGraphDataSet: LocationGraphData[];
   export let close: () => void;
 
   let datasetType = DatasetType.personVisits;
   let graphSpec: EffortGraphSpec;
+  let missingTaxaVisitsByTaxonUnique: Record<string, number> = Object.assign(
+    {},
+    clusterVisitsByTaxonUnique
+  );
+  for (const taxonUnique of Object.keys(locationGraphData.visitsByTaxonUnique)) {
+    delete missingTaxaVisitsByTaxonUnique[taxonUnique];
+  }
 
-  $: titleSuffix = locationGraphData.countyName
+  const titleSuffix = locationGraphData.countyName
     ? ',<br/>' + locationGraphData.countyName
     : '';
+
   $: graphSpec = getGraphSpec(config, datasetType, false);
 </script>
 
 <InfoDialog
   title={locationGraphData.localityName + titleSuffix}
   classes="location_effort_dialog"
-  maxWidth="56rem"
+  maxWidth="64rem"
   onClose={close}
 >
-  <div class="container-fluid">
+  <div class="container-fluid location_effort_dialog">
     <div class="row justify-content-center">
       <div class="col-auto">
         <div class="btn-group" role="group" aria-label="Switch datasets">
@@ -52,7 +63,8 @@
         </div>
       </div>
     </div>
-    <div class="row mt-3">
+
+    <div class="row mt-3 mb-4">
       <div class="col" style="height: 350px">
         <EffortGraph
           title={graphSpec.graphTitle}
@@ -63,11 +75,25 @@
         />
       </div>
     </div>
+
+    <hr />
+    <TaxonBarGraph
+      heading="Taxa found in this cave, by visits"
+      visitsByTaxonUnique={locationGraphData.visitsByTaxonUnique}
+      locationGraphDataSet={[locationGraphData]}
+    />
+
+    <hr />
+    <TaxonBarGraph
+      heading="Taxa found in this cluster but NOT in this cave, by visits"
+      visitsByTaxonUnique={missingTaxaVisitsByTaxonUnique}
+      {locationGraphDataSet}
+    />
   </div>
 </InfoDialog>
 
 <style lang="scss">
-  // :global(.location_effort_dialog) {
-  //   TBD
-  // }
+  :global(.location_effort_dialog) {
+    margin-bottom: -0.5rem;
+  }
 </style>
