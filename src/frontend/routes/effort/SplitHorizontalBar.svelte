@@ -34,21 +34,20 @@
   {/if}
   {#if rightSplitSpec !== null}
     {@const rightPercent = rightSplitSpec.percent}
-    <div
-      class="col right_split"
-      style="background-color: {rightSplitSpec.backgroundColor}"
-    >
-      <div class="full_bar">
-        <slot name="right" />
-      </div>
-      {#if rightPercent > 0}
-        <div
-          class="value_bar"
-          style="width: {rightPercent}%; background-color: {rightSplitSpec.barColor}"
-        >
-          &nbsp;
+    <div class="col right_split">
+      <div style="background-color: {rightSplitSpec.backgroundColor}">
+        <div class="full_bar">
+          <slot name="right" />
         </div>
-      {/if}
+        {#if rightPercent > 0}
+          <div
+            class="value_bar"
+            style="width: {rightPercent}%; background-color: {rightSplitSpec.barColor}"
+          >
+            &nbsp;
+          </div>
+        {/if}
+      </div>
     </div>
   {/if}
 </div>
