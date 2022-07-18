@@ -15,7 +15,7 @@ const labelByLifeStage = [
   'Adults',
   'All life stages'
 ];
-const hexColors = ['ee00e9', '00a0ee', '7d46eb', 'b0b0b0'];
+const hexColors = ['ee00e9', '00a0ee', '7d46eb', '666666'];
 // prettier-ignore
 const monthLabels = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
