@@ -492,7 +492,7 @@
           greatestValue={greatestSingleVisitLocationValue}
           getValue={getLocationValue}
           getPoints={getLocationPoints}
-          maxItems={singlePointLocationDataSet.length}
+          items={singlePointLocationDataSet}
         />
       {/if}
       {#if multiPointLocationDataSet.length > 0}
@@ -504,7 +504,7 @@
           greatestValue={greatestMultiVisitLocationValue}
           getValue={getLocationValue}
           getPoints={getLocationPoints}
-          maxItems={multiPointLocationDataSet.length}
+          items={multiPointLocationDataSet}
         />
       {/if}
     {/if}

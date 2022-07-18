@@ -11,12 +11,12 @@
   export let itemsClasses = '';
   export let minRows: number;
   export let rowIncrement: number;
-  export let initiallyIncreasing: boolean;
+  export let increasing: boolean;
   export let getItems: RowItemGetter;
+  // items is a dependency so updates when available items changes
+  export let items: any[];
 
-  let items: any[];
   let rowCount = minRows;
-  let increasing = initiallyIncreasing;
   let canGrow: boolean;
   let canShrink: boolean;
 

@@ -14,12 +14,12 @@
   export let getValue: (locationData: LocationGraphData) => number | null;
   export let getPoints: (locationData: LocationGraphData) => Point[];
   export let greatestValue: number;
-  export let maxItems: number;
+  export let items: any[];
   export let getItems: RowItemGetter;
 
   function _isTierStatIndex(index: number, increasing: boolean): boolean {
     return increasing
-      ? index >= maxItems - tierStats!.length
+      ? index >= items.length - tierStats!.length
       : index < tierStats!.length;
   }
 
@@ -47,7 +47,7 @@
   }
 
   function _toStatPercent(index: number, increasing: boolean): number {
-    if (increasing) index = maxItems - index - 1;
+    if (increasing) index = items.length - index - 1;
     return 100 * tierStats![index].fractionCorrect;
   }
 
@@ -61,8 +61,9 @@
   itemsClasses="location_bar_graph"
   minRows={MIN_ROWS}
   rowIncrement={ROW_INCREMENT}
-  initiallyIncreasing={false}
+  increasing={false}
   {getItems}
+  {items}
   let:item
   let:index
   let:increasing
