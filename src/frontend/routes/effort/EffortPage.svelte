@@ -92,7 +92,7 @@
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
-  let getFirstPointSpeciesCount: (locationData: LocationGraphData) => number;
+  let getLastDeltaSpecies: (locationData: LocationGraphData) => number;
   let getLocationValue: (locationData: LocationGraphData) => number | null;
   let getLocationPoints: (locationData: LocationGraphData) => Point[];
   let visitUnitName: string;
@@ -143,13 +143,16 @@
       (graphData) => getLocationValue(graphData) !== null
     );
     if (firstNonNullIndex > 0) {
-      getFirstPointSpeciesCount = (locationData) =>
-        getLocationPoints(locationData)[0].y;
+      getLastDeltaSpecies = (locationData) => {
+        const points = getLocationPoints(locationData);
+        if (points.length == 1) return points[0].y;
+        return points[points.length - 1].y - points[points.length - 2].y;
+      };
       singlePointLocationDataSet = dataset.slice(0, firstNonNullIndex);
       multiPointLocationDataSet = dataset.slice(firstNonNullIndex);
       // Have to sort here to get greatest value.
-      sortLocationGraphDataSet(singlePointLocationDataSet, getFirstPointSpeciesCount);
-      greatestSingleVisitLocationValue = getFirstPointSpeciesCount(
+      sortLocationGraphDataSet(singlePointLocationDataSet, getLastDeltaSpecies);
+      greatestSingleVisitLocationValue = getLastDeltaSpecies(
         singlePointLocationDataSet[0]
       );
     } else {
@@ -213,7 +216,7 @@
     count: number,
     increasing: boolean
   ): Promise<[any[], boolean]> {
-    sortLocationGraphDataSet(singlePointLocationDataSet, getFirstPointSpeciesCount);
+    sortLocationGraphDataSet(singlePointLocationDataSet, getLastDeltaSpecies);
     if (increasing) singlePointLocationDataSet.reverse();
     return [
       singlePointLocationDataSet.slice(0, count),
@@ -488,28 +491,28 @@
         />
       {/if}
 
-      {#if singlePointLocationDataSet.length > 0}
-        <hr />
-        <LocationBarGraph
-          heading="Caves only visited once"
-          getItems={_getSingleVisitLocationSubset}
-          greatestValue={greatestSingleVisitLocationValue}
-          getValue={getLocationValue}
-          getPoints={getLocationPoints}
-          items={singlePointLocationDataSet}
-          {visitUnitName}
-        />
-      {/if}
       {#if multiPointLocationDataSet.length > 0}
         <hr />
         <LocationBarGraph
-          heading="Caves visited multiple times"
+          heading="Predicted additional species on next {visitUnitName}"
           tierStats={predictionTierStats}
           getItems={_getMultiVisitLocationSubset}
           greatestValue={greatestMultiVisitLocationValue}
           getValue={getLocationValue}
           getPoints={getLocationPoints}
           items={multiPointLocationDataSet}
+          {visitUnitName}
+        />
+      {/if}
+      {#if singlePointLocationDataSet.length > 0}
+        <hr />
+        <LocationBarGraph
+          heading="Additional species found on last {visitUnitName} (no prediction)"
+          getItems={_getSingleVisitLocationSubset}
+          greatestValue={greatestSingleVisitLocationValue}
+          getValue={getLocationValue}
+          getPoints={getLocationPoints}
+          items={singlePointLocationDataSet}
           {visitUnitName}
         />
       {/if}

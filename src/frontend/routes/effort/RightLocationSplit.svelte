@@ -4,7 +4,7 @@
 
   export let locationData: LocationGraphData;
   export let valueStr: string;
-  export let isDelta: boolean;
+  export let isPrediction: boolean;
   export let visitUnitName: string; // singular
   export let getPoints: (locationData: LocationGraphData) => Point[];
 
@@ -19,18 +19,21 @@
 
 <div class="row gx-2">
   <div class="col-2 text-end">
-    {valueStr}
-    <span class="units">{@html isDelta ? '&#x394;' : ''} spp.</span>
+    {#if isPrediction}
+      <span class="deemph">+</span>{valueStr}
+    {:else}
+      {valueStr} <span class="deemph">&Delta;</span>
+    {/if}
+    <span class="deemph">spp.</span>
   </div>
   <div class="col">
     {locationName}
-    <span class="visits">({unitValue} {visitUnitName}{unitValue > 1 ? 's' : ''})</span>
+    <span class="deemph">({unitValue} {visitUnitName}{unitValue > 1 ? 's' : ''})</span>
   </div>
 </div>
 
 <style>
-  .units,
-  .visits {
+  :global(.deemph) {
     color: #6a547f;
     font-size: 0.95em;
   }

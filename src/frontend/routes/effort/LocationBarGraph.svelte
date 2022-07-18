@@ -79,7 +79,7 @@
         <RightLocationSplit
           locationData={item}
           valueStr={_toRightValue(item).toString()}
-          isDelta={false}
+          isPrediction={false}
           {visitUnitName}
           {getPoints}
         />
@@ -104,7 +104,7 @@
         <RightLocationSplit
           locationData={item}
           valueStr={_toRightValue(item).toFixed(1)}
-          isDelta={true}
+          isPrediction={true}
           {visitUnitName}
           {getPoints}
         />
