@@ -76,7 +76,7 @@
     let:increasing
   >
     {#if tierStats === null}
-      <SplitHorizontalBar classes="bar_spacer" rightSplitSpec={_toRightSplitSpec(item)}>
+      <SplitHorizontalBar classes="outer_bar" rightSplitSpec={_toRightSplitSpec(item)}>
         <div slot="right">
           <RightLocationSplit
             locationData={item}

@@ -1,6 +1,7 @@
 <script lang="ts">
-  import ModalDialog from '../../common/ModalDialog.svelte';
+  import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import EffortGraph from './EffortGraph.svelte';
+  import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import { DatasetType, getGraphSpec } from './dataset_type';
   import type { ClusteringConfig } from '../../../frontend-core/clusters/cluster_data';
@@ -10,6 +11,7 @@
   export let close: () => void;
 
   let datasetType = DatasetType.personVisits;
+  let graphSpec: EffortGraphSpec;
 
   $: titleSuffix = locationGraphData.countyName
     ? ',<br/>' + locationGraphData.countyName
@@ -17,57 +19,55 @@
   $: graphSpec = getGraphSpec(config, datasetType, false);
 </script>
 
-<ModalDialog
+<InfoDialog
   title={locationGraphData.localityName + titleSuffix}
-  contentClasses="location-effort-content"
+  classes="location_effort_dialog"
+  maxWidth="56rem"
+  onClose={close}
 >
   <div class="container-fluid">
-    <div class="row">
+    <div class="row justify-content-center">
       <div class="col-auto">
         <div class="btn-group" role="group" aria-label="Switch datasets">
           <input
             type="radio"
             class="btn-check"
             bind:group={datasetType}
-            name="dataset"
-            id={DatasetType.visits}
+            name="location_dataset"
+            id="location_visits"
             value={DatasetType.visits}
           />
-          <label class="btn btn-outline-primary" for={DatasetType.visits}>Visits</label>
+          <label class="btn btn-outline-primary" for="location_visits">Visits</label>
           <input
             type="radio"
             class="btn-check"
             bind:group={datasetType}
-            name="dataset"
-            id={DatasetType.personVisits}
+            name="location_dataset"
+            id="location_person_visits"
             value={DatasetType.personVisits}
           />
-          <label class="btn btn-outline-primary" for={DatasetType.personVisits}
+          <label class="btn btn-outline-primary" for="location_person_visits"
             >Person-Visits</label
           >
         </div>
       </div>
     </div>
-    <div class="row mt-3 mb-1">
+    <div class="row mt-3">
       <div class="col" style="height: 350px">
         <EffortGraph
           title={graphSpec.graphTitle}
           graphDataSet={[locationGraphData]}
           {graphSpec}
+          dataPointColor="black"
+          dataPointWidth={2}
         />
       </div>
     </div>
   </div>
-
-  <div class="row g-2 dialog_controls">
-    <div class="col-12 text-center">
-      <button class="btn btn-minor" type="button" on:click={close}>Cancel</button>
-    </div>
-  </div>
-</ModalDialog>
+</InfoDialog>
 
 <style lang="scss">
-  .dialog_controls button {
-    width: 6rem;
-  }
+  // :global(.location_effort_dialog) {
+  //   TBD
+  // }
 </style>

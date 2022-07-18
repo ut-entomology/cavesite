@@ -17,6 +17,8 @@
   export let title = graphSpec.graphTitle;
   export let model: PowerFitModel | null = null;
   export let totalCaves = graphDataSet.length;
+  export let dataPointColor: string | null = null;
+  export let dataPointWidth: number | null = null;
 
   let pointCount: number;
   let pointSets: Point[][];
@@ -49,22 +51,30 @@
   function _legendFilter(item: any) {
     return item.datasetIndex == 0 || item.datasetIndex >= pointSets.length;
   }
+
+  function _toDataset(points: Point[]) {
+    const config: any = {
+      showLine: true,
+      label: pointCount + ' points',
+      data: points,
+      borderWidth: 1,
+      hoverBorderWidth: 3,
+      hoverBorderColor: '#000000'
+    };
+    if (dataPointColor !== null) {
+      config.borderColor = dataPointColor;
+    }
+    if (dataPointWidth !== null) {
+      config.borderWidth = dataPointWidth;
+    }
+    return config;
+  }
 </script>
 
 <Scatter
   data={{
     datasets: [
-      ...pointSets.map((points) => {
-        return {
-          showLine: true,
-          label: pointCount + ' points',
-          data: points,
-          // borderColor: _toLocationHexColor(i),
-          borderWidth: 1,
-          hoverBorderWidth: 3,
-          hoverBorderColor: '#000000'
-        };
-      }),
+      ...pointSets.map(_toDataset),
       ...models.map((model) => {
         return {
           showLine: true,
