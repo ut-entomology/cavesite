@@ -64,7 +64,7 @@
       >
         <div slot="left">
           {#if i < tierStats.length}
-            {_toPercentStr(_toStatPercent(i))} %
+            {_toPercentStr(_toStatPercent(i))} <span class="percent">%</span>
             <div class="above_arrow">&#x2906;</div>
           {:else}
             <div class="no_stats">no stats</div>
@@ -88,6 +88,9 @@
   }
   :global(.bar_spacer) {
     margin-bottom: 2px;
+  }
+  .percent {
+    font-size: 0.9em;
   }
   .above_arrow {
     display: inline-block;

@@ -22,5 +22,6 @@
 <style>
   .units {
     color: #6a547f;
+    font-size: 0.95em;
   }
 </style>
