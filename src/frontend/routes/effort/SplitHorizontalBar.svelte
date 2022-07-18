@@ -14,30 +14,41 @@
 <div class="row gx-2">
   {#if leftSplitSpec !== null}
     {@const leftPercent = leftSplitSpec.percent}
-    <div class="col-3 left_split text-center">
-      <div class="full_bar" style="backgroundColor: {leftSplitSpec.barColor}">
-        {#if leftPercent > 0}
-          <div
-            class="value_bar"
-            style="width: {leftPercent}%; backgroundColor: {leftSplitSpec.backgroundColor}"
-          />
-        {/if}
+    <div
+      class="col-3 left_split text-center"
+      style="background-color: {leftSplitSpec.barColor}"
+    >
+      <div class="full_bar">
+        <slot name="left" />
       </div>
-      <slot name="left" />
+      {#if leftPercent > 0}
+        <div
+          class="value_bar"
+          style="width: {100 -
+            leftPercent}%; background-color: {leftSplitSpec.backgroundColor}"
+        >
+          &nbsp;
+        </div>
+      {/if}
     </div>
   {/if}
   {#if rightSplitSpec !== null}
     {@const rightPercent = rightSplitSpec.percent}
-    <div class="col right_split">
-      <div class="full_bar" style="backgroundColor: {rightSplitSpec.barColor}">
-        {#if rightPercent > 0}
-          <div
-            class="value_bar"
-            style="width: {rightPercent}%; backgroundColor: {rightSplitSpec.backgroundColor}"
-          />
-        {/if}
+    <div
+      class="col right_split"
+      style="background-color: {rightSplitSpec.backgroundColor}"
+    >
+      <div class="full_bar">
+        <slot name="right" />
       </div>
-      <slot name="right" />
+      {#if rightPercent > 0}
+        <div
+          class="value_bar"
+          style="width: {rightPercent}%; background-color: {rightSplitSpec.barColor}"
+        >
+          &nbsp;
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

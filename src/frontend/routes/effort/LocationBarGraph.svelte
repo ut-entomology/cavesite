@@ -15,7 +15,7 @@
     return {
       percent: index < tierStats!.length ? _toStatPercent(index) : 0,
       barColor: '#ffffd1',
-      backgroundColor: '#999'
+      backgroundColor: '#ddd'
     };
   }
 
@@ -28,7 +28,7 @@
     return {
       percent: (100 * _toRightValue(locationData)) / greatestValue,
       barColor: '#d5aaff',
-      backgroundColor: '#999'
+      backgroundColor: '#ddd'
     };
   }
 

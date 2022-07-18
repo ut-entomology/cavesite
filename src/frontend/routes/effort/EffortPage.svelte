@@ -153,10 +153,7 @@
 
     // TBD: temporarily limit data shown
     singlePointLocationDataSet = singlePointLocationDataSet.slice(0, 10);
-    console.log('**** single length', singlePointLocationDataSet.length);
     multiPointLocationDataSet = multiPointLocationDataSet.slice(0, 30);
-    console.log('**** multi length', multiPointLocationDataSet.length);
-    console.log('**** multi', multiPointLocationDataSet);
 
     loadState = LoadState.ready;
   }
