@@ -319,6 +319,10 @@
       </span>
     </TabHeader>
 
+    <div style="font-size: 1rem; font-weight: bold; text-align: center">
+      &mdash; This page is still under development. Expect bugs. &mdash;
+    </div>
+
     {#if $clusterStore}
       <div class="cluster_summary_info">
         <div class="row mt-3">
