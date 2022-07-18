@@ -248,7 +248,7 @@ export abstract class TaxaClusterer extends Clusterer {
     return seedLocationIDs;
   }
 
-  async getClusteredLocationIDs(seedLocationIDs: number[]): Promise<TaxaCluster[]> {
+  async getTaxaClusters(seedLocationIDs: number[]): Promise<TaxaCluster[]> {
     // Node.js's V8 engine should end up using sparse arrays of location IDs.
     const clusterByLocationID: Record<number, number> = [];
     let taxonTallyMapsByCluster: TaxonTallyMap[] = [];

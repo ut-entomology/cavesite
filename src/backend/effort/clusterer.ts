@@ -13,7 +13,7 @@ export abstract class Clusterer {
     useCumulativeTaxa: boolean
   ): Promise<number[]>;
 
-  abstract getClusteredLocationIDs(seedLocationIDs: number[]): Promise<TaxaCluster[]>;
+  abstract getTaxaClusters(seedLocationIDs: number[]): Promise<TaxaCluster[]>;
 
   constructor(db: DB, clusterSpec: ClusterSpec) {
     this._db = db;

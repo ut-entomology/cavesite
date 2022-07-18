@@ -43,6 +43,6 @@ router.post('/get_clusters', async (req: Request, res) => {
   // TODO: validate params
 
   const clusterer = createClusterer(getDB(), clusterSpec);
-  const clusters = await clusterer.getClusteredLocationIDs(seedIDs);
+  const clusters = await clusterer.getTaxaClusters(seedIDs);
   return res.status(StatusCodes.OK).send({ clusters });
 });

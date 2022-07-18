@@ -36,6 +36,7 @@
   import EffortGraph from './EffortGraph.svelte';
   import RegressedEffortGraph from './RegressedEffortGraph.svelte';
   import LocationBarGraph from './LocationBarGraph.svelte';
+  import TaxonBarGraph from './TaxonBarGraph.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -516,6 +517,12 @@
           {visitUnitName}
         />
       {/if}
+      <hr />
+      <TaxonBarGraph
+        heading="Taxa in this cluster by occurrences on visits"
+        visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
+        locationGraphDataSet={clusterData.locationGraphDataSet}
+      />
     {/if}
   </div>
 </DataTabRoute>

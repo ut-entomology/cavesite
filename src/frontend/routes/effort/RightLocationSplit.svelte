@@ -17,23 +17,25 @@
   const unitValue = points[points.length - 1].x;
 </script>
 
-<div class="row gx-2">
+<div class="row gx-3">
   <div class="col-2 text-end">
     {#if isPrediction}
-      <span class="deemph">+</span>{valueStr}
+      <span class="loc_deemph">+</span>{valueStr}
     {:else}
-      {valueStr} <span class="deemph">&Delta;</span>
+      {valueStr} <span class="loc_deemph">&Delta;</span>
     {/if}
-    <span class="deemph">spp.</span>
+    <span class="loc_deemph">spp.</span>
   </div>
   <div class="col">
     {locationName}
-    <span class="deemph">({unitValue} {visitUnitName}{unitValue > 1 ? 's' : ''})</span>
+    <span class="loc_deemph"
+      >({unitValue} {visitUnitName}{unitValue > 1 ? 's' : ''})</span
+    >
   </div>
 </div>
 
 <style>
-  :global(.deemph) {
+  :global(.loc_deemph) {
     color: #6a547f;
     font-size: 0.95em;
   }

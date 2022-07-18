@@ -259,7 +259,7 @@ async function _getClusters(
   clusterer: Clusterer,
   seedLocationIDs: number[]
 ): Promise<TaxaCluster[]> {
-  return await clusterer.getClusteredLocationIDs(seedLocationIDs);
+  return await clusterer.getTaxaClusters(seedLocationIDs);
 }
 
 function _toEffortData(data: Partial<LocationEffortData>): LocationEffortData {
