@@ -55,7 +55,7 @@
 
   const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
-  const PREDICTION_TIERS = 20;
+  const PREDICTION_TIERS = 40;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
@@ -152,8 +152,8 @@
     }
 
     // TBD: temporarily limit data shown
-    singlePointLocationDataSet = singlePointLocationDataSet.slice(0, 10);
-    multiPointLocationDataSet = multiPointLocationDataSet.slice(0, 30);
+    singlePointLocationDataSet = singlePointLocationDataSet.slice(0, 50);
+    multiPointLocationDataSet = multiPointLocationDataSet.slice(0, 50);
 
     loadState = LoadState.ready;
   }

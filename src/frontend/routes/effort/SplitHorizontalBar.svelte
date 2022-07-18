@@ -12,7 +12,7 @@
   export let rightSplitSpec: BarSplitSpec | null;
 </script>
 
-<div class="row gx-2 {classes}">
+<div class="row gx-1 {classes}">
   {#if leftSplitSpec !== null}
     {@const leftPercent = leftSplitSpec.percent}
     <div
