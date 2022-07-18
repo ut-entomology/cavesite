@@ -20,10 +20,10 @@
   let canGrow: boolean;
   let canShrink: boolean;
 
-  // fit updates to expected row count
-  $: {
-    canGrow = items.length > rowCount;
+  $: if (items.length != rowCount) {
+    canGrow = rowCount < items.length;
     items = items.slice(0, rowCount);
+    canShrink = items.length > minRows;
   }
 
   async function _updateItems() {
