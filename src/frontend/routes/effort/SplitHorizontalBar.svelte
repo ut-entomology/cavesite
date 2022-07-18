@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  export let leftSplitSpec: BarSplitSpec | null;
+  export let leftSplitSpec: BarSplitSpec | null = null;
   export let rightSplitSpec: BarSplitSpec | null;
 </script>
 
