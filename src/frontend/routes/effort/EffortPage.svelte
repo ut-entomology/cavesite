@@ -13,7 +13,7 @@
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
 
-  const CLUSTER_STORE_VERSION = 2;
+  const CLUSTER_STORE_VERSION = 3;
 
   interface ClusterStore {
     version: number;
@@ -57,7 +57,7 @@
 
   const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
-  const PREDICTION_TIERS = 40;
+  const PREDICTION_TIERS = 50;
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
