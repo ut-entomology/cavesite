@@ -14,7 +14,13 @@
 <div class="row gx-2">
   <div class="col-2 text-end">
     {valueStr}
-    {@html isDelta ? '&#x394;' : ''} spp.
+    <span class="units">{@html isDelta ? '&#x394;' : ''} spp.</span>
   </div>
   <div class="col">{locationName}</div>
 </div>
+
+<style>
+  .units {
+    color: #655179;
+  }
+</style>

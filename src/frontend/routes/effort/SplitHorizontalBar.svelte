@@ -7,16 +7,17 @@
 </script>
 
 <script lang="ts">
+  export let classes = '';
   export let leftSplitSpec: BarSplitSpec | null = null;
   export let rightSplitSpec: BarSplitSpec | null;
 </script>
 
-<div class="row gx-2">
+<div class="row gx-2 {classes}">
   {#if leftSplitSpec !== null}
     {@const leftPercent = leftSplitSpec.percent}
     <div
-      class="col-3 left_split text-center"
-      style="background-color: {leftSplitSpec.barColor}"
+      class="col-3 gx-0 left_split text-center"
+      style="background-color: {leftSplitSpec.backgroundColor}"
     >
       <div class="full_bar">
         <slot name="left" />
@@ -24,8 +25,7 @@
       {#if leftPercent > 0}
         <div
           class="value_bar"
-          style="width: {100 -
-            leftPercent}%; background-color: {leftSplitSpec.backgroundColor}"
+          style="width: {leftPercent}%; background-color: {leftSplitSpec.barColor}"
         >
           &nbsp;
         </div>
@@ -68,5 +68,8 @@
 
   .value_bar {
     height: 100%;
+  }
+  .left_split .value_bar {
+    float: right;
   }
 </style>

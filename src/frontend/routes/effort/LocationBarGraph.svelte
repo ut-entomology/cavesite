@@ -14,7 +14,7 @@
   function _toLeftSplitSpec(index: number): BarSplitSpec {
     return {
       percent: index < tierStats!.length ? _toStatPercent(index) : 0,
-      barColor: '#ffffd1',
+      barColor: '#fff5ba',
       backgroundColor: '#ddd'
     };
   }
@@ -44,7 +44,10 @@
 <div class="location_bar_graph">
   {#each dataset as locationData, i}
     {#if tierStats === null}
-      <SplitHorizontalBar rightSplitSpec={_toRightSplitSpec(locationData)}>
+      <SplitHorizontalBar
+        classes="bar_spacer"
+        rightSplitSpec={_toRightSplitSpec(locationData)}
+      >
         <div slot="right">
           <RightLocationSplit
             {locationData}
@@ -55,6 +58,7 @@
       </SplitHorizontalBar>
     {:else}
       <SplitHorizontalBar
+        classes="bar_spacer"
         leftSplitSpec={_toLeftSplitSpec(i)}
         rightSplitSpec={_toRightSplitSpec(locationData)}
       >
@@ -63,7 +67,7 @@
             {_toPercentStr(_toStatPercent(i))} %
             <div class="arrow">&#x2906;</div>
           {:else}
-            no stats
+            <div class="no_stats">no stats</div>
           {/if}
         </div>
         <div slot="right">
@@ -82,8 +86,15 @@
   .location_bar_graph {
     font-size: 0.95rem;
   }
+  :global(.bar_spacer) {
+    margin-bottom: 2px;
+  }
   .arrow {
     display: inline-block;
     transform: rotate(90deg);
+    color: #655179;
+  }
+  .no_stats {
+    background-color: #ffbebc;
   }
 </style>
