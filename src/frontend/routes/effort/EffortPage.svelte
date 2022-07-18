@@ -359,7 +359,9 @@
           <div class="col">
             metric weight: <span>{clusterSpec.metric.weight}</span>
           </div>
-          <div class="col" />
+          <div class="col">
+            max. recent points: <span>{$clusterStore.config.maxPointsToRegress}</span>
+          </div>
           <div class="col" />
         </div>
       </div>
