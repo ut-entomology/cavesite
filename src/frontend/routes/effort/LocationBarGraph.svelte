@@ -17,6 +17,7 @@
   export let greatestValue: number;
   export let items: any[];
   export let getItems: RowItemGetter;
+  export let openLocation: (locationData: LocationGraphData) => void;
 
   $: headingSuffix = ` <span class="cave_count">(${items.length} cave${
     items.length > 1 ? 's' : ''
@@ -83,6 +84,7 @@
             isPrediction={false}
             {visitUnitName}
             {getPoints}
+            {openLocation}
           />
         </div>
       </SplitHorizontalBar>
@@ -108,6 +110,7 @@
             isPrediction={true}
             {visitUnitName}
             {getPoints}
+            {openLocation}
           />
         </div>
       </SplitHorizontalBar>

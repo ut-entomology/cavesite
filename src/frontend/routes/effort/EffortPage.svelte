@@ -35,6 +35,7 @@
   import ClusterRadarChart from './ClusterRadarChart.svelte';
   import EffortGraph from './EffortGraph.svelte';
   import RegressedEffortGraph from './RegressedEffortGraph.svelte';
+  import LocationEffortDialog from './LocationEffortDialog.svelte';
   import LocationBarGraph from './LocationBarGraph.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
@@ -48,7 +49,7 @@
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import type { Point } from '../../../shared/point';
-  import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
+  import { DatasetType, getGraphSpec } from './dataset_type';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 
@@ -81,15 +82,10 @@
     ready
   }
 
-  enum DatasetID {
-    visits = 'per-visit-set',
-    personVisits = 'per-person-visit-set'
-  }
-
   let clusteringRequest: ClusteringConfig | null = null;
   // @ts-ignore
   let loadState = LoadState.idle;
-  let datasetID = DatasetID.personVisits;
+  let datasetType = DatasetType.personVisits;
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
   let showingAverageModel = false;
@@ -97,6 +93,7 @@
   let getLocationValue: (locationData: LocationGraphData) => number | null;
   let getLocationPoints: (locationData: LocationGraphData) => Point[];
   let visitUnitName: string;
+  let locationGraphData: LocationGraphData | null = null;
 
   let singlePointLocationDataSet: LocationGraphData[];
   let multiPointLocationDataSet: LocationGraphData[];
@@ -124,7 +121,7 @@
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
     const clusterData = $clusterStore.dataByCluster[clusterIndex];
 
-    if (datasetID == DatasetID.visits) {
+    if (datasetType == DatasetType.visits) {
       visitUnitName = 'visit';
       getLocationValue = (locationData) => locationData.predictedPerVisitDiff;
       getLocationPoints = (locationData) => locationData.perVisitPoints;
@@ -167,50 +164,17 @@
     loadState = LoadState.ready;
   }
 
+  function openLocation(locationData: LocationGraphData): void {
+    locationGraphData = locationData;
+  }
+
+  function closeLocation() {
+    locationGraphData = null;
+  }
+
   function _clearData() {
     clusterStore.set(null);
     $clusterStore = null;
-  }
-
-  function _getGraphSpec(datasetID: DatasetID, forModel: boolean): EffortGraphSpec {
-    // datasetID is passed in to get reactivity in the HTML
-
-    let graphTitle: string;
-    let xAxisLabel: string;
-    let maxPointCount = Infinity;
-    let pointExtractor: (graphData: LocationGraphData) => Point[];
-
-    if (datasetID == DatasetID.visits) {
-      if (forModel) {
-        graphTitle = 'Avg. model of cumulative species across visits';
-        xAxisLabel = 'visits in regressed range';
-        maxPointCount = $clusterStore!.config.maxPointsToRegress || Infinity;
-      } else {
-        graphTitle = 'Cumulative species across visits';
-        xAxisLabel = 'visits';
-      }
-      pointExtractor = (graphData) => graphData.perVisitPoints;
-    } else {
-      if (forModel) {
-        graphTitle = 'Avg. model of cumulative species across person-visits';
-        xAxisLabel = 'person-visits in regressed range';
-        maxPointCount = $clusterStore!.config.maxPointsToRegress || Infinity;
-      } else {
-        graphTitle = 'Cumulative species across person-visits';
-        xAxisLabel = 'person-visits';
-      }
-      pointExtractor = (graphData) => graphData.perPersonVisitPoints;
-    }
-    return {
-      graphTitle,
-      xAxisLabel,
-      pointSliceSpec: {
-        minPointCount: 0,
-        maxPointCount,
-        recentPointsToIgnore: 0
-      },
-      pointExtractor
-    };
   }
 
   async function _getSingleVisitLocationSubset(
@@ -437,21 +401,23 @@
             <input
               type="radio"
               class="btn-check"
-              bind:group={datasetID}
+              bind:group={datasetType}
               name="dataset"
-              id={DatasetID.visits}
-              value={DatasetID.visits}
+              id={DatasetType.visits}
+              value={DatasetType.visits}
             />
-            <label class="btn btn-outline-primary" for={DatasetID.visits}>Visits</label>
+            <label class="btn btn-outline-primary" for={DatasetType.visits}
+              >Visits</label
+            >
             <input
               type="radio"
               class="btn-check"
-              bind:group={datasetID}
+              bind:group={datasetType}
               name="dataset"
-              id={DatasetID.personVisits}
-              value={DatasetID.personVisits}
+              id={DatasetType.personVisits}
+              value={DatasetType.personVisits}
             />
-            <label class="btn btn-outline-primary" for={DatasetID.personVisits}
+            <label class="btn btn-outline-primary" for={DatasetType.personVisits}
               >Person-Visits</label
             >
           </div>
@@ -463,6 +429,7 @@
         </div>
       </div>
 
+      {@const config = $clusterStore.config}
       {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
       {@const clusterColor = clusterColors[clusterIndex].foreground}
       {@const multipleClusters =
@@ -470,7 +437,7 @@
       {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
 
       {#if !showingAverageModel}
-        {@const graphSpec = _getGraphSpec(datasetID, false)}
+        {@const graphSpec = getGraphSpec(config, datasetType, false)}
         <div class="row mt-3 mb-1">
           <div class="col" style="height: 350px">
             <EffortGraph
@@ -482,7 +449,7 @@
           </div>
         </div>
       {:else}
-        {@const graphSpec = _getGraphSpec(datasetID, true)}
+        {@const graphSpec = getGraphSpec(config, datasetType, true)}
         <RegressedEffortGraph
           title={graphTitlePrefix + graphSpec.graphTitle}
           color={clusterColor}
@@ -503,6 +470,7 @@
           getPoints={getLocationPoints}
           items={multiPointLocationDataSet}
           {visitUnitName}
+          {openLocation}
         />
       {/if}
       {#if singlePointLocationDataSet.length > 0}
@@ -515,6 +483,7 @@
           getPoints={getLocationPoints}
           items={singlePointLocationDataSet}
           {visitUnitName}
+          {openLocation}
         />
       {/if}
       <hr />
@@ -532,6 +501,14 @@
     config={clusteringRequest}
     close={_onCloseConfigDialog}
     submit={_onSubmitConfigDialog}
+  />
+{/if}
+
+{#if locationGraphData !== null && $clusterStore}
+  <LocationEffortDialog
+    config={$clusterStore.config}
+    {locationGraphData}
+    close={closeLocation}
   />
 {/if}
 

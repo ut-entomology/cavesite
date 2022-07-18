@@ -7,7 +7,7 @@
 
 <div class="dialog {classes ? classes : ''}">
   <div class="row">
-    <h2 class="col">{title}</h2>
+    <h2 class="col">{@html title}</h2>
   </div>
   <slot />
 </div>

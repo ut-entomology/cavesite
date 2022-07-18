@@ -11,7 +11,7 @@
 
   const POINTS_IN_MODEL_PLOT = 200;
 
-  export let color: string;
+  export let color = '';
   export let graphDataSet: LocationGraphData[];
   export let graphSpec: EffortGraphSpec;
   export let title = graphSpec.graphTitle;
