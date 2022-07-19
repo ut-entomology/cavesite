@@ -672,11 +672,6 @@ export class Specimen implements TaxonPathSpec {
       // postgres returns counts as strings
       totalResults = parseInt(result.rows[0].count);
     }
-    console.log(
-      '**** query',
-      `select ${selectionClause} from specimens
-    ${whereClause} ${groupByClause} ${orderByClause}`
-    );
     const result = await db.query(
       `select ${selectionClause} from specimens
         ${whereClause} ${groupByClause} ${orderByClause} limit $1 offset $2`,
