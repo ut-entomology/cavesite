@@ -170,6 +170,9 @@ interface _SeasonalityStageTallies {
 }
 
 export class TimeChartTallier {
+  missingMonthExclusions = 0;
+  missingDayExclusions = 0;
+
   private _historyStageTallies: _HistoryStageTallies[] = [];
   private _seasonalityStageTallies: _SeasonalityStageTallies[] = [];
 
@@ -234,7 +237,13 @@ export class TimeChartTallier {
     // If there's an end date, record the species on a random date of the range
     // of dates, and divide the specimen counts among all the dates in the range.
 
-    if (row.collectionEndDate) {
+    if (row.partialStartDate) {
+      if (row.partialStartDate.indexOf('-') < 0) {
+        ++this.missingMonthExclusions;
+      } else {
+        ++this.missingDayExclusions;
+      }
+    } else if (row.collectionEndDate) {
       const endDate = new Date(row.collectionEndDate);
       const startDaysEpoch = _toDaysEpoch(startDate);
       const endDaysEpoch = _toDaysEpoch(endDate);
@@ -252,7 +261,7 @@ export class TimeChartTallier {
 
     // Update the species counts on a single date.
 
-    let dateInfo = _toDateInfo(speciesDate);
+    let dateInfo = _toDateInfo(speciesDate, row.partialStartDate!);
     this._updateSpeciesTallies(
       dateInfo,
       unspecifiedCount > 0 ? pathSpec : null,
@@ -288,7 +297,7 @@ export class TimeChartTallier {
       if (deltaDays > 0) {
         // Only compute the date if we have to, as repeating this is expensive.
         const date = new Date(startDateMillies + nextDay * MILLIS_PER_DAY);
-        dateInfo = _toDateInfo(date);
+        dateInfo = _toDateInfo(date, row.partialStartDate!);
       }
       this._updateSpecimenTallies(dateInfo, unspecifiedCount, LifeStage.Unspecified);
       this._updateSpecimenTallies(dateInfo, immatureCount, LifeStage.Immature);
@@ -426,43 +435,57 @@ export class TimeChartTallier {
     // Update the history tallies.
 
     const history = this._historyStageTallies[lifeStage];
-    history.monthlySpecimenTotals[dateInfo.yearMonth] =
-      (history.monthlySpecimenTotals[dateInfo.yearMonth] || 0) + specimenCount;
-    history.seasonalSpecimenTotals[dateInfo.yearSeason] =
-      (history.seasonalSpecimenTotals[dateInfo.yearSeason] || 0) + specimenCount;
+    if (dateInfo.yearMonth !== null) {
+      history.monthlySpecimenTotals[dateInfo.yearMonth] =
+        (history.monthlySpecimenTotals[dateInfo.yearMonth] || 0) + specimenCount;
+    }
+    if (dateInfo.yearSeason !== null) {
+      history.seasonalSpecimenTotals[dateInfo.yearSeason] =
+        (history.seasonalSpecimenTotals[dateInfo.yearSeason] || 0) + specimenCount;
+    }
     history.yearlySpecimenTotals[dateInfo.year] =
       (history.yearlySpecimenTotals[dateInfo.year] || 0) + specimenCount;
 
     // Update the seasonality tallies.
 
     const seasonality = this._seasonalityStageTallies[lifeStage];
-    seasonality.weeklySpecimenTotals[dateInfo.week] =
-      (seasonality.weeklySpecimenTotals[dateInfo.week] || 0) + specimenCount;
-    seasonality.biweeklySpecimenTotals[dateInfo.fortnight] =
-      (seasonality.biweeklySpecimenTotals[dateInfo.fortnight] || 0) + specimenCount;
-    seasonality.monthlySpecimenTotals[dateInfo.month] =
-      (seasonality.monthlySpecimenTotals[dateInfo.month] || 0) + specimenCount;
-    seasonality.seasonalSpecimenTotals[dateInfo.season] =
-      (seasonality.seasonalSpecimenTotals[dateInfo.season] || 0) + specimenCount;
+    if (dateInfo.week !== null) {
+      seasonality.weeklySpecimenTotals[dateInfo.week] =
+        (seasonality.weeklySpecimenTotals[dateInfo.week] || 0) + specimenCount;
+    }
+    if (dateInfo.fortnight !== null) {
+      seasonality.biweeklySpecimenTotals[dateInfo.fortnight] =
+        (seasonality.biweeklySpecimenTotals[dateInfo.fortnight] || 0) + specimenCount;
+    }
+    if (dateInfo.month !== null) {
+      seasonality.monthlySpecimenTotals[dateInfo.month] =
+        (seasonality.monthlySpecimenTotals[dateInfo.month] || 0) + specimenCount;
+    }
+    if (dateInfo.season !== null) {
+      seasonality.seasonalSpecimenTotals[dateInfo.season] =
+        (seasonality.seasonalSpecimenTotals[dateInfo.season] || 0) + specimenCount;
+    }
   }
 
   private _addTaxonTally(
     counters: (TaxonCounter | null)[],
-    timeCode: number,
+    timeCode: number | null,
     pathSpec: TaxonPathSpec | null,
     species: string | null,
     subspecies: string | null
   ): void {
-    let counter = counters[timeCode];
-    if (!counter) {
-      if (pathSpec !== null) {
-        counter = TaxonCounter.createFromPathSpec(pathSpec, species, subspecies);
-        counters[timeCode] = counter;
-      } else {
-        counters[timeCode] = null; // reserve column for time code in chart
+    if (timeCode !== null) {
+      let counter = counters[timeCode];
+      if (!counter) {
+        if (pathSpec !== null) {
+          counter = TaxonCounter.createFromPathSpec(pathSpec, species, subspecies);
+          counters[timeCode] = counter;
+        } else {
+          counters[timeCode] = null; // reserve column for time code in chart
+        }
+      } else if (pathSpec) {
+        counter.updateForPathSpec(pathSpec, species, subspecies);
       }
-    } else if (pathSpec) {
-      counter.updateForPathSpec(pathSpec, species, subspecies);
     }
   }
 }
@@ -471,20 +494,33 @@ export class TimeChartTallier {
 
 interface _DateInfo {
   year: number;
-  season: number; // season of year, spring first, starting at 0
-  month: number; // month of year, starting at 1
-  fortnight: number; // fortnight of year, starting at 1
-  week: number; // weak of year, starting at 1
-  yearSeason: number; // year * 10 + season;
-  yearMonth: number; // year * 100 + month;
+  season: number | null; // season of year, spring first, starting at 0
+  month: number | null; // month of year, starting at 1
+  fortnight: number | null; // fortnight of year, starting at 1
+  week: number | null; // weak of year, starting at 1
+  yearSeason: number | null; // year * 10 + season;
+  yearMonth: number | null; // year * 100 + month;
 }
 
 // returns weeks since epoch (millis = 0), resetting each week at start of year
-function _toDateInfo(date: Date): _DateInfo {
+function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
   const year = date.getFullYear();
   let seasonYear = year;
   const month = date.getMonth() + 1; // 1-based
   const daysEpoch = _toDaysEpoch(date);
+
+  if (partialDate) {
+    const haveMonth = partialDate.indexOf('-') >= 0;
+    return {
+      year,
+      season: null,
+      month: haveMonth ? month : null,
+      fortnight: null,
+      week: null,
+      yearSeason: null,
+      yearMonth: haveMonth ? year * 100 + month : null
+    };
+  }
 
   // Cache days epoch of the start of each year and the start of each season,
   // in order to hasten computation.

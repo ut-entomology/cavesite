@@ -35,6 +35,8 @@
     query: TimeGraphQuery;
     historyGraphSpecs: HistoryGraphSpecs;
     seasonalityGraphSpecs: SeasonalityGraphSpecs;
+    recordsMissingMonth: number;
+    recordsMissingDayOfMonth: number;
   }
 
   export const cachedData = createSessionStore<TimeGraphData | null>('time_data', null);
@@ -91,13 +93,41 @@
   let queryRequest: TimeGraphQueryRequest | null = null;
   let historyGraphSpec: TimeGraphSpec;
   let seasonalityGraphSpec: TimeGraphSpec;
+  let seasonalityFootnotes: string[];
+  let historyFootnotes: string[];
 
   $: if ($cachedData) {
-    historyGraphSpec = _getHistoryGraphSpec(historyXUnits, historyYUnits);
+    const monthExclusionNote =
+      $cachedData.recordsMissingMonth > 0
+        ? $cachedData.recordsMissingMonth +
+          ' records were excluded for not indicating month'
+        : null;
+    const dayOfMonthExclusionNote =
+      $cachedData.recordsMissingDayOfMonth > 0
+        ? $cachedData.recordsMissingDayOfMonth +
+          ' records were excluded for not indicating day of month'
+        : null;
+
     seasonalityGraphSpec = _getSeasonalityGraphSpec(
       seasonalityXUnits,
       seasonalityYUnits
     );
+    seasonalityFootnotes = [];
+    if (monthExclusionNote) {
+      seasonalityFootnotes.push(monthExclusionNote);
+    }
+    if (seasonalityXUnits != SeasonalityXUnits.monthly && dayOfMonthExclusionNote) {
+      seasonalityFootnotes.push(dayOfMonthExclusionNote);
+    }
+
+    historyGraphSpec = _getHistoryGraphSpec(historyXUnits, historyYUnits);
+    historyFootnotes = [];
+    if (historyXUnits != HistoryXUnits.yearly && monthExclusionNote) {
+      historyFootnotes.push(monthExclusionNote);
+    }
+    if (historyXUnits == HistoryXUnits.seasonally && dayOfMonthExclusionNote) {
+      historyFootnotes.push(dayOfMonthExclusionNote);
+    }
   }
 
   function clearData() {
@@ -192,6 +222,8 @@
     }
     const historyStageTallies = tallier.getHistoryStageTallies();
     const seasonalityStageTallies = tallier.getSeasonalityStageTallies();
+    const recordsMissingMonth = tallier.missingMonthExclusions;
+    const recordsMissingDayOfMonth = tallier.missingDayExclusions;
     loading = false;
 
     // Cache the data.
@@ -260,7 +292,9 @@
             'seasonalSpecimenTotals'
           )
         }
-      }
+      },
+      recordsMissingMonth,
+      recordsMissingDayOfMonth
     });
   }
 
@@ -433,6 +467,17 @@
           <SeasonalityGraph spec={seasonalityGraphSpec} />
         </div>
       </div>
+      {#if seasonalityFootnotes.length > 0}
+        <div class="row mt-2 justify-content-center small">
+          <div class="col-auto">
+            <ul>
+              {#each seasonalityFootnotes as footnote}
+                <li>{footnote}</li>
+              {/each}
+            </ul>
+          </div>
+        </div>
+      {/if}
 
       <hr style="margin-top: 2rem" />
 
@@ -503,6 +548,18 @@
           </div>
         </div>
       </div>
+      {#if historyFootnotes.length > 0}
+        <div class="row mt-2 justify-content-center small">
+          <div class="col-auto">
+            <ul>
+              {#each historyFootnotes as footnote}
+                <li>{footnote}</li>
+              {/each}
+            </ul>
+          </div>
+        </div>
+      {/if}
+
       <hr />
     {/if}
     <TabFootnote
@@ -551,5 +608,8 @@
   }
   .time_graph {
     height: 400px;
+  }
+  ul {
+    margin: 0;
   }
 </style>
