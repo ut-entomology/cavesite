@@ -31,6 +31,7 @@
   }
 
   interface TimeGraphData {
+    version: number;
     description: string;
     query: TimeGraphQuery;
     historyGraphSpecs: HistoryGraphSpecs;
@@ -64,6 +65,7 @@
   import { LocationRank } from '../../../shared/model';
 
   $pageName = 'Seasonality and History';
+  const CACHED_DATA_VERSION = 2;
 
   enum CountUnits {
     species = 'species',
@@ -95,6 +97,10 @@
   let seasonalityGraphSpec: TimeGraphSpec;
   let seasonalityFootnotes: string[];
   let historyFootnotes: string[];
+
+  $: if ($cachedData && $cachedData.version != CACHED_DATA_VERSION) {
+    $cachedData = null;
+  }
 
   $: if ($cachedData) {
     const monthExclusionNote =
@@ -229,6 +235,7 @@
     // Cache the data.
 
     cachedData.set({
+      version: CACHED_DATA_VERSION,
       description,
       query: timeQuery,
       historyGraphSpecs: {
