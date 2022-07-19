@@ -24,7 +24,7 @@ import {
 export type SpecimenData = DataOf<Specimen>;
 
 const PARTIAL_DATES_REGEX =
-  /(start|end)(?:ed|s)?[:= ]+(\d{4})(?:[-](\d{1,2}))?(?:[-](\d{1,2}))?/gi;
+  /(dated|started|ended)[:= ]+(\d{4})(?:[-](\d{1,2}))?(?:[-](\d{1,2}))?/gi;
 
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 const SUBGENUS_REGEX = /subgenus[:= ]+([A-Za-z]+)/i;
@@ -294,7 +294,8 @@ export class Specimen implements TaxonPathSpec {
 
         for (const match of reverseMatchesArray) {
           // Assumes eventRemarks dates are in Texas time (Central).
-          if (match[1].toLowerCase() == 'start') {
+          const firstMatch = match[1].toLowerCase();
+          if (firstMatch == 'dated' || firstMatch == 'started') {
             [startDate, partialStartDate] = _parseStartDate(match);
             startMatch = match;
           } else {
