@@ -108,9 +108,13 @@ function toEventRemarks(record: CsvSpecimen): string {
   const eventRemarks: string[] =
     record.localityAndHabitatNotes == '' ? [] : [record.localityAndHabitatNotes];
   const started = toEventRemarksDate(record.startDate, true);
-  if (started) eventRemarks.push('started ' + started);
   const ended = toEventRemarksDate(record.endDate, false);
-  if (ended) eventRemarks.push('ended ' + ended);
+  if (!ended) {
+    if (started) eventRemarks.push('dated ' + started);
+  } else {
+    eventRemarks.push('started ' + started);
+    eventRemarks.push('ended ' + ended);
+  }
   return eventRemarks.join('; ');
 }
 
