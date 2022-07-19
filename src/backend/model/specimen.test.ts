@@ -792,8 +792,18 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.CatalogNumber)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionStartDate: startDate1 },
-      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionStartDate: startDate2 }
+      {
+        catalogNumber: 'Q1',
+        occurrenceGuid: 'GQ1',
+        collectionStartDate: startDate1,
+        partialStartDate: null
+      },
+      {
+        catalogNumber: 'Q2',
+        occurrenceGuid: 'GQ2',
+        collectionStartDate: startDate2,
+        partialStartDate: null
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -801,8 +811,8 @@ describe('general specimen query', () => {
     results = await Specimen.generalQuery(
       db, [dateSpec], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1 },
-      { collectionStartDate: startDate2 }
+      { collectionStartDate: startDate1, partialStartDate: null },
+      { collectionStartDate: startDate2, partialStartDate: null }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -811,8 +821,18 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionEndDate)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, collectionEndDate: endDate1 },
-      { collectionStartDate: startDate2, collectionEndDate: null }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        collectionEndDate: endDate1,
+        partialEndDate: null
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        collectionEndDate: null,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -823,9 +843,14 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
+        partialStartDate: null,
         collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.'
       },
-      { collectionStartDate: startDate2, collectors: 'Person X' }
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        collectors: 'Person X'
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -834,8 +859,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Determiners)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, determiners: 'Person A|Person B' },
-      { collectionStartDate: startDate2, determiners: 'Person Y' }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        determiners: 'Person A|Person B'
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        determiners: 'Person Y'
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -844,8 +877,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationYear)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, determinationYear: detDate.getFullYear() },
-      { collectionStartDate: startDate2, determinationYear: detDate2.getFullYear() }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        determinationYear: detDate.getFullYear()
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        determinationYear: detDate2.getFullYear()
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -854,8 +895,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionRemarks)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, collectionRemarks: 'cave' },
-      { collectionStartDate: startDate2, collectionRemarks: null }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        collectionRemarks: 'cave'
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        collectionRemarks: null
+      }
     ]);
 
     // prettier-ignore
@@ -865,9 +914,14 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
+        partialStartDate: null,
         occurrenceRemarks: baseSource.occurrenceRemarks
       },
-      { collectionStartDate: startDate2, occurrenceRemarks: null }
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        occurrenceRemarks: null
+      }
     ]);
 
     // prettier-ignore
@@ -877,9 +931,14 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
+        partialStartDate: null,
         determinationRemarks: baseSource.identificationRemarks
       },
-      { collectionStartDate: startDate2, determinationRemarks: null }
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        determinationRemarks: null
+      }
     ]);
 
     // prettier-ignore
@@ -887,8 +946,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.TypeStatus)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, typeStatus: specimen1!.typeStatus },
-      { collectionStartDate: startDate2, typeStatus: specimen2!.typeStatus }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        typeStatus: specimen1!.typeStatus
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        typeStatus: specimen2!.typeStatus
+      }
     ]);
 
     // prettier-ignore
@@ -896,8 +963,8 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.SpecimenCount)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, specimenCount: 1 },
-      { collectionStartDate: startDate2, specimenCount: 2 }
+      { collectionStartDate: startDate1, partialStartDate: null, specimenCount: 1 },
+      { collectionStartDate: startDate2, partialStartDate: null, specimenCount: 2 }
     ]);
 
     // prettier-ignore
@@ -905,9 +972,10 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Problems)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, problems: null },
+      { collectionStartDate: startDate1, partialStartDate: null, problems: null },
       {
         collectionStartDate: startDate2,
+        partialStartDate: null,
         problems: 'Start date follows end date Mon Jan 01 1900; end date ignored'
       }
     ]);
@@ -924,11 +992,13 @@ describe('general specimen query', () => {
       expect(results[0]).toEqual([
         {
           collectionStartDate: startDate1,
+          partialStartDate: null,
           [nameColumn]: specimen1![nameColumn],
           [idColumn]: specimen1![idColumn]
         },
         {
           collectionStartDate: startDate2,
+          partialStartDate: null,
           [nameColumn]: specimen2![nameColumn],
           [idColumn]: specimen2![idColumn]
         }
@@ -951,8 +1021,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Latitude)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, latitude: specimen1!.publicLatitude },
-      { collectionStartDate: startDate2, latitude: specimen2!.publicLatitude }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        latitude: specimen1!.publicLatitude
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        latitude: specimen2!.publicLatitude
+      }
     ]);
 
     // prettier-ignore
@@ -960,8 +1038,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Longitude)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, longitude: specimen1!.publicLongitude },
-      { collectionStartDate: startDate2, longitude: specimen2!.publicLongitude }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        longitude: specimen1!.publicLongitude
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        longitude: specimen2!.publicLongitude
+      }
     ]);
   });
 
@@ -986,8 +1072,8 @@ describe('general specimen query', () => {
       db, [_toColumnSpec(QueryColumnID.CollectionEndDate, false)], 
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionEndDate: null },
-      { collectionEndDate: endDate1 }
+      { collectionEndDate: null, partialEndDate: null },
+      { collectionEndDate: endDate1, partialEndDate: null }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -1091,8 +1177,18 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.CollectionEndDate, true)
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 },
-      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
+      {
+        catalogNumber: 'Q1',
+        occurrenceGuid: 'GQ1',
+        collectionEndDate: endDate1,
+        partialEndDate: null
+      },
+      {
+        catalogNumber: 'Q2',
+        occurrenceGuid: 'GQ2',
+        collectionEndDate: null,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -1103,7 +1199,12 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.CollectionEndDate, null, 'Blank')
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
+      {
+        catalogNumber: 'Q2',
+        occurrenceGuid: 'GQ2',
+        collectionEndDate: null,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(1);
 
@@ -1114,7 +1215,12 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.CollectionEndDate, null, 'Non-blank')
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 }
+      {
+        catalogNumber: 'Q1',
+        occurrenceGuid: 'GQ1',
+        collectionEndDate: endDate1,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(1);
   });
@@ -1480,8 +1586,8 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.Family, true)
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID },
-      { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID }
+      { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID },
+      { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID }
     ]);
 
     // prettier-ignore
