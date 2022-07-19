@@ -602,13 +602,13 @@ export class Specimen implements TaxonPathSpec {
           whereComponents.push(option.sql.replace('X', columnInfo.column1));
         }
       }
-      if (columnID != QueryColumnID.ResultCount) {
-        if (columnSpec.ascending !== null) {
-          if (columnSpec.ascending) {
-            columnOrders.push(columnInfo.column1);
-          } else {
-            columnOrders.push(columnInfo.column1 + ' desc');
-          }
+      const sortColumnName =
+        columnID == QueryColumnID.ResultCount ? columnInfo.asName! : columnInfo.column1;
+      if (columnSpec.ascending !== null) {
+        if (columnSpec.ascending) {
+          columnOrders.push(sortColumnName);
+        } else {
+          columnOrders.push(sortColumnName + ' desc');
         }
       }
     }
@@ -672,6 +672,11 @@ export class Specimen implements TaxonPathSpec {
       // postgres returns counts as strings
       totalResults = parseInt(result.rows[0].count);
     }
+    console.log(
+      '**** query',
+      `select ${selectionClause} from specimens
+    ${whereClause} ${groupByClause} ${orderByClause}`
+    );
     const result = await db.query(
       `select ${selectionClause} from specimens
         ${whereClause} ${groupByClause} ${orderByClause} limit $1 offset $2`,
