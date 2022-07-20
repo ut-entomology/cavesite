@@ -238,10 +238,10 @@ export class TimeChartTallier {
     // of dates, and divide the specimen counts among all the dates in the range.
 
     if (row.partialStartDate) {
-      if (row.partialStartDate.indexOf('-') < 0) {
-        ++this.missingMonthExclusions;
-      } else {
+      if (partialDateHasMonth(row.partialStartDate)) {
         ++this.missingDayExclusions;
+      } else {
+        ++this.missingMonthExclusions;
       }
     } else if (row.collectionEndDate) {
       const endDate = new Date(row.collectionEndDate);
@@ -490,6 +490,10 @@ export class TimeChartTallier {
   }
 }
 
+export function partialDateHasMonth(partialDate: string): boolean {
+  return partialDate.indexOf('-') > 0;
+}
+
 //// PRIVATE /////////////////////////////////////////////////////////////////
 
 interface _DateInfo {
@@ -510,7 +514,7 @@ function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
   const daysEpoch = _toDaysEpoch(date);
 
   if (partialDate) {
-    const haveMonth = partialDate.indexOf('-') >= 0;
+    const haveMonth = partialDateHasMonth(partialDate);
     return {
       year,
       season: null,

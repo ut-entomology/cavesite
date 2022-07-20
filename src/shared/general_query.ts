@@ -2,10 +2,6 @@
  * Support for conveying general queries and query results between client and server
  */
 
-// Determine the local date format for use in representing partial dates.
-
-const monthFirstDate = _isMonthFirstLocale();
-
 // TODO: revisit need to return taxon/location IDs in general query
 
 export const EARLIEST_RECORD_DATE = new Date('1/1/1930');
@@ -562,12 +558,6 @@ setColumnInfo({
   getValue: (row: QueryRow) => getNumber(row.publicLongitude)
 });
 
-function _isMonthFirstLocale(): boolean {
-  // Corresponds to April 5, 2000.
-  const sampleDate = new Date(2000, 3, 5).toLocaleDateString();
-  return sampleDate.indexOf('4') < sampleDate.indexOf('5');
-}
-
 function _toItalic(name?: string | null) {
   return name ? `<i>${name}</i>` : '';
 }
@@ -577,5 +567,5 @@ function _toDisplayedPartialDate(partialDate: string): string {
   if (dashOffset < 0) return partialDate; // just the year
   const year = partialDate.substring(0, dashOffset);
   const month = partialDate.substring(dashOffset + 1);
-  return monthFirstDate ? `${month}/?/${year}` : `?/${month}/${year}`;
+  return `${month}/${year}`;
 }
