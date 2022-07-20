@@ -10,8 +10,8 @@ const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 type PartialSpecimenSource = Pick<
   SpecimenSource,
   | 'locality'
-  | 'startDate'
-  | 'collectors'
+  | 'eventDate'
+  | 'recordedBy'
   | 'kingdom'
   | 'phylum'
   | 'class'
@@ -43,16 +43,16 @@ beforeAll(async () => {
 test('sequentially specifying a single subspecies', async () => {
   let specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia'
   });
   await _checkVisitFor(specimen, { kingdomCounts: '1' });
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda'
   });
@@ -64,8 +64,8 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida'
@@ -80,8 +80,8 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -99,8 +99,8 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -121,8 +121,8 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -146,8 +146,8 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -174,8 +174,8 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -225,8 +225,8 @@ test('adding existing taxonomic groups', async () => {
 
   let specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -240,8 +240,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -255,8 +255,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -269,8 +269,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -282,8 +282,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -294,8 +294,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -305,8 +305,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida'
@@ -315,8 +315,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda'
   });
@@ -324,8 +324,8 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia'
   });
   await _checkVisitFor(specimen, expectedVisitData);
@@ -334,8 +334,8 @@ test('adding existing taxonomic groups', async () => {
 test('adding multiple taxonomic groups', async () => {
   let specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -365,8 +365,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -396,8 +396,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -426,8 +426,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -456,8 +456,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -485,8 +485,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -514,8 +514,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -544,8 +544,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -573,8 +573,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida',
@@ -600,8 +600,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Insecta',
@@ -631,8 +631,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Chilopoda'
@@ -658,8 +658,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Chilopoda',
@@ -687,8 +687,8 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    startDate: date3,
-    collectors: collectors1,
+    eventDate: date3,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Annelida'
   });
@@ -715,8 +715,8 @@ test('adding multiple taxonomic groups', async () => {
 test('respect for components of primary key', async () => {
   let specimen = await _addSpecimen({
     locality: locality2,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Arachnida'
@@ -731,8 +731,8 @@ test('respect for components of primary key', async () => {
 
   specimen = await _addSpecimen({
     locality: locality2,
-    startDate: date1,
-    collectors: collectors2,
+    eventDate: date1,
+    recordedBy: collectors2,
     kingdom: 'Animalia',
     phylum: 'Annelida'
   });
@@ -744,8 +744,8 @@ test('respect for components of primary key', async () => {
 
   specimen = await _addSpecimen({
     locality: locality2,
-    startDate: date2,
-    collectors: collectors1,
+    eventDate: date2,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Annelida'
   });
@@ -757,8 +757,8 @@ test('respect for components of primary key', async () => {
 
   specimen = await _addSpecimen({
     locality: locality3,
-    startDate: date1,
-    collectors: collectors1,
+    eventDate: date1,
+    recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
     class: 'Insecta'

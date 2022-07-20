@@ -15,7 +15,7 @@ import { Logs, LogType } from './logs';
 
 const startDate = toLocalDate(new Date('2020-01-01'));
 const endDate = toLocalDate(new Date('2020-01-04'));
-const endDateISO = endDate.toISOString();
+const endDateStr = _toEndDate(2020, 1, 4);
 const detDate = toLocalDate(new Date('2020-06-10'));
 
 const startDate1 = toLocalDate(new Date('2021-01-01'));
@@ -45,15 +45,14 @@ const baseSource = {
   decimalLatitude: '23.45',
   decimalLongitude: '-93.21',
 
-  startDate: startDate.toISOString(),
-  collectors: 'Some One | Another P. Someone, II | Foo | Baz, Jr.',
-  determinationDate: detDate.toISOString(),
-  determiners: 'Person A | Person B',
-  collectionRemarks:
-    'meadow; *end date ' + endDateISO.substring(0, endDateISO.indexOf('T')),
+  eventDate: startDate.toISOString(),
+  recordedBy: 'Some One | Another P. Someone, II | Foo | Baz, Jr.',
+  dateIdentified: detDate.toISOString(),
+  identifiedBy: 'Person A | Person B',
+  eventRemarks: 'meadow; ' + endDateStr,
   occurrenceRemarks: 'occurrence remark',
-  determinationRemarks: 'big one',
-  typeStatus: 'normal',
+  identificationRemarks: 'big one',
+  typeStatus: '',
   organismQuantity: '1'
 };
 
@@ -111,14 +110,16 @@ describe('basic specimen methods', () => {
         localityID: 5,
         collectionStartDate: startDate,
         collectionEndDate: endDate,
+        partialStartDate: null,
+        partialEndDate: null,
         collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
         normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
         determinationYear: detDate.getUTCFullYear(),
         determiners: 'Person A|Person B',
         collectionRemarks: 'meadow',
         occurrenceRemarks: baseSource.occurrenceRemarks,
-        determinationRemarks: baseSource.determinationRemarks,
-        typeStatus: baseSource.typeStatus,
+        determinationRemarks: baseSource.identificationRemarks,
+        typeStatus: null,
         specimenCount: 1,
         lifeStage: null,
         problems: null,
@@ -182,9 +183,9 @@ describe('basic specimen methods', () => {
         stateProvince: 'Texas',
         locality: 'Their backyard',
 
-        startDate: startDate.toISOString(),
-        collectors: 'Any Body',
-        determiners: 'Person C'
+        eventDate: startDate.toISOString(),
+        recordedBy: 'Any Body',
+        identifiedBy: 'Person C'
       };
       const specimen = await Specimen.create(db, source);
       expect(specimen).toEqual({
@@ -194,6 +195,8 @@ describe('basic specimen methods', () => {
         localityID: 6,
         collectionStartDate: startDate,
         collectionEndDate: null,
+        partialStartDate: null,
+        partialEndDate: null,
         collectors: 'Any Body',
         normalizedCollectors: 'body',
         determinationYear: null,
@@ -324,7 +327,7 @@ describe('basic specimen methods', () => {
     const specimen = await Specimen.create(
       db,
       Object.assign({}, baseSource, {
-        determinationRemarks: 'CAVEDATA[subgenus Subby]'
+        identificationRemarks: 'blind; subgenus Subby; more notes'
       })
     );
     expect(specimen).toEqual({
@@ -334,14 +337,16 @@ describe('basic specimen methods', () => {
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
+      partialStartDate: null,
+      partialEndDate: null,
       collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
       normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
       determiners: 'Person A|Person B',
       collectionRemarks: 'meadow',
       occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: null,
-      typeStatus: baseSource.typeStatus,
+      determinationRemarks: 'blind; subgenus Subby; more notes',
+      typeStatus: null,
       specimenCount: 1,
       lifeStage: null,
       problems: null,
@@ -396,24 +401,26 @@ describe('basic specimen methods', () => {
       Object.assign({}, baseSource, {
         specificEpithet: '',
         scientificName: 'Argiope',
-        determinationRemarks: 'big one; CAVEDATA[n. sp. A]'
+        identificationRemarks: 'big one; n. sp. A'
       })
     );
     expect(specimen).toEqual({
       catalogNumber: baseSource.catalogNumber,
       occurrenceGuid: baseSource.occurrenceID,
-      taxonID: 7,
+      taxonID: 6,
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: endDate,
+      partialStartDate: null,
+      partialEndDate: null,
       collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.',
       normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
       determiners: 'Person A|Person B',
       collectionRemarks: 'meadow',
       occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: 'big one',
-      typeStatus: baseSource.typeStatus,
+      determinationRemarks: 'big one; n. sp. A',
+      typeStatus: 'undescribed',
       specimenCount: 1,
       lifeStage: null,
       problems: null,
@@ -429,11 +436,11 @@ describe('basic specimen methods', () => {
       familyID: 5,
       genusName: 'Argiope',
       genusID: 6,
-      speciesName: 'n. sp. A',
-      speciesID: 7,
+      speciesName: null,
+      speciesID: null,
       subspeciesName: null,
       subspeciesID: null,
-      taxonUnique: 'Argiope n. sp. A',
+      taxonUnique: 'Argiope',
       taxonAuthor: null,
       obligate: null,
       countyName: 'Travis County',
@@ -446,7 +453,6 @@ describe('basic specimen methods', () => {
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
     expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
     expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Argiope');
-    expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('n. sp. A');
     expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
     expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
     expect((await _getLocationByID(db, 5))?.locationName).toEqual('My backyard');
@@ -471,6 +477,8 @@ describe('basic specimen methods', () => {
       localityID: 5,
       collectionStartDate: startDate,
       collectionEndDate: null,
+      partialStartDate: null,
+      partialEndDate: null,
       collectors: 'Some One',
       normalizedCollectors: 'one',
       determinationYear: null,
@@ -478,7 +486,7 @@ describe('basic specimen methods', () => {
       collectionRemarks: null,
       occurrenceRemarks: null,
       determinationRemarks: null,
-      typeStatus: baseSource.typeStatus,
+      typeStatus: null,
       specimenCount: null,
       lifeStage: null,
       problems: null,
@@ -517,30 +525,12 @@ describe('basic specimen methods', () => {
     expect(readSpecimen).toEqual(specimen);
   });
 
-  test('bad end date', async () => {
-    const source = Object.assign({}, baseSource);
-    // @ts-ignore
-    source.catalogNumber = 'C3';
-    source.occurrenceID = 'X3';
-    source.collectionRemarks = '*end date foo';
-
-    await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('end date syntax');
-    let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
-    expect(found).toEqual(true);
-
-    // make sure problem was written to the database
-    const readSpecimen = await Specimen.getByCatNum(db, source.catalogNumber, false);
-    expect(readSpecimen).toEqual(specimen);
-  });
-
   test('end date but no start date', async () => {
     {
       const source = Object.assign({}, baseSource);
       source.catalogNumber = 'C4';
       source.occurrenceID = 'X4';
-      source.startDate = '';
+      source.eventDate = '';
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -553,7 +543,7 @@ describe('basic specimen methods', () => {
       source.catalogNumber = 'C5';
       source.occurrenceID = 'X5';
       // @ts-ignore
-      source.startDate = undefined;
+      source.eventDate = undefined;
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -569,9 +559,9 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C6';
     source.occurrenceID = 'X6';
-    source.startDate = endDate.toISOString();
-    source.collectionRemarks =
-      '*end date ' + startDateISO.substring(0, startDateISO.indexOf('T'));
+    source.eventDate = endDateStr;
+    source.eventRemarks =
+      'ended ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
@@ -592,17 +582,16 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C99';
     source.occurrenceID = 'X99';
-    source.startDate = startDateISO;
-    source.collectionRemarks =
-      '*end date ' + endDateISO.substring(0, startDateISO.indexOf('T'));
+    source.eventDate = startDateISO;
+    source.eventRemarks = 'ended ' + endDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('dropping end date');
+    expect(specimen?.problems).toContain('dropped end date');
     let found = await containsLog(
       db,
       source.catalogNumber,
-      'End date Fri Oct 10 1980 follows start date Sat Oct 10 1970 by more than 124 days; dropping end date',
+      'End date Fri Oct 10 1980 follows start date Sat Oct 10 1970 by more than 124 days; dropped end date',
       false
     );
     expect(found).toEqual(true);
@@ -611,17 +600,17 @@ describe('basic specimen methods', () => {
   test('partial determination dates', async () => {
     let source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET1';
-    source.determinationDate = '1985';
+    source.dateIdentified = '1985';
     await Specimen.create(db, source);
 
     source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET2';
-    source.determinationDate = '00/00/1999';
+    source.dateIdentified = '00/00/1999';
     await Specimen.create(db, source);
 
     source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET3';
-    source.determinationDate = '01-00-2001';
+    source.dateIdentified = '01-00-2001';
     await Specimen.create(db, source);
 
     await Specimen.commit(db);
@@ -657,14 +646,19 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C10';
     source.occurrenceID = 'X10';
-    source.collectionRemarks = '*end date foo';
+    source.eventRemarks = 'ended 1900-01-01';
     source.organismQuantity = 'foo';
 
     await clearLogs(db);
     const specimen = await Specimen.create(db, source);
-    expect(specimen?.problems).toContain('end date syntax');
+    expect(specimen?.problems).toContain('Start date follows end date');
     expect(specimen?.problems).toContain('Invalid specimen count');
-    let found = await containsLog(db, source.catalogNumber, 'end date syntax', false);
+    let found = await containsLog(
+      db,
+      source.catalogNumber,
+      'Start date follows end date',
+      false
+    );
     expect(found).toEqual(true);
     found = await containsLog(
       db,
@@ -680,11 +674,116 @@ describe('basic specimen methods', () => {
   });
 });
 
+describe('partial start and end dates', () => {
+  test('start date missing month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventRemarks = _toStartDate(2022);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 0, 1));
+    expect(specimen?.partialStartDate).toEqual('2022');
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(specimen?.partialEndDate).toBe(null);
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 0, 1));
+    expect(readSpecimen?.partialStartDate).toEqual('2022');
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(readSpecimen?.partialEndDate).toBe(null);
+  });
+
+  test('start date missing day of month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventRemarks = _toStartDate(2022, 6);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(specimen?.partialStartDate).toEqual('2022-6');
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(specimen?.partialEndDate).toBe(null);
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(readSpecimen?.partialStartDate).toEqual('2022-6');
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(readSpecimen?.partialEndDate).toBe(null);
+  });
+
+  test('end date missing month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventDate = new Date(2022, 5, 12).toISOString();
+    source.eventRemarks = _toEndDate(2022);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(specimen?.partialStartDate).toBe(null);
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(specimen?.partialEndDate).toBe('2022');
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(readSpecimen?.partialStartDate).toBe(null);
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(readSpecimen?.partialEndDate).toBe('2022');
+  });
+
+  test('end date missing day of month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventDate = new Date(2022, 5, 12).toISOString();
+    source.eventRemarks = _toEndDate(2022, 6);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(specimen?.partialStartDate).toBe(null);
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(specimen?.partialEndDate).toBe('2022-6');
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(readSpecimen?.partialStartDate).toBe(null);
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(readSpecimen?.partialEndDate).toBe('2022-6');
+  });
+
+  test('start and end dates of differnt months missing day of month', async () => {
+    await Specimen.dropAll(db);
+
+    const source = Object.assign({}, baseSource);
+    source.catalogNumber = 'C1';
+    source.occurrenceID = 'X1';
+    source.eventRemarks = _toStartDate(2022, 6) + '; ' + _toEndDate(2022, 8);
+    const specimen = await Specimen.create(db, source);
+
+    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(specimen?.partialStartDate).toEqual('2022-6');
+    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 7, 31));
+    expect(specimen?.partialEndDate).toBe('2022-8');
+    const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
+    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(readSpecimen?.partialStartDate).toEqual('2022-6');
+    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 7, 31));
+    expect(readSpecimen?.partialEndDate).toBe('2022-8');
+  });
+});
+
 describe('general specimen query', () => {
   test('querying for specified columns', async () => {
     await Specimen.dropAll(db);
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
+    await Specimen.commit(db);
 
     let dateSpec = _toColumnSpec(QueryColumnID.CollectionStartDate, true);
 
@@ -693,8 +792,18 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.CatalogNumber)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionStartDate: startDate1 },
-      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionStartDate: startDate2 }
+      {
+        catalogNumber: 'Q1',
+        occurrenceGuid: 'GQ1',
+        collectionStartDate: startDate1,
+        partialStartDate: null
+      },
+      {
+        catalogNumber: 'Q2',
+        occurrenceGuid: 'GQ2',
+        collectionStartDate: startDate2,
+        partialStartDate: null
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -702,8 +811,8 @@ describe('general specimen query', () => {
     results = await Specimen.generalQuery(
       db, [dateSpec], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1 },
-      { collectionStartDate: startDate2 }
+      { collectionStartDate: startDate1, partialStartDate: null },
+      { collectionStartDate: startDate2, partialStartDate: null }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -712,8 +821,18 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionEndDate)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, collectionEndDate: endDate1 },
-      { collectionStartDate: startDate2, collectionEndDate: null }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        collectionEndDate: endDate1,
+        partialEndDate: null
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        collectionEndDate: null,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -724,9 +843,14 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
+        partialStartDate: null,
         collectors: 'Some One|Another P. Someone, II|Foo|Baz, Jr.'
       },
-      { collectionStartDate: startDate2, collectors: 'Person X' }
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        collectors: 'Person X'
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -735,8 +859,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Determiners)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, determiners: 'Person A|Person B' },
-      { collectionStartDate: startDate2, determiners: 'Person Y' }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        determiners: 'Person A|Person B'
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        determiners: 'Person Y'
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -745,8 +877,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationYear)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, determinationYear: detDate.getFullYear() },
-      { collectionStartDate: startDate2, determinationYear: detDate2.getFullYear() }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        determinationYear: detDate.getFullYear()
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        determinationYear: detDate2.getFullYear()
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -755,8 +895,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionRemarks)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, collectionRemarks: 'cave' },
-      { collectionStartDate: startDate2, collectionRemarks: null }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        collectionRemarks: 'cave'
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        collectionRemarks: null
+      }
     ]);
 
     // prettier-ignore
@@ -766,9 +914,14 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
+        partialStartDate: null,
         occurrenceRemarks: baseSource.occurrenceRemarks
       },
-      { collectionStartDate: startDate2, occurrenceRemarks: null }
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        occurrenceRemarks: null
+      }
     ]);
 
     // prettier-ignore
@@ -778,9 +931,14 @@ describe('general specimen query', () => {
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
-        determinationRemarks: baseSource.determinationRemarks
+        partialStartDate: null,
+        determinationRemarks: baseSource.identificationRemarks
       },
-      { collectionStartDate: startDate2, determinationRemarks: null }
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        determinationRemarks: null
+      }
     ]);
 
     // prettier-ignore
@@ -788,8 +946,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.TypeStatus)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, typeStatus: specimen1!.typeStatus },
-      { collectionStartDate: startDate2, typeStatus: specimen2!.typeStatus }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        typeStatus: specimen1!.typeStatus
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        typeStatus: specimen2!.typeStatus
+      }
     ]);
 
     // prettier-ignore
@@ -797,8 +963,8 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.SpecimenCount)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, specimenCount: 1 },
-      { collectionStartDate: startDate2, specimenCount: 2 }
+      { collectionStartDate: startDate1, partialStartDate: null, specimenCount: 1 },
+      { collectionStartDate: startDate2, partialStartDate: null, specimenCount: 2 }
     ]);
 
     // prettier-ignore
@@ -806,10 +972,11 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Problems)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, problems: null },
+      { collectionStartDate: startDate1, partialStartDate: null, problems: null },
       {
         collectionStartDate: startDate2,
-        problems: 'Invalid end date syntax in event remarks; assuming no end date'
+        partialStartDate: null,
+        problems: 'Start date follows end date Mon Jan 01 1900; end date ignored'
       }
     ]);
 
@@ -825,11 +992,13 @@ describe('general specimen query', () => {
       expect(results[0]).toEqual([
         {
           collectionStartDate: startDate1,
+          partialStartDate: null,
           [nameColumn]: specimen1![nameColumn],
           [idColumn]: specimen1![idColumn]
         },
         {
           collectionStartDate: startDate2,
+          partialStartDate: null,
           [nameColumn]: specimen2![nameColumn],
           [idColumn]: specimen2![idColumn]
         }
@@ -852,8 +1021,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Latitude)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, latitude: specimen1!.publicLatitude },
-      { collectionStartDate: startDate2, latitude: specimen2!.publicLatitude }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        latitude: specimen1!.publicLatitude
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        latitude: specimen2!.publicLatitude
+      }
     ]);
 
     // prettier-ignore
@@ -861,8 +1038,16 @@ describe('general specimen query', () => {
       db, [dateSpec, _toColumnSpec(QueryColumnID.Longitude)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionStartDate: startDate1, longitude: specimen1!.publicLongitude },
-      { collectionStartDate: startDate2, longitude: specimen2!.publicLongitude }
+      {
+        collectionStartDate: startDate1,
+        partialStartDate: null,
+        longitude: specimen1!.publicLongitude
+      },
+      {
+        collectionStartDate: startDate2,
+        partialStartDate: null,
+        longitude: specimen2!.publicLongitude
+      }
     ]);
   });
 
@@ -870,6 +1055,7 @@ describe('general specimen query', () => {
     await Specimen.dropAll(db);
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -886,16 +1072,16 @@ describe('general specimen query', () => {
       db, [_toColumnSpec(QueryColumnID.CollectionEndDate, false)], 
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { collectionEndDate: null },
-      { collectionEndDate: endDate1 }
+      { collectionEndDate: null, partialEndDate: null },
+      { collectionEndDate: endDate1, partialEndDate: null }
     ]);
     expect(results[1]).toEqual(2);
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [_toColumnSpec(QueryColumnID.TypeStatus, false)],
+      db, [_toColumnSpec(QueryColumnID.TypeStatus, true)],
       null, null, null, 0, 10);
-    expect(results[0]).toEqual([{ typeStatus: 'paratype' }, { typeStatus: 'normal' }]);
+    expect(results[0]).toEqual([{ typeStatus: 'paratype' }, { typeStatus: null }]);
     expect(results[1]).toEqual(2);
 
     // prettier-ignore
@@ -982,6 +1168,7 @@ describe('general specimen query', () => {
     await Specimen.dropAll(db);
     await _createSpecimen1(db);
     await _createSpecimen2(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -990,8 +1177,18 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.CollectionEndDate, true)
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 },
-      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
+      {
+        catalogNumber: 'Q1',
+        occurrenceGuid: 'GQ1',
+        collectionEndDate: endDate1,
+        partialEndDate: null
+      },
+      {
+        catalogNumber: 'Q2',
+        occurrenceGuid: 'GQ2',
+        collectionEndDate: null,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(2);
 
@@ -1002,7 +1199,12 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.CollectionEndDate, null, 'Blank')
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q2', occurrenceGuid: 'GQ2', collectionEndDate: null }
+      {
+        catalogNumber: 'Q2',
+        occurrenceGuid: 'GQ2',
+        collectionEndDate: null,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(1);
 
@@ -1013,7 +1215,12 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.CollectionEndDate, null, 'Non-blank')
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { catalogNumber: 'Q1', occurrenceGuid: 'GQ1', collectionEndDate: endDate1 }
+      {
+        catalogNumber: 'Q1',
+        occurrenceGuid: 'GQ1',
+        collectionEndDate: endDate1,
+        partialEndDate: null
+      }
     ]);
     expect(results[1]).toEqual(1);
   });
@@ -1023,6 +1230,7 @@ describe('general specimen query', () => {
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let locationFilter: QueryLocationFilter = {
       countyIDs: [specimen2!.countyID!],
@@ -1128,6 +1336,7 @@ describe('general specimen query', () => {
     await _createSpecimen2(db); // 2021-01-04
     await _createSpecimen3(db); // 2020-01-01
     await _createSpecimen4(db); // 2020-01-01
+    await Specimen.commit(db);
 
     let dateFilter: QueryDateFilter = {
       fromDateMillis: new Date('2021-01-01').getTime(),
@@ -1208,6 +1417,7 @@ describe('general specimen query', () => {
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let taxonFilter: QueryTaxonFilter = {
       phylumIDs: [specimen2!.phylumID!],
@@ -1358,6 +1568,7 @@ describe('general specimen query', () => {
     const specimen1 = await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -1375,8 +1586,8 @@ describe('general specimen query', () => {
         _toColumnSpec(QueryColumnID.Family, true)
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID },
-      { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID }
+      { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID },
+      { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID }
     ]);
 
     // prettier-ignore
@@ -1397,6 +1608,7 @@ describe('general specimen query', () => {
     await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let taxonFilter = {
       phylumIDs: null,
@@ -1428,6 +1640,7 @@ describe('general specimen query', () => {
     await _createSpecimen1(db);
     const specimen2 = await _createSpecimen2(db);
     const specimen3 = await _createSpecimen3(db);
+    await Specimen.commit(db);
 
     let taxonFilter = {
       phylumIDs: null,
@@ -1457,6 +1670,7 @@ describe('general specimen query', () => {
   test('returning no results', async () => {
     await Specimen.dropAll(db);
     await _createSpecimen1(db);
+    await Specimen.commit(db);
 
     // prettier-ignore
     let results = await Specimen.generalQuery(
@@ -1510,9 +1724,9 @@ async function _createSpecimen1(db: DB): Promise<Specimen | null> {
   const source: SpecimenSource = Object.assign({}, baseSource);
   source.catalogNumber = 'Q1';
   source.occurrenceID = 'GQ1';
-  source.startDate = startDate1.toISOString();
-  source.collectionRemarks =
-    'cave; *end date ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
+  source.eventDate = startDate1.toISOString();
+  source.eventRemarks =
+    'cave; ended ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
   return await Specimen.create(db, source);
 }
 
@@ -1539,11 +1753,11 @@ async function _createSpecimen2(db: DB): Promise<Specimen | null> {
     decimalLatitude: '24.00',
     decimalLongitude: '-92.00',
 
-    startDate: startDate2.toISOString(),
-    collectors: 'Person X',
-    determinationDate: detDate2.toISOString(),
-    collectionRemarks: '*end date foo',
-    determiners: 'Person Y',
+    eventDate: startDate2.toISOString(),
+    recordedBy: 'Person X',
+    eventRemarks: _toEndDate(1900, 1, 1),
+    dateIdentified: detDate2.toISOString(),
+    identifiedBy: 'Person Y',
     typeStatus: 'paratype',
     organismQuantity: '2'
   };
@@ -1573,12 +1787,12 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
     decimalLatitude: '20.2',
     decimalLongitude: '-90.9',
 
-    startDate: startDate.toISOString(),
-    collectors: 'Some One',
-    collectionRemarks: 'had fun!',
-    determinationDate: detDate.toISOString(),
-    determiners: 'Person A',
-    typeStatus: 'normal',
+    eventDate: startDate.toISOString(),
+    recordedBy: 'Some One',
+    eventRemarks: 'had fun!',
+    dateIdentified: detDate.toISOString(),
+    identifiedBy: 'Person A',
+    typeStatus: '',
     organismQuantity: '3'
   };
   return await Specimen.create(db, source3);
@@ -1607,9 +1821,9 @@ async function _createSpecimen4(db: DB): Promise<Specimen | null> {
     decimalLatitude: '23.45',
     decimalLongitude: '-93.21',
 
-    startDate: startDate.toISOString(),
-    collectors: 'Some One',
-    typeStatus: 'normal'
+    eventDate: startDate.toISOString(),
+    recordedBy: 'Some One',
+    typeStatus: ''
   };
   return await Specimen.create(db, source4);
 }
@@ -1625,4 +1839,18 @@ function _toColumnSpec(
   optionText: string = 'Any value'
 ): QueryColumnSpec {
   return { columnID, ascending, optionText };
+}
+
+function _toEndDate(year: number, month?: number, day?: number): string {
+  return 'ended ' + _toEventDate(year, month, day);
+}
+
+function _toStartDate(year: number, month?: number, day?: number): string {
+  return 'started ' + _toEventDate(year, month, day);
+}
+
+function _toEventDate(year: number, month?: number, day?: number): string {
+  if (!month) return year.toString();
+  if (!day) return `${year}-${month}`;
+  return `${year}-${month}-${day}`;
 }

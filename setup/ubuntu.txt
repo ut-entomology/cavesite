@@ -98,8 +98,12 @@ scp uploadable.csv user@caves.tacc.utexas.edu:~/
 
 (13) Load the data into the database:
 
-cd /var/www
-node build/tools/load-csv.js ~/uploadable.csv
+    cd /var/www
+    node build/tools/load-csv.js ~/uploadable.csv
+    
+And maybe:
+
+    node build/tools/tally-effort.js
 
 (14) Only do one of these if not previously done. To set up the server for testing purposes and see console log output:
 

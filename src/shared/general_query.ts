@@ -2,6 +2,10 @@
  * Support for conveying general queries and query results between client and server
  */
 
+// Determine the local date format for use in representing partial dates.
+
+const monthFirstDate = _isMonthFirstLocale();
+
 // TODO: revisit need to return taxon/location IDs in general query
 
 export const EARLIEST_RECORD_DATE = new Date('1/1/1930');
@@ -85,8 +89,10 @@ export interface QueryRow {
   occurrenceGuid?: string;
 
   collectionStartDate?: Date | null;
+  partialStartDate?: string | null;
 
   collectionEndDate?: Date | null;
+  partialEndDate?: string | null;
 
   collectors?: string | null; // |-delimited names, last name last
 
@@ -217,10 +223,14 @@ setColumnInfo({
   description: 'First day of collection, which may be the only collection date',
   defaultSelection: true,
   column1: 'collection_start_date',
+  column2: 'partial_start_date',
   defaultEmWidth: 6,
   options: null,
   columnClass: 'center',
-  getValue: (row: QueryRow) => getDateValue(row.collectionStartDate)
+  getValue: (row: QueryRow) =>
+    row.partialStartDate
+      ? _toDisplayedPartialDate(row.partialStartDate)
+      : getDateValue(row.collectionStartDate)
 });
 setColumnInfo({
   columnID: QueryColumnID.CollectionEndDate,
@@ -229,10 +239,18 @@ setColumnInfo({
   description: 'Last day of collection, if collected over more than one day',
   defaultSelection: true,
   column1: 'collection_end_date',
+  column2: 'partial_end_date',
   options: nullableOptions,
   defaultEmWidth: 6,
   columnClass: 'center',
-  getValue: (row: QueryRow) => getDateValue(row.collectionEndDate)
+  getValue: (row: QueryRow) => {
+    if (row.partialEndDate) return _toDisplayedPartialDate(row.partialEndDate);
+    // Don't return a blank end date, because we don't know when the end date was,
+    // and because the user might get confused over why the record doesn't show
+    // in blank end date searches.
+    if (row.partialStartDate) return _toDisplayedPartialDate(row.partialStartDate);
+    return getDateValue(row.collectionEndDate);
+  }
 });
 setColumnInfo({
   columnID: QueryColumnID.Collectors,
@@ -308,12 +326,19 @@ setColumnInfo({
 });
 setColumnInfo({
   columnID: QueryColumnID.TypeStatus,
-  fullName: 'Specimen Type Status',
-  abbrName: 'Type Status',
-  description: 'The type status of this particular specimen',
+  fullName: 'Type Status',
+  abbrName: null,
+  description:
+    'Type status of this particular specimen, and whether it is undescribed.',
   defaultSelection: true,
   column1: 'type_status',
-  options: nullableOptions,
+  options: [
+    { text: 'Any value', sql: null },
+    { text: 'Undescribed', sql: "X='undescribed'" },
+    { text: 'Any type', sql: "X is not null and X!='undescribed'" },
+    { text: 'Non-blank', sql: 'X is not null' },
+    { text: 'Blank', sql: 'X is null' }
+  ],
   defaultEmWidth: 7,
   columnClass: null,
   getValue: (row: QueryRow) => row.typeStatus || ''
@@ -537,6 +562,20 @@ setColumnInfo({
   getValue: (row: QueryRow) => getNumber(row.publicLongitude)
 });
 
+function _isMonthFirstLocale(): boolean {
+  // Corresponds to April 5, 2000.
+  const sampleDate = new Date(2000, 3, 5).toLocaleDateString();
+  return sampleDate.indexOf('4') < sampleDate.indexOf('5');
+}
+
 function _toItalic(name?: string | null) {
   return name ? `<i>${name}</i>` : '';
+}
+
+function _toDisplayedPartialDate(partialDate: string): string {
+  const dashOffset = partialDate.indexOf('-');
+  if (dashOffset < 0) return partialDate; // just the year
+  const year = partialDate.substring(0, dashOffset);
+  const month = partialDate.substring(dashOffset + 1);
+  return monthFirstDate ? `${month}/?/${year}` : `?/${month}/${year}`;
 }

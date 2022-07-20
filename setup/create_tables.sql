@@ -24,6 +24,13 @@
 -- * "specimens" => GBIF organismQuantityType (if prep.CountAmt non-zero/non-null)
 -- * locality.GUID => GBIF locationID
 -- * collectionobject.(CollectionObjectAttributeID).Text4 => GBIF lifeStage
+-- * generate GBIF.eventRemarks = "started <PARTIAL>; ended <PARTIAL>" for date
+-- *   precisions of 2 or 3, where <PARTIAL> is either YYYY or MM/YYYY.
+
+-- The precision of the start and end dates are ONLY available in
+-- collectingevent.StartDatePrecision and collectingevent.EndDatePrecision;
+-- the values in the missing fields of StartDate and EndDate are arbitrary.
+-- Precisions: 0 = no date; 1 = full date; 2 = year + month; 3 = only year
 
 create table users (
     -- None of these fields are in GBIF.
@@ -126,7 +133,11 @@ create table specimens (
     locality_id integer not null references locations,
     -- GBIF eventDate/year/month/day (specify ce.StartDate)
     collection_start_date timestamptz,
+    -- extracted from GBIF eventRemarks
+    partial_start_date text,
+    -- extracted from GBIF eventRemarks
     collection_end_date timestamptz, -- not in GBIF
+    partial_end_date text,
     -- GBIF recordedBy (|-delimited names, last name last)
     collectors text,
     -- |-delimited lowercase last names, alphabetically sorted
