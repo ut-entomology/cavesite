@@ -29,6 +29,7 @@
   export let onClose: () => void;
   export let onQuery: (query: GeneralQuery) => void;
 
+  let filterByDate = initialQuery.dateFilter !== null;
   let fromDate = initialQuery.dateFilter
     ? new Date(initialQuery.dateFilter.fromDateMillis!)
     : EARLIEST_RECORD_DATE;
@@ -59,7 +60,8 @@
     }
   }
 
-  export function getDateFilter(): QueryDateFilter {
+  function getDateFilter(): QueryDateFilter | null {
+    if (!filterByDate) return null;
     return {
       fromDateMillis: fromDate.getTime(),
       throughDateMillis: throughDate.getTime()
@@ -109,9 +111,14 @@
     });
   }
 
-  function _setDateRange(from: Date, thru: Date): void {
-    fromDate = from;
-    throughDate = thru;
+  function _setDateRange(from: Date, thru: Date, selected: boolean): void {
+    if (selected) {
+      filterByDate = true;
+      fromDate = from;
+      throughDate = thru;
+    } else {
+      filterByDate = false;
+    }
   }
 
   function _toSortOption(ascending: boolean | null) {
@@ -129,6 +136,8 @@
   </div>
   <DateRangeInput
     classes="justify-content-center mb-4"
+    selectable={true}
+    selected={filterByDate}
     from={fromDate}
     through={throughDate}
     earliestDate={EARLIEST_RECORD_DATE}

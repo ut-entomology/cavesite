@@ -2,10 +2,16 @@
   import { localToInputDate, inputToLocalDate } from '../util/conversion';
 
   export let classes = '';
+  export let selectable = false;
+  export let selected = true;
   export let from: Date;
   export let through: Date;
   export let earliestDate: Date;
-  export let setDateRange: (fromDate: Date, throughDate: Date) => void;
+  export let setDateRange: (
+    fromDate: Date,
+    throughDate: Date,
+    selected: boolean
+  ) => void;
 
   let fromStr = localToInputDate(from);
   let throughStr = localToInputDate(through);
@@ -17,6 +23,10 @@
   $: fromDate = inputToLocalDate(fromStr);
   $: throughDate = inputToLocalDate(throughStr);
 
+  function onToggle(): void {
+    setDateRange(fromDate, throughDate, selected);
+  }
+
   function onFromBlur(): void {
     if (fromStr == '') {
       fromStr = localToInputDate(from);
@@ -25,7 +35,7 @@
       throughDate = fromDate;
       throughStr = fromStr;
     }
-    setDateRange(fromDate, throughDate);
+    setDateRange(fromDate, throughDate, selected);
   }
 
   function onThroughBlur(): void {
@@ -36,7 +46,7 @@
       fromDate = throughDate;
       fromStr = throughStr;
     }
-    setDateRange(fromDate, throughDate);
+    setDateRange(fromDate, throughDate, selected);
   }
 
   function resetDates() {
@@ -44,16 +54,28 @@
     fromStr = localToInputDate(earliestDate);
     throughDate = new Date();
     throughStr = localToInputDate(throughDate);
-    setDateRange(fromDate, throughDate);
+    setDateRange(fromDate, throughDate, selected);
   }
 </script>
 
 <div class="row gx-2 {classes}">
+  {#if selectable}
+    <div class="col-auto">
+      <input
+        type="checkbox"
+        bind:checked={selected}
+        class="form-check-input"
+        aria-label="check to restrict dates"
+        on:change={onToggle}
+      />
+    </div>
+  {/if}
   <div class="col-auto">From</div>
   <div class="col-auto">
     <input
       type="date"
       class="form-control date_picker"
+      disabled={!selected}
       required={true}
       min={earliestStr}
       max={latestStr}
@@ -66,6 +88,7 @@
     <input
       type="date"
       class="form-control date_picker"
+      disabled={!selected}
       required={true}
       min={earliestStr}
       max={latestStr}
@@ -74,12 +97,12 @@
     />
   </div>
   <div class="col-auto reset_icon">
-    <img
-      src="/icons8-reset-24.png"
+    <span
+      class:disabled={!selected}
       title="Reset dates"
       alt="Reset dates"
-      on:click={resetDates}
-    />
+      on:click={resetDates}>&#x27F2;</span
+    >
   </div>
 </div>
 
@@ -93,12 +116,22 @@
     text-align: center;
     color: $blueLinkForeColor;
   }
+  :global(.date_picker:disabled) {
+    color: #aaa;
+  }
 
-  .reset_icon img {
-    margin-top: -0.05rem;
-    margin-left: 0.2rem;
-    width: 1rem;
-    height: 1rem;
+  .reset_icon {
+    margin-top: -0.2rem;
+    margin-left: 0.1rem;
+    user-select: none;
+    font-size: 1.2rem;
+    color: $blueLinkForeColor;
+  }
+  .reset_icon span {
     cursor: pointer;
+  }
+  .reset_icon .disabled {
+    color: #aaa;
+    cursor: default;
   }
 </style>

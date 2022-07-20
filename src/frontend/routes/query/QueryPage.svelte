@@ -3,11 +3,14 @@
   import { GeneralQuery, QueryColumnID, QueryRow } from '../../../shared/general_query';
 
   interface CachedResults {
+    version: number;
     query: GeneralQuery;
     startOffset: number;
     totalRows: number;
     rows: QueryRow[];
   }
+
+  const CACHED_VERSION = 2;
 
   const cachedResults = createSessionStore<CachedResults | null>(
     'cached_results',
@@ -52,6 +55,11 @@
 
   let templateQuery: GeneralQuery | null = null;
   let lastRowNumber = 0;
+
+  $: if ($cachedResults && $cachedResults.version != CACHED_VERSION) {
+    $cachedResults = null;
+  }
+
   $: if ($cachedResults) {
     lastRowNumber = $cachedResults.startOffset + BIG_STEP_ROWS;
     if (lastRowNumber > $cachedResults.totalRows) {
@@ -104,6 +112,7 @@
     templateQuery = null; // close the query dialog
 
     const results: CachedResults = {
+      version: CACHED_VERSION,
       query,
       startOffset: 0,
       totalRows: 0,

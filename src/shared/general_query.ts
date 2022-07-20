@@ -221,7 +221,7 @@ setColumnInfo({
   column1: 'collection_start_date',
   column2: 'partial_start_date',
   defaultEmWidth: 6,
-  options: null,
+  options: nullableOptions,
   columnClass: 'center',
   getValue: (row: QueryRow) =>
     row.partialStartDate
