@@ -602,8 +602,7 @@ export class Specimen implements TaxonPathSpec {
           whereComponents.push(option.sql.replace('X', columnInfo.column1));
         }
       }
-      const sortColumnName =
-        columnID == QueryColumnID.ResultCount ? columnInfo.asName! : columnInfo.column1;
+      const sortColumnName = columnInfo.asName ? columnInfo.asName : columnInfo.column1;
       if (columnSpec.ascending !== null) {
         if (columnSpec.ascending) {
           columnOrders.push(sortColumnName);
