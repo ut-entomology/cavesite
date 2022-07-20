@@ -567,5 +567,6 @@ function _toDisplayedPartialDate(partialDate: string): string {
   if (dashOffset < 0) return partialDate; // just the year
   const year = partialDate.substring(0, dashOffset);
   const month = partialDate.substring(dashOffset + 1);
-  return `${month}/${year}`;
+  // parse the month to strip any leading zero
+  return `${parseInt(month)}/${year}`;
 }
