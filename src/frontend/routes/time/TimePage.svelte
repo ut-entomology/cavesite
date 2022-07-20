@@ -36,6 +36,7 @@
     query: TimeGraphQuery;
     historyGraphSpecs: HistoryGraphSpecs;
     seasonalityGraphSpecs: SeasonalityGraphSpecs;
+    recordsMissingDates: number;
     recordsMissingMonth: number;
     recordsMissingDayOfMonth: number;
   }
@@ -65,7 +66,7 @@
   import { LocationRank } from '../../../shared/model';
 
   $pageName = 'Seasonality and History';
-  const CACHED_DATA_VERSION = 2;
+  const CACHED_DATA_VERSION = 3;
 
   enum CountUnits {
     species = 'species',
@@ -103,6 +104,11 @@
   }
 
   $: if ($cachedData) {
+    const dateExclusionNote =
+      $cachedData.recordsMissingDates > 0
+        ? $cachedData.recordsMissingDates +
+          ' records were excluded for not having dates'
+        : null;
     const monthExclusionNote =
       $cachedData.recordsMissingMonth > 0
         ? $cachedData.recordsMissingMonth +
@@ -119,6 +125,9 @@
       seasonalityYUnits
     );
     seasonalityFootnotes = [];
+    if (dateExclusionNote) {
+      seasonalityFootnotes.push(dateExclusionNote);
+    }
     if (monthExclusionNote) {
       seasonalityFootnotes.push(monthExclusionNote);
     }
@@ -128,6 +137,9 @@
 
     historyGraphSpec = _getHistoryGraphSpec(historyXUnits, historyYUnits);
     historyFootnotes = [];
+    if (dateExclusionNote) {
+      historyFootnotes.push(dateExclusionNote);
+    }
     if (historyXUnits != HistoryXUnits.yearly && monthExclusionNote) {
       historyFootnotes.push(monthExclusionNote);
     }
@@ -169,7 +181,7 @@
       taxonFilter: request.filterTaxa ? await getTaxonFilter() : null
     };
     queryRequest = null; // hide query request dialog
-    const generalQuery = convertTimeQuery(timeQuery);
+    const generalQuery = convertTimeQuery(timeQuery, false);
 
     // Generate the title.
 
@@ -211,6 +223,11 @@
     let description =
       `${taxonFilterName} ${locationFilterName}<br/>` +
       `from ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
+
+    // Get a count of the number of blank dates in the filtered set.
+
+    const blankDateQuery = convertTimeQuery(timeQuery, true);
+    const recordsMissingDates = (await _loadBatch(blankDateQuery, 0))[0].resultCount!;
 
     // Tally the data for the charts.
 
@@ -300,6 +317,7 @@
           )
         }
       },
+      recordsMissingDates,
       recordsMissingMonth,
       recordsMissingDayOfMonth
     });

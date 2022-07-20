@@ -34,90 +34,103 @@ export enum LifeStage {
   All
 }
 
-export function convertTimeQuery(timeGraphQuery: TimeGraphQuery): GeneralQuery {
+export function convertTimeQuery(
+  timeGraphQuery: TimeGraphQuery,
+  countBlankDates: boolean
+): GeneralQuery {
   const columnSpecs: QueryColumnSpec[] = [];
   columnSpecs.push({
     columnID: QueryColumnID.ResultCount,
     ascending: null,
     optionText: null
   });
-  columnSpecs.push({
-    columnID: QueryColumnID.CollectionStartDate,
-    ascending: true,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.CollectionEndDate,
-    ascending: true,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Phylum,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Class,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Order,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Family,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Genus,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Species,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Subspecies,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.TaxonUnique,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.Obligate,
-    ascending: null,
-    optionText: timeGraphQuery.taxonFilter == null ? 'Yes' : null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.LifeStage,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.OccurrenceRemarks,
-    ascending: null,
-    optionText: null
-  });
-  columnSpecs.push({
-    columnID: QueryColumnID.SpecimenCount,
-    ascending: null,
-    optionText: null
-  });
+  if (countBlankDates) {
+    columnSpecs.push({
+      columnID: QueryColumnID.CollectionStartDate,
+      ascending: null,
+      optionText: 'Blank'
+    });
+  } else {
+    columnSpecs.push({
+      columnID: QueryColumnID.CollectionStartDate,
+      ascending: true,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.CollectionEndDate,
+      ascending: true,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Phylum,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Class,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Order,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Family,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Genus,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Species,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Subspecies,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.TaxonUnique,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Obligate,
+      ascending: null,
+      optionText: timeGraphQuery.taxonFilter == null ? 'Yes' : null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.LifeStage,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.OccurrenceRemarks,
+      ascending: null,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.SpecimenCount,
+      ascending: null,
+      optionText: null
+    });
+  }
 
   return {
     columnSpecs,
-    dateFilter: {
-      fromDateMillis: timeGraphQuery.fromDateMillis,
-      throughDateMillis: timeGraphQuery.throughDateMillis
-    },
+    dateFilter: countBlankDates
+      ? null
+      : {
+          fromDateMillis: timeGraphQuery.fromDateMillis,
+          throughDateMillis: timeGraphQuery.throughDateMillis
+        },
     locationFilter: timeGraphQuery.locationFilter,
     taxonFilter: timeGraphQuery.taxonFilter
   };
