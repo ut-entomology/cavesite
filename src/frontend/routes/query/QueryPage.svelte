@@ -27,7 +27,7 @@
   import DataTabRoute from '../../components/DataTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
-  import QueryFilterDialog from './QueryFilterDialog.svelte';
+  import QueryFilterDialog, { getDefaultDateRange } from './QueryFilterDialog.svelte';
   import RowControls, {
     type RowControlsConfig
   } from '../../components/RowControls.svelte';
@@ -89,9 +89,13 @@
   function createNewQuery() {
     templateQuery = $cachedResults?.query || null;
     if (templateQuery === null) {
+      const defaultDateRange = getDefaultDateRange();
       templateQuery = {
         columnSpecs: [],
-        dateFilter: null,
+        dateFilter: {
+          fromDateMillis: defaultDateRange[0].getTime(),
+          throughDateMillis: defaultDateRange[1].getTime()
+        },
         locationFilter: null,
         taxonFilter: null
       };

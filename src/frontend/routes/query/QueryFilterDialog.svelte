@@ -1,3 +1,15 @@
+<script lang="ts" context="module">
+  import {
+    EARLIEST_RECORD_DATE,
+    type QueryDateFilter,
+    type GeneralQuery
+  } from '../../../shared/general_query';
+
+  export function getDefaultDateRange(): [Date, Date] {
+    return [EARLIEST_RECORD_DATE, new Date()];
+  }
+</script>
+
 <script lang="ts">
   import { dndzone, Item } from 'svelte-dnd-action';
   import { flip } from 'svelte/animate';
@@ -5,11 +17,6 @@
   import ModalDialog from '../../common/ModalDialog.svelte';
   import DateRangeInput from '../../components/DateRangeInput.svelte';
   import { columnInfoMap, type QueryColumnInfo } from '../../../shared/general_query';
-  import {
-    EARLIEST_RECORD_DATE,
-    type QueryDateFilter,
-    type GeneralQuery
-  } from '../../../shared/general_query';
   import { getLocationFilter, getTaxonFilter } from '../../lib/query_filtering';
 
   type DraggableItem = Item & {
@@ -29,13 +36,14 @@
   export let onClose: () => void;
   export let onQuery: (query: GeneralQuery) => void;
 
+  const defaultDateRange = getDefaultDateRange();
   let filterByDate = initialQuery.dateFilter !== null;
   let fromDate = initialQuery.dateFilter
     ? new Date(initialQuery.dateFilter.fromDateMillis!)
-    : EARLIEST_RECORD_DATE;
+    : defaultDateRange[0];
   let throughDate = initialQuery.dateFilter
     ? new Date(initialQuery.dateFilter.throughDateMillis!)
-    : new Date();
+    : defaultDateRange[1];
   let filterTaxa = initialQuery.taxonFilter !== null;
   let filterLocations = initialQuery.locationFilter !== null;
   let includedItems: DraggableItem[] = [];
