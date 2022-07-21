@@ -6,7 +6,7 @@ import { loadAndCheckEnvVars } from '../backend/util/env_util';
 import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres';
 import { Taxon } from '../backend/model/taxon';
 import { Location } from '../backend/model/location';
-import { Specimen } from '../backend/model/specimen';
+import { type SpecimenSource, Specimen } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 
@@ -43,7 +43,7 @@ async function loadDB() {
   const db = getDB();
   let importFailureCount = 0;
   for (const record of records) {
-    const specimenSource = {
+    const specimenSource: SpecimenSource = {
       catalogNumber: record.catalogNumber,
       occurrenceID: 'GBIF:' + record.catalogNumber,
 
@@ -71,7 +71,7 @@ async function loadDB() {
       dateIdentified: record.determinedDate,
       identifiedBy: toNameField(record.determiners),
       occurrenceRemarks: record.coaRemarks,
-      determinationRemarks: toDetRemarks(record),
+      identificationRemarks: toDetRemarks(record),
       typeStatus: record.typeStatus,
       organismQuantity: record.count,
       lifeStage: record.lifeStage
