@@ -10,6 +10,7 @@
 <script lang="ts">
   import ModalDialog from '../../common/ModalDialog.svelte';
   import DateRangeInput from '../../components/DateRangeInput.svelte';
+  import FilterSelector from '../../components/FilterSelector.svelte';
   import { EARLIEST_RECORD_DATE } from '../../../shared/general_query';
 
   export let initialQueryRequest: TimeGraphQueryRequest;
@@ -34,6 +35,15 @@
     fromDate = from;
     throughDate = thru;
   }
+
+  function setFilters(taxa: boolean, locations: boolean): string {
+    filterTaxa = taxa;
+    filterLocations = locations;
+
+    return `retrieving ${taxa ? 'selected taxa' : 'cave obligates'} and ${
+      locations ? 'selected' : 'all'
+    } locations`;
+  }
 </script>
 
 <ModalDialog title="Generate Time Charts" contentClasses="time-filter-content">
@@ -51,34 +61,7 @@
     setDateRange={_setDateRange}
   />
 
-  <div class="row justify-content-center mt-3 mb-1">
-    <div class="col-auto">
-      Restrict results to selected:
-      <span class="form-check form-check-inline ms-2">
-        <input
-          type="checkbox"
-          bind:checked={filterTaxa}
-          class="form-check-input"
-          aria-label="filter by taxa"
-        />
-        <label class="form-check-label" for="taxonFilterSwitch">taxa</label>
-      </span>
-      <span class="form-check form-check-inline">
-        <input
-          type="checkbox"
-          bind:checked={filterLocations}
-          class="form-check-input"
-          aria-label="filter by locations"
-        />
-        <label class="form-check-label" for="locationFilterSwitch">locations</label>
-      </span>
-    </div>
-  </div>
-  <div class="row justify-content-center mb-3">
-    <div class="col-auto obligate_restriction">
-      ({filterTaxa ? 'Not restricted' : 'Restricted'} to cave obligates.)
-    </div>
-  </div>
+  <FilterSelector {filterTaxa} {filterLocations} {setFilters} />
 
   <div class="dialog_controls row g-2">
     <div class="col-12 text-center">
@@ -94,8 +77,5 @@
   .dialog_controls button {
     width: 6rem;
     margin: 1rem 0.5rem 0 0.5rem;
-  }
-  .obligate_restriction {
-    color: #999;
   }
 </style>
