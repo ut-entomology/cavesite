@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Point } from '../../../shared/point';
+  import { EffortFlags } from '../../../shared/model';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
 
   export let locationData: LocationGraphData;
@@ -16,6 +17,25 @@
 
   const points = getPoints(locationData);
   const unitValue = points[points.length - 1].x;
+
+  const superscripts: string[] = [];
+  if (locationData.flags & EffortFlags.multiDayPersonVisit) {
+    superscripts.push('E');
+  }
+  if (locationData.flags & EffortFlags.missingDayOfMonth) {
+    superscripts.push('M');
+  }
+  if (locationData.flags & EffortFlags.pitfallTrap) {
+    superscripts.push('P');
+  }
+  if (locationData.flags & EffortFlags.missingDate) {
+    superscripts.push('X');
+  }
+  if (locationData.flags & EffortFlags.missingMonth) {
+    superscripts.push('Y');
+  }
+  const html = superscripts.join(',');
+  const footnoteLinks = '' ? '' : `<sup>${html}</sup>`;
 </script>
 
 <div class="row gx-3">
@@ -29,8 +49,10 @@
   </div>
   <div class="col" on:click={() => openLocation(locationData)}>
     <span class="location_name">{locationName}</span>
+
     <span class="loc_deemph"
-      >({unitValue} {visitUnitName}{unitValue > 1 ? 's' : ''})</span
+      >({unitValue}
+      {visitUnitName}{unitValue > 1 ? 's' : ''}){@html footnoteLinks}</span
     >
   </div>
 </div>

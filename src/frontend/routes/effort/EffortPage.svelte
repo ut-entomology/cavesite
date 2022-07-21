@@ -13,7 +13,7 @@
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
 
-  const CLUSTER_STORE_VERSION = 3;
+  const CLUSTER_STORE_VERSION = 4;
 
   interface ClusterStore {
     version: number;
@@ -41,11 +41,14 @@
   import SectionFootnotes from '../../components/SectionFootnotes.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
+    MAX_DAYS_TREATED_AS_PER_PERSON,
+    PITFALL_TRAP_DAYS_PER_VISIT,
     TaxonRank,
     DissimilarityBasis,
     DissimilarityTransform,
     TaxonWeight,
-    ComparedTaxa
+    ComparedTaxa,
+    EffortFlags
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
@@ -53,6 +56,7 @@
   import { DatasetType, getGraphSpec } from './dataset_type';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
+  import Pie from 'svelte-chartjs/src/Pie.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -101,11 +105,14 @@
   let greatestSingleVisitLocationValue: number;
   let greatestMultiVisitLocationValue: number;
   let predictionTierStats: PredictionTierStat[];
+  let effortFlags: EffortFlags;
 
+  // Handle change of version of cached data.
   $: if ($clusterStore && $clusterStore.version != CLUSTER_STORE_VERSION) {
     $clusterStore = null;
   }
 
+  // Handle load of new cluster.
   $: if ($clusterStore) {
     clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
     clusterSpec.ignoreSubgenera = $clusterStore.config.ignoreSubgenera;
@@ -118,6 +125,7 @@
     }
   }
 
+  // Handle change of selected cluster and graph viewed.
   $: if ($clusterStore) {
     _setClusterSelectorColor(clusterIndex); // dependent on changes to clusterIndex
     const clusterData = $clusterStore.dataByCluster[clusterIndex];
@@ -160,6 +168,11 @@
     }
     if (multiPointLocationDataSet.length > 0) {
       greatestMultiVisitLocationValue = getLocationValue(multiPointLocationDataSet[0])!;
+    }
+
+    effortFlags = 0;
+    for (const graphData of dataset) {
+      effortFlags |= graphData.flags;
     }
 
     loadState = LoadState.ready;
@@ -465,6 +478,50 @@
           clusteringConfig={$clusterStore.config}
         />
       {/if}
+      <SectionFootnotes>
+        {#if effortFlags & EffortFlags.missingDayOfMonth}
+          <li>
+            The records for some of these caves indicate the year and month collected
+            but not the day of the month. These records are treated all occurring on a
+            single visit on the first day of the month. (Designated below via the
+            superscript <span class="superscript">M</span>.)
+          </li>
+        {/if}
+        {#if effortFlags & EffortFlags.missingMonth}
+          <li>
+            The records for some of these caves only indicate the year collected and not
+            the month or day of month. These records are treated all occurring on a
+            single visit on the first day of the year. (Designated below via the
+            superscript <span class="superscript">Y</span>.)
+          </li>
+        {/if}
+        {#if effortFlags & EffortFlags.missingDate}
+          <li>
+            The records for some of these caves are missing dates and are treated as all
+            occurring on the first visit to a cave, preceding all dated records for the
+            cave. (Designated below via the superscript <span class="superscript"
+              >X</span
+            >.)
+          </li>
+        {/if}
+        {#if effortFlags & EffortFlags.multiDayPersonVisit}
+          <li>
+            The records for some of these caves indicate collection over a range of 2 to {MAX_DAYS_TREATED_AS_PER_PERSON}
+            days. These records are treated all occurring as separate visits on each day.
+            (Designated below via the superscript <span class="superscript">E</span>.)
+          </li>
+        {/if}
+        {#if effortFlags & EffortFlags.pitfallTrap}
+          <li>
+            The records for some of these caves indicate collection over a range of more
+            than {MAX_DAYS_TREATED_AS_PER_PERSON} days. These records are all assumed to
+            be pitfall trap specimens and are approximated as one visit for every {PITFALL_TRAP_DAYS_PER_VISIT}
+            days of the range, dividing the collected species across the visits. (Designated
+            below via the superscript
+            <span class="superscript">P</span>.)
+          </li>
+        {/if}
+      </SectionFootnotes>
 
       {#if multiPointLocationDataSet.length > 0}
         <hr />
@@ -499,14 +556,6 @@
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
       />
-      <SectionFootnotes>
-        {#if clusterSpec.comparedTaxa != ComparedTaxa.all}
-          <li>
-            The above taxa may include undescribed genera and/or species for specimens
-            not necessarily known to be cave obligates.
-          </li>
-        {/if}
-      </SectionFootnotes>
     {/if}
   </div>
 </DataTabRoute>
@@ -559,5 +608,8 @@
   #cluster_color {
     display: inline-block;
     width: 1.3rem;
+  }
+  .superscript {
+    font-weight: bold;
   }
 </style>

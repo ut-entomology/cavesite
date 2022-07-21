@@ -1,5 +1,5 @@
 {#if $$slots.default}
-  <div class="row mt-2 justify-content-center small footnotes">
+  <div class="row ms-4 me-4 mt-2 justify-content-center small footnotes">
     <div class="col-auto">
       <ul>
         <slot />

@@ -267,6 +267,7 @@ function _toEffortData(data: Partial<LocationEffortData>): LocationEffortData {
     {
       startDate: new Date(),
       endDate: new Date(),
+      flags: 0,
       totalDays: 1,
       totalVisits: 1,
       totalPersonVisits: 1,

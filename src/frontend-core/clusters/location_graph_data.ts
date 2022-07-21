@@ -1,5 +1,5 @@
 import { type Point, pairsToPoints } from '../../shared/point';
-import type { RawLocationEffort } from '../../shared/model';
+import type { EffortFlags, RawLocationEffort } from '../../shared/model';
 
 // const ORIGIN = { x: 0, y: 0 };
 
@@ -9,6 +9,7 @@ export interface LocationGraphData {
   localityName: string;
   startDate: Date;
   endDate: Date;
+  flags: EffortFlags;
   perDayPoints: Point[];
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
@@ -49,6 +50,7 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     localityName: rawLocationEffort.localityName,
     startDate: rawLocationEffort.startDate,
     endDate: rawLocationEffort.endDate,
+    flags: rawLocationEffort.flags,
     perDayPoints,
     perVisitPoints,
     perPersonVisitPoints,

@@ -260,6 +260,7 @@ create table all_taxa_for_visits (
     start_epoch_day integer not null, -- days since 1/1/1970, for performance
     end_date timestamptz not null,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
+    flags integer not null,
     normalized_collectors text not null,
     collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
@@ -288,6 +289,7 @@ create table cave_genera_for_visits (
     start_epoch_day integer not null, -- days since 1/1/1970, for performance
     end_date timestamptz not null,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
+    flags integer not null,
     normalized_collectors text not null,
     collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
@@ -316,6 +318,7 @@ create table cave_obligates_for_visits (
     start_epoch_day integer not null, -- days since 1/1/1970, for performance
     end_date timestamptz not null,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
+    flags integer not null,
     normalized_collectors text not null,
     collector_count integer not null,
     kingdom_names text, -- |-delimited taxon uniques collected on visit
@@ -344,6 +347,7 @@ create table all_taxa_for_effort (
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
+    flags integer not null,
     total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
@@ -381,6 +385,7 @@ create table cave_genera_for_effort (
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
+    flags integer not null,
     total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
@@ -418,6 +423,7 @@ create table cave_obligates_for_effort (
     is_cave boolean not null,
     start_date timestamptz not null,
     end_date timestamptz not null,
+    flags integer not null,
     total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,

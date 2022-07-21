@@ -98,7 +98,6 @@
           {#if _isTierStatIndex(index, increasing)}
             {_toPercentStr(_toStatPercent(index, increasing))}
             <span class="percent">%</span>
-            <div class="above_arrow">&mapstoup;</div>
           {:else}
             <div class="no_stats">no stats</div>
           {/if}
@@ -142,10 +141,6 @@
   }
   .percent {
     font-size: 0.9em;
-  }
-  .above_arrow {
-    display: inline-block;
-    color: #6a547f;
   }
   .no_stats {
     background-color: #f2cbcb;

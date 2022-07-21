@@ -434,6 +434,7 @@ function _makeGraphData(
     localityName: 'Dummy Locality',
     startDate: DATE,
     endDate: DATE,
+    flags: 0,
     perDayPoints: [],
     perVisitPoints: pairsToPoints(pairs),
     perPersonVisitPoints: pairsToPoints(pairs),

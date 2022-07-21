@@ -834,6 +834,7 @@ async function _checkVisitFor(
       startEpochDay: _toDaysEpoch(specimen.collectionStartDate!),
       endDate: new Date(specimen.collectionStartDate!),
       endEpochDay: _toDaysEpoch(specimen.collectionStartDate!),
+      flags: 0,
       normalizedCollectors: specimen.normalizedCollectors!,
       collectorCount: specimen.normalizedCollectors!.split('|').length,
       kingdomNames: 'Animalia',
