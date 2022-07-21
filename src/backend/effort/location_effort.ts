@@ -22,14 +22,10 @@ const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export type LocationEffortData = Pick<
   DataOf<LocationEffort>,
-  | 'startDate'
-  | 'endDate'
   | 'flags'
-  | 'totalDays'
   | 'totalVisits'
   | 'totalPersonVisits'
   | 'totalSpecies'
-  | 'perDayPoints'
   | 'perVisitPoints'
   | 'perPersonVisitPoints'
 >;
@@ -39,8 +35,6 @@ export class LocationEffort {
   countyName: string | null;
   localityName: string;
   isCave: boolean;
-  startDate: Date;
-  endDate: Date;
   flags: EffortFlags;
   kingdomNames: string;
   kingdomVisits: string;
@@ -58,11 +52,9 @@ export class LocationEffort {
   speciesVisits: string | null;
   subspeciesNames: string | null;
   subspeciesVisits: string | null;
-  totalDays: number;
   totalVisits: number;
   totalPersonVisits: number;
   totalSpecies: number;
-  perDayPoints: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
 
@@ -73,8 +65,6 @@ export class LocationEffort {
     this.countyName = data.countyName;
     this.localityName = data.localityName;
     this.isCave = data.isCave;
-    this.startDate = data.startDate;
-    this.endDate = data.endDate;
     this.flags = data.flags;
     this.kingdomNames = data.kingdomNames;
     this.kingdomVisits = data.kingdomVisits;
@@ -92,11 +82,9 @@ export class LocationEffort {
     this.speciesVisits = data.speciesVisits;
     this.subspeciesNames = data.subspeciesNames;
     this.subspeciesVisits = data.subspeciesVisits;
-    this.totalDays = data.totalDays;
     this.totalVisits = data.totalVisits;
     this.totalPersonVisits = data.totalPersonVisits;
     this.totalSpecies = data.totalSpecies;
-    this.perDayPoints = data.perDayPoints;
     this.perVisitPoints = data.perVisitPoints;
     this.perPersonVisitPoints = data.perPersonVisitPoints;
   }
@@ -145,27 +133,22 @@ export class LocationEffort {
     );
     const result = await db.query(
       `insert into ${comparedTaxa}_for_effort (
-            location_id, county_name, locality_name, is_cave, start_date, end_date,
-            flags, total_days, total_visits, total_person_visits, total_species,
+            location_id, county_name, locality_name, is_cave,
+            flags, total_visits, total_person_visits, total_species,
             kingdom_names, kingdom_visits, phylum_names, phylum_visits,
             class_names, class_visits, order_names, order_visits,
             family_names, family_visits, genus_names, genus_visits,
             species_names, species_visits, subspecies_names, subspecies_visits,
-            per_day_points, per_visit_points, per_person_visit_points
-					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-            $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)`,
+            per_visit_points, per_person_visit_points
+					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+            $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
       [
         effort.locationID,
         effort.countyName,
         effort.localityName,
         // @ts-ignore
         effort.isCave,
-        // @ts-ignore
-        effort.startDate,
-        // @ts-ignore
-        effort.endDate,
         effort.flags,
-        effort.totalDays,
         effort.totalVisits,
         effort.totalPersonVisits,
         effort.totalSpecies,
@@ -185,7 +168,6 @@ export class LocationEffort {
         TaxonVisitCounter.toVisitsSeries(effort.speciesVisits),
         TaxonCounter.toNameSeries(effort.subspeciesNames),
         TaxonVisitCounter.toVisitsSeries(effort.subspeciesVisits),
-        TaxonCounter.toNameSeries(effort.perDayPoints),
         TaxonCounter.toNameSeries(effort.perVisitPoints),
         TaxonCounter.toNameSeries(effort.perPersonVisitPoints)
       ]
@@ -234,18 +216,14 @@ export class LocationEffort {
 
   static async tallyEffort(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
     let priorLocationID = 0;
-    let startDate: Date;
-    let endDate: Date;
+    let startDate: Date | null = null;
     let effortFlags: EffortFlags;
     let firstVisitOfLocation: LocationVisit;
     let taxonVisitCounter: TaxonVisitCounter;
-    let firstEpochDay = 0;
     let priorTotalSpecies = 0;
-    let totalDays = 0;
     let totalSpecies = 0;
     let totalVisits = 0;
     let totalPersonVisits = 0;
-    let perDayPoints: number[][] = [];
     let perVisitPoints: number[][] = [];
     let perPersonVisitPoints: number[][] = [];
     let skipCount = 0;
@@ -276,14 +254,10 @@ export class LocationEffort {
               locationName,
               firstVisitOfLocation!.isCave,
               {
-                startDate: startDate!,
-                endDate: endDate!,
                 flags: effortFlags!,
-                totalDays,
                 totalVisits,
                 totalPersonVisits,
                 totalSpecies,
-                perDayPoints: JSON.stringify(perDayPoints),
                 perVisitPoints: JSON.stringify(perVisitPoints),
                 perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
               },
@@ -291,7 +265,6 @@ export class LocationEffort {
             );
           }
           startDate = visit.startDate;
-          firstEpochDay = visit.startEpochDay;
           priorTotalSpecies = 0;
           effortFlags = 0;
           firstVisitOfLocation = visit;
@@ -300,7 +273,6 @@ export class LocationEffort {
           );
           totalVisits = 0;
           totalPersonVisits = 0;
-          perDayPoints = [];
           perVisitPoints = [];
           perPersonVisitPoints = [];
           priorLocationID = visit.locationID;
@@ -308,37 +280,35 @@ export class LocationEffort {
           taxonVisitCounter!.mergeCounter(visit);
         }
 
-        endDate = visit.endDate || visit.startDate;
-        const spanInDays =
-          Math.round(
-            (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
-          ) + 1;
+        let spanInDays = 1;
+        if (visit.startDate !== null) {
+          spanInDays =
+            Math.round(
+              (visit.endDate!.getTime() - visit.startDate.getTime()) / MILLIS_PER_DAY
+            ) + 1;
+        }
+        if (!startDate) startDate = visit.startDate;
         effortFlags! |= visit.flags;
 
         priorTotalSpecies = totalSpecies;
         totalSpecies = taxonVisitCounter!.getSpeciesCount();
-        totalDays = visit.endEpochDay - firstEpochDay + 1;
 
         if (spanInDays <= MAX_DAYS_TREATED_AS_PER_PERSON) {
           // treat as individually collected each day
           totalVisits += spanInDays;
           totalPersonVisits += spanInDays * visit.collectorCount;
-          effortFlags! |= EffortFlags.multiDayPersonVisit;
-
-          perDayPoints.push([totalDays, totalSpecies]);
+          if (spanInDays > 1) effortFlags! |= EffortFlags.multiDayPersonVisit;
           perVisitPoints.push([totalVisits, totalSpecies]);
           perPersonVisitPoints.push([totalPersonVisits, totalSpecies]);
         } else {
           // treat as a pitfall trap
           const visitEquivalent = Math.ceil(spanInDays / PITFALL_TRAP_DAYS_PER_VISIT);
-          perDayPoints.push([totalDays, totalSpecies]);
           for (let i = 1; i <= visitEquivalent; ++i) {
             ++totalVisits;
             ++totalPersonVisits;
             let speciesCount =
               priorTotalSpecies +
               Math.round((i * (totalSpecies - priorTotalSpecies)) / visitEquivalent);
-
             perVisitPoints.push([totalVisits, speciesCount]);
             perPersonVisitPoints.push([totalPersonVisits, speciesCount]);
           }
@@ -367,15 +337,10 @@ export class LocationEffort {
         locationName,
         firstVisitOfLocation!.isCave,
         {
-          // @ts-ignore
-          startDate,
-          endDate: endDate!,
           flags: effortFlags!,
-          totalDays,
           totalVisits,
           totalPersonVisits,
           totalSpecies,
-          perDayPoints: JSON.stringify(perDayPoints),
           perVisitPoints: JSON.stringify(perVisitPoints),
           perPersonVisitPoints: JSON.stringify(perPersonVisitPoints)
         },

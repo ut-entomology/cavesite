@@ -13,10 +13,8 @@ async function tallyVisits() {
   let specimens = await Specimen.getNextBatch(db, skipCount, SPECIMEN_BATCH_SIZE);
   while (specimens.length > 0) {
     for (const specimen of specimens) {
-      if (specimen.collectionStartDate !== null) {
-        for (const compare of comparedTaxa) {
-          await LocationVisit.addSpecimen(db, compare, specimen);
-        }
+      for (const compare of comparedTaxa) {
+        await LocationVisit.addSpecimen(db, compare, specimen);
       }
     }
     skipCount += specimens.length;

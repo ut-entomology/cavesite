@@ -12,15 +12,16 @@ import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligate
 import { partialDateHasMonth } from '../../shared/time_query';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+const NO_DATE_EPOCH_DAY = -Math.pow(1, 9); // very negative to make first in sort
 
 type LocationVisitData = DataOf<LocationVisit>;
 
 export class LocationVisit extends TaxonCounter {
   locationID: number;
   isCave: boolean;
-  startDate: Date;
-  startEpochDay: number;
-  endDate: Date;
+  startDate: Date | null;
+  startEpochDay: number | null;
+  endDate: Date | null;
   endEpochDay: number;
   flags: EffortFlags;
   normalizedCollectors: string; // can't be null because is a key in the DB
@@ -123,10 +124,6 @@ export class LocationVisit extends TaxonCounter {
     comparedTaxa: ComparedTaxa,
     specimen: Specimen
   ): Promise<void> {
-    if (specimen.collectionStartDate === null) {
-      throw Error("Can't add visits for a specimen with no start date");
-    }
-
     const [speciesName, subspeciesName] = toSpeciesAndSubspecies(
       specimen,
       specimen.taxonUnique
@@ -158,12 +155,18 @@ export class LocationVisit extends TaxonCounter {
         break;
     }
 
-    const startEpochDay = _toEpochDay(specimen.collectionStartDate);
-    let endDate = specimen.collectionEndDate || specimen.collectionStartDate;
-    let endEpochDay = _toEpochDay(endDate);
-    if (specimen.partialStartDate) {
-      endDate = specimen.collectionStartDate;
-      endEpochDay = startEpochDay;
+    let startEpochDay: number | null = null;
+    let endDate: Date | null = null;
+    let endEpochDay = NO_DATE_EPOCH_DAY;
+
+    if (specimen.collectionStartDate) {
+      startEpochDay = _toEpochDay(specimen.collectionStartDate);
+      endDate = specimen.collectionEndDate || specimen.collectionStartDate;
+      endEpochDay = _toEpochDay(endDate);
+      if (specimen.partialStartDate) {
+        endDate = specimen.collectionStartDate;
+        endEpochDay = startEpochDay;
+      }
     }
 
     const visit = await LocationVisit.getByKey(

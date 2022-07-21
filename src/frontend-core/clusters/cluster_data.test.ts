@@ -22,7 +22,6 @@ const baseConfig: ClusteringConfig = {
   predictionHistorySampleDepth: 1,
   maxPredictionTiers: 4
 };
-const DATE = new Date();
 
 const getPredictedDiff = (graphData: LocationGraphData) =>
   graphData.predictedPerVisitDiff;
@@ -432,10 +431,7 @@ function _makeGraphData(
     locationID,
     countyName: 'Dummy County',
     localityName: 'Dummy Locality',
-    startDate: DATE,
-    endDate: DATE,
     flags: 0,
-    perDayPoints: [],
     perVisitPoints: pairsToPoints(pairs),
     perPersonVisitPoints: pairsToPoints(pairs),
     predictedPerVisitDiff,

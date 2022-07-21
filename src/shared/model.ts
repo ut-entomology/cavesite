@@ -217,10 +217,7 @@ export interface RawLocationEffort {
   locationID: number;
   countyName: string | null;
   localityName: string;
-  startDate: Date;
-  endDate: Date;
   flags: EffortFlags;
-  perDayPoints: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
   visitsByTaxonUnique: Record<string, number>;

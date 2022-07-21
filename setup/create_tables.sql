@@ -256,9 +256,9 @@ create index on logs(timestamp);
 create table all_taxa_for_visits (
     location_id integer not null references locations,
     is_cave boolean not null,
-    start_date timestamptz not null, -- to pass on to effort table with timezone
-    start_epoch_day integer not null, -- days since 1/1/1970, for performance
-    end_date timestamptz not null,
+    start_date timestamptz, -- to pass on to effort table with timezone
+    start_epoch_day integer, -- days since 1/1/1970, for performance
+    end_date timestamptz,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
     flags integer not null,
     normalized_collectors text not null,
@@ -285,9 +285,9 @@ create table all_taxa_for_visits (
 create table cave_genera_for_visits (
     location_id integer not null references locations,
     is_cave boolean not null,
-    start_date timestamptz not null, -- to pass on to effort table with timezone
-    start_epoch_day integer not null, -- days since 1/1/1970, for performance
-    end_date timestamptz not null,
+    start_date timestamptz, -- to pass on to effort table with timezone
+    start_epoch_day integer, -- days since 1/1/1970, for performance
+    end_date timestamptz,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
     flags integer not null,
     normalized_collectors text not null,
@@ -314,9 +314,9 @@ create table cave_genera_for_visits (
 create table cave_obligates_for_visits (
     location_id integer not null references locations,
     is_cave boolean not null,
-    start_date timestamptz not null, -- to pass on to effort table with timezone
-    start_epoch_day integer not null, -- days since 1/1/1970, for performance
-    end_date timestamptz not null,
+    start_date timestamptz, -- to pass on to effort table with timezone
+    start_epoch_day integer, -- days since 1/1/1970, for performance
+    end_date timestamptz,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
     flags integer not null,
     normalized_collectors text not null,
@@ -345,10 +345,7 @@ create table all_taxa_for_effort (
     county_name text,
     locality_name text not null,
     is_cave boolean not null,
-    start_date timestamptz not null,
-    end_date timestamptz not null,
     flags integer not null,
-    total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
     total_species integer not null,
@@ -368,12 +365,10 @@ create table all_taxa_for_effort (
     species_visits text,
     subspecies_names text,
     subspecies_visits text,
-    per_day_points text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
     primary key (location_id)
 );
-create index on all_taxa_for_effort(total_days);
 create index on all_taxa_for_effort(total_visits);
 create index on all_taxa_for_effort(total_person_visits);
 create index on all_taxa_for_effort(total_species);
@@ -383,10 +378,7 @@ create table cave_genera_for_effort (
     county_name text,
     locality_name text not null,
     is_cave boolean not null,
-    start_date timestamptz not null,
-    end_date timestamptz not null,
     flags integer not null,
-    total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
     total_species integer not null,
@@ -406,12 +398,10 @@ create table cave_genera_for_effort (
     species_visits text,
     subspecies_names text,
     subspecies_visits text,
-    per_day_points text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
     primary key (location_id)
 );
-create index on cave_genera_for_effort(total_days);
 create index on cave_genera_for_effort(total_visits);
 create index on cave_genera_for_effort(total_person_visits);
 create index on cave_genera_for_effort(total_species);
@@ -421,10 +411,7 @@ create table cave_obligates_for_effort (
     county_name text,
     locality_name text not null,
     is_cave boolean not null,
-    start_date timestamptz not null,
-    end_date timestamptz not null,
     flags integer not null,
-    total_days integer not null,
     total_visits integer not null,
     total_person_visits integer not null,
     total_species integer not null,
@@ -444,12 +431,10 @@ create table cave_obligates_for_effort (
     species_visits text,
     subspecies_names text,
     subspecies_visits text,
-    per_day_points text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
     primary key (location_id)
 );
-create index on cave_obligates_for_effort(total_days);
 create index on cave_obligates_for_effort(total_visits);
 create index on cave_obligates_for_effort(total_person_visits);
 create index on cave_obligates_for_effort(total_species);

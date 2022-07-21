@@ -36,7 +36,7 @@
   {#if flags & EffortFlags.missingDate}
     <li>
       {opening} are missing dates and are treated as all occurring on the first visit to
-      a cave, preceding all dated records for the cave.
+      the cave, preceding all dated records for the cave.
       {#if !singleCave}<span class="super_info"
           >(Designated below via the superscript <span>X</span>.)</span
         >{/if}

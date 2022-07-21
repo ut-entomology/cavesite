@@ -107,10 +107,7 @@ function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
     locationID: effort.locationID,
     countyName: effort.countyName,
     localityName: effort.localityName,
-    startDate: effort.startDate,
-    endDate: effort.endDate,
     flags: effort.flags,
-    perDayPoints: effort.perDayPoints,
     perVisitPoints: effort.perVisitPoints,
     perPersonVisitPoints: effort.perPersonVisitPoints,
     visitsByTaxonUnique

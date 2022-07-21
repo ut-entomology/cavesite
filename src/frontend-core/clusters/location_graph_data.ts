@@ -7,10 +7,7 @@ export interface LocationGraphData {
   locationID: number;
   countyName: string | null;
   localityName: string;
-  startDate: Date;
-  endDate: Date;
   flags: EffortFlags;
-  perDayPoints: Point[];
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
   predictedPerVisitDiff: number | null;
@@ -33,9 +30,6 @@ export function toLocationGraphDataSetByCluster(
 }
 
 function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGraphData {
-  const perDayPointPairs: number[][] = JSON.parse(rawLocationEffort.perDayPoints);
-  const perDayPoints = pairsToPoints(perDayPointPairs);
-
   const perVisitPointPairs: number[][] = JSON.parse(rawLocationEffort.perVisitPoints);
   const perVisitPoints = pairsToPoints(perVisitPointPairs);
 
@@ -48,10 +42,7 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     locationID: rawLocationEffort.locationID,
     countyName: rawLocationEffort.countyName,
     localityName: rawLocationEffort.localityName,
-    startDate: rawLocationEffort.startDate,
-    endDate: rawLocationEffort.endDate,
     flags: rawLocationEffort.flags,
-    perDayPoints,
     perVisitPoints,
     perPersonVisitPoints,
     predictedPerVisitDiff: null,
