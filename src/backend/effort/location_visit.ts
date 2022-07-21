@@ -128,33 +128,34 @@ export class LocationVisit extends TaxonCounter {
       specimen.taxonUnique
     );
 
-    switch (comparedTaxa) {
-      case ComparedTaxa.caveObligates:
-        const caveObligatesMap = getCaveObligatesMap();
-        if (
-          !(
-            (speciesName &&
-              (caveObligatesMap[speciesName] || speciesName.includes('n. sp'))) ||
-            (subspeciesName &&
-              (caveObligatesMap[subspeciesName] ||
-                subspeciesName.includes('n. sub'))) ||
-            (specimen.genusName && caveObligatesMap[specimen.genusName])
-          )
-        ) {
-          return; // exclude non-cave obligates
-        }
-        break;
-      case ComparedTaxa.generaHavingCaveObligates:
-        const genusSansSubgenus = specimen.genusName
-          ? specimen.genusName.includes('(')
-            ? specimen.genusName.substring(0, specimen.genusName.indexOf('(')).trimEnd()
-            : specimen.genusName
-          : null;
-        const caveContainingGeneraMap = getCaveContainingGeneraMap();
-        if (!genusSansSubgenus || !caveContainingGeneraMap[genusSansSubgenus]) {
-          return; // exclude genera that don't contain cave obligates
-        }
-        break;
+    if (!specimen.typeStatus) {
+      switch (comparedTaxa) {
+        case ComparedTaxa.caveObligates:
+          const caveObligatesMap = getCaveObligatesMap();
+          if (
+            !(
+              (speciesName && caveObligatesMap[speciesName]) ||
+              (subspeciesName && caveObligatesMap[subspeciesName]) ||
+              (specimen.genusName && caveObligatesMap[specimen.genusName])
+            )
+          ) {
+            return; // exclude non-cave obligates
+          }
+          break;
+        case ComparedTaxa.generaHavingCaveObligates:
+          const genusSansSubgenus = specimen.genusName
+            ? specimen.genusName.includes('(')
+              ? specimen.genusName
+                  .substring(0, specimen.genusName.indexOf('('))
+                  .trimEnd()
+              : specimen.genusName
+            : null;
+          const caveContainingGeneraMap = getCaveContainingGeneraMap();
+          if (!genusSansSubgenus || !caveContainingGeneraMap[genusSansSubgenus]) {
+            return; // exclude genera that don't contain cave obligates
+          }
+          break;
+      }
     }
 
     const startEpochDay = _toEpochDay(specimen.collectionStartDate);

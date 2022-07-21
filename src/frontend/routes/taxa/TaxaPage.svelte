@@ -9,7 +9,7 @@
   import ExpandableSelectableTree from '../../components/ExpandableSelectableTree.svelte';
   import SelectableTaxon from './SelectableTaxon.svelte';
   import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
-  import TabFootnote from '../../components/TabFootnote.svelte';
+  import TabFootnotes from '../../components/TabFootnotes.svelte';
   import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
   import { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../../shared/model';
@@ -167,14 +167,14 @@
         </div>
       {/if}
     </div>
-    <TabFootnote
-      notes={[
-        `Some genera are divided into subgenera so that you can select each subgenus
-      separately, with the subgenus appearing in parentheses after the genus. To
-      select the entire genus of one of these genera, select all genus/subgenus
-      combinations of the genus.`
-      ]}
-    />
+    <TabFootnotes>
+      <li>
+        Some genera are divided into subgenera so that you can select each subgenus
+        separately, with the subgenus appearing in parentheses after the genus. To
+        select the entire genus of one of these genera, select all genus/subgenus
+        combinations of the genus.
+      </li>
+    </TabFootnotes>
   </div>
 </DataTabRoute>
 

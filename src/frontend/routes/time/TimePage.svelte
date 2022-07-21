@@ -54,7 +54,8 @@
   } from './TimeFilterDialog.svelte';
   import SeasonalityGraph from './SeasonalityGraph.svelte';
   import HistoryGraph from './HistoryGraph.svelte';
-  import TabFootnote from '../../components/TabFootnote.svelte';
+  import SectionFootnotes from '../../components/SectionFootnotes.svelte';
+  import TabFootnotes from '../../components/TabFootnotes.svelte';
   import { pageName } from '../../stores/pageName';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import type { GeneralQuery, QueryRow } from '../../../shared/general_query';
@@ -493,15 +494,11 @@
         </div>
       </div>
       {#if seasonalityFootnotes.length > 0}
-        <div class="row mt-2 justify-content-center small">
-          <div class="col-auto">
-            <ul>
-              {#each seasonalityFootnotes as footnote}
-                <li>{footnote}</li>
-              {/each}
-            </ul>
-          </div>
-        </div>
+        <SectionFootnotes>
+          {#each seasonalityFootnotes as footnote}
+            <li>{footnote}</li>
+          {/each}
+        </SectionFootnotes>
       {/if}
 
       <hr style="margin-top: 2rem" />
@@ -574,35 +571,37 @@
         </div>
       </div>
       {#if historyFootnotes.length > 0}
-        <div class="row mt-2 justify-content-center small">
-          <div class="col-auto">
-            <ul>
-              {#each historyFootnotes as footnote}
-                <li>{footnote}</li>
-              {/each}
-            </ul>
-          </div>
-        </div>
+        <SectionFootnotes>
+          {#each historyFootnotes as footnote}
+            <li>{footnote}</li>
+          {/each}
+        </SectionFootnotes>
       {/if}
 
       <hr />
     {/if}
-    <TabFootnote
-      notes={[
-        `Blank and zero specimen counts are counted as single specimens.`,
-        `The counts of specimens collected over a range of days are evenly distributed
-      across those days, allowing for fractional specimen counts.`,
-        `Species collected over a range of days are each randomly assigned to a date
-      within the range, which may cause species charts to vary slightly from
-      load to load.`,
-        `"Min. species" is the minimum number of species represented. For example,
-      after counting a record for <i>Hahnia</i>, the first occurrence of a species
-      in this genus (e.g. <i>Hahnia flaviceps</i>) does not increase the count, while 
-      subsequent occurrences of additional species in the genus do increase the count.`,
-        `In weekly and biweekly charts, the one or two days of the 53rd week are
-      stacked onto the 52nd week.`
-      ]}
-    />
+    <TabFootnotes>
+      <li>Blank and zero specimen counts are counted as single specimens.</li>
+      <li>
+        The counts of specimens collected over a range of days are evenly distributed
+        across those days, allowing for fractional specimen counts.
+      </li>
+      <li>
+        Species collected over a range of days are each randomly assigned to a date
+        within the range, which may cause species charts to vary slightly from load to
+        load.
+      </li>
+      <li>
+        "Min. species" is the minimum number of species represented. For example, after
+        counting a record for <i>Hahnia</i>, the first occurrence of a species in this
+        genus (e.g. <i>Hahnia flaviceps</i>) does not increase the count, while
+        subsequent occurrences of additional species in the genus do increase the count.
+      </li>
+      <li>
+        In weekly and biweekly charts, the one or two days of the 53rd week are stacked
+        onto the 52nd week.
+      </li>
+    </TabFootnotes>
   </div>
 </DataTabRoute>
 
@@ -633,8 +632,5 @@
   }
   .time_graph {
     height: 400px;
-  }
-  ul {
-    margin: 0;
   }
 </style>

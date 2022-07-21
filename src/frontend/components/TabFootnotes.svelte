@@ -1,15 +1,9 @@
-<script lang="ts">
-  export let notes: string[];
-</script>
-
 <div class="row mt-5 mb-4 justify-content-center">
   <div class="col-md-10">
     <div class="footnotes">
       <div class="footnote_title">Important Notes</div>
       <ul>
-        {#each notes as note}
-          <li>{@html note}</li>
-        {/each}
+        <slot />
       </ul>
     </div>
   </div>
@@ -22,7 +16,7 @@
     border-radius: $border-radius;
     border: 1px solid black;
     padding: 0 0.5em 0.5em 0.5em;
-    color: #777;
+    color: $footnoteColor;
     font-size: 0.9rem;
   }
 
@@ -38,7 +32,7 @@
     margin-bottom: 0.8rem;
   }
 
-  li + li {
+  .footnotes :global(li + li) {
     margin-top: 0.4rem;
   }
 </style>

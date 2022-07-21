@@ -38,6 +38,7 @@
   import LocationEffortDialog from './LocationEffortDialog.svelte';
   import LocationBarGraph from './LocationBarGraph.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
+  import SectionFootnotes from '../../components/SectionFootnotes.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -498,6 +499,14 @@
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
       />
+      <SectionFootnotes>
+        {#if clusterSpec.comparedTaxa != ComparedTaxa.all}
+          <li>
+            The above taxa may include undescribed genera and/or species for specimens
+            not necessarily known to be cave obligates.
+          </li>
+        {/if}
+      </SectionFootnotes>
     {/if}
   </div>
 </DataTabRoute>
