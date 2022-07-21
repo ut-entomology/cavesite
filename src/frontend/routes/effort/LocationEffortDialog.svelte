@@ -2,6 +2,7 @@
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import EffortGraph from './EffortGraph.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
+  import LocationFootnotes from './LocationFootnotes.svelte';
   import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import { DatasetType, getGraphSpec } from './dataset_type';
@@ -75,6 +76,7 @@
         />
       </div>
     </div>
+    <LocationFootnotes flags={locationGraphData.flags} singleCave={true} />
 
     <hr />
     <TaxonBarGraph
