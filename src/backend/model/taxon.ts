@@ -281,6 +281,7 @@ export class Taxon {
 
   private static _extractAuthor(scientificName: string | null): string | null {
     if (scientificName) {
+      if (scientificName.indexOf('n. sp') >= 0) return null;
       const matches = scientificName.match(/.[^(A-Z]+(.*)$/);
       if (matches) {
         return matches[1] == '' ? null : matches[1];
