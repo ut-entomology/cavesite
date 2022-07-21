@@ -327,7 +327,7 @@
           >
         {/if}
         <button class="btn btn-major" type="button" on:click={_openConfigDialog}
-          >{$clusterStore ? 'Change' : 'Load'} Data</button
+          >{$clusterStore ? 'Change' : 'Load'} Clusters</button
         >
       </span>
     </TabHeader>
