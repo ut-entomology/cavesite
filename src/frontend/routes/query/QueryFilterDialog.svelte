@@ -11,6 +11,7 @@
 </script>
 
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { dndzone, Item } from 'svelte-dnd-action';
   import { flip } from 'svelte/animate';
 
@@ -32,6 +33,7 @@
 
   const FLIP_DURATION_MILLIS = 200;
   const DRAG_ICON_TEXT = 'Click and drag to change the column sort order.';
+  const MAX_SINGLE_COL_EXCLUDED_WIDTH = 575;
 
   export let initialQuery: GeneralQuery;
   export let onClose: () => void;
@@ -51,6 +53,20 @@
   let excludedItems: DraggableItem[] = [];
   let chosenOptions: (string | null)[] = [];
   let sortSelections: SortOption[] = [];
+  let doubleColumnExcluded: boolean;
+
+  onMount(() => {
+    window.addEventListener('resize', () => {
+      const nextDoubleColumnExcluded =
+        window.innerWidth > MAX_SINGLE_COL_EXCLUDED_WIDTH;
+      if (nextDoubleColumnExcluded != doubleColumnExcluded) {
+        doubleColumnExcluded = nextDoubleColumnExcluded;
+        _sortExcludedColumns();
+      }
+    });
+    doubleColumnExcluded = window.innerWidth > MAX_SINGLE_COL_EXCLUDED_WIDTH;
+    _sortExcludedColumns();
+  });
 
   // Load previous query selections.
   for (const columnSpec of initialQuery.columnSpecs) {
@@ -83,6 +99,7 @@
 
   function resortExcludedItems(e: CustomEvent<DndEvent>) {
     excludedItems = e.detail.items as DraggableItem[];
+    _sortExcludedColumns();
   }
 
   const addQueryColumn = (item: DraggableItem) => {
@@ -136,6 +153,23 @@
       throughDate = thru;
     } else {
       filterByDate = false;
+    }
+  }
+
+  function _sortExcludedColumns(): void {
+    excludedItems.sort((a, b) => (a.info.fullName < b.info.fullName ? -1 : 1));
+    if (doubleColumnExcluded) {
+      const doubleColumnItems: DraggableItem[] = [];
+      const halfExcludedItems = Math.ceil(excludedItems.length / 2);
+      for (let i = 0; i < halfExcludedItems; i += 1) {
+        doubleColumnItems.push(excludedItems[i]);
+        if (i + halfExcludedItems < excludedItems.length) {
+          doubleColumnItems.push(excludedItems[i + halfExcludedItems]);
+        }
+      }
+      excludedItems = doubleColumnItems;
+    } else {
+      excludedItems = excludedItems; // update rendering
     }
   }
 
@@ -241,7 +275,7 @@
     >
       {#each excludedItems as item (item.id)}
         <div
-          class="col-md-6 mb-1 gx-2 excluded"
+          class="col-sm-6 mb-1 gx-2 excluded"
           animate:flip={{ duration: FLIP_DURATION_MILLIS }}
         >
           <div class="row column_spec gx-2" style="margin: 0">
