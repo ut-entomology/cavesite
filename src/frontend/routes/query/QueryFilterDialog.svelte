@@ -104,15 +104,15 @@
 
   const addQueryColumn = (item: DraggableItem) => {
     excludedItems.splice(excludedItems.indexOf(item), 1);
+    _sortExcludedColumns();
     includedItems.push(item);
-    excludedItems = excludedItems; // tell Svelte to redraw
     includedItems = includedItems;
   };
 
   const removeQueryColumn = (item: DraggableItem) => {
     includedItems.splice(includedItems.indexOf(item), 1);
     excludedItems.push(item);
-    excludedItems = excludedItems; // tell Svelte to redraw
+    _sortExcludedColumns();
     includedItems = includedItems;
   };
 
