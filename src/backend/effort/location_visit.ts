@@ -109,6 +109,11 @@ export class LocationVisit extends TaxonCounter {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
+  static async commit(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
+    await db.query(`delete from ${comparedTaxa}_for_visits where committed=true`);
+    await db.query(`update ${comparedTaxa}_for_visits set committed=true`);
+  }
+
   private static async create(
     db: DB,
     comparedTaxa: ComparedTaxa,
@@ -229,7 +234,8 @@ export class LocationVisit extends TaxonCounter {
     // at the time they are known. I've forgotten why I'm sorting by
     // collectors here -- this may not be necessary.
     const result = await db.query(
-      `select * from ${comparedTaxa}_for_visits where is_cave=true
+      `select * from ${comparedTaxa}_for_visits
+        where is_cave=true and committed=false
         order by location_id, end_epoch_day, normalized_collectors
         limit $1 offset $2`,
       [limit, skip]
@@ -246,7 +252,8 @@ export class LocationVisit extends TaxonCounter {
   ): Promise<LocationVisit | null> {
     let result = await db.query(
       `select * from ${comparedTaxa}_for_visits
-        where location_id=$1 and end_epoch_day=$2 and normalized_collectors=$3`,
+        where location_id=$1 and end_epoch_day=$2 and normalized_collectors=$3
+          and committed=false`,
       [locationID, endEpochDay, normalizedCollectors]
     );
     return result.rows.length > 0

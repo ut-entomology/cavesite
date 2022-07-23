@@ -2,11 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { parse as parseCSV } from '@fast-csv/parse';
 
-import { loadAndCheckEnvVars } from '../backend/util/env_util';
-import { connectDB, disconnectDB, getDB } from '../backend/integrations/postgres';
-import { Taxon } from '../backend/model/taxon';
-import { Location } from '../backend/model/location';
-import { type SpecimenSource, Specimen } from '../backend/model/specimen';
+import { loadDB } from './load-gbif';
+import type { SpecimenSource } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 
@@ -20,6 +17,7 @@ if (!'/~'.includes(csvFilepath[0])) {
 }
 
 const records: CsvSpecimen[] = [];
+let recordIndex = 0;
 
 async function loadCSV() {
   return new Promise<void>((resolve, reject) => {
@@ -39,60 +37,45 @@ async function loadCSV() {
   });
 }
 
-async function loadDB() {
-  const db = getDB();
-  let importFailureCount = 0;
-  for (const record of records) {
-    const specimenSource: SpecimenSource = {
-      catalogNumber: record.catalogNumber,
-      occurrenceID: 'GBIF:' + record.catalogNumber,
+async function getNextSpecimenSource(): Promise<SpecimenSource | null> {
+  if (recordIndex == records.length) return null;
+  return recordToSpecimenSource(records[recordIndex++]);
+}
 
-      kingdom: ROOT_TAXON_UNIQUE,
-      phylum: record.phylum,
-      class: record.class,
-      order: record.order,
-      family: record.family,
-      genus: record.genus,
-      specificEpithet: toSpeciesOrSubspecies(record.species),
-      infraspecificEpithet: toSpeciesOrSubspecies(record.subspecies),
-      scientificName: toScientificName(record),
+function recordToSpecimenSource(record: CsvSpecimen): SpecimenSource {
+  return {
+    catalogNumber: record.catalogNumber,
+    occurrenceID: 'GBIF:' + record.catalogNumber,
 
-      continent: 'North America',
-      country: 'United States',
-      stateProvince: record.state,
-      county: record.county,
-      locality: record.localityName,
-      decimalLatitude: record.latitude,
-      decimalLongitude: record.longitude,
+    kingdom: ROOT_TAXON_UNIQUE,
+    phylum: record.phylum,
+    class: record.class,
+    order: record.order,
+    family: record.family,
+    genus: record.genus,
+    specificEpithet: toSpeciesOrSubspecies(record.species),
+    infraspecificEpithet: toSpeciesOrSubspecies(record.subspecies),
+    scientificName: toScientificName(record),
 
-      eventDate: record.startDate,
-      eventRemarks: toEventRemarks(record),
-      recordedBy: toNameField(record.collectors),
-      dateIdentified: record.determinedDate,
-      identifiedBy: toNameField(record.determiners),
-      occurrenceRemarks: record.coaRemarks,
-      identificationRemarks: toDetRemarks(record),
-      typeStatus: record.typeStatus,
-      organismQuantity: record.count,
-      lifeStage: record.lifeStage
-    };
-    try {
-      const specimen = await Specimen.create(db, specimenSource);
-      if (!specimen) {
-        ++importFailureCount;
-        console.log(
-          `Cat# ${record.catalogNumber || 'UNSPECIFIED'}: logged import failure`
-        );
-      }
-    } catch (err: any) {
-      ++importFailureCount;
-      console.log(`Cat# ${record.catalogNumber}:`, err.message);
-      // if (err.message.includes('Cannot read')) {
-      //   console.log(err);
-      // }
-    }
-  }
-  console.log(`\n${importFailureCount} import failures\n`);
+    continent: 'North America',
+    country: 'United States',
+    stateProvince: record.state,
+    county: record.county,
+    locality: record.localityName,
+    decimalLatitude: record.latitude,
+    decimalLongitude: record.longitude,
+
+    eventDate: record.startDate,
+    eventRemarks: toEventRemarks(record),
+    recordedBy: toNameField(record.collectors),
+    dateIdentified: record.determinedDate,
+    identifiedBy: toNameField(record.determiners),
+    occurrenceRemarks: record.coaRemarks,
+    identificationRemarks: toDetRemarks(record),
+    typeStatus: record.typeStatus,
+    organismQuantity: record.count,
+    lifeStage: record.lifeStage
+  };
 }
 
 function toDetRemarks(record: CsvSpecimen): string {
@@ -173,18 +156,6 @@ function toSpeciesOrSubspecies(name: string): string {
 }
 
 (async () => {
-  loadAndCheckEnvVars(false);
   await loadCSV();
-  await connectDB({
-    host: process.env.CAVESITE_DB_HOST,
-    database: process.env.CAVESITE_DB_NAME,
-    port: parseInt(process.env.CAVESITE_DB_PORT!),
-    user: process.env.CAVESITE_DB_USER,
-    password: process.env.CAVESITE_DB_PASSWORD
-  });
-  await loadDB();
-  await Specimen.commit(getDB());
-  await Location.commit(getDB());
-  await Taxon.commit(getDB());
-  await disconnectDB();
+  await loadDB(getNextSpecimenSource);
 })();

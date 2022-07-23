@@ -1,68 +1,73 @@
-import { Client } from 'pg';
+import { loadAndCheckEnvVars } from '../backend/util/env_util';
+import { DB, connectDB, disconnectDB, getDB } from '../backend/integrations/postgres';
+import { Taxon } from '../backend/model/taxon';
+import { Location } from '../backend/model/location';
+import { type SpecimenSource, Specimen } from '../backend/model/specimen';
+import { LocationVisit } from '../backend/effort/location_visit';
+import { LocationEffort } from '../backend/effort/location_effort';
+import { comparedTaxa } from '../shared/model';
 
-// TODO: strip HTML tags from data for security
+export async function loadDB(
+  getNextSpecimenSource: () => Promise<SpecimenSource | null>
+) {
+  // Connect to the database.
 
-// import { Taxon } from '../src/model/taxon';
-// import { Location } from '../src/model/location';
-// import { Specimen } from '../src/model/specimen';
-// import { PrivateCoords } from '../src/model/private_coords';
+  loadAndCheckEnvVars(false);
+  await connectDB({
+    host: process.env.CAVESITE_DB_HOST,
+    database: process.env.CAVESITE_DB_NAME,
+    port: parseInt(process.env.CAVESITE_DB_PORT!),
+    user: process.env.CAVESITE_DB_USER,
+    password: process.env.CAVESITE_DB_PASSWORD
+  });
+  const db = getDB();
 
-export interface GbifRecord {
-  catalogNumber: string;
-  occurrenceID: string;
+  // Populate the database, including location visit data.
 
-  eventDate: Date | null;
-  year: number | null;
-  month: number | null;
-  day: number | null;
+  await _loadSpecimens(db, getNextSpecimenSource);
 
-  kingdom: string;
-  phylum: string | null;
-  order: string | null;
-  family: string | null;
-  genus: string | null;
-  specificEpithet: string | null;
-  infraspecificEpithet: string | null;
-  scientificName: string | null;
-  typeStatus: string | null;
+  // Tally and commit location effort data.
 
-  continent: string;
-  country: string;
-  stateOrProvince: string;
-  county: string | null;
-  locality: string | null;
-  decimalLatitude: number;
-  decimalLongitude: number;
-  fieldNumber: string | null;
-  eventRemarks: string | null;
-  occurrenceRemarks: string | null;
+  for (const compare of comparedTaxa) {
+    await LocationEffort.tallyEffort(db, compare);
+    // Commit data as the process proceeds.
+    await LocationVisit.commit(db, compare);
+    await LocationEffort.commit(db, compare);
+  }
 
-  recordedBy: string | null;
-  dateIdentified: string | null;
-  identifiedBy: string | null;
-  identificationRemarks: string | null;
+  // Commit the new specimen records.
+
+  await Specimen.commit(db);
+  await Location.commit(db);
+  await Taxon.commit(db);
+
+  await disconnectDB();
 }
 
-export class RecordLoader {
-  db: Client = new Client();
-
-  async init(): Promise<void> {
-    this.db.connect();
+async function _loadSpecimens(
+  db: DB,
+  getNextSpecimenSource: () => Promise<SpecimenSource | null>
+) {
+  let importFailureCount = 0;
+  let specimenSource = await getNextSpecimenSource();
+  while (specimenSource !== null) {
+    try {
+      const specimen = await Specimen.create(db, specimenSource);
+      if (specimen) {
+        for (const compare of comparedTaxa) {
+          await LocationVisit.addSpecimen(db, compare, specimen);
+        }
+      } else {
+        ++importFailureCount;
+        console.log(
+          `Cat# ${specimenSource.catalogNumber || 'UNSPECIFIED'}: logged import failure`
+        );
+      }
+    } catch (err: any) {
+      ++importFailureCount;
+      console.log(`Cat# ${specimenSource.catalogNumber}:`, err.message);
+    }
+    specimenSource = await getNextSpecimenSource();
   }
-
-  async addRecord(record: GbifRecord): Promise<void> {
-    // Normalize the GBIF record.
-
-    if (record.phylum == '') record.phylum = null;
-    if (record.order == '') record.order = null;
-    if (record.family == '') record.family = null;
-    if (record.genus == '') record.genus = null;
-    if (record.specificEpithet == '') record.specificEpithet = null;
-    if (record.scientificName == '') record.scientificName = null;
-    if (record.typeStatus == '') record.typeStatus = null;
-  }
-
-  async close(): Promise<void> {
-    await this.db.end();
-  }
+  console.log(`\n${importFailureCount} import failures\n`);
 }

@@ -1028,16 +1028,21 @@ test('tallying species counts per unit effort', async () => {
 
   // Retrieve multiple location efforts.
 
-  let efforts = await LocationEffort.getByLocationIDs(db, ComparedTaxa.all, [
-    locationID2
-  ]);
+  let efforts = await LocationEffort.getByLocationIDs(
+    db,
+    ComparedTaxa.all,
+    [locationID2],
+    false
+  );
   expect(efforts[0].locationID).toEqual(locationID2);
   expect(efforts.length).toEqual(1);
 
-  efforts = await LocationEffort.getByLocationIDs(db, ComparedTaxa.all, [
-    locationID2,
-    locationID1
-  ]);
+  efforts = await LocationEffort.getByLocationIDs(
+    db,
+    ComparedTaxa.all,
+    [locationID2, locationID1],
+    false
+  );
   expect(efforts.map((effort) => effort.locationID)).toEqual([
     locationID1,
     locationID2
@@ -1094,9 +1099,12 @@ async function _addSpecimen(data: PartialSpecimenSource): Promise<Specimen> {
 }
 
 async function _getEffort(locationID: number): Promise<LocationEffort> {
-  const effort = await LocationEffort.getByLocationIDs(db, ComparedTaxa.all, [
-    locationID
-  ]);
+  const effort = await LocationEffort.getByLocationIDs(
+    db,
+    ComparedTaxa.all,
+    [locationID],
+    false
+  );
   return effort[0];
 }
 

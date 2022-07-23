@@ -254,6 +254,9 @@ create table logs (
 create index on logs(timestamp);
 
 create table all_taxa_for_visits (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id integer not null references locations,
     is_cave boolean not null,
     start_date timestamptz, -- to pass on to effort table with timezone
@@ -283,6 +286,9 @@ create table all_taxa_for_visits (
 );
 
 create table cave_genera_for_visits (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id integer not null references locations,
     is_cave boolean not null,
     start_date timestamptz, -- to pass on to effort table with timezone
@@ -312,6 +318,9 @@ create table cave_genera_for_visits (
 );
 
 create table cave_obligates_for_visits (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id integer not null references locations,
     is_cave boolean not null,
     start_date timestamptz, -- to pass on to effort table with timezone
@@ -341,6 +350,9 @@ create table cave_obligates_for_visits (
 );
 
 create table all_taxa_for_effort (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id integer not null references locations,
     county_name text,
     locality_name text not null,
@@ -374,6 +386,9 @@ create index on all_taxa_for_effort(total_person_visits);
 create index on all_taxa_for_effort(total_species);
 
 create table cave_genera_for_effort (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id integer not null references locations,
     county_name text,
     locality_name text not null,
@@ -407,6 +422,9 @@ create index on cave_genera_for_effort(total_person_visits);
 create index on cave_genera_for_effort(total_species);
 
 create table cave_obligates_for_effort (
+    -- new data loads into the table prior to completely replacing old data
+    committed boolean not null default false,
+
     location_id integer not null references locations,
     county_name text,
     locality_name text not null,

@@ -91,6 +91,11 @@ export class LocationEffort {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
+  static async commit(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
+    await db.query(`delete from ${comparedTaxa}_for_effort where committed=true`);
+    await db.query(`update ${comparedTaxa}_for_effort set committed=true`);
+  }
+
   static async create(
     db: DB,
     comparedTaxa: ComparedTaxa,
@@ -186,13 +191,17 @@ export class LocationEffort {
   static async getByLocationIDs(
     db: DB,
     comparedTaxa: ComparedTaxa,
-    locationIDs: number[]
+    locationIDs: number[],
+    committed: boolean = true
   ): Promise<LocationEffort[]> {
     const result = await db.query(
-      `select * from ${comparedTaxa}_for_effort where location_id=any ($1)`,
+      `select * from ${comparedTaxa}_for_effort
+        where location_id=any ($1) and committed=$2`,
       [
         // @ts-ignore
-        locationIDs
+        locationIDs,
+        // @ts-ignore
+        committed
       ]
     );
     return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
@@ -207,7 +216,8 @@ export class LocationEffort {
     limit: number
   ): Promise<LocationEffort[]> {
     const result = await db.query(
-      `select * from ${comparedTaxa}_for_effort where total_species between $1 and $2
+      `select * from ${comparedTaxa}_for_effort
+        where total_species between $1 and $2 and committed=true
         order by total_species desc, location_id limit $3 offset $4`,
       [minSpecies, maxSpecies, limit, skip]
     );
