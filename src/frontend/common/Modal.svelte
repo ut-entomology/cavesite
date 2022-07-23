@@ -42,15 +42,17 @@
   style="display: block"
   bind:this={modalElement}
 >
-  <div
-    class="modal-dialog {dialogClasses}"
-    {style}
-    role="document"
-    in:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION }}
-    out:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION, easing: quintOut }}
-  >
-    <div class="modal-content {contentClasses}">
-      <slot {scrollToModelTop} />
+  <div class="min_borders">
+    <div
+      class="modal-dialog {dialogClasses}"
+      {style}
+      role="document"
+      in:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION }}
+      out:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION, easing: quintOut }}
+    >
+      <div class="modal-content {contentClasses}">
+        <slot {scrollToModelTop} />
+      </div>
     </div>
   </div>
 </div>
@@ -58,3 +60,9 @@
   class="modal-backdrop show"
   transition:fade={{ duration: BACKDROP_FADE_DURATION }}
 />
+
+<style>
+  .min_borders {
+    padding: 0 2%;
+  }
+</style>

@@ -34,7 +34,7 @@
 <InfoDialog
   title={locationGraphData.localityName + titleSuffix}
   classes="location_effort_dialog"
-  maxWidth="95%"
+  maxWidth="50rem"
   onClose={close}
 >
   <div class="container-fluid location_effort_dialog">
