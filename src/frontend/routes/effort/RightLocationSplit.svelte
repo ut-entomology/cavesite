@@ -39,7 +39,7 @@
 </script>
 
 <div class="row gx-3">
-  <div class="col-2 text-end">
+  <div class="col-2 {isPrediction ? 'text-end' : 'text-center'}">
     {#if isPrediction}
       <span class="stats_deemph">+</span>{valueStr}
     {:else}
