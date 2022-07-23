@@ -7,7 +7,7 @@
   export let onClose: () => void;
 </script>
 
-<ModalDialog {title} {maxWidth} contentClasses={classes}>
+<ModalDialog {title} {maxWidth} {onClose} contentClasses={classes}>
   <div class="row mb-2">
     <div class="col">
       <slot />
