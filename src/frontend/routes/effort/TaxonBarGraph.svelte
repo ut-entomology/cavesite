@@ -41,7 +41,7 @@
 
   $: titleSuffix = ` <span class="taxon_count">(${items.length} ${
     items.length == 1 ? 'taxon' : 'taxa'
-  })</span>`;
+  }, ${totalVisits} ${totalVisits == 1 ? 'visit' : 'visits'})</span>`;
 
   async function getItems(
     count: number,
@@ -109,6 +109,7 @@
     {items}
     let:item
   >
+    <slot slot="description" />
     <div slot="header">
       <StatsHeaderRow rightHeader={title} />
     </div>

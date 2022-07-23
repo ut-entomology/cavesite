@@ -80,17 +80,25 @@
 
     <hr />
     <TaxonBarGraph
-      title="Relative frequency of taxa found in this cave"
+      title="Frequency of taxa found in this cave"
       visitsByTaxonUnique={locationGraphData.visitsByTaxonUnique}
       locationGraphDataSet={[locationGraphData]}
-    />
+      >This bar graph shows the frequency at which taxa were found on visits to the this
+      cave. The bar for any given taxon depicts the fraction of the total number of
+      visits in which the taxon was found.</TaxonBarGraph
+    >
 
     <hr />
     <TaxonBarGraph
-      title="Relative frequency of taxa found in this cluster but NOT in this cave"
+      title="Frequency of taxa found in this cluster but NOT in this cave"
       visitsByTaxonUnique={missingTaxaVisitsByTaxonUnique}
       {locationGraphDataSet}
-    />
+    >
+      This bar graph shows the frequency at which taxa were found on visits to the caves
+      of this cluster, restricted to the taxa not yet found in the present cave. The bar
+      for any given taxon depicts the fraction of the total number of visits in which
+      the taxon was found.</TaxonBarGraph
+    >
   </div>
 </InfoDialog>
 

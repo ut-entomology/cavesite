@@ -76,6 +76,7 @@
     let:index
     let:increasing
   >
+    <slot slot="description" />
     <div slot="header">
       <StatsHeaderRow
         leftHeader={tierStats ? 'Accuracy of top N rows' : null}

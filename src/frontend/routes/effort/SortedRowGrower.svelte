@@ -62,6 +62,9 @@
   </div>
 
   <div class="grower_items mb-2 {itemsClasses}">
+    <div class="row">
+      <div class="col small mb-2"><slot name="description" /></div>
+    </div>
     <slot name="header" />
     {#each items as item, index (item)}
       <slot {item} {index} {increasing} />

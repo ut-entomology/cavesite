@@ -39,7 +39,6 @@
   import LocationBarGraph from './LocationBarGraph.svelte';
   import LocationFootnotes from './LocationFootnotes.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
-  import SectionFootnotes from '../../components/SectionFootnotes.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -55,7 +54,6 @@
   import { DatasetType, getGraphSpec } from './dataset_type';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
-  import Pie from 'svelte-chartjs/src/Pie.svelte';
 
   $pageName = 'Collection Effort';
 
@@ -491,7 +489,17 @@
           items={multiPointLocationDataSet}
           {visitUnitName}
           {openLocation}
-        />
+          >This bar graph shows the number of additional species predicted to be found
+          at a cave on the next {visitUnitName} to the cave, according to a power curve (<span
+            class="eq">y=Ax<sup>P</sup>+B</span
+          >) fit to the most recent {$clusterStore.config.maxPointsToRegress} points of the
+          cave, provided there are at least 3 such points. To measure the accuracy of the
+          technique, the technique was applied to historical data to predict each of the
+          {PREDICTION_HISTORY_SAMPLE_DEPTH} most recent points of each cave that could be
+          fit to a curve. The graph reports the average of the percentage of caves that it
+          correctly predicted would occur within each top group of N caves according to a
+          sort of the number of species predicted.</LocationBarGraph
+        >
       {/if}
       {#if singlePointLocationDataSet.length > 0}
         <hr />
@@ -504,14 +512,20 @@
           items={singlePointLocationDataSet}
           {visitUnitName}
           {openLocation}
-        />
+          >This bar graph lists caves for which there was insufficient data to make
+          predictions, sorting them by the number of additional species found on the
+          most recent recorded visit to the cave.</LocationBarGraph
+        >
       {/if}
       <hr />
       <TaxonBarGraph
-        title="Relative frequency of taxa found in this cluster"
+        title="Frequency of taxa found in this cluster"
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
-      />
+        >This bar graph shows the frequency at which taxa were found on visits to the
+        caves of this cluster. The bar for any given taxon depicts the fraction of the
+        total number of visits in which the taxon was found.</TaxonBarGraph
+      >
     {/if}
   </div>
 </DataTabRoute>
@@ -564,5 +578,9 @@
   #cluster_color {
     display: inline-block;
     width: 1.3rem;
+  }
+
+  .eq {
+    font-family: 'Courier New', Courier, monospace;
   }
 </style>
