@@ -505,7 +505,7 @@
       {#if singlePointLocationDataSet.length > 0}
         <hr />
         <LocationBarGraph
-          title="Species found on only visit to cave {visitUnitName}"
+          title="Species found on only visit to cave"
           getItems={_getSingleVisitLocationSubset}
           greatestValue={greatestSingleVisitLocationValue}
           getValue={getLocationValue}
