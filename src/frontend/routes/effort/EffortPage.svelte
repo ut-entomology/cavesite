@@ -496,7 +496,7 @@
           cave, provided there are at least 3 such points. To measure the accuracy of the
           technique, the technique was applied to historical data to predict each of the
           {PREDICTION_HISTORY_SAMPLE_DEPTH} most recent points of each cave that could be
-          fit to a curve. The graph reports the average of the percentage of caves that it
+          fit to a curve. The chart reports the average of the percentage of caves that it
           correctly predicted would occur within each top group of N caves according to a
           sort of the number of species predicted.</LocationBarGraph
         >
