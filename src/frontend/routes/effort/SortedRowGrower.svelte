@@ -77,9 +77,12 @@
       {#if canShrink}
         <button class="btn btn-minor" type="button" on:click={_shrink}>Shrink</button>
       {/if}
-      {#if canGrow}
-        <button class="btn btn-major" type="button" on:click={_showMore}
-          >Show More</button
+      {#if canShrink || canGrow}
+        <button
+          class="btn {canGrow ? 'btn-major' : 'btn-minor'}"
+          type="button"
+          disabled={!canGrow}
+          on:click={_showMore}>Show More</button
         >
       {/if}
     </div>
