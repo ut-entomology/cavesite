@@ -508,7 +508,7 @@
       {/if}
       <hr />
       <TaxonBarGraph
-        title="Taxa in this cluster by occurrences on visits"
+        title="Relative frequency of taxa found in this cluster"
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
       />

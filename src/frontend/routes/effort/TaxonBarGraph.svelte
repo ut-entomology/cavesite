@@ -115,7 +115,9 @@
     <SplitHorizontalBar classes="bar_spacer" rightSplitSpec={_toRightSplitSpec(item)}>
       <div slot="right">
         <div class="row gx-1">
-          <div class="col-2 text-center">{item.visits}</div>
+          <div class="col-2 text-center">
+            {item.visits} <span class="stats_deemph">visits</span>
+          </div>
           <div class="col-1 text-end stats_deemph">{item.rank}:</div>
           <div class="col">
             {#if genusSpeciesSubspecies.includes(item.rank)}
