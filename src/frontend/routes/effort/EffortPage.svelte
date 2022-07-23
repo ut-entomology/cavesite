@@ -493,12 +493,13 @@
           at a cave on the next {visitUnitName} to the cave, according to a power curve (<span
             class="eq">y=Ax<sup>P</sup>+B</span
           >) fit to the most recent {$clusterStore.config.maxPointsToRegress} points of the
-          cave, provided there are at least 3 such points. To measure the accuracy of the
-          technique, the technique was applied to historical data to predict each of the
-          {PREDICTION_HISTORY_SAMPLE_DEPTH} most recent points of each cave that could be
-          fit to a curve. The chart reports the average percentage of caves that it correctly
-          predicted would occur within each top group of N caves according to a sort of the
-          number of species predicted.</LocationBarGraph
+          cave, provided there are at least 3 such points. For caves with only 2 points,
+          the predicted additional species equals the slope of the line through the points.
+          To measure the accuracy of the technique, the technique was applied to historical
+          data to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH} most recent points
+          of each cave having at least 2 points. The chart reports the average percentage
+          of caves that it correctly predicted would occur within each top group of N caves
+          according to a sort of the number of species predicted.</LocationBarGraph
         >
       {/if}
       {#if singlePointLocationDataSet.length > 0}
@@ -512,9 +513,9 @@
           items={singlePointLocationDataSet}
           {visitUnitName}
           {openLocation}
-          >This bar chart lists caves for which there was insufficient data to make
-          predictions, sorting them by the number of additional species found on the
-          most recent recorded visit to the cave.</LocationBarGraph
+          >This bar chart lists the caves for which only one data point was recorded and
+          for which predictions could not be made, sorting the caves by the number of
+          species found on that single visit.</LocationBarGraph
         >
       {/if}
       <hr />

@@ -100,7 +100,8 @@
           display: true,
           text: 'cumulative species (y)',
           font: { size: 16 }
-        }
+        },
+        beginAtZero: true
       }
     },
     hover: {
