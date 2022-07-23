@@ -30,11 +30,22 @@ export type LocationEffortData = Pick<
   | 'perPersonVisitPoints'
 >;
 
+interface LocationInfo {
+  locationID: number;
+  countyName: string | null;
+  localityName: string;
+  isCave: boolean;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 export class LocationEffort {
   locationID: number;
   countyName: string | null;
   localityName: string;
   isCave: boolean;
+  latitude: number | null;
+  longitude: number | null;
   flags: EffortFlags;
   kingdomNames: string;
   kingdomVisits: string;
@@ -65,6 +76,8 @@ export class LocationEffort {
     this.countyName = data.countyName;
     this.localityName = data.localityName;
     this.isCave = data.isCave;
+    this.latitude = data.latitude;
+    this.longitude = data.longitude;
     this.flags = data.flags;
     this.kingdomNames = data.kingdomNames;
     this.kingdomVisits = data.kingdomVisits;
@@ -99,20 +112,19 @@ export class LocationEffort {
   static async create(
     db: DB,
     comparedTaxa: ComparedTaxa,
-    locationID: number,
-    countyName: string | null,
-    localityName: string,
-    isCave: boolean,
+    locationInfo: LocationInfo,
     data: LocationEffortData,
     counterData: TaxonVisitCounterData
   ): Promise<LocationEffort> {
     const effort = new LocationEffort(
       Object.assign(
         {
-          locationID,
-          countyName,
-          localityName,
-          isCave,
+          locationID: locationInfo.locationID,
+          countyName: locationInfo.countyName,
+          localityName: locationInfo.localityName,
+          isCave: locationInfo.isCave,
+          latitude: locationInfo.latitude,
+          longitude: locationInfo.longitude,
           kingdomNames: TaxonCounter.toNameSeries(counterData.kingdomNames)!,
           kingdomVisits: TaxonVisitCounter.toVisitsSeries(counterData.kingdomVisits)!,
           phylumNames: TaxonCounter.toNameSeries(counterData.phylumNames),
@@ -138,21 +150,23 @@ export class LocationEffort {
     );
     const result = await db.query(
       `insert into ${comparedTaxa}_for_effort (
-            location_id, county_name, locality_name, is_cave,
+            location_id, county_name, locality_name, is_cave, latitude, longitude,
             flags, total_visits, total_person_visits, total_species,
             kingdom_names, kingdom_visits, phylum_names, phylum_visits,
             class_names, class_visits, order_names, order_visits,
             family_names, family_visits, genus_names, genus_visits,
             species_names, species_visits, subspecies_names, subspecies_visits,
             per_visit_points, per_person_visit_points
-					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-            $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
+					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
       [
         effort.locationID,
         effort.countyName,
         effort.localityName,
         // @ts-ignore
         effort.isCave,
+        effort.latitude,
+        effort.longitude,
         effort.flags,
         effort.totalVisits,
         effort.totalPersonVisits,
@@ -251,18 +265,19 @@ export class LocationEffort {
         if (visit.locationID != priorLocationID) {
           if (priorLocationID != 0) {
             const locationID = firstVisitOfLocation!.locationID;
-            const [countyName, locationName] = await _getCountyAndLocality(
-              db,
-              locationID
-            );
+            const [location, countyName] = await _getLocationWithCounty(db, locationID);
 
             await this.create(
               db,
               comparedTaxa,
-              locationID,
-              countyName,
-              locationName,
-              firstVisitOfLocation!.isCave,
+              {
+                locationID,
+                countyName,
+                localityName: location.locationName,
+                isCave: firstVisitOfLocation!.isCave,
+                latitude: location.publicLatitude,
+                longitude: location.publicLongitude
+              },
               {
                 flags: effortFlags!,
                 totalVisits,
@@ -337,15 +352,19 @@ export class LocationEffort {
 
     if (priorLocationID != 0) {
       const locationID = firstVisitOfLocation!.locationID;
-      const [countyName, locationName] = await _getCountyAndLocality(db, locationID);
+      const [location, countyName] = await _getLocationWithCounty(db, locationID);
 
       await this.create(
         db,
         comparedTaxa,
-        locationID,
-        countyName,
-        locationName,
-        firstVisitOfLocation!.isCave,
+        {
+          locationID,
+          countyName,
+          localityName: location.locationName,
+          isCave: firstVisitOfLocation!.isCave,
+          latitude: location.publicLatitude,
+          longitude: location.publicLongitude
+        },
         {
           flags: effortFlags!,
           totalVisits,
@@ -360,12 +379,12 @@ export class LocationEffort {
   }
 }
 
-async function _getCountyAndLocality(
+async function _getLocationWithCounty(
   db: DB,
   locationID: number
-): Promise<[string | null, string]> {
+): Promise<[Location, string | null]> {
   const location = (await Location.getByIDs(db, [locationID]))[0];
   const countyName =
     location.parentNamePath.split('|')[LocationRankIndex.County] || null;
-  return [countyName, location.locationName];
+  return [location, countyName];
 }

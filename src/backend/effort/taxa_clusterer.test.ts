@@ -19,7 +19,13 @@ import { createClusterer } from './create_clusterer';
 // NOTE: Can't reuse location IDs across tests, because clustering clears
 // effort cache based on whether it has cached for a location ID.
 
-jest.setTimeout(20 * 60 * 1000); // debugging timeout
+// jest.setTimeout(20 * 60 * 1000); // debugging timeout
+
+interface EffortSpec {
+  locationID: number;
+  totalSpecies: number;
+  partialTallies: Partial<TaxonVisitCounterData>;
+}
 
 const mutex = new DatabaseMutex();
 let db: DB;
@@ -52,46 +58,61 @@ beforeAll(async () => {
 });
 
 test('selecting seed locations comparing all taxa', async () => {
-  await LocationEffort.dropAll(db, ComparedTaxa.all);
   const clusterer = createClusterer(db, {
     metric: minusDiffMetric1,
     comparedTaxa: ComparedTaxa.all
   });
+  const effortSpecs: EffortSpec[] = [];
 
   // Select the most diverse seed location.
 
-  await _addEffort(1, 1, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1',
-    phylumVisits: [1]
+  effortSpecs.push({
+    locationID: 1,
+    totalSpecies: 1,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1',
+      phylumVisits: [1]
+    }
   });
+  await _addEfforts(effortSpecs);
   let seedIDs = await clusterer.getSeedLocationIDs(1, true);
   expect(seedIDs).toEqual([1]);
 
-  await _addEffort(2, 5, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1',
-    phylumVisits: [1],
-    familyNames: 'f1|f2',
-    familyVisits: [1, 1],
-    genusNames: 'f1g1|f1g2|f1g3|f2g4|f2g5',
-    genusVisits: [1, 1, 1, 1, 1]
+  effortSpecs.push({
+    locationID: 2,
+    totalSpecies: 5,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1',
+      phylumVisits: [1],
+      familyNames: 'f1|f2',
+      familyVisits: [1, 1],
+      genusNames: 'f1g1|f1g2|f1g3|f2g4|f2g5',
+      genusVisits: [1, 1, 1, 1, 1]
+    }
   });
+  await _addEfforts(effortSpecs);
   seedIDs = await clusterer.getSeedLocationIDs(1, true);
   expect(seedIDs).toEqual([2]);
 
-  await _addEffort(3, 3, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1',
-    phylumVisits: [1],
-    familyNames: 'f1',
-    familyVisits: [1],
-    genusNames: 'f1g1|f1g2|f1g3',
-    genusVisits: [1, 1, 1]
+  effortSpecs.push({
+    locationID: 3,
+    totalSpecies: 3,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1',
+      phylumVisits: [1],
+      familyNames: 'f1',
+      familyVisits: [1],
+      genusNames: 'f1g1|f1g2|f1g3',
+      genusVisits: [1, 1, 1]
+    }
   });
+  await _addEfforts(effortSpecs);
   seedIDs = await clusterer.getSeedLocationIDs(1, true);
   expect(seedIDs).toEqual([2]);
 
@@ -102,103 +123,147 @@ test('selecting seed locations comparing all taxa', async () => {
 
   // Add 2nd- and 3rd-most diverse locations.
 
-  await _addEffort(4, 5, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1|p2',
-    phylumVisits: [1, 1],
-    familyNames: 'f1|f2',
-    familyVisits: [1, 1],
-    genusNames: 'f1g1|f1g2|f1g3',
-    genusVisits: [1, 1, 1]
+  effortSpecs.push({
+    locationID: 4,
+    totalSpecies: 5,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1|p2',
+      phylumVisits: [1, 1],
+      familyNames: 'f1|f2',
+      familyVisits: [1, 1],
+      genusNames: 'f1g1|f1g2|f1g3',
+      genusVisits: [1, 1, 1]
+    }
   });
-  await _addEffort(5, 5, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1|p2|p3',
-    phylumVisits: [1, 1, 1],
-    familyNames: 'f1|f2',
-    familyVisits: [1, 1],
-    genusNames: 'f1g1|f1g2|f1g3|f2g1',
-    genusVisits: [1, 1, 1, 1]
+  effortSpecs.push({
+    locationID: 5,
+    totalSpecies: 5,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1|p2|p3',
+      phylumVisits: [1, 1, 1],
+      familyNames: 'f1|f2',
+      familyVisits: [1, 1],
+      genusNames: 'f1g1|f1g2|f1g3|f2g1',
+      genusVisits: [1, 1, 1, 1]
+    }
   });
-  await _addEffort(6, 4, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1',
-    phylumVisits: [1],
-    familyNames: 'f1|f3',
-    familyVisits: [1, 1],
-    genusNames: 'f1g1|f1g2|f3g1',
-    genusVisits: [1, 1, 1]
+  effortSpecs.push({
+    locationID: 6,
+    totalSpecies: 4,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1',
+      phylumVisits: [1],
+      familyNames: 'f1|f3',
+      familyVisits: [1, 1],
+      genusNames: 'f1g1|f1g2|f3g1',
+      genusVisits: [1, 1, 1]
+    }
   });
+  await _addEfforts(effortSpecs);
   seedIDs = await clusterer.getSeedLocationIDs(2, true);
   expect(seedIDs).toEqual([2, 5]);
 
   // Selection order changes with adding a late most-diverse effort.
 
-  await _addEffort(7, 7, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1|p2',
-    phylumVisits: [1, 1],
-    familyNames: 'f1|f2|f3|f4',
-    familyVisits: [1, 1, 1, 1],
-    genusNames: 'f1g1|f1g2|f2g1|f4g1|f4g2',
-    genusVisits: [1, 1, 1, 1, 1]
+  effortSpecs.push({
+    locationID: 7,
+    totalSpecies: 7,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1|p2',
+      phylumVisits: [1, 1],
+      familyNames: 'f1|f2|f3|f4',
+      familyVisits: [1, 1, 1, 1],
+      genusNames: 'f1g1|f1g2|f2g1|f4g1|f4g2',
+      genusVisits: [1, 1, 1, 1, 1]
+    }
   });
+  await _addEfforts(effortSpecs);
   seedIDs = await clusterer.getSeedLocationIDs(3, true);
   expect(seedIDs).toEqual([7, 2, 5]);
 });
 
 test('clustering at all taxonomic ranks', async () => {
-  await LocationEffort.dropAll(db, ComparedTaxa.all);
   const clusterer = createClusterer(db, {
     metric: commonMinusDiffMetric1,
     comparedTaxa: ComparedTaxa.all
   });
+  const effortSpecs: EffortSpec[] = [];
 
-  await _addEffort(11, 1, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p1',
-    phylumVisits: [1]
+  effortSpecs.push({
+    locationID: 11,
+    totalSpecies: 1,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p1',
+      phylumVisits: [1]
+    }
   });
-  await _addEffort(12, 2, {
-    kingdomNames: 'k1',
-    kingdomVisits: [2],
-    phylumNames: 'p1|p2',
-    phylumVisits: [1, 2]
+  effortSpecs.push({
+    locationID: 12,
+    totalSpecies: 2,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [2],
+      phylumNames: 'p1|p2',
+      phylumVisits: [1, 2]
+    }
   });
-  await _addEffort(13, 3, {
-    kingdomNames: 'k1',
-    kingdomVisits: [3],
-    phylumNames: 'p1|p2|p3',
-    phylumVisits: [3, 2, 1]
+  effortSpecs.push({
+    locationID: 13,
+    totalSpecies: 3,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [3],
+      phylumNames: 'p1|p2|p3',
+      phylumVisits: [3, 2, 1]
+    }
   });
+  await _addEfforts(effortSpecs);
   let clusters = await _getClusters(clusterer, [11]);
   _checkClusters(clusters, [
     { visitsByTaxonUnique: { k1: 6, p1: 5, p2: 4, p3: 1 }, locationIDs: [11, 12, 13] }
   ]);
 
-  await _addEffort(14, 1, {
-    kingdomNames: 'k1',
-    kingdomVisits: [1],
-    phylumNames: 'p4',
-    phylumVisits: [1]
+  effortSpecs.push({
+    locationID: 14,
+    totalSpecies: 1,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [1],
+      phylumNames: 'p4',
+      phylumVisits: [1]
+    }
   });
-  await _addEffort(15, 2, {
-    kingdomNames: 'k1',
-    kingdomVisits: [3],
-    phylumNames: 'p4|p5',
-    phylumVisits: [1, 1]
+  effortSpecs.push({
+    locationID: 15,
+    totalSpecies: 2,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [3],
+      phylumNames: 'p4|p5',
+      phylumVisits: [1, 1]
+    }
   });
-  await _addEffort(16, 3, {
-    kingdomNames: 'k1',
-    kingdomVisits: [5],
-    phylumNames: 'p4|p5|p6',
-    phylumVisits: [1, 5, 1]
+  effortSpecs.push({
+    locationID: 16,
+    totalSpecies: 3,
+    partialTallies: {
+      kingdomNames: 'k1',
+      kingdomVisits: [5],
+      phylumNames: 'p4|p5|p6',
+      phylumVisits: [1, 5, 1]
+    }
   });
+  await _addEfforts(effortSpecs);
   clusters = await _getClusters(clusterer, [13, 16]);
   _checkClusters(clusters, [
     { visitsByTaxonUnique: { k1: 6, p1: 5, p2: 4, p3: 1 }, locationIDs: [11, 12, 13] },
@@ -215,21 +280,25 @@ afterAll(async () => {
   await mutex.unlock();
 });
 
-async function _addEffort(
-  locationID: number,
-  totalSpecies: number,
-  partialTallies: Partial<TaxonVisitCounterData>
-): Promise<void> {
-  await LocationEffort.create(
-    db,
-    ComparedTaxa.all,
-    locationID,
-    'Dummy County',
-    'Dummy Locality',
-    true,
-    _toEffortData({ totalSpecies }),
-    _toTallies(partialTallies)
-  );
+async function _addEfforts(effortSpecs: EffortSpec[]): Promise<void> {
+  await LocationEffort.dropAll(db, ComparedTaxa.all);
+  for (const effortSpec of effortSpecs) {
+    await LocationEffort.create(
+      db,
+      ComparedTaxa.all,
+      {
+        locationID: effortSpec.locationID,
+        countyName: 'Dummy County',
+        localityName: 'Dummy Locality',
+        isCave: true,
+        latitude: null,
+        longitude: null
+      },
+      _toEffortData({ totalSpecies: effortSpec.totalSpecies }),
+      _toTallies(effortSpec.partialTallies)
+    );
+  }
+  await LocationEffort.commit(db, ComparedTaxa.all);
 }
 
 function _checkClusters(
