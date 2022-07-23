@@ -244,26 +244,16 @@
     // Tally the data for the charts.
 
     loading = true;
-    const allTaxaTallier = specedQuery.taxonFilter
-      ? await _loadTallies(allTaxaQuery)
-      : null;
+    const allTaxaTallier = await _loadTallies(allTaxaQuery);
     const specedTallier = await _loadTallies(specedQuery);
-    console.log('**** specedTallier', specedTallier);
 
     const historyStageTallies = specedTallier.getHistoryStageTallies();
     const seasonalityStageTallies = specedTallier.getSeasonalityStageTallies();
     const recordsMissingMonth = specedTallier.missingMonthExclusions;
     const recordsMissingDayOfMonth = specedTallier.missingDayExclusions;
 
-    const allTaxaMaxTallies = allTaxaTallier?.getHistoryStageTallies() || null;
-    const allTaxaAllStagesTallies = allTaxaMaxTallies
-      ? allTaxaMaxTallies[LifeStage.All]
-      : null;
-    console.log('**** allTaxaAllStagesTallies', allTaxaAllStagesTallies);
-    console.log(
-      '**** allTaxaAllStagesTallies.yearlySpeciesTotals',
-      allTaxaAllStagesTallies?.yearlySpeciesTotals
-    );
+    const allTaxaMaxTallies = allTaxaTallier.getHistoryStageTallies();
+    const allTaxaAllStagesTallies = allTaxaMaxTallies[LifeStage.All];
     if (allTaxaAllStagesTallies) {
       _setAllTaxaTallies(
         allTaxaAllStagesTallies.monthlySpeciesTotals,
@@ -286,37 +276,20 @@
       version: CACHED_DATA_VERSION,
       description,
       query: specedTimeQuery,
-      allTaxaHistoryGraphSpecs: allTaxaMaxTallies
-        ? {
-            monthlySpecs: {
-              species: createHistoryGraphSpec(
-                allTaxaMaxTallies,
-                'monthlySpeciesTotals'
-              ),
-              specimens: createHistoryGraphSpec(
-                allTaxaMaxTallies,
-                'monthlySpecimenTotals'
-              )
-            },
-            seasonalSpecs: {
-              species: createHistoryGraphSpec(
-                allTaxaMaxTallies,
-                'seasonalSpeciesTotals'
-              ),
-              specimens: createHistoryGraphSpec(
-                allTaxaMaxTallies,
-                'seasonalSpecimenTotals'
-              )
-            },
-            yearlySpecs: {
-              species: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpeciesTotals'),
-              specimens: createHistoryGraphSpec(
-                allTaxaMaxTallies,
-                'yearlySpecimenTotals'
-              )
-            }
-          }
-        : null,
+      allTaxaHistoryGraphSpecs: {
+        monthlySpecs: {
+          species: createHistoryGraphSpec(allTaxaMaxTallies, 'monthlySpeciesTotals'),
+          specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'monthlySpecimenTotals')
+        },
+        seasonalSpecs: {
+          species: createHistoryGraphSpec(allTaxaMaxTallies, 'seasonalSpeciesTotals'),
+          specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'seasonalSpecimenTotals')
+        },
+        yearlySpecs: {
+          species: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpeciesTotals'),
+          specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpecimenTotals')
+        }
+      },
       historyGraphSpecs: {
         monthlySpecs: {
           species: createHistoryGraphSpec(historyStageTallies, 'monthlySpeciesTotals'),
@@ -481,7 +454,6 @@
     graphedTallies: number[]
   ): void {
     let maxGraphedTally = 0;
-    console.log('**** graphedTallies', graphedTallies);
     for (const graphedTally of graphedTallies) {
       if (graphedTally > maxGraphedTally) maxGraphedTally = graphedTally;
     }
