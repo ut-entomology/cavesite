@@ -40,11 +40,7 @@
 
 <div class="row gx-3">
   <div class="col-2 {isPrediction ? 'text-end' : 'text-center'}">
-    {#if isPrediction}
-      <span class="stats_deemph">+</span>{valueStr}
-    {:else}
-      {valueStr}
-    {/if}
+    <span class="stats_deemph">+</span>{valueStr}
     <span class="stats_deemph">spp.</span>
   </div>
   <div class="col" on:click={() => openLocation(locationData)}>
