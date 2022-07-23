@@ -9,7 +9,7 @@
   const MIN_ROWS = 10;
   const ROW_INCREMENT = 40;
 
-  export let heading: string;
+  export let title: string;
   export let tierStats: PredictionTierStat[] | null = null;
   export let getValue: (locationData: LocationGraphData) => number | null;
   export let getPoints: (locationData: LocationGraphData) => Point[];
@@ -19,7 +19,7 @@
   export let getItems: RowItemGetter;
   export let openLocation: (locationData: LocationGraphData) => void;
 
-  $: headingSuffix = ` <span class="cave_count">(${items.length} cave${
+  $: titleSuffix = ` <span class="cave_count">(${items.length} cave${
     items.length > 1 ? 's' : ''
   })</span>`;
 
@@ -64,7 +64,7 @@
 
 {#key items}
   <SortedRowGrower
-    heading={heading + headingSuffix}
+    title={title + titleSuffix}
     itemsClasses="location_bar_graph"
     minRows={MIN_ROWS}
     rowIncrement={ROW_INCREMENT}

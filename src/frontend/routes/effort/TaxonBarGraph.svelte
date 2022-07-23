@@ -21,7 +21,7 @@
     path?: string;
   }
 
-  export let heading: string;
+  export let title: string;
   export let visitsByTaxonUnique: Record<string, number>;
   export let locationGraphDataSet: LocationGraphData[];
 
@@ -38,7 +38,7 @@
     }
   }
 
-  $: headingSuffix = ` <span class="taxon_count">(${items.length} ${
+  $: titleSuffix = ` <span class="taxon_count">(${items.length} ${
     items.length == 1 ? 'taxon' : 'taxa'
   })</span>`;
 
@@ -99,7 +99,7 @@
 
 {#key items}
   <SortedRowGrower
-    heading={heading + headingSuffix}
+    title={title + titleSuffix}
     itemsClasses="taxon_bar_graph"
     minRows={MIN_ROWS}
     rowIncrement={ROW_INCREMENT}

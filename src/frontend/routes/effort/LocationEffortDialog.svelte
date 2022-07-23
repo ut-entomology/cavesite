@@ -80,14 +80,14 @@
 
     <hr />
     <TaxonBarGraph
-      heading="Taxa found in this cave, by visits"
+      title="Taxa found in this cave, by visits"
       visitsByTaxonUnique={locationGraphData.visitsByTaxonUnique}
       locationGraphDataSet={[locationGraphData]}
     />
 
     <hr />
     <TaxonBarGraph
-      heading="Taxa found in this cluster but NOT in this cave, by visits"
+      title="Taxa found in this cluster but NOT in this cave, by visits"
       visitsByTaxonUnique={missingTaxaVisitsByTaxonUnique}
       {locationGraphDataSet}
     />

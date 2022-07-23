@@ -482,7 +482,7 @@
       {#if multiPointLocationDataSet.length > 0}
         <hr />
         <LocationBarGraph
-          heading="Predicted additional species on next {visitUnitName}"
+          title="Predicted additional species on next {visitUnitName}"
           tierStats={predictionTierStats}
           getItems={_getMultiVisitLocationSubset}
           greatestValue={greatestMultiVisitLocationValue}
@@ -496,7 +496,7 @@
       {#if singlePointLocationDataSet.length > 0}
         <hr />
         <LocationBarGraph
-          heading="Additional species found on last {visitUnitName} (no prediction)"
+          title="Additional species found on last {visitUnitName} (no prediction)"
           getItems={_getSingleVisitLocationSubset}
           greatestValue={greatestSingleVisitLocationValue}
           getValue={getLocationValue}
@@ -508,7 +508,7 @@
       {/if}
       <hr />
       <TaxonBarGraph
-        heading="Taxa in this cluster by occurrences on visits"
+        title="Taxa in this cluster by occurrences on visits"
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
       />

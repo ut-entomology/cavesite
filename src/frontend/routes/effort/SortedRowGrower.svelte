@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-  export let heading: string;
+  export let title: string;
   export let itemsClasses = '';
   export let minRows: number;
   export let rowIncrement: number;
@@ -44,7 +44,7 @@
 
 {#await _updateItems() then}
   <div class="row gx-2 mb-2">
-    <div class="col heading">{@html heading}</div>
+    <div class="col title">{@html title}</div>
     <div class="col-auto sort_label">
       <label for="sortOrder" class="col-form-label">Sort:</label>
     </div>
@@ -90,7 +90,7 @@
 {/await}
 
 <style>
-  .heading {
+  .title {
     font-size: 1.15rem;
     font-weight: bold;
   }
