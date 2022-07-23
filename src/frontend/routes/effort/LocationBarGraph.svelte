@@ -96,8 +96,15 @@
       >
         <div slot="left">
           {#if _isTierStatIndex(index, increasing)}
-            {_toPercentStr(_toStatPercent(index, increasing))}
-            <span class="percent">%</span>
+            <div class="row gx-0">
+              <div class="col top_deemph text-start ms-2">
+                Top {increasing ? items.length - index : index + 1}:
+              </div>
+              <div class="col me-2">
+                {_toPercentStr(_toStatPercent(index, increasing))}
+                <span class="percent">%</span>
+              </div>
+            </div>
           {:else}
             <div class="no_stats">no stats</div>
           {/if}
@@ -132,12 +139,15 @@
     margin-bottom: 2px;
   }
   :global(.outer_bar:hover) {
-    color: $blueLinkForeColor;
     cursor: pointer;
-    text-decoration: underline;
   }
   :global(.outer_bar:hover .location_name) {
+    color: $blueLinkForeColor;
     text-decoration: underline;
+  }
+  :global(.top_deemph) {
+    color: #6a547f;
+    font-size: 0.95em;
   }
   .percent {
     font-size: 0.9em;
