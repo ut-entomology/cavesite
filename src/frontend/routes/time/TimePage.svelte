@@ -272,15 +272,15 @@
       allTaxaHistoryGraphSpecs = {
         monthlySpecs: {
           species: createHistoryGraphSpec(allTaxaMaxTallies, 'monthlySpeciesTotals'),
-          specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'monthlySpecimenTotals')
+          specimens: null! // unused
         },
         seasonalSpecs: {
           species: createHistoryGraphSpec(allTaxaMaxTallies, 'seasonalSpeciesTotals'),
-          specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'seasonalSpecimenTotals')
+          specimens: null! // unused
         },
         yearlySpecs: {
           species: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpeciesTotals'),
-          specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpecimenTotals')
+          specimens: null! // unused
         }
       };
     }
