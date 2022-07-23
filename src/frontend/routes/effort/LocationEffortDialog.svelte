@@ -83,7 +83,7 @@
       title="Frequency of taxa found in this cave"
       visitsByTaxonUnique={locationGraphData.visitsByTaxonUnique}
       locationGraphDataSet={[locationGraphData]}
-      >This bar graph shows the frequency at which taxa were found on visits to the this
+      >This bar chart shows the frequency at which taxa were found on visits to the this
       cave. The bar for any given taxon depicts the fraction of the total number of
       visits in which the taxon was found.</TaxonBarGraph
     >
@@ -94,7 +94,7 @@
       visitsByTaxonUnique={missingTaxaVisitsByTaxonUnique}
       {locationGraphDataSet}
     >
-      This bar graph shows the frequency at which taxa were found on visits to the caves
+      This bar chart shows the frequency at which taxa were found on visits to the caves
       of this cluster, restricted to the taxa not yet found in the present cave. The bar
       for any given taxon depicts the fraction of the total number of visits in which
       the taxon was found.</TaxonBarGraph

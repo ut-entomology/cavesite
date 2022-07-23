@@ -489,7 +489,7 @@
           items={multiPointLocationDataSet}
           {visitUnitName}
           {openLocation}
-          >This bar graph shows the number of additional species predicted to be found
+          >This bar chart shows the number of additional species predicted to be found
           at a cave on the next {visitUnitName} to the cave, according to a power curve (<span
             class="eq">y=Ax<sup>P</sup>+B</span
           >) fit to the most recent {$clusterStore.config.maxPointsToRegress} points of the
@@ -512,7 +512,7 @@
           items={singlePointLocationDataSet}
           {visitUnitName}
           {openLocation}
-          >This bar graph lists caves for which there was insufficient data to make
+          >This bar chart lists caves for which there was insufficient data to make
           predictions, sorting them by the number of additional species found on the
           most recent recorded visit to the cave.</LocationBarGraph
         >
@@ -522,7 +522,7 @@
         title="Frequency of taxa found in this cluster"
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
-        >This bar graph shows the frequency at which taxa were found on visits to the
+        >This bar chart shows the frequency at which taxa were found on visits to the
         caves of this cluster. The bar for any given taxon depicts the fraction of the
         total number of visits in which the taxon was found.</TaxonBarGraph
       >
