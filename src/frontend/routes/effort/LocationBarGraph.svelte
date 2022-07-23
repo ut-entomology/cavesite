@@ -1,5 +1,6 @@
 <script lang="ts">
   import SortedRowGrower, { type RowItemGetter } from './SortedRowGrower.svelte';
+  import StatsHeaderRow from './StatsHeaderRow.svelte';
   import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
   import RightLocationSplit from './RightLocationSplit.svelte';
   import type { Point } from '../../../shared/point';
@@ -75,6 +76,12 @@
     let:index
     let:increasing
   >
+    <div slot="header">
+      <StatsHeaderRow
+        leftHeader={tierStats ? 'Accuracy of top N rows' : null}
+        rightHeader="{title} to cave{tierStats ? '' : ' (no prediction)'}"
+      />
+    </div>
     {#if tierStats === null}
       <SplitHorizontalBar classes="outer_bar" rightSplitSpec={_toRightSplitSpec(item)}>
         <div slot="right">
@@ -97,7 +104,7 @@
         <div slot="left">
           {#if _isTierStatIndex(index, increasing)}
             <div class="row gx-0">
-              <div class="col top_deemph text-start ms-2">
+              <div class="col stats_deemph text-start ms-2">
                 Top {increasing ? items.length - index : index + 1}:
               </div>
               <div class="col me-2">
@@ -144,10 +151,6 @@
   :global(.outer_bar:hover .location_name) {
     color: $blueLinkForeColor;
     text-decoration: underline;
-  }
-  :global(.top_deemph) {
-    color: #6a547f;
-    font-size: 0.95em;
   }
   .percent {
     font-size: 0.9em;

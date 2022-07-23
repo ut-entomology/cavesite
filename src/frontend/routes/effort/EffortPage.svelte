@@ -496,7 +496,7 @@
       {#if singlePointLocationDataSet.length > 0}
         <hr />
         <LocationBarGraph
-          title="Additional species found on last {visitUnitName} (no prediction)"
+          title="Additional species found on last {visitUnitName}"
           getItems={_getSingleVisitLocationSubset}
           greatestValue={greatestSingleVisitLocationValue}
           getValue={getLocationValue}

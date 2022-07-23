@@ -1,5 +1,6 @@
 <script lang="ts">
   import SortedRowGrower from './SortedRowGrower.svelte';
+  import StatsHeaderRow from './StatsHeaderRow.svelte';
   import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
   import { type TaxonSpec, TaxonRank, TaxonRankIndex } from '../../../shared/model';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
@@ -108,11 +109,14 @@
     {items}
     let:item
   >
+    <div slot="header">
+      <StatsHeaderRow rightHeader={title} />
+    </div>
     <SplitHorizontalBar classes="bar_spacer" rightSplitSpec={_toRightSplitSpec(item)}>
       <div slot="right">
         <div class="row gx-1">
           <div class="col-2 text-center">{item.visits}</div>
-          <div class="col-1 text-end taxon_deemph">{item.rank}:</div>
+          <div class="col-1 text-end stats_deemph">{item.rank}:</div>
           <div class="col">
             {#if genusSpeciesSubspecies.includes(item.rank)}
               <i>{item.unique}</i>
@@ -120,7 +124,7 @@
               {item.unique}
             {/if}
             {#if !kingdomPhylumClass.includes(item.rank)}
-              <span class="taxon_deemph">({item.path})</span>
+              <span class="stats_deemph">({item.path})</span>
             {/if}
           </div>
         </div>
@@ -140,9 +144,5 @@
   }
   :global(.bar_spacer) {
     margin-bottom: 2px;
-  }
-  :global(.taxon_deemph) {
-    color: #6a547f;
-    font-size: 0.95em;
   }
 </style>

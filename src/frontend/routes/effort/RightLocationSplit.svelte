@@ -41,25 +41,18 @@
 <div class="row gx-3">
   <div class="col-2 text-end">
     {#if isPrediction}
-      <span class="loc_deemph">+</span>{valueStr}
+      <span class="stats_deemph">+</span>{valueStr}
     {:else}
-      {valueStr} <span class="loc_deemph">&Delta;</span>
+      {valueStr}
     {/if}
-    <span class="loc_deemph">spp.</span>
+    <span class="stats_deemph">spp.</span>
   </div>
   <div class="col" on:click={() => openLocation(locationData)}>
     <span class="location_name">{locationName}</span>
 
-    <span class="loc_deemph"
+    <span class="stats_deemph"
       >({unitValue}
       {visitUnitName}{unitValue > 1 ? 's' : ''}){@html footnoteLinks}</span
     >
   </div>
 </div>
-
-<style lang="scss">
-  :global(.loc_deemph) {
-    color: #6a547f;
-    font-size: 0.95em;
-  }
-</style>
