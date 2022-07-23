@@ -4,7 +4,8 @@
   import {
     type TimeGraphQuery,
     convertTimeQuery,
-    TimeChartTallier
+    TimeChartTallier,
+    LifeStage
   } from '../../../shared/time_query';
   import {
     type TimeGraphSpec,
@@ -34,6 +35,7 @@
     version: number;
     description: string;
     query: TimeGraphQuery;
+    allTaxaHistoryGraphSpecs: HistoryGraphSpecs | null;
     historyGraphSpecs: HistoryGraphSpecs;
     seasonalityGraphSpecs: SeasonalityGraphSpecs;
     recordsMissingDates: number;
@@ -67,7 +69,7 @@
   import { LocationRank } from '../../../shared/model';
 
   $pageName = 'Seasonality and History';
-  const CACHED_DATA_VERSION = 3;
+  const CACHED_DATA_VERSION = 4;
 
   enum CountUnits {
     species = 'species',
@@ -97,6 +99,7 @@
   let queryRequest: TimeGraphQueryRequest | null = null;
   let historyGraphSpec: TimeGraphSpec;
   let seasonalityGraphSpec: TimeGraphSpec;
+  let allTaxaHistoryGraphSpec: TimeGraphSpec | null;
   let seasonalityFootnotes: string[];
   let historyFootnotes: string[];
 
@@ -147,6 +150,8 @@
     if (historyXUnits == HistoryXUnits.seasonally && dayOfMonthExclusionNote) {
       historyFootnotes.push(dayOfMonthExclusionNote);
     }
+
+    allTaxaHistoryGraphSpec = _getAllTaxaHistoryGraphSpec(historyXUnits, historyYUnits);
   }
 
   function clearData() {
@@ -173,25 +178,30 @@
   }
 
   async function performQuery(request: TimeGraphQueryRequest) {
-    // Load the data.
+    // Construct a general query for the provided specifications, and construct
+    // a general query based on the specified query but including all taxa.
 
-    const timeQuery = {
+    const allTaxaTimeQuery = {
       fromDateMillis: request.fromDateMillis,
       throughDateMillis: request.throughDateMillis,
       locationFilter: request.filterLocations ? await getLocationFilter() : null,
-      taxonFilter: request.filterTaxa ? await getTaxonFilter() : null
+      taxonFilter: null
     };
+    const specedTimeQuery = Object.assign({}, allTaxaTimeQuery, {
+      taxonFilter: request.filterTaxa ? await getTaxonFilter() : null
+    });
     queryRequest = null; // hide query request dialog
-    const generalQuery = convertTimeQuery(timeQuery, false);
+    const allTaxaQuery = convertTimeQuery(allTaxaTimeQuery, false);
+    const specedQuery = convertTimeQuery(specedTimeQuery, false);
 
     // Generate the title.
 
     let taxonFilterName = 'All cave obligates';
-    if (generalQuery.taxonFilter) {
+    if (specedQuery.taxonFilter) {
       taxonFilterName = 'Selected taxa';
       const taxonSpecs = Object.values($selectedTaxa!);
       if (taxonSpecs.length == 1) {
-        const taxonFilter = generalQuery.taxonFilter;
+        const taxonFilter = specedQuery.taxonFilter;
         taxonFilterName = taxonSpecs[0].unique;
         if (
           taxonFilter.subspeciesIDs ||
@@ -204,7 +214,7 @@
     }
 
     let locationFilterName = 'at all locations';
-    if (generalQuery.locationFilter) {
+    if (specedQuery.locationFilter) {
       locationFilterName = 'at selected locations';
       const locationSpecs = Object.values($selectedLocations!);
       if (locationSpecs.length == 1) {
@@ -219,35 +229,55 @@
       }
     }
 
-    const fromDate = new Date(generalQuery.dateFilter!.fromDateMillis!);
-    const thruDate = new Date(generalQuery.dateFilter!.throughDateMillis!);
+    const fromDate = new Date(specedQuery.dateFilter!.fromDateMillis!);
+    const thruDate = new Date(specedQuery.dateFilter!.throughDateMillis!);
     let description =
       `${taxonFilterName} ${locationFilterName}<br/>` +
       `from ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
 
     // Get a count of the number of blank dates in the filtered set.
 
-    const blankDateQuery = convertTimeQuery(timeQuery, true);
-    const recordsMissingDates = (await _loadBatch(blankDateQuery, 0))[0].resultCount!;
+    const blankDateQuery = convertTimeQuery(specedTimeQuery, true);
+    const recordsMissingDates =
+      (await _loadBatch(blankDateQuery, 0))[0]?.resultCount! || 0;
 
     // Tally the data for the charts.
 
     loading = true;
-    const tallier = new TimeChartTallier();
-    let offset = 0;
-    let done = false;
-    while (!done) {
-      const rows = await _loadBatch(generalQuery, offset);
-      for (const row of rows) {
-        tallier.addTimeQueryRow(row);
-      }
-      offset += TIME_QUERY_BATCH_SIZE;
-      done = rows.length == 0;
+    const allTaxaTallier = specedQuery.taxonFilter
+      ? await _loadTallies(allTaxaQuery)
+      : null;
+    const specedTallier = await _loadTallies(specedQuery);
+    console.log('**** specedTallier', specedTallier);
+
+    const historyStageTallies = specedTallier.getHistoryStageTallies();
+    const seasonalityStageTallies = specedTallier.getSeasonalityStageTallies();
+    const recordsMissingMonth = specedTallier.missingMonthExclusions;
+    const recordsMissingDayOfMonth = specedTallier.missingDayExclusions;
+
+    const allTaxaMaxTallies = allTaxaTallier?.getHistoryStageTallies() || null;
+    const allTaxaAllStagesTallies = allTaxaMaxTallies
+      ? allTaxaMaxTallies[LifeStage.All]
+      : null;
+    console.log('**** allTaxaAllStagesTallies', allTaxaAllStagesTallies);
+    console.log(
+      '**** allTaxaAllStagesTallies.yearlySpeciesTotals',
+      allTaxaAllStagesTallies?.yearlySpeciesTotals
+    );
+    if (allTaxaAllStagesTallies) {
+      _setAllTaxaTallies(
+        allTaxaAllStagesTallies.monthlySpeciesTotals,
+        historyStageTallies[LifeStage.All].monthlySpeciesTotals
+      );
+      _setAllTaxaTallies(
+        allTaxaAllStagesTallies.seasonalSpeciesTotals,
+        historyStageTallies[LifeStage.All].seasonalSpeciesTotals
+      );
+      _setAllTaxaTallies(
+        allTaxaAllStagesTallies.yearlySpeciesTotals,
+        historyStageTallies[LifeStage.All].yearlySpeciesTotals
+      );
     }
-    const historyStageTallies = tallier.getHistoryStageTallies();
-    const seasonalityStageTallies = tallier.getSeasonalityStageTallies();
-    const recordsMissingMonth = tallier.missingMonthExclusions;
-    const recordsMissingDayOfMonth = tallier.missingDayExclusions;
     loading = false;
 
     // Cache the data.
@@ -255,7 +285,38 @@
     cachedData.set({
       version: CACHED_DATA_VERSION,
       description,
-      query: timeQuery,
+      query: specedTimeQuery,
+      allTaxaHistoryGraphSpecs: allTaxaMaxTallies
+        ? {
+            monthlySpecs: {
+              species: createHistoryGraphSpec(
+                allTaxaMaxTallies,
+                'monthlySpeciesTotals'
+              ),
+              specimens: createHistoryGraphSpec(
+                allTaxaMaxTallies,
+                'monthlySpecimenTotals'
+              )
+            },
+            seasonalSpecs: {
+              species: createHistoryGraphSpec(
+                allTaxaMaxTallies,
+                'seasonalSpeciesTotals'
+              ),
+              specimens: createHistoryGraphSpec(
+                allTaxaMaxTallies,
+                'seasonalSpecimenTotals'
+              )
+            },
+            yearlySpecs: {
+              species: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpeciesTotals'),
+              specimens: createHistoryGraphSpec(
+                allTaxaMaxTallies,
+                'yearlySpecimenTotals'
+              )
+            }
+          }
+        : null,
       historyGraphSpecs: {
         monthlySpecs: {
           species: createHistoryGraphSpec(historyStageTallies, 'monthlySpeciesTotals'),
@@ -324,13 +385,10 @@
     });
   }
 
-  async function _loadBatch(
-    generalQuery: GeneralQuery,
-    offset: number
-  ): Promise<QueryRow[]> {
+  async function _loadBatch(query: GeneralQuery, offset: number): Promise<QueryRow[]> {
     try {
       let res = await $client.post('api/specimen/query', {
-        query: generalQuery,
+        query,
         skip: offset,
         limit: TIME_QUERY_BATCH_SIZE
       });
@@ -345,10 +403,42 @@
     }
   }
 
+  async function _loadTallies(query: GeneralQuery) {
+    const tallier = new TimeChartTallier();
+    let offset = 0;
+    let done = false;
+    while (!done) {
+      const rows = await _loadBatch(query, offset);
+      for (const row of rows) {
+        tallier.addTimeQueryRow(row);
+      }
+      offset += TIME_QUERY_BATCH_SIZE;
+      done = rows.length == 0;
+    }
+    return tallier;
+  }
+
+  function _getAllTaxaHistoryGraphSpec(
+    xUnits: HistoryXUnits,
+    yUnits: CountUnits
+  ): TimeGraphSpec | null {
+    const allTaxaHistoryGraphSpecs = $cachedData!.allTaxaHistoryGraphSpecs;
+    if (!allTaxaHistoryGraphSpecs || yUnits == CountUnits.specimens) return null;
+    switch (xUnits) {
+      case HistoryXUnits.monthly:
+        return allTaxaHistoryGraphSpecs.monthlySpecs.species;
+      case HistoryXUnits.seasonally:
+        return allTaxaHistoryGraphSpecs.seasonalSpecs.species;
+      case HistoryXUnits.yearly:
+        return allTaxaHistoryGraphSpecs.yearlySpecs.species;
+    }
+  }
+
   function _getHistoryGraphSpec(
     xUnits: HistoryXUnits,
     yUnits: CountUnits
   ): TimeGraphSpec {
+    const historyGraphSpecs = $cachedData!.historyGraphSpecs;
     const getYData =
       yUnits == CountUnits.species
         ? (specPair: TimeGraphSpecPair) => specPair.species
@@ -356,11 +446,11 @@
 
     switch (xUnits) {
       case HistoryXUnits.monthly:
-        return getYData($cachedData!.historyGraphSpecs.monthlySpecs);
+        return getYData(historyGraphSpecs.monthlySpecs);
       case HistoryXUnits.seasonally:
-        return getYData($cachedData!.historyGraphSpecs.seasonalSpecs);
+        return getYData(historyGraphSpecs.seasonalSpecs);
       case HistoryXUnits.yearly:
-        return getYData($cachedData!.historyGraphSpecs.yearlySpecs);
+        return getYData(historyGraphSpecs.yearlySpecs);
     }
   }
 
@@ -368,6 +458,7 @@
     xUnits: SeasonalityXUnits,
     yUnits: CountUnits
   ): TimeGraphSpec {
+    const seasonalityGraphSpecs = $cachedData!.seasonalityGraphSpecs;
     const getYData =
       yUnits == CountUnits.species
         ? (specPair: TimeGraphSpecPair) => specPair.species
@@ -375,13 +466,28 @@
 
     switch (xUnits) {
       case SeasonalityXUnits.weekly:
-        return getYData($cachedData!.seasonalityGraphSpecs.weeklySpecs);
+        return getYData(seasonalityGraphSpecs.weeklySpecs);
       case SeasonalityXUnits.biweekly:
-        return getYData($cachedData!.seasonalityGraphSpecs.biweeklySpecs);
+        return getYData(seasonalityGraphSpecs.biweeklySpecs);
       case SeasonalityXUnits.monthly:
-        return getYData($cachedData!.seasonalityGraphSpecs.monthlySpecs);
+        return getYData(seasonalityGraphSpecs.monthlySpecs);
       case SeasonalityXUnits.seasonally:
-        return getYData($cachedData!.seasonalityGraphSpecs.seasonalSpecs);
+        return getYData(seasonalityGraphSpecs.seasonalSpecs);
+    }
+  }
+
+  function _setAllTaxaTallies(
+    allTaxaTallies: number[],
+    graphedTallies: number[]
+  ): void {
+    let maxGraphedTally = 0;
+    console.log('**** graphedTallies', graphedTallies);
+    for (const graphedTally of graphedTallies) {
+      if (graphedTally > maxGraphedTally) maxGraphedTally = graphedTally;
+    }
+    for (const xStr of Object.keys(allTaxaTallies)) {
+      const x = parseInt(xStr);
+      if (allTaxaTallies[x] > 0) allTaxaTallies[x] = maxGraphedTally;
     }
   }
 </script>
@@ -566,7 +672,10 @@
       <div class="row mt-3 time_graph">
         <div class="col">
           <div class="time_graph">
-            <HistoryGraph spec={historyGraphSpec} />
+            <HistoryGraph
+              spec={historyGraphSpec}
+              backgroundSpec={allTaxaHistoryGraphSpec}
+            />
           </div>
         </div>
       </div>
@@ -600,6 +709,10 @@
       <li>
         In weekly and biweekly charts, the one or two days of the 53rd week are stacked
         onto the 52nd week.
+      </li>
+      <li>
+        In graphs showing species history, the grayed backround labeled 'visits'
+        indicates all visits made to the location during the specified time period.
       </li>
     </TabFootnotes>
   </div>
