@@ -10,8 +10,8 @@
   export let maxWidth = '';
 </script>
 
-<Modal {contentClasses} {dialogClasses} {maxWidth} let:scrollToModelTop>
+<Modal {contentClasses} {dialogClasses} {maxWidth} let:scrollToModalTop>
   <Dialog {title}>
-    <slot {scrollToModelTop} />
+    <slot {scrollToModalTop} />
   </Dialog>
 </Modal>

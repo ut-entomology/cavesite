@@ -31,7 +31,7 @@
     }
   });
 
-  function scrollToModelTop() {
+  function scrollToModalTop() {
     modalElement.scrollTop = 0;
   }
 </script>
@@ -51,7 +51,7 @@
       out:fly={{ y: FLY_IN_Y, duration: FLY_IN_DURATION, easing: quintOut }}
     >
       <div class="modal-content {contentClasses}">
-        <slot {scrollToModelTop} />
+        <slot {scrollToModalTop} />
       </div>
     </div>
   </div>

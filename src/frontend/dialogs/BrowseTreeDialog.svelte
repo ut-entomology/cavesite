@@ -140,7 +140,7 @@
 </script>
 
 {#await prepare() then}
-  <ModalDialog {title} contentClasses="tree-browser-content" let:scrollToModelTop>
+  <ModalDialog {title} contentClasses="tree-browser-content" let:scrollToModalTop>
     <div class="row info-row">
       <div class="col-auto mb-3 small">
         This box only shows {pluralTypeLabel} having records. Click on {singularTypeLabel}
@@ -163,7 +163,7 @@
               spec,
               containingSpecNodes: containingSpecNodes.slice(0, i),
               clickable: !!spec.hasChildren && spec.unique != parentUnique,
-              gotoUnique: gotoUnique.bind(null, scrollToModelTop),
+              gotoUnique: gotoUnique.bind(null, scrollToModalTop),
               addSelection: () => _addSelection(spec),
               removeSelection: () => _removeSelection(spec)
             }}
@@ -200,7 +200,7 @@
                   allChildrenSelected || selectionsTree.isSelected(spec.unique),
                 spec,
                 containingSpecNodes: containingSpecNodes,
-                gotoUnique: gotoUnique.bind(null, scrollToModelTop),
+                gotoUnique: gotoUnique.bind(null, scrollToModalTop),
                 addSelection: () => _addSelection(spec),
                 removeSelection: () => _removeSelection(spec)
               }}
