@@ -36,6 +36,7 @@ export enum LifeStage {
 
 export function convertTimeQuery(
   timeGraphQuery: TimeGraphQuery,
+  queryAllTaxa: boolean,
   countBlankDates: boolean
 ): GeneralQuery {
   const columnSpecs: QueryColumnSpec[] = [];
@@ -104,7 +105,7 @@ export function convertTimeQuery(
     columnSpecs.push({
       columnID: QueryColumnID.Obligate,
       ascending: null,
-      optionText: timeGraphQuery.taxonFilter == null ? 'Yes' : null
+      optionText: timeGraphQuery.taxonFilter === null && !queryAllTaxa ? 'Yes' : null
     });
     columnSpecs.push({
       columnID: QueryColumnID.LifeStage,

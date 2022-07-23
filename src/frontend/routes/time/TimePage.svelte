@@ -69,7 +69,7 @@
   import { LocationRank } from '../../../shared/model';
 
   $pageName = 'Seasonality and History';
-  const CACHED_DATA_VERSION = 4;
+  const CACHED_DATA_VERSION = 5;
 
   enum CountUnits {
     species = 'species',
@@ -191,8 +191,8 @@
       taxonFilter: request.filterTaxa ? await getTaxonFilter() : null
     });
     queryRequest = null; // hide query request dialog
-    const allTaxaQuery = convertTimeQuery(allTaxaTimeQuery, false);
-    const specedQuery = convertTimeQuery(specedTimeQuery, false);
+    const allTaxaQuery = convertTimeQuery(allTaxaTimeQuery, true, false);
+    const specedQuery = convertTimeQuery(specedTimeQuery, false, false);
 
     // Generate the title.
 
@@ -237,24 +237,25 @@
 
     // Get a count of the number of blank dates in the filtered set.
 
-    const blankDateQuery = convertTimeQuery(specedTimeQuery, true);
+    const blankDateQuery = convertTimeQuery(specedTimeQuery, false, true);
     const recordsMissingDates =
       (await _loadBatch(blankDateQuery, 0))[0]?.resultCount! || 0;
 
     // Tally the data for the charts.
 
     loading = true;
-    const allTaxaTallier = await _loadTallies(allTaxaQuery);
     const specedTallier = await _loadTallies(specedQuery);
-
     const historyStageTallies = specedTallier.getHistoryStageTallies();
     const seasonalityStageTallies = specedTallier.getSeasonalityStageTallies();
     const recordsMissingMonth = specedTallier.missingMonthExclusions;
     const recordsMissingDayOfMonth = specedTallier.missingDayExclusions;
 
-    const allTaxaMaxTallies = allTaxaTallier.getHistoryStageTallies();
-    const allTaxaAllStagesTallies = allTaxaMaxTallies[LifeStage.All];
-    if (allTaxaAllStagesTallies) {
+    let allTaxaHistoryGraphSpecs: HistoryGraphSpecs | null = null;
+    if (specedQuery.locationFilter) {
+      const allTaxaTallier = await _loadTallies(allTaxaQuery);
+      const allTaxaMaxTallies = allTaxaTallier.getHistoryStageTallies();
+      const allTaxaAllStagesTallies = allTaxaMaxTallies[LifeStage.All];
+
       _setAllTaxaTallies(
         allTaxaAllStagesTallies.monthlySpeciesTotals,
         historyStageTallies[LifeStage.All].monthlySpeciesTotals
@@ -267,16 +268,8 @@
         allTaxaAllStagesTallies.yearlySpeciesTotals,
         historyStageTallies[LifeStage.All].yearlySpeciesTotals
       );
-    }
-    loading = false;
 
-    // Cache the data.
-
-    cachedData.set({
-      version: CACHED_DATA_VERSION,
-      description,
-      query: specedTimeQuery,
-      allTaxaHistoryGraphSpecs: {
+      allTaxaHistoryGraphSpecs = {
         monthlySpecs: {
           species: createHistoryGraphSpec(allTaxaMaxTallies, 'monthlySpeciesTotals'),
           specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'monthlySpecimenTotals')
@@ -289,7 +282,17 @@
           species: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpeciesTotals'),
           specimens: createHistoryGraphSpec(allTaxaMaxTallies, 'yearlySpecimenTotals')
         }
-      },
+      };
+    }
+    loading = false;
+
+    // Cache the data.
+
+    cachedData.set({
+      version: CACHED_DATA_VERSION,
+      description,
+      query: specedTimeQuery,
+      allTaxaHistoryGraphSpecs,
       historyGraphSpecs: {
         monthlySpecs: {
           species: createHistoryGraphSpec(historyStageTallies, 'monthlySpeciesTotals'),
@@ -683,8 +686,9 @@
         onto the 52nd week.
       </li>
       <li>
-        In graphs showing species history, the grayed backround labeled 'visits'
-        indicates all visits made to the location during the specified time period.
+        In graphs showing species history for selected locations, the grayed backround
+        (labeled 'visits') indicates that at least one visit was made to the location
+        during the specified time period.
       </li>
     </TabFootnotes>
   </div>
