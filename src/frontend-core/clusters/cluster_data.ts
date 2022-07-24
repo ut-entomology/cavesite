@@ -26,9 +26,13 @@ export interface PredictionTierStat {
   contributingLocations: number;
 }
 
+type GetPredictedDiff = (graphData: LocationGraphData) => number | null;
+type GetAllPoints = (graphData: LocationGraphData) => Point[];
+type SetPredictedDiff = (graphData: LocationGraphData, diff: number | null) => void;
+
 export function sortLocationGraphDataSet(
   locationGraphDataSet: LocationGraphData[],
-  getPredictedDiff: (graphData: LocationGraphData) => number | null
+  getPredictedDiff: GetPredictedDiff
 ): void {
   locationGraphDataSet.sort((a, b) => {
     const deltaA = getPredictedDiff(a);
@@ -45,18 +49,42 @@ export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   locationGraphDataSet: LocationGraphData[]
 ): ClusterData {
+  const avgPerVisitTierStats = _computeAveragePredictionTierStats(
+    config,
+    locationGraphDataSet,
+    (graphData) => graphData.predictedPerVisitDiff,
+    (graphData, diff) => (graphData.predictedPerVisitDiff = diff),
+    (graphData) => graphData.perVisitPoints
+  );
+  const avgPerPersonVisitTierStats = _computeAveragePredictionTierStats(
+    config,
+    locationGraphDataSet,
+    (graphData) => graphData.predictedPerPersonVisitDiff,
+    (graphData, diff) => (graphData.predictedPerPersonVisitDiff = diff),
+    (graphData) => graphData.perPersonVisitPoints
+  );
+  return {
+    visitsByTaxonUnique,
+    locationGraphDataSet,
+    avgPerVisitTierStats,
+    avgPerPersonVisitTierStats
+  };
+}
+
+export function _computeAveragePredictionTierStats(
+  config: ClusteringConfig,
+  locationGraphDataSet: LocationGraphData[],
+  getPredictedDiff: GetPredictedDiff,
+  setPredictedDiff: SetPredictedDiff,
+  getAllPoints: GetAllPoints
+): PredictionTierStat[] {
   // Establish the structures that ultimately provide the average of all
   // predictionHistorySampleDepth prediction tiers, after initially holding
   // the intermediate sums necessary for producing the average.
 
-  const avgPerVisitTierStats: PredictionTierStat[] = [];
-  const avgPerPersonVisitTierStats: PredictionTierStat[] = [];
+  const averageTierStats: PredictionTierStat[] = [];
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
-    avgPerVisitTierStats.push({
-      fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
-      contributingLocations: 0
-    });
-    avgPerPersonVisitTierStats.push({
+    averageTierStats.push({
       fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
       contributingLocations: 0
     });
@@ -68,8 +96,7 @@ export function toClusterData(
   // assumed to not yet have been collected for the purpose of the test. Each
   // subsequent point thus serves as a test of the prior prediction.
 
-  let maxPerVisitTierStats = 0;
-  let maxPerPersonVisitTierStats = 0;
+  let maxTierStats = 0;
   for (
     let pointsElided = config.predictionHistorySampleDepth;
     pointsElided > 0;
@@ -77,60 +104,41 @@ export function toClusterData(
   ) {
     // Put the predictions directly into the locations structures.
 
-    _putPredictionsInDataSet(config, locationGraphDataSet, pointsElided);
+    _putPredictionsInDataSet(
+      config,
+      locationGraphDataSet,
+      pointsElided,
+      getAllPoints,
+      setPredictedDiff
+    );
 
     // Compute the tier stats for the current number of points elided.
 
-    const perVisitTierStats = _computePredictionTierStats(
+    const tierStats = _computePredictionTierStats(
       config,
       locationGraphDataSet,
       pointsElided,
-      (graphData) => graphData.predictedPerVisitDiff,
-      (graphData) => graphData.perVisitPoints
-    );
-    const perPersonVisitTierStats = _computePredictionTierStats(
-      config,
-      locationGraphDataSet,
-      pointsElided,
-      (graphData) => graphData.predictedPerPersonVisitDiff,
-      (graphData) => graphData.perPersonVisitPoints
+      getPredictedDiff,
+      getAllPoints
     );
 
     // Add the points to the averaging structure, but weighting each tier stat
     // within the average according to its number of contributing locations.
 
-    if (perVisitTierStats !== null) {
-      for (let i = 0; i < perVisitTierStats.length; ++i) {
-        _addToAverageTierStat(avgPerVisitTierStats[i], perVisitTierStats[i]);
+    if (tierStats !== null) {
+      for (let i = 0; i < tierStats.length; ++i) {
+        _addToAverageTierStat(averageTierStats[i], tierStats[i]);
       }
     }
-    if (perPersonVisitTierStats !== null) {
-      for (let i = 0; i < perPersonVisitTierStats.length; ++i) {
-        _addToAverageTierStat(
-          avgPerPersonVisitTierStats[i],
-          perPersonVisitTierStats[i]
-        );
-      }
-    }
-    if (perVisitTierStats && perVisitTierStats.length > maxPerVisitTierStats) {
-      maxPerVisitTierStats = perVisitTierStats.length;
-    }
-    if (
-      perPersonVisitTierStats &&
-      perPersonVisitTierStats.length > maxPerPersonVisitTierStats
-    ) {
-      maxPerPersonVisitTierStats = perPersonVisitTierStats.length;
+    if (tierStats && tierStats.length > maxTierStats) {
+      maxTierStats = tierStats.length;
     }
   }
 
   // Turn the intermediate sums into weighted averages for each tier.
 
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
-    let averageTierStat = avgPerVisitTierStats[i];
-    if (averageTierStat.contributingLocations > 0) {
-      averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
-    }
-    averageTierStat = avgPerPersonVisitTierStats[i];
+    let averageTierStat = averageTierStats[i];
     if (averageTierStat.contributingLocations > 0) {
       averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
     }
@@ -140,20 +148,18 @@ export function toClusterData(
   // locations will be sorted later when it's known which of visits and
   // person-visits the user is examining.
 
-  _putPredictionsInDataSet(config, locationGraphDataSet, 0);
+  _putPredictionsInDataSet(
+    config,
+    locationGraphDataSet,
+    0,
+    getAllPoints,
+    setPredictedDiff
+  );
 
   // Return the cluster data complete with its prediction tier stats
   // providing a measure of prediction accuracy for each tier.
 
-  return {
-    visitsByTaxonUnique,
-    locationGraphDataSet,
-    avgPerVisitTierStats: avgPerVisitTierStats.slice(0, maxPerVisitTierStats),
-    avgPerPersonVisitTierStats: avgPerPersonVisitTierStats.slice(
-      0,
-      maxPerPersonVisitTierStats
-    )
-  };
+  return averageTierStats.slice(0, maxTierStats);
 }
 
 function _addToAverageTierStat(
@@ -170,8 +176,8 @@ export function _computePredictionTierStats(
   config: ClusteringConfig,
   locationGraphDataSet: LocationGraphData[],
   pointsElided: number,
-  getPredictedDiff: (graphData: LocationGraphData) => number | null,
-  getAllPoints: (graphData: LocationGraphData) => Point[]
+  getPredictedDiff: GetPredictedDiff,
+  getAllPoints: GetAllPoints
 ): PredictionTierStat[] | null {
   // Sort the location data most-predicted species first.
 
@@ -254,7 +260,9 @@ export function _computePredictionTierStats(
 export function _putPredictionsInDataSet(
   config: ClusteringConfig,
   locationGraphDataSet: LocationGraphData[],
-  pointsElided: number
+  pointsElided: number,
+  getAllPoints: GetAllPoints,
+  setPredictedDiff: SetPredictedDiff
 ): void {
   const sliceSpec = {
     minPointCount: 0, // we need to see actual number of points available
@@ -262,13 +270,9 @@ export function _putPredictionsInDataSet(
     recentPointsToIgnore: pointsElided
   };
   for (const graphData of locationGraphDataSet) {
-    graphData.predictedPerVisitDiff = _predictDeltaSpecies(
-      graphData.perVisitPoints,
-      sliceSpec
-    );
-    graphData.predictedPerPersonVisitDiff = _predictDeltaSpecies(
-      graphData.perPersonVisitPoints,
-      sliceSpec
+    setPredictedDiff(
+      graphData,
+      _predictDeltaSpecies(getAllPoints(graphData), sliceSpec)
     );
   }
 }

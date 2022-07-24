@@ -25,6 +25,8 @@ const baseConfig: ClusteringConfig = {
 
 const getPredictedDiff = (graphData: LocationGraphData) =>
   graphData.predictedPerVisitDiff;
+const setPredictedDiff = (graphData: LocationGraphData, diff: number | null) =>
+  (graphData.predictedPerVisitDiff = diff);
 const getAllPoints = (graphData: LocationGraphData) => graphData.perVisitPoints;
 
 test('sorting location graph data sets', () => {
@@ -137,7 +139,13 @@ test('too few points to make predictions', () => {
 
   // prettier-ignore
   let dataset = [_makeGraphData(1, [[1, 1]])];
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   let stats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -149,7 +157,13 @@ test('too few points to make predictions', () => {
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2]])];
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   stats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -164,7 +178,13 @@ test('too few points to make predictions', () => {
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2], [3,3]])];
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   stats = _computePredictionTierStats(
     config,
     dataset,
@@ -179,7 +199,13 @@ test('too few points to make predictions', () => {
     _makeGraphData(1, [[1, 1]]),
     _makeGraphData(1, [[1, 1], [2, 2], [3,3]])
   ];
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   stats = _computePredictionTierStats(
     config,
     dataset,
@@ -203,7 +229,13 @@ test('increasing prediction history depth', () => {
   ];
 
   let pointsElided = 1;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   let actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -217,7 +249,13 @@ test('increasing prediction history depth', () => {
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 2;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -231,7 +269,13 @@ test('increasing prediction history depth', () => {
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 3;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -259,7 +303,13 @@ test('predictions tiers in presence of too few points', () => {
     ];
 
   let pointsElided = 1;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   let actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -273,7 +323,13 @@ test('predictions tiers in presence of too few points', () => {
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 2;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -287,7 +343,13 @@ test('predictions tiers in presence of too few points', () => {
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 3;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -315,7 +377,13 @@ test('predictions having zero delta species', () => {
     ];
 
   let pointsElided = 1;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   let actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -329,7 +397,13 @@ test('predictions having zero delta species', () => {
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 2;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -343,7 +417,13 @@ test('predictions having zero delta species', () => {
   expect(actualStats).toEqual(expectedStats);
 
   pointsElided = 3;
-  _putPredictionsInDataSet(config, dataset, pointsElided);
+  _putPredictionsInDataSet(
+    config,
+    dataset,
+    pointsElided,
+    getAllPoints,
+    setPredictedDiff
+  );
   actualStats = _computePredictionTierStats(
     baseConfig,
     dataset,
@@ -404,9 +484,15 @@ test('truncating prediction stats when producing ClusterData', () => {
     ];
   let clusterData = toClusterData(config, {}, dataset);
   // prettier-ignore
-  let expectedStats = _makeTierStats([[2/3, 3], [1, 6], [8/9, 9], [1, 12]]);
-  expect(clusterData.avgPerVisitTierStats).toEqual(expectedStats);
-  expect(clusterData.avgPerPersonVisitTierStats).toEqual(expectedStats);
+  expect(clusterData.avgPerVisitTierStats).toEqual(
+    _makeTierStats([[2/3, 3], [1, 6], [8/9, 9], [1, 12]])
+  );
+  // Differs from prior run because equal predictions are interchangeable,
+  // resulting in different sort orders depending on initial sorts.
+  // prettier-ignore
+  expect(clusterData.avgPerPersonVisitTierStats).toEqual(
+    _makeTierStats([[2/3, 3], [1, 6], [1, 9], [1, 12]])
+  );
 });
 
 function _checkSortOrder(
