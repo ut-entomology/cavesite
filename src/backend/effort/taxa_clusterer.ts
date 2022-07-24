@@ -37,6 +37,7 @@ interface Centroid {
   longitude: number | null;
   nextLatitudeSum: number;
   nextLongitudeSum: number;
+  contributionCount: number; // might not equal size of cluster
 }
 
 export abstract class TaxaClusterer extends Clusterer {
@@ -276,7 +277,8 @@ export abstract class TaxaClusterer extends Clusterer {
         latitude: seedEffort.latitude,
         longitude: seedEffort.longitude,
         nextLatitudeSum: 0,
-        nextLongitudeSum: 0
+        nextLongitudeSum: 0,
+        contributionCount: 0
       });
       const taxonTallyMap = await this._tallyTaxa(seedEffort);
       taxonTallyMapsByCluster.push(taxonTallyMap);
@@ -294,11 +296,14 @@ export abstract class TaxaClusterer extends Clusterer {
         if (!seedLocationIDs.includes(locationEffort.locationID)) {
           const effortTaxaTallies = await this._tallyTaxa(locationEffort);
           const nearestClusterIndex = this._getNearestClusterIndex(
+            centroids,
             taxonTallyMapsByCluster,
+            locationEffort,
             effortTaxaTallies,
             -1 // force assignment to a cluster
           );
           clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
+          _updateCentroid(centroids[nearestClusterIndex], locationEffort);
           this._updateTaxonTallies(
             nextTaxonTallyMapsByCluster[nearestClusterIndex],
             effortTaxaTallies
@@ -308,6 +313,7 @@ export abstract class TaxaClusterer extends Clusterer {
       skipCount += locationEfforts.length;
       locationEfforts = await this._getNextBatchToCluster(skipCount);
     }
+    _advanceCentroids(centroids);
 
     // Loop reassigning the clusters of locations until none are reassigned.
 
@@ -330,12 +336,15 @@ export abstract class TaxaClusterer extends Clusterer {
           const effortTaxaTallies = await this._tallyTaxa(locationEffort);
           const currentClusterIndex = clusterByLocationID[locationEffort.locationID];
           const nearestClusterIndex = this._getNearestClusterIndex(
+            centroids,
             taxonTallyMapsByCluster,
+            locationEffort,
             effortTaxaTallies,
             currentClusterIndex
           );
           if (nearestClusterIndex != currentClusterIndex) {
             clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
+            _updateCentroid(centroids[nearestClusterIndex], locationEffort);
             reassigned = true;
           }
           this._updateTaxonTallies(
@@ -346,6 +355,7 @@ export abstract class TaxaClusterer extends Clusterer {
         skipCount += locationEfforts.length;
         locationEfforts = await this._getNextBatchToCluster(skipCount);
       }
+      _advanceCentroids(centroids);
     }
 
     // Convert sparse array to arrays of location IDs indexed by cluster index.
@@ -376,8 +386,9 @@ export abstract class TaxaClusterer extends Clusterer {
   }
 
   protected _getNearestClusterIndex(
-    //centroids: Centroid[],
+    centroids: Centroid[],
     taxonTallyMapsByCluster: TaxonTallyMap[],
+    locationEffort: LocationEffort,
     taxonTallyMap: TaxonTallyMap,
     currentClusterIndex: number
   ): number {
@@ -400,24 +411,68 @@ export abstract class TaxaClusterer extends Clusterer {
       }
     }
 
+    // If no two clusters are equally dissimilar to the provided effort, return
+    // the single cluster found of minimal dissimilarity.
+
+    if (indexesForMinDissimilarity.length == 1) {
+      return indexesForMinDissimilarity[0];
+    }
+
+    // Reduce the list of equally dissimilar clusters to those whose centroids
+    // are of equal minimal distance from the provided location effort. NOTE: I
+    // can comment out this condition to experiment with how helpful this is.
+
+    if (locationEffort.latitude !== null && locationEffort.longitude !== null) {
+      const firstClusterIndex = indexesForMinDissimilarity[0];
+      let minDistanceSoFar = Infinity;
+      let indexesForMinDistances: number[] = [firstClusterIndex];
+
+      for (let i = 1; i < indexesForMinDissimilarity.length; ++i) {
+        const testClusterIndex = indexesForMinDissimilarity[i];
+        const testCentroid = centroids[testClusterIndex];
+        if (testCentroid.latitude !== null && testCentroid.longitude !== null) {
+          const distance = _distanceInKm(
+            testCentroid.latitude,
+            testCentroid.longitude,
+            locationEffort.latitude,
+            locationEffort.longitude
+          );
+          if (distance == minDistanceSoFar) {
+            indexesForMinDistances.push(testClusterIndex);
+          } else if (distance < minDistanceSoFar) {
+            indexesForMinDistances = [testClusterIndex];
+            minDistanceSoFar = distance;
+          }
+        }
+      }
+
+      // If no two clusters are equally distance from the provided effort, return
+      // the single cluster found minimally distant.
+
+      if (indexesForMinDistances.length == 1) {
+        return indexesForMinDistances[0];
+      }
+
+      // Otherwise, resume with the reduced list of potential clusters.
+
+      indexesForMinDissimilarity = indexesForMinDistances;
+    }
+
+    // If the location is already assigned to one of the remaining possible
+    // clusters, keep it there to prevent the algorithm for forever randomly
+    // reassigning locations to clusters.
+
+    if (indexesForMinDissimilarity.includes(currentClusterIndex)) {
+      return currentClusterIndex;
+    }
+
     // Randomly assign the location assigned with the effort to one of the
     // clusters to which its taxa are equally similar. The assignment is
-    // random to ensure that no cluster is incidentally biased. If the location
-    // is already assigned to one of the possible clusters, keep it there to
-    // prevent the algorithm for forever randomly reassigning locations.
+    // random to ensure that no cluster is incidentally biased.
 
-    let nextClusterIndex: number;
-    if (indexesForMinDissimilarity.length == 1) {
-      nextClusterIndex = indexesForMinDissimilarity[0]; // small performance benefit
-    } else if (indexesForMinDissimilarity.includes(currentClusterIndex)) {
-      nextClusterIndex = currentClusterIndex;
-    } else {
-      nextClusterIndex =
-        indexesForMinDissimilarity[
-          Math.floor(Math.random() * indexesForMinDissimilarity.length)
-        ];
-    }
-    return nextClusterIndex;
+    return indexesForMinDissimilarity[
+      Math.floor(Math.random() * indexesForMinDissimilarity.length)
+    ];
   }
 
   protected async _getNextBatchToCluster(skipCount: number): Promise<LocationEffort[]> {
@@ -592,15 +647,38 @@ export abstract class TaxaClusterer extends Clusterer {
   }
 }
 
-// function _distanceInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-//   // from https://stackoverflow.com/a/21623206/650894
+function _advanceCentroids(centroids: Centroid[]): void {
+  for (const centroid of centroids) {
+    if (centroid.contributionCount == 0) {
+      centroid.latitude = null;
+      centroid.longitude = null;
+    } else {
+      centroid.latitude = centroid.nextLatitudeSum / centroid.contributionCount;
+      centroid.longitude = centroid.nextLongitudeSum / centroid.contributionCount;
+      centroid.contributionCount = 0;
+    }
+    centroid.nextLatitudeSum = 0;
+    centroid.nextLongitudeSum = 0;
+  }
+}
 
-//   var p = 0.017453292519943295; // Math.PI / 180
-//   var c = Math.cos;
-//   var a =
-//     0.5 -
-//     c((lat2 - lat1) * p) / 2 +
-//     (c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))) / 2;
+function _distanceInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  // from https://stackoverflow.com/a/21623206/650894
 
-//   return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
-// }
+  var p = 0.017453292519943295; // Math.PI / 180
+  var c = Math.cos;
+  var a =
+    0.5 -
+    c((lat2 - lat1) * p) / 2 +
+    (c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))) / 2;
+
+  return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+}
+
+function _updateCentroid(centroid: Centroid, locationEffort: LocationEffort): void {
+  if (locationEffort.latitude !== null && locationEffort.longitude !== null) {
+    centroid.nextLatitudeSum += locationEffort.latitude;
+    centroid.nextLongitudeSum += locationEffort.longitude;
+    ++centroid.contributionCount;
+  }
+}
