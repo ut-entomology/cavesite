@@ -43,13 +43,17 @@ export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   locationGraphDataSet: LocationGraphData[]
 ): ClusterData {
-  const perVisitStatsGen = new PerVisitSpeciesCountStatsGenerator(config);
-  const avgPerVisitTierStats =
-    perVisitStatsGen.computeAverageStats(locationGraphDataSet);
+  const perVisitStatsGen = new PerVisitSpeciesCountStatsGenerator(
+    config,
+    locationGraphDataSet
+  );
+  const avgPerVisitTierStats = perVisitStatsGen.computeAverageStats();
 
-  const perPersonVistStatsGen = new PerPersonVisitSpeciesCountStatsGenerator(config);
-  const avgPerPersonVisitTierStats =
-    perPersonVistStatsGen.computeAverageStats(locationGraphDataSet);
+  const perPersonVistStatsGen = new PerPersonVisitSpeciesCountStatsGenerator(
+    config,
+    locationGraphDataSet
+  );
+  const avgPerPersonVisitTierStats = perPersonVistStatsGen.computeAverageStats();
 
   return {
     visitsByTaxonUnique,
@@ -62,27 +66,31 @@ export function toClusterData(
 export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerator {
   maxPointsToRegress: number | null;
 
-  constructor(config: ClusteringConfig) {
-    super(config.predictionHistorySampleDepth, config.maxPredictionTiers);
+  constructor(config: ClusteringConfig, locationGraphDataSet: LocationGraphData[]) {
+    super(
+      config.predictionHistorySampleDepth,
+      config.maxPredictionTiers,
+      locationGraphDataSet
+    );
     this.maxPointsToRegress = config.maxPointsToRegress;
   }
 
   abstract getAllPoints(graphData: LocationGraphData): Point[];
 
-  sortLocationGraphDataSet(locationGraphDataSet: LocationGraphData[]): void {
-    sortLocationGraphDataSet(locationGraphDataSet, this.getPredictedDiff.bind(this));
+  sortLocationGraphDataSet(): void {
+    sortLocationGraphDataSet(
+      this.locationGraphDataSet,
+      this.getPredictedDiff.bind(this)
+    );
   }
 
-  putPredictionsInDataSet(
-    locationGraphDataSet: LocationGraphData[],
-    pointsElided: number
-  ): void {
+  putPredictionsInDataSet(pointsElided: number): void {
     const sliceSpec = {
       minPointCount: 0, // we need to see actual number of points available
       maxPointCount: this.maxPointsToRegress || Infinity,
       recentPointsToIgnore: pointsElided
     };
-    for (const graphData of locationGraphDataSet) {
+    for (const graphData of this.locationGraphDataSet) {
       this.setPredictedDiff(
         graphData,
         SpeciesCountStatsGenerator._predictDeltaSpecies(
@@ -129,8 +137,8 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
 }
 
 export class PerVisitSpeciesCountStatsGenerator extends SpeciesCountStatsGenerator {
-  constructor(config: ClusteringConfig) {
-    super(config);
+  constructor(config: ClusteringConfig, locationGraphDataSet: LocationGraphData[]) {
+    super(config, locationGraphDataSet);
   }
 
   getAllPoints(graphData: LocationGraphData): Point[] {
@@ -145,8 +153,8 @@ export class PerVisitSpeciesCountStatsGenerator extends SpeciesCountStatsGenerat
 }
 
 export class PerPersonVisitSpeciesCountStatsGenerator extends SpeciesCountStatsGenerator {
-  constructor(config: ClusteringConfig) {
-    super(config);
+  constructor(config: ClusteringConfig, locationGraphDataSet: LocationGraphData[]) {
+    super(config, locationGraphDataSet);
   }
 
   getAllPoints(graphData: LocationGraphData): Point[] {

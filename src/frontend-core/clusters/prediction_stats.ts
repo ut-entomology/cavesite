@@ -6,27 +6,30 @@ export interface PredictionTierStat {
 }
 
 export abstract class PredictionStatsGenerator {
+  locationGraphDataSet: LocationGraphData[];
   predictionHistorySampleDepth: number;
   maxPredictionTiers: number;
 
-  constructor(predictionHistorySampleDepth: number, maxPredictionTiers: number) {
+  constructor(
+    predictionHistorySampleDepth: number,
+    maxPredictionTiers: number,
+    locationGraphDataSet: LocationGraphData[]
+  ) {
     this.predictionHistorySampleDepth = predictionHistorySampleDepth;
     this.maxPredictionTiers = maxPredictionTiers;
+    this.locationGraphDataSet = locationGraphDataSet;
   }
 
   abstract getPredictedDiff(graphData: LocationGraphData): number | null;
   abstract setPredictedDiff(graphData: LocationGraphData, diff: number | null): void;
-  abstract putPredictionsInDataSet(
-    locationGraphDataSet: LocationGraphData[],
-    pointsElided: number
-  ): void;
-  abstract sortLocationGraphDataSet(locationGraphDataSet: LocationGraphData[]): void;
+  abstract putPredictionsInDataSet(pointsElided: number): void;
+  abstract sortLocationGraphDataSet(): void;
   abstract toActualDelta(
     LocationGraphData: LocationGraphData,
     pointsElided: number
   ): number;
 
-  computeAverageStats(locationGraphDataSet: LocationGraphData[]): PredictionTierStat[] {
+  computeAverageStats(): PredictionTierStat[] {
     // Establish the structures that ultimately provide the average of all
     // predictionHistorySampleDepth prediction tiers, after initially holding
     // the intermediate sums necessary for producing the average.
@@ -53,14 +56,11 @@ export abstract class PredictionStatsGenerator {
     ) {
       // Put the predictions directly into the locations structures.
 
-      this.putPredictionsInDataSet(locationGraphDataSet, pointsElided);
+      this.putPredictionsInDataSet(pointsElided);
 
       // Compute the tier stats for the current number of points elided.
 
-      const tierStats = this._computePredictionTierStats(
-        locationGraphDataSet,
-        pointsElided
-      );
+      const tierStats = this._computePredictionTierStats(pointsElided);
 
       // Add the points to the averaging structure, but weighting each tier stat
       // within the average according to its number of contributing locations.
@@ -88,7 +88,7 @@ export abstract class PredictionStatsGenerator {
     // locations will be sorted later when it's known which of visits and
     // person-visits the user is examining.
 
-    this.putPredictionsInDataSet(locationGraphDataSet, 0);
+    this.putPredictionsInDataSet(0);
 
     // Return the cluster data complete with its prediction tier stats
     // providing a measure of prediction accuracy for each tier.
@@ -106,30 +106,27 @@ export abstract class PredictionStatsGenerator {
     averageTierStat.contributingLocations += locationCount;
   }
 
-  _computePredictionTierStats(
-    locationGraphDataSet: LocationGraphData[],
-    pointsElided: number
-  ): PredictionTierStat[] | null {
+  _computePredictionTierStats(pointsElided: number): PredictionTierStat[] | null {
     // Sort the location data most-predicted species first.
 
-    this.sortLocationGraphDataSet(locationGraphDataSet);
+    this.sortLocationGraphDataSet();
 
     // Record the IDs of the top config.maxPredictionTiers locations, returning
     // with no prediction tier stats if the data contains no predictions.
 
-    const firstNonNullIndex = locationGraphDataSet.findIndex(
+    const firstNonNullIndex = this.locationGraphDataSet.findIndex(
       (graphData) => this.getPredictedDiff(graphData) !== null
     );
     if (firstNonNullIndex < 0) return null;
 
     let predictedLocationIDs: number[] = [];
-    predictedLocationIDs = locationGraphDataSet
+    predictedLocationIDs = this.locationGraphDataSet
       .slice(firstNonNullIndex, firstNonNullIndex + this.maxPredictionTiers)
       .map((graphData) => graphData.locationID);
 
     // Sort the datasets having predictions by actual species differences.
 
-    let actualSortSet = locationGraphDataSet.slice(firstNonNullIndex);
+    let actualSortSet = this.locationGraphDataSet.slice(firstNonNullIndex);
     actualSortSet.sort((a, b) => {
       const deltaA = this.toActualDelta(a, pointsElided);
       const deltaB = this.toActualDelta(b, pointsElided);
