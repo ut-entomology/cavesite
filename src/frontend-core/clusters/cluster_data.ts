@@ -63,7 +63,7 @@ export function toClusterData(
   };
 }
 
-export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerator {
+export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerator<LocationGraphData> {
   maxPointsToRegress: number | null;
 
   constructor(config: ClusteringConfig, locationGraphDataSet: LocationGraphData[]) {
@@ -75,22 +75,23 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
     this.maxPointsToRegress = config.maxPointsToRegress;
   }
 
-  abstract getAllPoints(graphData: LocationGraphData): Point[];
-
-  sortLocationGraphDataSet(): void {
-    sortLocationGraphDataSet(
-      this.locationGraphDataSet,
-      this.getPredictedDiff.bind(this)
-    );
+  getItemUnique(graphData: LocationGraphData): string | number {
+    return graphData.locationID;
   }
 
-  putPredictionsInDataSet(pointsElided: number): void {
+  abstract getAllPoints(graphData: LocationGraphData): Point[];
+
+  sortDataset(): void {
+    sortLocationGraphDataSet(this.dataset, this.getPredictedDiff.bind(this));
+  }
+
+  putPredictionsInDataset(pointsElided: number): void {
     const sliceSpec = {
       minPointCount: 0, // we need to see actual number of points available
       maxPointCount: this.maxPointsToRegress || Infinity,
       recentPointsToIgnore: pointsElided
     };
-    for (const graphData of this.locationGraphDataSet) {
+    for (const graphData of this.dataset) {
       this.setPredictedDiff(
         graphData,
         SpeciesCountStatsGenerator._predictDeltaSpecies(
