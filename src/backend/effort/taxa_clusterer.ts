@@ -32,6 +32,13 @@ const cachedTaxonVisitsByRankByLocationIDByComparedTaxa: Record<
   (number[] | null)[][]
 > = {};
 
+interface Centroid {
+  latitude: number | null;
+  longitude: number | null;
+  nextLatitudeSum: number;
+  nextLongitudeSum: number;
+}
+
 export abstract class TaxaClusterer extends Clusterer {
   protected _highestRankIndex: number;
   protected _weights: number[];
@@ -251,6 +258,7 @@ export abstract class TaxaClusterer extends Clusterer {
   async getTaxaClusters(seedLocationIDs: number[]): Promise<TaxaCluster[]> {
     // Node.js's V8 engine should end up using sparse arrays of location IDs.
     const clusterByLocationID: Record<number, number> = [];
+    const centroids: Centroid[] = [];
     let taxonTallyMapsByCluster: TaxonTallyMap[] = [];
     let nextTaxonTallyMapsByCluster: TaxonTallyMap[] = [];
 
@@ -264,6 +272,12 @@ export abstract class TaxaClusterer extends Clusterer {
     for (let i = 0; i < seedLocationIDs.length; ++i) {
       const seedEffort = seedEfforts[i];
       clusterByLocationID[seedEffort.locationID] = i;
+      centroids.push({
+        latitude: seedEffort.latitude,
+        longitude: seedEffort.longitude,
+        nextLatitudeSum: 0,
+        nextLongitudeSum: 0
+      });
       const taxonTallyMap = await this._tallyTaxa(seedEffort);
       taxonTallyMapsByCluster.push(taxonTallyMap);
       // Shallow copy, as dynamic tally data not altered in taxonTallyMapsByCluster.
@@ -322,7 +336,6 @@ export abstract class TaxaClusterer extends Clusterer {
           );
           if (nearestClusterIndex != currentClusterIndex) {
             clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
-
             reassigned = true;
           }
           this._updateTaxonTallies(
@@ -363,6 +376,7 @@ export abstract class TaxaClusterer extends Clusterer {
   }
 
   protected _getNearestClusterIndex(
+    //centroids: Centroid[],
     taxonTallyMapsByCluster: TaxonTallyMap[],
     taxonTallyMap: TaxonTallyMap,
     currentClusterIndex: number
@@ -380,7 +394,7 @@ export abstract class TaxaClusterer extends Clusterer {
       );
       if (dissimilarity == minDissimilaritySoFar) {
         indexesForMinDissimilarity.push(i);
-      } else if (dissimilarity < minDissimilaritySoFar) {
+      } else if (i == 0 || dissimilarity < minDissimilaritySoFar) {
         indexesForMinDissimilarity = [i];
         minDissimilaritySoFar = dissimilarity;
       }
@@ -398,7 +412,10 @@ export abstract class TaxaClusterer extends Clusterer {
     } else if (indexesForMinDissimilarity.includes(currentClusterIndex)) {
       nextClusterIndex = currentClusterIndex;
     } else {
-      nextClusterIndex = Math.floor(Math.random() * indexesForMinDissimilarity.length);
+      nextClusterIndex =
+        indexesForMinDissimilarity[
+          Math.floor(Math.random() * indexesForMinDissimilarity.length)
+        ];
     }
     return nextClusterIndex;
   }
@@ -574,3 +591,16 @@ export abstract class TaxaClusterer extends Clusterer {
     return [taxonNamesByRank, taxonVisitsByRank];
   }
 }
+
+// function _distanceInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+//   // from https://stackoverflow.com/a/21623206/650894
+
+//   var p = 0.017453292519943295; // Math.PI / 180
+//   var c = Math.cos;
+//   var a =
+//     0.5 -
+//     c((lat2 - lat1) * p) / 2 +
+//     (c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))) / 2;
+
+//   return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+// }
