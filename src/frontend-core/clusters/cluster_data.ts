@@ -1,3 +1,4 @@
+import { PredictionTierStat, PredictionStatsGenerator } from './prediction_stats';
 import type { Point } from '../../shared/point';
 import type { TaxonRank, ComparedTaxa } from '../../shared/model';
 import type { LocationGraphData } from './location_graph_data';
@@ -21,14 +22,7 @@ export interface ClusterData {
   avgPerPersonVisitTierStats: PredictionTierStat[];
 }
 
-export interface PredictionTierStat {
-  fractionCorrect: number;
-  contributingLocations: number;
-}
-
 type GetPredictedDiff = (graphData: LocationGraphData) => number | null;
-type GetAllPoints = (graphData: LocationGraphData) => Point[];
-type SetPredictedDiff = (graphData: LocationGraphData, diff: number | null) => void;
 
 export function sortLocationGraphDataSet(
   locationGraphDataSet: LocationGraphData[],
@@ -49,20 +43,14 @@ export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   locationGraphDataSet: LocationGraphData[]
 ): ClusterData {
-  const avgPerVisitTierStats = _computeAveragePredictionTierStats(
-    config,
-    locationGraphDataSet,
-    (graphData) => graphData.predictedPerVisitDiff,
-    (graphData, diff) => (graphData.predictedPerVisitDiff = diff),
-    (graphData) => graphData.perVisitPoints
-  );
-  const avgPerPersonVisitTierStats = _computeAveragePredictionTierStats(
-    config,
-    locationGraphDataSet,
-    (graphData) => graphData.predictedPerPersonVisitDiff,
-    (graphData, diff) => (graphData.predictedPerPersonVisitDiff = diff),
-    (graphData) => graphData.perPersonVisitPoints
-  );
+  const perVisitStatsGen = new PerVisitSpeciesCountStatsGenerator(config);
+  const avgPerVisitTierStats =
+    perVisitStatsGen.computeAverageStats(locationGraphDataSet);
+
+  const perPersonVistStatsGen = new PerPersonVisitSpeciesCountStatsGenerator(config);
+  const avgPerPersonVisitTierStats =
+    perPersonVistStatsGen.computeAverageStats(locationGraphDataSet);
+
   return {
     visitsByTaxonUnique,
     locationGraphDataSet,
@@ -71,242 +59,103 @@ export function toClusterData(
   };
 }
 
-export function _computeAveragePredictionTierStats(
-  config: ClusteringConfig,
-  locationGraphDataSet: LocationGraphData[],
-  getPredictedDiff: GetPredictedDiff,
-  setPredictedDiff: SetPredictedDiff,
-  getAllPoints: GetAllPoints
-): PredictionTierStat[] {
-  // Establish the structures that ultimately provide the average of all
-  // predictionHistorySampleDepth prediction tiers, after initially holding
-  // the intermediate sums necessary for producing the average.
+export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerator {
+  maxPointsToRegress: number | null;
 
-  const averageTierStats: PredictionTierStat[] = [];
-  for (let i = 0; i < config.maxPredictionTiers; ++i) {
-    averageTierStats.push({
-      fractionCorrect: 0, // temporarily sum of fractions * contributingLocations
-      contributingLocations: 0
-    });
+  constructor(config: ClusteringConfig) {
+    super(config.predictionHistorySampleDepth, config.maxPredictionTiers);
+    this.maxPointsToRegress = config.maxPointsToRegress;
   }
 
-  // Test predictions for the most recent predictionHistorySampleDepth prior to
-  // the current last point, averaging the results at each prediction tier. The
-  // number of points elided is the number of most recent actual points
-  // assumed to not yet have been collected for the purpose of the test. Each
-  // subsequent point thus serves as a test of the prior prediction.
+  abstract getAllPoints(graphData: LocationGraphData): Point[];
 
-  let maxTierStats = 0;
-  for (
-    let pointsElided = config.predictionHistorySampleDepth;
-    pointsElided > 0;
-    --pointsElided
-  ) {
-    // Put the predictions directly into the locations structures.
+  sortLocationGraphDataSet(locationGraphDataSet: LocationGraphData[]): void {
+    sortLocationGraphDataSet(locationGraphDataSet, this.getPredictedDiff.bind(this));
+  }
 
-    _putPredictionsInDataSet(
-      config,
-      locationGraphDataSet,
-      pointsElided,
-      getAllPoints,
-      setPredictedDiff
-    );
-
-    // Compute the tier stats for the current number of points elided.
-
-    const tierStats = _computePredictionTierStats(
-      config,
-      locationGraphDataSet,
-      pointsElided,
-      getPredictedDiff,
-      getAllPoints
-    );
-
-    // Add the points to the averaging structure, but weighting each tier stat
-    // within the average according to its number of contributing locations.
-
-    if (tierStats !== null) {
-      for (let i = 0; i < tierStats.length; ++i) {
-        _addToAverageTierStat(averageTierStats[i], tierStats[i]);
-      }
-    }
-    if (tierStats && tierStats.length > maxTierStats) {
-      maxTierStats = tierStats.length;
+  putPredictionsInDataSet(
+    locationGraphDataSet: LocationGraphData[],
+    pointsElided: number
+  ): void {
+    const sliceSpec = {
+      minPointCount: 0, // we need to see actual number of points available
+      maxPointCount: this.maxPointsToRegress || Infinity,
+      recentPointsToIgnore: pointsElided
+    };
+    for (const graphData of locationGraphDataSet) {
+      this.setPredictedDiff(
+        graphData,
+        SpeciesCountStatsGenerator._predictDeltaSpecies(
+          this.getAllPoints(graphData),
+          sliceSpec
+        )
+      );
     }
   }
 
-  // Turn the intermediate sums into weighted averages for each tier.
+  toActualDelta(locationGraphData: LocationGraphData, pointsElided: number): number {
+    const points = this.getAllPoints(locationGraphData);
+    const nextIndex = points.length - pointsElided;
+    const [prior, next] = [points[nextIndex - 1], points[nextIndex]];
+    return (next.y - prior.y) / (next.x - prior.x);
+  }
 
-  for (let i = 0; i < config.maxPredictionTiers; ++i) {
-    let averageTierStat = averageTierStats[i];
-    if (averageTierStat.contributingLocations > 0) {
-      averageTierStat.fractionCorrect /= averageTierStat.contributingLocations;
+  static _predictDeltaSpecies(
+    dataPoints: Point[],
+    sliceSpec: PointSliceSpec
+  ): number | null {
+    const points = slicePointSet(dataPoints, sliceSpec);
+
+    // Make no predictions for caves having only one data point.
+
+    if (points == null || points.length == 1) return null;
+
+    // For caves having only two data points, predict based on the slope.
+
+    if (points.length == 2) {
+      const [first, last] = dataPoints;
+      if (last.x == first.x) return 0;
+      return (last.y - first.y) / (last.x - first.x);
     }
-  }
 
-  // Put the future predictions directly into the location structures. The
-  // locations will be sorted later when it's known which of visits and
-  // person-visits the user is examining.
+    // For 3 or more points, predict based on a power-fit model.
 
-  _putPredictionsInDataSet(
-    config,
-    locationGraphDataSet,
-    0,
-    getAllPoints,
-    setPredictedDiff
-  );
-
-  // Return the cluster data complete with its prediction tier stats
-  // providing a measure of prediction accuracy for each tier.
-
-  return averageTierStats.slice(0, maxTierStats);
-}
-
-function _addToAverageTierStat(
-  averageTierStat: PredictionTierStat,
-  predictedTierStat: PredictionTierStat
-) {
-  let locationCount = predictedTierStat.contributingLocations;
-  averageTierStat.fractionCorrect += predictedTierStat.fractionCorrect * locationCount;
-  averageTierStat.contributingLocations += locationCount;
-}
-
-// exported for testing purposes
-export function _computePredictionTierStats(
-  config: ClusteringConfig,
-  locationGraphDataSet: LocationGraphData[],
-  pointsElided: number,
-  getPredictedDiff: GetPredictedDiff,
-  getAllPoints: GetAllPoints
-): PredictionTierStat[] | null {
-  // Sort the location data most-predicted species first.
-
-  sortLocationGraphDataSet(locationGraphDataSet, getPredictedDiff);
-
-  // Record the IDs of the top config.maxPredictionTiers locations, returning
-  // with no prediction tier stats if the data contains no predictions.
-
-  const firstNonNullIndex = locationGraphDataSet.findIndex(
-    (graphData) => getPredictedDiff(graphData) !== null
-  );
-  if (firstNonNullIndex < 0) return null;
-
-  let predictedLocationIDs: number[] = [];
-  predictedLocationIDs = locationGraphDataSet
-    .slice(firstNonNullIndex, firstNonNullIndex + config.maxPredictionTiers)
-    .map((graphData) => graphData.locationID);
-
-  // Sort the datasets having predictions by actual species differences.
-
-  let actualSortSet = locationGraphDataSet.slice(firstNonNullIndex);
-  actualSortSet.sort((a, b) => {
-    const deltaA = _toActualDelta(getAllPoints(a), pointsElided);
-    const deltaB = _toActualDelta(getAllPoints(b), pointsElided);
-    if (deltaA == deltaB) return 0;
-    return deltaB - deltaA; // sort highest first
-  });
-  actualSortSet = actualSortSet.slice(0, config.maxPredictionTiers);
-
-  // Tally the offsets of each expected ID in the actual sort set, setting
-  // the offset to null if it's not in the top config.maxPredictionTiers.
-
-  const actualOffsetByPredictedOffset: (number | null)[] = [];
-  for (const predictedID of predictedLocationIDs) {
-    const offset = actualSortSet.findIndex(
-      (graphData) => graphData.locationID == predictedID
-    );
-    actualOffsetByPredictedOffset.push(offset >= 0 ? offset : null);
-  }
-
-  // For each tier, determine the number of predicted locations found in
-  // the same tier of the actual sort set.
-
-  const actualLocationsInPredictedTierStat: number[] = new Array(
-    config.maxPredictionTiers
-  ).fill(0);
-  for (let i = 0; i < config.maxPredictionTiers; ++i) {
-    const actualOffset = actualOffsetByPredictedOffset[i];
-    if (actualOffset !== null) {
-      for (let j = Math.max(i, actualOffset); j < config.maxPredictionTiers; ++j) {
-        ++actualLocationsInPredictedTierStat[j];
-      }
-    }
-  }
-
-  // Generate the prediction tier stats providing the fraction of locations
-  // correctly predicted to occur in the tier and the total number of
-  // predicted locations actually occurring in the tier.
-
-  let predictionTierStats: PredictionTierStat[] = [];
-  for (let i = 0; i < config.maxPredictionTiers; ++i) {
-    const actualCount = actualLocationsInPredictedTierStat[i];
-    const expectedCount = i + 1;
-    predictionTierStats.push({
-      contributingLocations: expectedCount,
-      fractionCorrect: actualCount / expectedCount
-    });
-  }
-
-  // Return at most a number of prediction tier stats equal to the number of
-  // locations having predictions; any extra stats are uninformative.
-
-  if (actualSortSet.length < predictionTierStats.length) {
-    predictionTierStats = predictionTierStats.slice(0, actualSortSet.length);
-  }
-  return predictionTierStats;
-}
-
-// exported for testing purposes
-export function _putPredictionsInDataSet(
-  config: ClusteringConfig,
-  locationGraphDataSet: LocationGraphData[],
-  pointsElided: number,
-  getAllPoints: GetAllPoints,
-  setPredictedDiff: SetPredictedDiff
-): void {
-  const sliceSpec = {
-    minPointCount: 0, // we need to see actual number of points available
-    maxPointCount: config.maxPointsToRegress || Infinity,
-    recentPointsToIgnore: pointsElided
-  };
-  for (const graphData of locationGraphDataSet) {
-    setPredictedDiff(
-      graphData,
-      _predictDeltaSpecies(getAllPoints(graphData), sliceSpec)
-    );
+    const model = new PowerFitModel(points);
+    const last = points[points.length - 1];
+    const delta = model.regression.fittedY(last.x + 1) - last.y;
+    // delta might be negative if curve is below the last point
+    return delta >= 0 ? delta : 0;
   }
 }
 
-// exported for testing purposes
-export function _predictDeltaSpecies(
-  dataPoints: Point[],
-  sliceSpec: PointSliceSpec
-): number | null {
-  const points = slicePointSet(dataPoints, sliceSpec);
-
-  // Make no predictions for caves having only one data point.
-
-  if (points == null || points.length == 1) return null;
-
-  // For caves having only two data points, predict based on the slope.
-
-  if (points.length == 2) {
-    const [first, last] = dataPoints;
-    if (last.x == first.x) return 0;
-    return (last.y - first.y) / (last.x - first.x);
+export class PerVisitSpeciesCountStatsGenerator extends SpeciesCountStatsGenerator {
+  constructor(config: ClusteringConfig) {
+    super(config);
   }
 
-  // For 3 or more points, predict based on a power-fit model.
-
-  const model = new PowerFitModel(points);
-  const last = points[points.length - 1];
-  const delta = model.regression.fittedY(last.x + 1) - last.y;
-  // delta might be negative if curve is below the last point
-  return delta >= 0 ? delta : 0;
+  getAllPoints(graphData: LocationGraphData): Point[] {
+    return graphData.perVisitPoints;
+  }
+  getPredictedDiff(graphData: LocationGraphData): number | null {
+    return graphData.predictedPerVisitDiff;
+  }
+  setPredictedDiff(graphData: LocationGraphData, diff: number | null): void {
+    graphData.predictedPerVisitDiff = diff;
+  }
 }
 
-function _toActualDelta(points: Point[], pointsElided: number) {
-  const nextIndex = points.length - pointsElided;
-  const [prior, next] = [points[nextIndex - 1], points[nextIndex]];
-  return (next.y - prior.y) / (next.x - prior.x);
+export class PerPersonVisitSpeciesCountStatsGenerator extends SpeciesCountStatsGenerator {
+  constructor(config: ClusteringConfig) {
+    super(config);
+  }
+
+  getAllPoints(graphData: LocationGraphData): Point[] {
+    return graphData.perPersonVisitPoints;
+  }
+  getPredictedDiff(graphData: LocationGraphData): number | null {
+    return graphData.predictedPerPersonVisitDiff;
+  }
+  setPredictedDiff(graphData: LocationGraphData, diff: number | null): void {
+    graphData.predictedPerPersonVisitDiff = diff;
+  }
 }
