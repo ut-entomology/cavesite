@@ -13,6 +13,7 @@ export interface LocationGraphData {
   predictedPerVisitDiff: number | null;
   predictedPerPersonVisitDiff: number | null;
   visitsByTaxonUnique: Record<string, number>;
+  recentTaxa: string[][] | null;
 }
 
 export function toLocationGraphDataSetByCluster(
@@ -38,6 +39,17 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
   );
   const perPersonVisitPoints = pairsToPoints(perPersonVisitPointPairs);
 
+  const recentTaxa: string[][] = [];
+  if (rawLocationEffort.recentTaxa !== null) {
+    for (const visitTaxa of rawLocationEffort.recentTaxa.split('#')) {
+      if (visitTaxa == '') {
+        recentTaxa.push([]);
+      } else {
+        recentTaxa.push(visitTaxa.split('|'));
+      }
+    }
+  }
+
   return {
     locationID: rawLocationEffort.locationID,
     countyName: rawLocationEffort.countyName,
@@ -47,6 +59,7 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     perPersonVisitPoints,
     predictedPerVisitDiff: null,
     predictedPerPersonVisitDiff: null,
-    visitsByTaxonUnique: rawLocationEffort.visitsByTaxonUnique
+    visitsByTaxonUnique: rawLocationEffort.visitsByTaxonUnique,
+    recentTaxa: recentTaxa.length > 0 ? recentTaxa : null
   };
 }

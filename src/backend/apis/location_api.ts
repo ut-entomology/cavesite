@@ -110,7 +110,8 @@ function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
     flags: effort.flags,
     perVisitPoints: effort.perVisitPoints,
     perPersonVisitPoints: effort.perPersonVisitPoints,
-    visitsByTaxonUnique
+    visitsByTaxonUnique,
+    recentTaxa: effort.recentTaxa
   };
 }
 

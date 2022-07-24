@@ -367,7 +367,8 @@ function _makeGraphData(
     perPersonVisitPoints: pairsToPoints(pairs),
     predictedPerVisitDiff,
     predictedPerPersonVisitDiff: predictedPerVisitDiff,
-    visitsByTaxonUnique: {}
+    visitsByTaxonUnique: {},
+    recentTaxa: null
   };
 }
 
