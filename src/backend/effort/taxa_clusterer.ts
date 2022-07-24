@@ -396,7 +396,7 @@ export abstract class TaxaClusterer extends Clusterer {
     // having the least dissimilarity to the taxa of the provided effort,
     // with the taxa having the same dissimilarity wrt each of these clusters.
 
-    let minDissimilaritySoFar = 0;
+    let minDissimilaritySoFar = Infinity;
     let indexesForMinDissimilarity: number[] = [];
     for (let i = 0; i < taxonTallyMapsByCluster.length; ++i) {
       const dissimilarity = this._calculateDissimilarity(
@@ -405,7 +405,7 @@ export abstract class TaxaClusterer extends Clusterer {
       );
       if (dissimilarity == minDissimilaritySoFar) {
         indexesForMinDissimilarity.push(i);
-      } else if (i == 0 || dissimilarity < minDissimilaritySoFar) {
+      } else if (dissimilarity < minDissimilaritySoFar) {
         indexesForMinDissimilarity = [i];
         minDissimilaritySoFar = dissimilarity;
       }
@@ -423,11 +423,10 @@ export abstract class TaxaClusterer extends Clusterer {
     // can comment out this condition to experiment with how helpful this is.
 
     if (locationEffort.latitude !== null && locationEffort.longitude !== null) {
-      const firstClusterIndex = indexesForMinDissimilarity[0];
       let minDistanceSoFar = Infinity;
-      let indexesForMinDistances: number[] = [firstClusterIndex];
+      let indexesForMinDistances: number[] = [];
 
-      for (let i = 1; i < indexesForMinDissimilarity.length; ++i) {
+      for (let i = 0; i < indexesForMinDissimilarity.length; ++i) {
         const testClusterIndex = indexesForMinDissimilarity[i];
         const testCentroid = centroids[testClusterIndex];
         if (testCentroid.latitude !== null && testCentroid.longitude !== null) {
@@ -455,7 +454,9 @@ export abstract class TaxaClusterer extends Clusterer {
 
       // Otherwise, resume with the reduced list of potential clusters.
 
-      indexesForMinDissimilarity = indexesForMinDistances;
+      if (indexesForMinDistances.length > 0) {
+        indexesForMinDissimilarity = indexesForMinDistances;
+      }
     }
 
     // If the location is already assigned to one of the remaining possible
