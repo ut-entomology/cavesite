@@ -23,6 +23,8 @@ import { createClusterer } from './create_clusterer';
 
 interface EffortSpec {
   locationID: number;
+  latitude?: number;
+  longitude?: number;
   totalSpecies: number;
   partialTallies: Partial<TaxonVisitCounterData>;
 }
@@ -52,7 +54,7 @@ const commonMinusDiffMetric1: DissimilarityMetric = {
 beforeAll(async () => {
   db = await mutex.lock();
   // Create dummy locations to satisfy referential integrity.
-  for (let i = 1; i < 20; ++i) {
+  for (let i = 1; i <= 22; ++i) {
     await _createLocation(i);
   }
 });
@@ -276,6 +278,82 @@ test('clustering at all taxonomic ranks', async () => {
   ]);
 });
 
+test('clustering identical taxa by physical proxomity', async () => {
+  const clusterer = createClusterer(db, {
+    metric: commonMinusDiffMetric1,
+    comparedTaxa: ComparedTaxa.all
+  });
+  const effortSpecs: EffortSpec[] = [];
+  const partialTallies = {
+    kingdomNames: 'k1',
+    kingdomVisits: [1],
+    phylumNames: 'p1|p2|p3',
+    phylumVisits: [1, 1, 1]
+  };
+
+  effortSpecs.push({
+    locationID: 17,
+    latitude: 10,
+    longitude: 10,
+    totalSpecies: 3,
+    partialTallies
+  });
+  effortSpecs.push({
+    locationID: 18,
+    latitude: 20,
+    longitude: 20,
+    totalSpecies: 3,
+    partialTallies
+  });
+  effortSpecs.push({
+    locationID: 19,
+    latitude: 30,
+    longitude: 30,
+    totalSpecies: 3,
+    partialTallies
+  });
+  effortSpecs.push({
+    locationID: 20,
+    latitude: 21,
+    longitude: 21,
+    totalSpecies: 3,
+    partialTallies
+  });
+  effortSpecs.push({
+    locationID: 21,
+    latitude: 11,
+    longitude: 11,
+    totalSpecies: 3,
+    partialTallies
+  });
+  effortSpecs.push({
+    locationID: 22,
+    latitude: 31,
+    longitude: 31,
+    totalSpecies: 3,
+    partialTallies
+  });
+  await _addEfforts(effortSpecs);
+  let clusters = await _getClusters(clusterer, [17, 18, 19]);
+  _checkClusters(clusters, [
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [17, 21] },
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [18, 20] },
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [19, 22] }
+  ]);
+  clusters = await _getClusters(clusterer, [20, 21, 22]);
+  _checkClusters(clusters, [
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [17, 21] },
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [18, 20] },
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [19, 22] }
+  ]);
+  clusters = await _getClusters(clusterer, [20, 17, 22]);
+  _checkClusters(clusters, [
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [17, 21] },
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [18, 20] },
+    { visitsByTaxonUnique: { k1: 2, p1: 2, p2: 2, p3: 2 }, locationIDs: [19, 22] }
+  ]);
+});
+
 afterAll(async () => {
   await mutex.unlock();
 });
@@ -291,8 +369,8 @@ async function _addEfforts(effortSpecs: EffortSpec[]): Promise<void> {
         countyName: 'Dummy County',
         localityName: 'Dummy Locality',
         isCave: true,
-        latitude: null,
-        longitude: null
+        latitude: effortSpec.latitude || null,
+        longitude: effortSpec.longitude || null
       },
       _toEffortData({ totalSpecies: effortSpec.totalSpecies }),
       _toTallies(effortSpec.partialTallies)
