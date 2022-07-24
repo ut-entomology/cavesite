@@ -88,6 +88,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: null,
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -135,6 +136,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '1',
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa:
+      'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa#Mecaphesa celer',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -181,6 +184,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '2',
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa:
+      'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa#Mecaphesa celer#',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -228,6 +233,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '3',
     subspeciesNames: 'Mecaphesa celer xyz',
     subspeciesVisits: '1',
+    recentTaxa: 'Mecaphesa celer##Mecaphesa celer xyz',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -275,6 +281,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: '#Mecaphesa celer xyz#Mecaphesa celer pdq',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -321,6 +328,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Mecaphesa celer xyz#Mecaphesa celer pdq#Mecaphesa dubia',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -367,6 +375,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Mecaphesa celer pdq#Mecaphesa dubia#Xysticus|Xysticus funestus',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -412,6 +421,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Mecaphesa dubia#Xysticus|Xysticus funestus#Ozyptila',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -457,6 +467,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Xysticus|Xysticus funestus#Ozyptila#Bassaniana',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -503,6 +514,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Ozyptila#Bassaniana#Ozyptila distans',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -548,6 +560,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Bassaniana#Ozyptila distans#Theridiidae|Latrodectus',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -591,6 +604,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Ozyptila distans#Theridiidae|Latrodectus#Opiliones',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -638,6 +652,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa:
+      'Theridiidae|Latrodectus#Opiliones#Insecta|Orthoptera|Rhaphidophoridae|Diestrammena|Diestrammena asynamora',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -681,6 +697,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa:
+      'Opiliones#Insecta|Orthoptera|Rhaphidophoridae|Diestrammena|Diestrammena asynamora#Chilopoda',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -726,6 +744,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa:
+      'Insecta|Orthoptera|Rhaphidophoridae|Diestrammena|Diestrammena asynamora#Chilopoda#Scolopendromorpha|Cryptopidae',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -768,6 +788,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '4,1,1,1,1',
     subspeciesNames: 'Mecaphesa celer xyz|Mecaphesa celer pdq',
     subspeciesVisits: '1,1',
+    recentTaxa: 'Chilopoda#Scolopendromorpha|Cryptopidae#Annelida',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -848,6 +869,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '1,1,1',
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa:
+      'Animalia|Arthropoda|Annelida|Arachnida|Araneae|Thomisidae|Salticidae|Mecaphesa|Phidippus|Mecaphesa celer|Phidippus audax|Phidippus regius',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -936,6 +959,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '1,1,1,1,1',
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa:
+      'Animalia|Arthropoda|Annelida|Arachnida|Araneae|Thomisidae|Salticidae|Mecaphesa|Phidippus|Mecaphesa celer|Phidippus audax|Phidippus regius#Mollusca|Chilopoda|Scolopendromorpha|Cryptopidae|Theridiidae|Maevia|Cryptops|Latrodectus|Phidippus texanus|Latrodectus mactans',
     perVisitPoints: _toJsonPoints(points),
     perPersonVisitPoints: _toJsonPoints(points)
   });
@@ -1000,6 +1025,8 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '1,1,1,1,1,1,1',
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa:
+      'Mollusca|Chilopoda|Scolopendromorpha|Cryptopidae|Theridiidae|Maevia|Cryptops|Latrodectus|Phidippus texanus|Latrodectus mactans#Phidippus mystaceus#Phidippus cardinalis',
     perVisitPoints: _toJsonPoints(perVisitPoints),
     perPersonVisitPoints: _toJsonPoints(perPersonVisitPoints)
   });
@@ -1062,6 +1089,7 @@ test('tallying species counts per unit effort', async () => {
     speciesVisits: '1,1,1,1,1,1,1',
     subspeciesNames: null,
     subspeciesVisits: null,
+    recentTaxa: 'Phidippus mystaceus#Naphrys|Steatoda#Phidippus cardinalis',
     perVisitPoints: _toJsonPoints(perVisitPoints),
     perPersonVisitPoints: _toJsonPoints(perPersonVisitPoints)
   });

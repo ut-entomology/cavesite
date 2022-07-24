@@ -6,6 +6,8 @@ import {
   TaxonCounter
 } from '../../shared/taxon_counter';
 
+const HISTORICAL_ADDITIONS_COUNT = 3;
+
 export type TaxonVisitCounterData = DataOf<TaxonVisitCounter>;
 
 type VisitsFieldName = keyof Pick<
@@ -20,6 +22,8 @@ type VisitsFieldName = keyof Pick<
   | 'subspeciesVisits'
 >;
 
+type WithNewFields<T> = T & Omit<TaxonVisitCounter, keyof TaxonCounter>;
+
 export class TaxonVisitCounter extends TaxonCounter {
   kingdomVisits: string | number[] | null;
   phylumVisits: string | number[] | null;
@@ -29,6 +33,7 @@ export class TaxonVisitCounter extends TaxonCounter {
   genusVisits: string | number[] | null;
   speciesVisits: string | number[] | null;
   subspeciesVisits: string | number[] | null;
+  recentTaxa: string | string[] | null;
 
   constructor(data: TaxonVisitCounterData) {
     super(data);
@@ -40,21 +45,21 @@ export class TaxonVisitCounter extends TaxonCounter {
     this.genusVisits = data.genusVisits;
     this.speciesVisits = data.speciesVisits;
     this.subspeciesVisits = data.subspeciesVisits;
+    this.recentTaxa = data.recentTaxa;
   }
 
-  static addInitialVisits<T>(
-    obj: T,
-    taxonCounter: TaxonCounterData
-  ): T & { [K in VisitsFieldName]: number[] | null } {
-    const anyObj: T & { [K in VisitsFieldName]: number[] | null } = obj as any;
-    anyObj.kingdomVisits = _toInitialVisits(taxonCounter.kingdomNames);
-    anyObj.phylumVisits = _toInitialVisits(taxonCounter.phylumNames);
-    anyObj.classVisits = _toInitialVisits(taxonCounter.classNames);
-    anyObj.orderVisits = _toInitialVisits(taxonCounter.orderNames);
-    anyObj.familyVisits = _toInitialVisits(taxonCounter.familyNames);
-    anyObj.genusVisits = _toInitialVisits(taxonCounter.genusNames);
-    anyObj.speciesVisits = _toInitialVisits(taxonCounter.speciesNames);
-    anyObj.subspeciesVisits = _toInitialVisits(taxonCounter.subspeciesNames);
+  static addInitialVisits<T>(obj: T, taxonCounter: TaxonCounterData): WithNewFields<T> {
+    const anyObj: WithNewFields<T> = obj as any;
+    const allNames: string[] = [];
+    anyObj.kingdomVisits = _toInitialVisits(taxonCounter.kingdomNames, allNames);
+    anyObj.phylumVisits = _toInitialVisits(taxonCounter.phylumNames, allNames);
+    anyObj.classVisits = _toInitialVisits(taxonCounter.classNames, allNames);
+    anyObj.orderVisits = _toInitialVisits(taxonCounter.orderNames, allNames);
+    anyObj.familyVisits = _toInitialVisits(taxonCounter.familyNames, allNames);
+    anyObj.genusVisits = _toInitialVisits(taxonCounter.genusNames, allNames);
+    anyObj.speciesVisits = _toInitialVisits(taxonCounter.speciesNames, allNames);
+    anyObj.subspeciesVisits = _toInitialVisits(taxonCounter.subspeciesNames, allNames);
+    anyObj.recentTaxa = allNames.join('|');
     return anyObj;
   }
 
@@ -68,6 +73,11 @@ export class TaxonVisitCounter extends TaxonCounter {
     return typeof visits == 'string' ? visits : visits.join(',');
   }
 
+  static toRecentTaxaSeries(taxa: string[] | string | null): string | null {
+    if (taxa === null || taxa.length == 0) return null;
+    return typeof taxa == 'string' ? taxa : taxa.join('#');
+  }
+
   convertToVisitsList(visitsFieldName: VisitsFieldName): number[] | null {
     const visitsList = TaxonVisitCounter.toVisitsList(this[visitsFieldName]);
     if (visitsList === null) return null;
@@ -77,6 +87,19 @@ export class TaxonVisitCounter extends TaxonCounter {
 
   mergeCounter(otherCounter: TaxonCounter): void {
     // merges TaxonCounters, not TaxonVisitCounters
+
+    if (this.recentTaxa === null) {
+      this.recentTaxa = [''];
+    } else {
+      if (typeof this.recentTaxa == 'string') {
+        this.recentTaxa = this.recentTaxa.split('#');
+      }
+      this.recentTaxa.push('');
+      if (this.recentTaxa.length > HISTORICAL_ADDITIONS_COUNT) {
+        this.recentTaxa.shift();
+      }
+    }
+
     this._mergeTaxa(otherCounter, 'kingdomNames', 'kingdomCounts', 'kingdomVisits');
     this._mergeTaxa(otherCounter, 'phylumNames', 'phylumCounts', 'phylumVisits');
     this._mergeTaxa(otherCounter, 'classNames', 'classCounts', 'classVisits');
@@ -90,6 +113,17 @@ export class TaxonVisitCounter extends TaxonCounter {
       'subspeciesCounts',
       'subspeciesVisits'
     );
+  }
+
+  private _trackNewTaxon(taxon: string): void {
+    // caller guarantees we have an array of strings
+    const recentTaxa = this.recentTaxa as string[];
+    const lastIndex = recentTaxa.length - 1;
+    if (recentTaxa[lastIndex] == '') {
+      recentTaxa[lastIndex] = taxon;
+    } else {
+      recentTaxa[lastIndex] += '|' + taxon;
+    }
   }
 
   private _mergeTaxa(
@@ -112,6 +146,7 @@ export class TaxonVisitCounter extends TaxonCounter {
         this[namesFieldName] = otherTaxa.slice();
         this[countsFieldName] = otherCounter[countsFieldName]!;
         this[visitsFieldName] = otherTaxa.map((_) => 1);
+        this._trackNewTaxon(otherTaxa.join('|'));
       } else {
         const visits = this.convertToVisitsList(visitsFieldName);
         const otherCounts = otherCounter[countsFieldName]!;
@@ -129,6 +164,7 @@ export class TaxonVisitCounter extends TaxonCounter {
 
             if (thisIndex < 0) {
               taxa.push(otherTaxon);
+              this._trackNewTaxon(otherTaxon);
               this[countsFieldName] += '0';
               visits!.push(1);
             } else {
@@ -148,6 +184,7 @@ export class TaxonVisitCounter extends TaxonCounter {
 
             if (thisIndex < 0) {
               taxa.push(otherTaxon);
+              this._trackNewTaxon(otherTaxon);
               this[countsFieldName] += '1';
               visits!.push(1);
             } else {
@@ -160,11 +197,12 @@ export class TaxonVisitCounter extends TaxonCounter {
   }
 }
 
-function _toInitialVisits(names: string[] | string | null): number[] | null {
+function _toInitialVisits(
+  names: string[] | string | null,
+  allNames: string[]
+): number[] | null {
   if (names === null) return null;
-  if (typeof names == 'string') {
-    const count = names.length - names.replaceAll('|', '').length + 1;
-    return new Array(count).fill(1);
-  }
+  if (typeof names == 'string') names = names.split('|');
+  allNames.push(...names);
   return names.map((_) => 1);
 }

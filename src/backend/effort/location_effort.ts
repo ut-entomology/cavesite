@@ -68,6 +68,7 @@ export class LocationEffort {
   totalSpecies: number;
   perVisitPoints: string;
   perPersonVisitPoints: string;
+  recentTaxa: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -100,6 +101,7 @@ export class LocationEffort {
     this.totalSpecies = data.totalSpecies;
     this.perVisitPoints = data.perVisitPoints;
     this.perPersonVisitPoints = data.perPersonVisitPoints;
+    this.recentTaxa = data.recentTaxa;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -142,7 +144,8 @@ export class LocationEffort {
           subspeciesNames: TaxonCounter.toNameSeries(counterData.subspeciesNames),
           subspeciesVisits: TaxonVisitCounter.toVisitsSeries(
             counterData.subspeciesVisits
-          )
+          ),
+          recentTaxa: TaxonVisitCounter.toRecentTaxaSeries(counterData.recentTaxa)
         },
         counterData,
         data
@@ -156,9 +159,9 @@ export class LocationEffort {
             class_names, class_visits, order_names, order_visits,
             family_names, family_visits, genus_names, genus_visits,
             species_names, species_visits, subspecies_names, subspecies_visits,
-            per_visit_points, per_person_visit_points
-					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
+            per_visit_points, per_person_visit_points, recent_taxa
+					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+            $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)`,
       [
         effort.locationID,
         effort.countyName,
@@ -188,7 +191,8 @@ export class LocationEffort {
         TaxonCounter.toNameSeries(effort.subspeciesNames),
         TaxonVisitCounter.toVisitsSeries(effort.subspeciesVisits),
         TaxonCounter.toNameSeries(effort.perVisitPoints),
-        TaxonCounter.toNameSeries(effort.perPersonVisitPoints)
+        TaxonCounter.toNameSeries(effort.perPersonVisitPoints),
+        TaxonVisitCounter.toRecentTaxaSeries(effort.recentTaxa)
       ]
     );
     if (result.rowCount != 1) {
