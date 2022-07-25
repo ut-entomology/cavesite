@@ -33,6 +33,7 @@
 {#key items}
   <SplittableBarGraph
     title={title + titleSuffix}
+    itemsClasses="location_bar_chart"
     rightHeader="{title} to cave{tierStats ? '' : ' (no prediction)'}"
     {tierStats}
     {getItems}
@@ -70,10 +71,10 @@
     font-size: 0.95em;
     color: #888;
   }
-  :global(.outer_bar:hover) {
+  :global(.location_bar_chart .outer_bar:hover) {
     cursor: pointer;
   }
-  :global(.outer_bar:hover .location_name) {
+  :global(.location_bar_chart .outer_bar:hover .location_name) {
     color: $blueLinkForeColor;
     text-decoration: underline;
   }

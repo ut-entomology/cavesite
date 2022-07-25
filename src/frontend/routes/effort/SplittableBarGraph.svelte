@@ -8,6 +8,7 @@
   const ROW_INCREMENT = 40;
 
   export let title: string;
+  export let itemsClasses = '';
   export let rightHeader: string;
   export let items: any[];
   export let tierStats: PredictionTierStat[] | null = null;
@@ -51,7 +52,7 @@
 {#key items}
   <SortedRowGrower
     {title}
-    itemsClasses="bar_graph"
+    itemsClasses="bar_graph {itemsClasses}"
     minRows={MIN_ROWS}
     rowIncrement={ROW_INCREMENT}
     increasing={false}
