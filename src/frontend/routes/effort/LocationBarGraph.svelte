@@ -5,7 +5,7 @@
   import RightLocationSplit from './RightLocationSplit.svelte';
   import type { Point } from '../../../shared/point';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
-  import type { PredictionTierStat } from '../../../frontend-core/clusters/cluster_data';
+  import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
 
   const MIN_ROWS = 10;
   const ROW_INCREMENT = 40;
