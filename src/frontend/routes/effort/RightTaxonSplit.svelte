@@ -38,7 +38,7 @@
   <div class="col-1 text-end stats_deemph">
     {item.rank == TaxonRank.Subspecies ? 'subsp.' : item.rank}:
   </div>
-  <div class="col">
+  <div class="col ms-2">
     {#if genusSpeciesSubspecies.includes(toRank(item))}
       <i>{item.unique}</i>
     {:else}

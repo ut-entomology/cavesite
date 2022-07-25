@@ -85,6 +85,7 @@
 {#key items}
   <SplittableBarGraph
     title={title + titleSuffix}
+    rightHeader={title}
     {tierStats}
     {getItems}
     {items}

@@ -33,6 +33,7 @@
 {#key items}
   <SplittableBarGraph
     title={title + titleSuffix}
+    rightHeader="{title} to cave{tierStats ? '' : ' (no prediction)'}"
     {tierStats}
     {getItems}
     {items}

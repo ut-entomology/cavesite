@@ -8,6 +8,7 @@
   const ROW_INCREMENT = 40;
 
   export let title: string;
+  export let rightHeader: string;
   export let items: any[];
   export let tierStats: PredictionTierStat[] | null = null;
   export let getItems: RowItemGetter;
@@ -64,7 +65,7 @@
     <div slot="header">
       <StatsHeaderRow
         leftHeader={tierStats ? 'Accuracy of top N rows' : null}
-        rightHeader={title}
+        {rightHeader}
       />
     </div>
     {#if tierStats === null}
