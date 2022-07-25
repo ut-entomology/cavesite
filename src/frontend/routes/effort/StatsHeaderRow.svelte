@@ -7,8 +7,10 @@
   {#if leftHeader}
     <div class="col-3 text-center header">{leftHeader}</div>
   {/if}
-  <div class="col">
-    <div class="header text-center">{rightHeader}</div>
+  <div class="col d-flex align-items-stretch">
+    <div class="header text-center flex-fill">
+      {rightHeader}
+    </div>
   </div>
 </div>
 
