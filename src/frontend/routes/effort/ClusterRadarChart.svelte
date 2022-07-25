@@ -14,6 +14,7 @@
   // rotatedDataByCluster.unshift(lastCluster);
 
   let percentCommonByClusterByCluster: number[][] = [];
+  let dummyDatasets: number[][] = [];
 
   for (const baseClusterData of dataByCluster) {
     const baseTaxaMap = baseClusterData.visitsByTaxonUnique;
@@ -40,6 +41,26 @@
     percentCommonByClusterByCluster.push(percentCommonByCluster);
   }
 
+  if (dataByCluster.length < 3) {
+    for (let i = 0; i < dataByCluster.length; ++i) {
+      for (let j = dataByCluster.length; j < 3; ++j) {
+        percentCommonByClusterByCluster[i][j] = 50;
+      }
+    }
+    for (let i = dataByCluster.length; i < 3; ++i) {
+      let dummyDataset: number[] = [];
+      for (let j = 0; j < 3; ++j) {
+        dummyDataset.push(100);
+      }
+      dummyDatasets.push(dummyDataset);
+    }
+    console.log(
+      '**** percentCommonByClusterByCluster',
+      percentCommonByClusterByCluster
+    );
+    console.log('**** dummyDatasets', dummyDatasets);
+  }
+
   function _toClusterNo(datasetIndex: number): number {
     return datasetIndex + 1;
     //return datasetIndex == 0 ? dataByCluster.length : datasetIndex;
@@ -48,13 +69,16 @@
 
 <Radar
   data={{
-    labels: dataByCluster.map(
-      (_, i) =>
-        (i == 0 ? `Cluster ` : '') +
-        `#${_toClusterNo(i)}  (${
-          Object.keys(dataByCluster[_toClusterNo(i) - 1].visitsByTaxonUnique).length
-        } taxa)`
-    ),
+    labels: [
+      ...dataByCluster.map(
+        (_, i) =>
+          (i == 0 ? `Cluster ` : '') +
+          `#${_toClusterNo(i)}  (${
+            Object.keys(dataByCluster[_toClusterNo(i) - 1].visitsByTaxonUnique).length
+          } taxa)`
+      ),
+      ...dummyDatasets.map(() => '')
+    ],
     datasets: [
       ...percentCommonByClusterByCluster.map((percentCommonByCluster, i) => {
         const colorIndex = _toClusterNo(i) - 1;
@@ -66,6 +90,15 @@
           tension: 0.5,
           fill: true,
           order: dataByCluster.length - i
+        };
+      }),
+      ...dummyDatasets.map((percentCommonByCluster) => {
+        return {
+          label: ``,
+          data: percentCommonByCluster,
+          pointRadius: 0,
+          borderWidth: 0,
+          fill: false
         };
       })
     ]
