@@ -502,9 +502,12 @@
             technique was applied to historical data to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
             most recent points of each cave. The chart reports the average percentage of
             caves that it correctly predicted would occur within each top group of N caves
-            according to a sort of the number of species predicted. For example, a top 5
-            accuracy of 25% would mean that the technique correctly predicted which caves
-            would be among the top 5 highest producing species 25% of the time.</MoreLess
+            according to a sort of the number of species predicted.
+            <i
+              >For example, a top 5 accuracy of 25% would mean that the technique
+              correctly predicted which caves would be among the top 5 highest producing
+              species 25% of the time.</i
+            ></MoreLess
           ></LocationBarGraph
         >
       {/if}

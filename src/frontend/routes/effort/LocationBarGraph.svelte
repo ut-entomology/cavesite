@@ -34,7 +34,9 @@
   <SplittableBarGraph
     title={title + titleSuffix}
     itemsClasses="location_bar_chart"
-    rightHeader="{title} to cave{tierStats ? '' : ' (no prediction)'}"
+    rightHeader="{title} {title.endsWith('cave') ? '' : 'to cave'}{tierStats
+      ? ''
+      : ' (no prediction)'}"
     {tierStats}
     {getItems}
     {items}
