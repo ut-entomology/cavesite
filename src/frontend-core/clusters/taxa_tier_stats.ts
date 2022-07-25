@@ -10,7 +10,7 @@ import type { ClusteringConfig } from './clustering_config';
 export function generateAvgTaxaTierStats(
   config: ClusteringConfig,
   locationGraphDataSet: LocationGraphData[],
-  visitsByTaxonUnique: Record<string, number>
+  clusterVisitsByTaxonUnique: Record<string, number>
 ): PredictionTierStat[] {
   // Create the stats into which we'll accumulate intermediate averages.
 
@@ -28,7 +28,7 @@ export function generateAvgTaxaTierStats(
 
   const taxonVisitItems: TaxonVisitItem[] = [];
   const taxonVisitItemsMap: Record<string, TaxonVisitItem> = {};
-  for (const taxon of Object.keys(visitsByTaxonUnique)) {
+  for (const taxon of Object.keys(clusterVisitsByTaxonUnique)) {
     const taxonVisitItem = {
       taxon,
       visits: 0
@@ -39,7 +39,7 @@ export function generateAvgTaxaTierStats(
 
   // Determine the taxa present in the cluster excluding all recent taxa
   // in all locations. Further limit the taxa to just those involved in
-  // the query, as specified by visitsByTaxonUnique.
+  // the query, as specified by clusterVisitsByTaxonUnique.
 
   const baseVisitsByTaxonUnique: Record<string, number> = {};
   for (const graphData of locationGraphDataSet) {
@@ -50,17 +50,14 @@ export function generateAvgTaxaTierStats(
       }
     }
     for (const [taxon, visits] of Object.entries(locationTaxa)) {
-      const oldVisits = baseVisitsByTaxonUnique[taxon];
-      if (oldVisits === undefined) {
-        baseVisitsByTaxonUnique[taxon] = visits;
-      } else {
-        baseVisitsByTaxonUnique[taxon] = oldVisits + visits;
+      if (clusterVisitsByTaxonUnique[taxon] !== undefined) {
+        const oldVisits = baseVisitsByTaxonUnique[taxon];
+        if (oldVisits === undefined) {
+          baseVisitsByTaxonUnique[taxon] = visits;
+        } else {
+          baseVisitsByTaxonUnique[taxon] = oldVisits + visits;
+        }
       }
-    }
-  }
-  for (const taxon of Object.keys(baseVisitsByTaxonUnique)) {
-    if (visitsByTaxonUnique[taxon] === undefined) {
-      delete baseVisitsByTaxonUnique[taxon];
     }
   }
 
@@ -76,7 +73,7 @@ export function generateAvgTaxaTierStats(
       if (otherGraphData !== graphData) {
         for (const recentTaxa of otherGraphData.recentTaxa) {
           for (const taxon of recentTaxa) {
-            const visits = visitsByTaxonUnique[taxon];
+            const visits = clusterVisitsByTaxonUnique[taxon];
             if (visits !== undefined) {
               trialClusterVisitsByTaxonUnique[taxon] = visits;
             }
@@ -91,7 +88,6 @@ export function generateAvgTaxaTierStats(
     const taxaStatsGen = new TaxaVisitsStatsGenerator(
       config,
       trialClusterVisitsByTaxonUnique,
-      baseVisitsByTaxonUnique,
       graphData,
       taxonVisitItems,
       taxonVisitItemsMap
@@ -114,7 +110,6 @@ export function generateAvgTaxaTierStats(
 
 export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisitItem> {
   clusterVisitsByTaxonUnique: Record<string, number>;
-  baseVisitsByTaxonUnique: Record<string, number>;
   taxonVisitItemsMap: Record<string, TaxonVisitItem>;
   private _recentTaxa: string[][];
   private _visitsElided = MAX_VISITS_ELIDED;
@@ -124,7 +119,6 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
   constructor(
     config: ClusteringConfig,
     clusterVisitsByTaxonUnique: Record<string, number>,
-    baseVisitsByTaxonUnique: Record<string, number>,
     graphData: LocationGraphData,
     taxonVisitItems: TaxonVisitItem[],
     taxonVisitItemsMap: Record<string, TaxonVisitItem>
@@ -135,7 +129,6 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
       taxonVisitItems
     );
     this.clusterVisitsByTaxonUnique = clusterVisitsByTaxonUnique;
-    this.baseVisitsByTaxonUnique = baseVisitsByTaxonUnique;
     this._recentTaxa = graphData.recentTaxa;
     this.taxonVisitItemsMap = taxonVisitItemsMap;
 
