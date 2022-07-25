@@ -8,10 +8,10 @@
   import {
     type ClusteringConfig,
     type ClusterData,
-    type PredictionTierStat,
     sortLocationGraphDataSet,
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
+  import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
 
   const CLUSTER_STORE_VERSION = 4;
 

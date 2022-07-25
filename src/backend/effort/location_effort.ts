@@ -66,9 +66,9 @@ export class LocationEffort {
   totalVisits: number;
   totalPersonVisits: number;
   totalSpecies: number;
+  recentTaxa: string;
   perVisitPoints: string;
   perPersonVisitPoints: string;
-  recentTaxa: string | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 

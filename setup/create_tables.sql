@@ -379,9 +379,9 @@ create table all_taxa_for_effort (
     species_visits text,
     subspecies_names text,
     subspecies_visits text,
+    recent_taxa text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
-    recent_taxa text,
     primary key (location_id)
 );
 create index on all_taxa_for_effort(total_visits);
@@ -418,9 +418,9 @@ create table cave_genera_for_effort (
     species_visits text,
     subspecies_names text,
     subspecies_visits text,
+    recent_taxa text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
-    recent_taxa text,
     primary key (location_id)
 );
 create index on cave_genera_for_effort(total_visits);
@@ -457,9 +457,9 @@ create table cave_obligates_for_effort (
     species_visits text,
     subspecies_names text,
     subspecies_visits text,
+    recent_taxa text not null,
     per_visit_points text not null,
     per_person_visit_points text not null,
-    recent_taxa text,
     primary key (location_id)
 );
 create index on cave_obligates_for_effort(total_visits);

@@ -22,13 +22,13 @@ const baseConfig: ClusteringConfig = {
   maxPredictionTiers: 4
 };
 
-const getPredictedDiff = (graphData: LocationGraphData) =>
+const getPredictedValue = (graphData: LocationGraphData) =>
   graphData.predictedPerVisitDiff;
 
 test('sorting location graph data sets', () => {
   // prettier-ignore
   let dataset = [_makeGraphData(1, [], null)];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [1]);
 
   // prettier-ignore
@@ -36,12 +36,12 @@ test('sorting location graph data sets', () => {
     _makeGraphData(1, [], null),
     _makeGraphData(2, [], null),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [1, 2]);
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [], 1)];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [1]);
 
   // prettier-ignore
@@ -49,7 +49,7 @@ test('sorting location graph data sets', () => {
     _makeGraphData(1, [], null),
     _makeGraphData(2, [], 1),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [1, 2]);
 
   // prettier-ignore
@@ -57,7 +57,7 @@ test('sorting location graph data sets', () => {
     _makeGraphData(1, [], 1),
     _makeGraphData(2, [], null),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [2, 1]);
 
   // prettier-ignore
@@ -66,7 +66,7 @@ test('sorting location graph data sets', () => {
     _makeGraphData(2, [], null),
     _makeGraphData(3, [], null),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [2, 3, 1]);
 
   // prettier-ignore
@@ -75,7 +75,7 @@ test('sorting location graph data sets', () => {
     _makeGraphData(2, [], null),
     _makeGraphData(3, [], 2),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [2, 3, 1]);
 
   // prettier-ignore
@@ -84,7 +84,7 @@ test('sorting location graph data sets', () => {
     _makeGraphData(2, [], 3),
     _makeGraphData(3, [], 2),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [2, 3, 1]);
 
   // prettier-ignore
@@ -93,7 +93,7 @@ test('sorting location graph data sets', () => {
     _makeGraphData(2, [], 0),
     _makeGraphData(3, [], 2),
   ];
-  sortLocationGraphDataSet(dataset, getPredictedDiff);
+  sortLocationGraphDataSet(dataset, getPredictedValue);
   _checkSortOrder(dataset, [3, 1, 2]);
 });
 
@@ -131,30 +131,30 @@ test('delta species predictions', () => {
 
 test('too few points to make predictions', () => {
   let config = baseConfig;
-  let pointsElided = 1;
+  let visitsElided = 1;
 
   // prettier-ignore
   let dataset = [_makeGraphData(1, [[1, 1]])];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(pointsElided);
-  let stats = statsGen._computePredictionTierStats(pointsElided);
+  statsGen.putPredictionsInDataset(visitsElided);
+  let stats = statsGen._computePredictionTierStats(visitsElided);
   expect(stats).toBeNull();
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2]])];
   statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(pointsElided);
-  stats = statsGen._computePredictionTierStats(pointsElided);
+  statsGen.putPredictionsInDataset(visitsElided);
+  stats = statsGen._computePredictionTierStats(visitsElided);
   expect(stats).toBeNull();
 
   config = Object.assign({}, config, { predictionHistorySampleDepth: 3 });
-  pointsElided = 3;
+  visitsElided = 3;
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2], [3,3]])];
   statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(pointsElided);
-  stats = statsGen._computePredictionTierStats(pointsElided);
+  statsGen.putPredictionsInDataset(visitsElided);
+  stats = statsGen._computePredictionTierStats(visitsElided);
   expect(stats).toBeNull();
 
   // prettier-ignore
@@ -163,8 +163,8 @@ test('too few points to make predictions', () => {
     _makeGraphData(1, [[1, 1], [2, 2], [3,3]])
   ];
   statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(pointsElided);
-  stats = statsGen._computePredictionTierStats(pointsElided);
+  statsGen.putPredictionsInDataset(visitsElided);
+  stats = statsGen._computePredictionTierStats(visitsElided);
   expect(stats).toBeNull();
 });
 
@@ -181,25 +181,25 @@ test('increasing prediction history depth', () => {
   ];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
 
-  let pointsElided = 1;
-  statsGen.putPredictionsInDataset(pointsElided);
-  let actualStats = statsGen._computePredictionTierStats(pointsElided);
+  let visitsElided = 1;
+  statsGen.putPredictionsInDataset(visitsElided);
+  let actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [1, 2]);
   // prettier-ignore
   let expectedStats = _makeTierStats([[1, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
-  pointsElided = 2;
-  statsGen.putPredictionsInDataset(pointsElided);
-  actualStats = statsGen._computePredictionTierStats(pointsElided);
+  visitsElided = 2;
+  statsGen.putPredictionsInDataset(visitsElided);
+  actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[0, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
-  pointsElided = 3;
-  statsGen.putPredictionsInDataset(pointsElided);
-  actualStats = statsGen._computePredictionTierStats(pointsElided);
+  visitsElided = 3;
+  statsGen.putPredictionsInDataset(visitsElided);
+  actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[1, 1], [1, 2]]);
@@ -220,26 +220,26 @@ test('predictions tiers in presence of too few points', () => {
     ];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
 
-  let pointsElided = 1;
-  statsGen.putPredictionsInDataset(pointsElided);
-  let actualStats = statsGen._computePredictionTierStats(pointsElided);
+  let visitsElided = 1;
+  statsGen.putPredictionsInDataset(visitsElided);
+  let actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [3, 1, 2]);
   // prettier-ignore
   let expectedStats = _makeTierStats([[1, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
-  pointsElided = 2;
-  statsGen.putPredictionsInDataset(pointsElided);
-  actualStats = statsGen._computePredictionTierStats(pointsElided);
+  visitsElided = 2;
+  statsGen.putPredictionsInDataset(visitsElided);
+  actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [3, 2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[0, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
   statsGen = new PerVisitSpeciesCountStatsGenerator(baseConfig, dataset);
-  pointsElided = 3;
-  statsGen.putPredictionsInDataset(pointsElided);
-  actualStats = statsGen._computePredictionTierStats(pointsElided);
+  visitsElided = 3;
+  statsGen.putPredictionsInDataset(visitsElided);
+  actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [3, 2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[1, 1], [1, 2]]);
@@ -257,25 +257,25 @@ test('predictions having zero delta species', () => {
     ];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(baseConfig, dataset);
 
-  let pointsElided = 1;
-  statsGen.putPredictionsInDataset(pointsElided);
-  let actualStats = statsGen._computePredictionTierStats(pointsElided);
+  let visitsElided = 1;
+  statsGen.putPredictionsInDataset(visitsElided);
+  let actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [1, 2, 3]);
   // prettier-ignore
   let expectedStats = _makeTierStats([[1, 1], [1, 2], [1, 3]]);
   expect(actualStats).toEqual(expectedStats);
 
-  pointsElided = 2;
-  statsGen.putPredictionsInDataset(pointsElided);
-  actualStats = statsGen._computePredictionTierStats(pointsElided);
+  visitsElided = 2;
+  statsGen.putPredictionsInDataset(visitsElided);
+  actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [2, 1, 3]);
   // prettier-ignore
   expectedStats = _makeTierStats([[0, 1], [1, 2], [1, 3]]);
   expect(actualStats).toEqual(expectedStats);
 
-  pointsElided = 3;
-  statsGen.putPredictionsInDataset(pointsElided);
-  actualStats = statsGen._computePredictionTierStats(pointsElided);
+  visitsElided = 3;
+  statsGen.putPredictionsInDataset(visitsElided);
+  actualStats = statsGen._computePredictionTierStats(visitsElided);
   _checkSortOrder(dataset, [2, 1, 3]);
   // prettier-ignore
   expectedStats = _makeTierStats([[1, 1], [1, 2], [1, 3]]);
@@ -368,7 +368,7 @@ function _makeGraphData(
     predictedPerVisitDiff,
     predictedPerPersonVisitDiff: predictedPerVisitDiff,
     visitsByTaxonUnique: {},
-    recentTaxa: null
+    recentTaxa: []
   };
 }
 

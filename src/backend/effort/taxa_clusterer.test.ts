@@ -454,7 +454,7 @@ function _toTallies(data: Partial<TaxonVisitCounterData>): TaxonVisitCounterData
       subspeciesNames: null,
       subspeciesCounts: null,
       subspeciesVisits: null,
-      recentTaxa: null
+      recentTaxa: ''
     },
     data
   );

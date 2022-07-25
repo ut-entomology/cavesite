@@ -18,19 +18,18 @@ export abstract class PredictionStatsGenerator<T> {
     this.dataset = dataset;
   }
 
+  abstract getIndexOfFirstPrediction(): number;
   abstract getItemUnique(dataItem: T): string | number;
-  abstract getPredictedDiff(dataItem: T): number | null;
-  abstract setPredictedDiff(dataItem: T, diff: number | null): void;
-  abstract putPredictionsInDataset(pointsElided: number): void;
-  abstract sortDataset(): void;
-  abstract toActualDelta(T: T, pointsElided: number): number;
+  abstract putPredictionsInDataset(visitsElided: number): void;
+  abstract sortDatasetByPredictions(): void;
+  abstract toActualValue(T: T, visitsElided: number): number;
 
-  computeAverageStats(): PredictionTierStat[] {
+  accumulateStats(averaging: boolean): PredictionTierStat[] {
     // Establish the structures that ultimately provide the average of all
     // predictionHistorySampleDepth prediction tiers, after initially holding
     // the intermediate sums necessary for producing the average.
 
-    const averageTierStats: PredictionTierStat[] = [];
+    let averageTierStats: PredictionTierStat[] = [];
     for (let i = 0; i < this.maxPredictionTiers; ++i) {
       averageTierStats.push({
         fractionCorrect: 0, // temporarily sum of fractions * contributionCount
@@ -40,30 +39,30 @@ export abstract class PredictionStatsGenerator<T> {
 
     // Test predictions for the most recent predictionHistorySampleDepth prior to
     // the current last point, averaging the results at each prediction tier. The
-    // number of points elided is the number of most recent actual points
+    // number of visits elided is the number of most recent actual points
     // assumed to not yet have been collected for the purpose of the test. Each
     // subsequent point thus serves as a test of the prior prediction.
 
     let maxTierStats = 0;
     for (
-      let pointsElided = this.predictionHistorySampleDepth;
-      pointsElided > 0;
-      --pointsElided
+      let visitsElided = this.predictionHistorySampleDepth;
+      visitsElided > 0;
+      --visitsElided
     ) {
       // Put the predictions directly into the data items.
 
-      this.putPredictionsInDataset(pointsElided);
+      this.putPredictionsInDataset(visitsElided);
 
-      // Compute the tier stats for the current number of points elided.
+      // Compute the tier stats for the current number of visits elided.
 
-      const tierStats = this._computePredictionTierStats(pointsElided);
+      const tierStats = this._computePredictionTierStats(visitsElided);
 
       // Add the points to the averaging structure, but weighting each tier stat
       // within the average according to its number of contributing data items.
 
       if (tierStats !== null) {
         for (let i = 0; i < tierStats.length; ++i) {
-          this._addToAverageTierStat(averageTierStats[i], tierStats[i]);
+          addToAverageTierStat(averageTierStats[i], tierStats[i]);
         }
       }
       if (tierStats && tierStats.length > maxTierStats) {
@@ -73,65 +72,43 @@ export abstract class PredictionStatsGenerator<T> {
 
     // Turn the intermediate sums into weighted averages for each tier.
 
-    for (let i = 0; i < this.maxPredictionTiers; ++i) {
-      let averageTierStat = averageTierStats[i];
-      if (averageTierStat.contributionCount > 0) {
-        averageTierStat.fractionCorrect /= averageTierStat.contributionCount;
-      }
-    }
-
-    // Put the future predictions directly into the data items. The
-    // dataset will be sorted later when it's known which of visits and
-    // person-visits the user is examining.
-
-    this.putPredictionsInDataset(0);
+    averageTierStats = averageTierStats.slice(0, maxTierStats);
+    if (averaging) computeAverageTierStats(averageTierStats);
 
     // Return the cluster data complete with its prediction tier stats
     // providing a measure of prediction accuracy for each tier.
 
-    return averageTierStats.slice(0, maxTierStats);
+    return averageTierStats;
   }
 
-  _addToAverageTierStat(
-    averageTierStat: PredictionTierStat,
-    predictedTierStat: PredictionTierStat
-  ) {
-    let contributionCount = predictedTierStat.contributionCount;
-    averageTierStat.fractionCorrect +=
-      predictedTierStat.fractionCorrect * contributionCount;
-    averageTierStat.contributionCount += contributionCount;
-  }
-
-  _computePredictionTierStats(pointsElided: number): PredictionTierStat[] | null {
+  _computePredictionTierStats(visitsElided: number): PredictionTierStat[] | null {
     // Sort the dataset most-predicted species first.
 
-    this.sortDataset();
+    this.sortDatasetByPredictions();
 
-    // Record the IDs of the top config.maxPredictionTiers data items, returning
+    // Record the uniques of the top config.maxPredictionTiers data items, returning
     // with no prediction tier stats if the data contains no predictions.
 
-    const firstNonNullIndex = this.dataset.findIndex(
-      (dataItem) => this.getPredictedDiff(dataItem) !== null
-    );
-    if (firstNonNullIndex < 0) return null;
+    const indexOfFirstPrediction = this.getIndexOfFirstPrediction();
+    if (indexOfFirstPrediction < 0) return null;
 
     let predictedUniques: (string | number)[] = [];
     predictedUniques = this.dataset
-      .slice(firstNonNullIndex, firstNonNullIndex + this.maxPredictionTiers)
+      .slice(indexOfFirstPrediction, indexOfFirstPrediction + this.maxPredictionTiers)
       .map((dataItem) => this.getItemUnique(dataItem));
 
-    // Sort the datasets having predictions by actual species differences.
+    // Sort the datasets having predictions by the actual species values.
 
-    let actualSortSet = this.dataset.slice(firstNonNullIndex);
+    let actualSortSet = this.dataset.slice(indexOfFirstPrediction);
     actualSortSet.sort((a, b) => {
-      const deltaA = this.toActualDelta(a, pointsElided);
-      const deltaB = this.toActualDelta(b, pointsElided);
-      if (deltaA == deltaB) return 0;
-      return deltaB - deltaA; // sort highest first
+      const valueA = this.toActualValue(a, visitsElided);
+      const valueB = this.toActualValue(b, visitsElided);
+      if (valueA == valueB) return 0;
+      return valueB - valueA; // sort highest first
     });
     actualSortSet = actualSortSet.slice(0, this.maxPredictionTiers);
 
-    // Tally the offsets of each expected ID in the actual sort set, setting
+    // Tally the offsets of each expected unique in the actual sort set, setting
     // the offset to null if it's not in the top config.maxPredictionTiers.
 
     const actualOffsetByPredictedOffset: (number | null)[] = [];
@@ -178,5 +155,23 @@ export abstract class PredictionStatsGenerator<T> {
       predictionTierStats = predictionTierStats.slice(0, actualSortSet.length);
     }
     return predictionTierStats;
+  }
+}
+
+export function addToAverageTierStat(
+  averageTierStat: PredictionTierStat,
+  predictedTierStat: PredictionTierStat
+) {
+  let contributionCount = predictedTierStat.contributionCount;
+  averageTierStat.fractionCorrect +=
+    predictedTierStat.fractionCorrect * contributionCount;
+  averageTierStat.contributionCount += contributionCount;
+}
+
+export function computeAverageTierStats(averageTierStats: PredictionTierStat[]): void {
+  for (const averageTierStat of averageTierStats) {
+    if (averageTierStat.contributionCount > 0) {
+      averageTierStat.fractionCorrect /= averageTierStat.contributionCount;
+    }
   }
 }

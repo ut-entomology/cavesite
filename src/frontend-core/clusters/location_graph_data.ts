@@ -13,7 +13,7 @@ export interface LocationGraphData {
   predictedPerVisitDiff: number | null;
   predictedPerPersonVisitDiff: number | null;
   visitsByTaxonUnique: Record<string, number>;
-  recentTaxa: string[][] | null;
+  recentTaxa: string[][];
 }
 
 export function toLocationGraphDataSetByCluster(
@@ -60,6 +60,6 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     predictedPerVisitDiff: null,
     predictedPerPersonVisitDiff: null,
     visitsByTaxonUnique: rawLocationEffort.visitsByTaxonUnique,
-    recentTaxa: recentTaxa.length > 0 ? recentTaxa : null
+    recentTaxa
   };
 }

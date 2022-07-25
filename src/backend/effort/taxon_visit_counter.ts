@@ -1,12 +1,11 @@
 import type { DataOf } from '../../shared/data_of';
+import { MAX_VISITS_ELIDED } from '../../shared/model';
 import {
   type TaxonCounterData,
   type NamesFieldName,
   type CountsFieldName,
   TaxonCounter
 } from '../../shared/taxon_counter';
-
-const HISTORICAL_ADDITIONS_COUNT = 3;
 
 export type TaxonVisitCounterData = DataOf<TaxonVisitCounter>;
 
@@ -33,7 +32,7 @@ export class TaxonVisitCounter extends TaxonCounter {
   genusVisits: string | number[] | null;
   speciesVisits: string | number[] | null;
   subspeciesVisits: string | number[] | null;
-  recentTaxa: string | string[] | null;
+  recentTaxa: string | string[];
 
   constructor(data: TaxonVisitCounterData) {
     super(data);
@@ -73,8 +72,7 @@ export class TaxonVisitCounter extends TaxonCounter {
     return typeof visits == 'string' ? visits : visits.join(',');
   }
 
-  static toRecentTaxaSeries(taxa: string[] | string | null): string | null {
-    if (taxa === null || taxa.length == 0) return null;
+  static toRecentTaxaSeries(taxa: string[] | string): string {
     return typeof taxa == 'string' ? taxa : taxa.join('#');
   }
 
@@ -95,7 +93,7 @@ export class TaxonVisitCounter extends TaxonCounter {
         this.recentTaxa = this.recentTaxa.split('#');
       }
       this.recentTaxa.push('');
-      if (this.recentTaxa.length > HISTORICAL_ADDITIONS_COUNT) {
+      if (this.recentTaxa.length > MAX_VISITS_ELIDED) {
         this.recentTaxa.shift();
       }
     }
