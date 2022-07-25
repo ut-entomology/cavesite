@@ -38,7 +38,7 @@
     {items}
     {getItemPercent}
   >
-    <slot slot="description" name="description" />
+    <slot slot="description" />
     <div slot="single" let:item>
       <RightLocationSplit
         locationData={item}

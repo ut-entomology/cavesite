@@ -90,7 +90,7 @@
     {items}
     {getItemPercent}
   >
-    <slot slot="description" name="description" />
+    <slot slot="description" />
     <div slot="single" let:item>
       <RightTaxonSplit {item} isPrediction={false} />
     </div>
