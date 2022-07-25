@@ -2,8 +2,8 @@ import { pairsToPoints } from '../../shared/point';
 import type { PointSliceSpec } from './effort_graph_spec';
 import type { LocationGraphData } from './location_graph_data';
 import type { PredictionTierStat } from './prediction_stats';
+import type { ClusteringConfig } from './clustering_config';
 import {
-  type ClusteringConfig,
   sortLocationGraphDataSet,
   toClusterData,
   SpeciesCountStatsGenerator,

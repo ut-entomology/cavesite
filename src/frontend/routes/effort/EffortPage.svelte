@@ -5,8 +5,8 @@
     type LocationGraphData,
     toLocationGraphDataSetByCluster
   } from '../../../frontend-core/clusters/location_graph_data';
+  import type { ClusteringConfig } from '../../../frontend-core/clusters/clustering_config';
   import {
-    type ClusteringConfig,
     type ClusterData,
     sortLocationGraphDataSet,
     toClusterData

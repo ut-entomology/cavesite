@@ -22,7 +22,7 @@
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
   import type { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
-  import type { ClusteringConfig } from '../../../frontend-core/clusters/cluster_data';
+  import type { ClusteringConfig } from '../../../frontend-core/clusters/clustering_config';
   import { createAverageModel } from '../../../frontend-core/clusters/model_averager';
 
   const MAX_MIN_X = 20;

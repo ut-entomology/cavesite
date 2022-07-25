@@ -1,5 +1,5 @@
 import type { Point } from '../../../shared/point';
-import type { ClusteringConfig } from '../../../frontend-core/clusters/cluster_data';
+import type { ClusteringConfig } from '../../../frontend-core/clusters/clustering_config';
 import type { EffortGraphSpec } from '../../../frontend-core/clusters/effort_graph_spec';
 import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
 
