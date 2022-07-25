@@ -97,8 +97,7 @@ export abstract class PredictionStatsGenerator<T> {
     const indexOfFirstPrediction = this.getIndexOfFirstPrediction();
     if (indexOfFirstPrediction < 0) return null;
 
-    let predictedUniques: (string | number)[] = [];
-    predictedUniques = this.dataset
+    const predictedUniques = this.dataset
       .slice(indexOfFirstPrediction, indexOfFirstPrediction + this.maxPredictionTiers)
       .map((dataItem) => this.getItemUnique(dataItem));
 

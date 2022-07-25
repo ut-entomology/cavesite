@@ -109,7 +109,6 @@ export function generateAvgTaxaTierStats(
 }
 
 export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisitItem> {
-  clusterVisitsByTaxonUnique: Record<string, number>;
   taxonVisitItemsMap: Record<string, TaxonVisitItem>;
   private _recentTaxa: string[][];
   private _visitsElided = MAX_VISITS_ELIDED;
@@ -128,25 +127,35 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
       config.maxPredictionTiers,
       taxonVisitItems
     );
-    this.clusterVisitsByTaxonUnique = clusterVisitsByTaxonUnique;
     this._recentTaxa = graphData.recentTaxa;
     this.taxonVisitItemsMap = taxonVisitItemsMap;
 
-    this._taxaRemainingInCluster = Object.assign({}, clusterVisitsByTaxonUnique);
-    for (const taxon of Object.keys(graphData.visitsByTaxonUnique)) {
-      delete this._taxaRemainingInCluster[taxon];
-    }
+    // Determine the taxa remaining to be added to this location following the
+    // oldest recent visit to be tested for predictive ability. Sort oldest-
+    // found first, and within each visit, they sort most-general first. These
+    // are the actually found taxa to used for comparison with predictions.
 
-    // The taxa remaining in this location sort oldest-found first, and within
-    // each visit, they sort most-general first.
-
+    const taxaRemainingInLocation: string[] = [];
     for (let i = 0; i < this._recentTaxa.length; ++i) {
       for (let j = 0; j < this._recentTaxa[i].length; ++j) {
         const taxon = this._recentTaxa[i][j];
         const item = taxonVisitItemsMap[taxon];
         if (item !== undefined) {
+          taxaRemainingInLocation.push(taxon);
           this._itemsRemainingInLocation.push(item);
         }
+      }
+    }
+
+    // Remove from cluster all taxa found in the present location up to the
+    // oldest recent visit to be tested for predictive ability. This leaves
+    // _taxaRemainingInCluster with found in other clusters but not yet found
+    // in the present location (before the remaining to-be-tested visits).
+
+    this._taxaRemainingInCluster = Object.assign({}, clusterVisitsByTaxonUnique);
+    for (const taxon of Object.keys(graphData.visitsByTaxonUnique)) {
+      if (!taxaRemainingInLocation.includes(taxon)) {
+        delete this._taxaRemainingInCluster[taxon];
       }
     }
   }
@@ -177,25 +186,26 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
   putPredictionsInDataset(visitsElided: number): void {
     // Requires caller to call with greatest number of visits elided first.
 
-    // Assume no predictions are possible at this visitsElided.
-    this.dataset.forEach((item) => (item.visits = 0));
-
     const recentVisits = this._recentTaxa.length;
     if (recentVisits >= visitsElided) {
       // Bring the remaining taxa up to date with current visits elided.
       while (this._visitsElided > 0 && this._visitsElided > visitsElided) {
         for (const taxon of this._recentTaxa[recentVisits - visitsElided]) {
-          delete this._taxaRemainingInCluster[taxon];
-          this._itemsRemainingInLocation.shift();
+          if (this._taxaRemainingInCluster[taxon] !== undefined) {
+            delete this._taxaRemainingInCluster[taxon];
+            this._itemsRemainingInLocation.shift();
+          }
         }
         --this._visitsElided;
       }
+    }
 
-      // Copy the visit counts for remaining taxa into the dataset.
+    // Copy the visit counts for remaining taxa into the dataset, indicating
+    // that predictions for the all other taxa are not possible.
 
-      for (const [taxon, visits] of Object.entries(this._taxaRemainingInCluster)) {
-        this.taxonVisitItemsMap[taxon].visits = visits;
-      }
+    this.dataset.forEach((item) => (item.visits = 0));
+    for (const [taxon, visits] of Object.entries(this._taxaRemainingInCluster)) {
+      this.taxonVisitItemsMap[taxon].visits = visits;
     }
   }
 }
