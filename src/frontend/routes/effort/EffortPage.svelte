@@ -546,6 +546,7 @@
     clusterVisitsByTaxonUnique={clusterData.visitsByTaxonUnique}
     {locationGraphData}
     locationGraphDataSet={clusterData.locationGraphDataSet}
+    taxonTierStats={clusterData.avgTaxaTierStats}
     close={closeLocation}
   />
 {/if}

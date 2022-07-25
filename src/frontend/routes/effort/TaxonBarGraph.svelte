@@ -1,28 +1,16 @@
 <script lang="ts">
-  import SortedRowGrower from './SortedRowGrower.svelte';
-  import StatsHeaderRow from './StatsHeaderRow.svelte';
-  import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
-  import { type TaxonSpec, TaxonRank, TaxonRankIndex } from '../../../shared/model';
+  import SplittableBarGraph from './SplittableBarGraph.svelte';
+  import RightTaxonSplit, {
+    type TaxonItem,
+    kingdomPhylumClass
+  } from './RightTaxonSplit.svelte';
+  import { type TaxonSpec, TaxonRankIndex } from '../../../shared/model';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
+  import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
   import { client } from '../../stores/client';
 
-  const MIN_ROWS = 10;
-  const ROW_INCREMENT = 40;
-  const kingdomPhylumClass = [TaxonRank.Kingdom, TaxonRank.Phylum, TaxonRank.Class];
-  const genusSpeciesSubspecies = [
-    TaxonRank.Genus,
-    TaxonRank.Species,
-    TaxonRank.Subspecies
-  ];
-
-  interface TaxonItem {
-    unique: string;
-    visits: number;
-    rank?: TaxonRank;
-    path?: string;
-  }
-
   export let title: string;
+  export let tierStats: PredictionTierStat[] | null = null;
   export let visitsByTaxonUnique: Record<string, number>;
   export let locationGraphDataSet: LocationGraphData[];
 
@@ -89,51 +77,27 @@
     }
   }
 
-  function _toRightSplitSpec(item: TaxonItem): BarSplitSpec {
-    return {
-      percent: (100 * item.visits) / totalVisits,
-      barColor: '#d1c0fe',
-      backgroundColor: '#ddd'
-    };
+  function getItemPercent(item: TaxonItem): number {
+    return (100 * item.visits) / totalVisits;
   }
 </script>
 
 {#key items}
-  <SortedRowGrower
+  <SplittableBarGraph
     title={title + titleSuffix}
-    itemsClasses="taxon_bar_graph"
-    minRows={MIN_ROWS}
-    rowIncrement={ROW_INCREMENT}
-    increasing={false}
+    {tierStats}
     {getItems}
     {items}
-    let:item
+    {getItemPercent}
   >
-    <slot slot="description" />
-    <div slot="header">
-      <StatsHeaderRow rightHeader={title} />
+    <slot slot="description" name="description" />
+    <div slot="single" let:item>
+      <RightTaxonSplit {item} isPrediction={false} />
     </div>
-    <SplitHorizontalBar classes="bar_spacer" rightSplitSpec={_toRightSplitSpec(item)}>
-      <div slot="right">
-        <div class="row gx-1">
-          <div class="col-2 text-center">
-            {item.visits} <span class="stats_deemph">visits</span>
-          </div>
-          <div class="col-1 text-end stats_deemph">{item.rank}:</div>
-          <div class="col">
-            {#if genusSpeciesSubspecies.includes(item.rank)}
-              <i>{item.unique}</i>
-            {:else}
-              {item.unique}
-            {/if}
-            {#if !kingdomPhylumClass.includes(item.rank)}
-              <span class="stats_deemph">({item.path})</span>
-            {/if}
-          </div>
-        </div>
-      </div>
-    </SplitHorizontalBar>
-  </SortedRowGrower>
+    <div slot="right" let:item>
+      <RightTaxonSplit {item} isPrediction={true} />
+    </div>
+  </SplittableBarGraph>
 {/key}
 
 <style lang="scss">
@@ -145,7 +109,7 @@
     font-size: 0.95em;
     color: #888;
   }
-  :global(.bar_spacer) {
+  :global(.outer_bar) {
     margin-bottom: 2px;
   }
 </style>

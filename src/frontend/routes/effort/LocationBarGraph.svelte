@@ -1,14 +1,10 @@
 <script lang="ts">
-  import SortedRowGrower, { type RowItemGetter } from './SortedRowGrower.svelte';
-  import StatsHeaderRow from './StatsHeaderRow.svelte';
-  import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
+  import SplittableBarGraph from './SplittableBarGraph.svelte';
+  import type { RowItemGetter } from './SortedRowGrower.svelte';
   import RightLocationSplit from './RightLocationSplit.svelte';
   import type { Point } from '../../../shared/point';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
-
-  const MIN_ROWS = 10;
-  const ROW_INCREMENT = 40;
 
   export let title: string;
   export let tierStats: PredictionTierStat[] | null = null;
@@ -24,127 +20,54 @@
     items.length > 1 ? 's' : ''
   })</span>`;
 
-  function _isTierStatIndex(index: number, increasing: boolean): boolean {
-    return increasing
-      ? index >= items.length - tierStats!.length
-      : index < tierStats!.length;
-  }
-
-  function _toLeftSplitSpec(index: number, increasing: boolean): BarSplitSpec {
-    return {
-      percent: _isTierStatIndex(index, increasing)
-        ? _toStatPercent(index, increasing)
-        : 0,
-      barColor: '#faf2c7',
-      backgroundColor: '#ddd'
-    };
-  }
-
   function _toRightValue(locationData: LocationGraphData): number {
     let value = getValue(locationData);
     return value !== null ? value : getPoints(locationData)[0].y;
   }
 
-  function _toRightSplitSpec(locationData: LocationGraphData): BarSplitSpec {
-    return {
-      percent: (100 * _toRightValue(locationData)) / greatestValue,
-      barColor: '#d1c0fe',
-      backgroundColor: '#ddd'
-    };
-  }
-
-  function _toStatPercent(index: number, increasing: boolean): number {
-    if (increasing) index = items.length - index - 1;
-    return 100 * tierStats![index].fractionCorrect;
-  }
-
-  function _toPercentStr(fraction: number): string {
-    return fraction.toFixed(1);
+  function getItemPercent(locationData: LocationGraphData): number {
+    return (100 * _toRightValue(locationData)) / greatestValue;
   }
 </script>
 
 {#key items}
-  <SortedRowGrower
+  <SplittableBarGraph
     title={title + titleSuffix}
-    itemsClasses="location_bar_graph"
-    minRows={MIN_ROWS}
-    rowIncrement={ROW_INCREMENT}
-    increasing={false}
+    {tierStats}
     {getItems}
     {items}
-    let:item
-    let:index
-    let:increasing
+    {getItemPercent}
   >
-    <slot slot="description" />
-    <div slot="header">
-      <StatsHeaderRow
-        leftHeader={tierStats ? 'Accuracy of top N rows' : null}
-        rightHeader="{title} to cave{tierStats ? '' : ' (no prediction)'}"
+    <slot slot="description" name="description" />
+    <div slot="single" let:item>
+      <RightLocationSplit
+        locationData={item}
+        valueStr={_toRightValue(item).toString()}
+        isPrediction={false}
+        {visitUnitName}
+        {getPoints}
+        {openLocation}
       />
     </div>
-    {#if tierStats === null}
-      <SplitHorizontalBar classes="outer_bar" rightSplitSpec={_toRightSplitSpec(item)}>
-        <div slot="right">
-          <RightLocationSplit
-            locationData={item}
-            valueStr={_toRightValue(item).toString()}
-            isPrediction={false}
-            {visitUnitName}
-            {getPoints}
-            {openLocation}
-          />
-        </div>
-      </SplitHorizontalBar>
-    {:else}
-      <SplitHorizontalBar
-        classes="outer_bar"
-        leftSplitSpec={_toLeftSplitSpec(index, increasing)}
-        rightSplitSpec={_toRightSplitSpec(item)}
-      >
-        <div slot="left">
-          {#if _isTierStatIndex(index, increasing)}
-            <div class="row gx-0">
-              <div class="col stats_deemph text-start ms-2">
-                Top {increasing ? items.length - index : index + 1}:
-              </div>
-              <div class="col me-2">
-                {_toPercentStr(_toStatPercent(index, increasing))}
-                <span class="percent">%</span>
-              </div>
-            </div>
-          {:else}
-            <div class="no_stats">no stats</div>
-          {/if}
-        </div>
-        <div slot="right">
-          <RightLocationSplit
-            locationData={item}
-            valueStr={_toRightValue(item).toFixed(1)}
-            isPrediction={true}
-            {visitUnitName}
-            {getPoints}
-            {openLocation}
-          />
-        </div>
-      </SplitHorizontalBar>
-    {/if}
-  </SortedRowGrower>
+    <div slot="right" let:item>
+      <RightLocationSplit
+        locationData={item}
+        valueStr={_toRightValue(item).toFixed(1)}
+        isPrediction={true}
+        {visitUnitName}
+        {getPoints}
+        {openLocation}
+      />
+    </div>
+  </SplittableBarGraph>
 {/key}
 
 <style lang="scss">
   @import '../../variables.scss';
 
-  :globel(.location_bar_graph) {
-    margin-top: 1rem;
-    font-size: 0.95rem;
-  }
   :global(.cave_count) {
     font-size: 0.95em;
     color: #888;
-  }
-  :global(.outer_bar) {
-    margin-bottom: 2px;
   }
   :global(.outer_bar:hover) {
     cursor: pointer;
@@ -152,12 +75,5 @@
   :global(.outer_bar:hover .location_name) {
     color: $blueLinkForeColor;
     text-decoration: underline;
-  }
-  .percent {
-    font-size: 0.9em;
-  }
-  .no_stats {
-    background-color: #f2cbcb;
-    // background-color: #faf2c7;
   }
 </style>

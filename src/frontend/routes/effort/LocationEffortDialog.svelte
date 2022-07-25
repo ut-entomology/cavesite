@@ -7,11 +7,13 @@
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import { DatasetType, getGraphSpec } from './dataset_type';
   import type { ClusteringConfig } from '../../../frontend-core/clusters/cluster_data';
+  import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
 
   export let config: ClusteringConfig;
   export let clusterVisitsByTaxonUnique: Record<string, number>;
   export let locationGraphData: LocationGraphData;
   export let locationGraphDataSet: LocationGraphData[];
+  export let taxonTierStats: PredictionTierStat[];
   export let close: () => void;
 
   let datasetType = DatasetType.personVisits;
@@ -93,6 +95,7 @@
       title="Frequency of taxa found in this cluster but NOT in this cave"
       visitsByTaxonUnique={missingTaxaVisitsByTaxonUnique}
       {locationGraphDataSet}
+      tierStats={taxonTierStats}
     >
       This bar chart shows the frequency at which taxa were found on visits to the caves
       of this cluster, restricted to the taxa not yet found in the present cave. The bar
