@@ -14,7 +14,7 @@ export function generateAvgTaxaTierStats(
 ): PredictionTierStat[] {
   // Create the stats into which we'll accumulate intermediate averages.
 
-  const avgTaxaTierStats: PredictionTierStat[] = [];
+  let avgTaxaTierStats: PredictionTierStat[] = [];
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
     avgTaxaTierStats.push({
       fractionCorrect: 0, // temporarily sum of fractions * contributionCount
@@ -64,6 +64,7 @@ export function generateAvgTaxaTierStats(
   // For each location, test historical predictions for that location assuming
   // all other locations remain unchanged, accumulating the statistics.
 
+  let maxStatsLength = 0;
   for (const graphData of locationGraphDataSet) {
     // Determine the taxa available in the cluster, ignoring additions
     // made the recent visits to the present location.
@@ -100,10 +101,14 @@ export function generateAvgTaxaTierStats(
         avgLocationTierStat.fractionCorrect * graphData.recentTaxa.length;
       avgTaxaTierStat.contributionCount += graphData.recentTaxa.length;
     }
+    if (avgLocationStats.length > maxStatsLength) {
+      maxStatsLength = avgLocationStats.length;
+    }
   }
 
   // Average the running totals to produce the final statistics.
 
+  avgTaxaTierStats = avgTaxaTierStats.splice(0, maxStatsLength);
   computeAverageTierStats(avgTaxaTierStats);
   return avgTaxaTierStats;
 }
