@@ -54,11 +54,6 @@
       }
       dummyDatasets.push(dummyDataset);
     }
-    console.log(
-      '**** percentCommonByClusterByCluster',
-      percentCommonByClusterByCluster
-    );
-    console.log('**** dummyDatasets', dummyDatasets);
   }
 
   function _toClusterNo(datasetIndex: number): number {
