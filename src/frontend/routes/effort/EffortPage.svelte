@@ -39,6 +39,7 @@
   import LocationBarGraph from './LocationBarGraph.svelte';
   import LocationFootnotes from './LocationFootnotes.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
+  import MoreLess from '../../components/MoreLess.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -489,17 +490,22 @@
           items={multiPointLocationDataSet}
           {visitUnitName}
           {openLocation}
-          >This bar chart shows the number of additional species predicted to be found
-          at a cave on the next {visitUnitName} to the cave, according to a power curve (<span
-            class="eq">y=Ax<sup>P</sup>+B</span
-          >) fit to the most recent {$clusterStore.config.maxPointsToRegress} points of the
-          cave, provided there are at least 3 such points. For caves with only 2 points,
-          the predicted additional species equals the slope of the line through the points.
-          To measure the accuracy of the technique, the technique was applied to historical
-          data to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH} most recent points
-          of each cave having at least 2 points. The chart reports the average percentage
-          of caves that it correctly predicted would occur within each top group of N caves
-          according to a sort of the number of species predicted.</LocationBarGraph
+          >This chart shows the number of additional species predicted to be found at a
+          cave on the next {visitUnitName} to the cave, according to a power curve (total
+          species <span class="eq">y</span> <span class="eq">=</span>
+          <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
+          <span class="eq">x</span>) fit to the points of the most recent {$clusterStore
+            .config.maxPointsToRegress} visits of the cave, <MoreLess
+            >provided there were at least 3 visits. For caves with only 2 visits, the
+            predicted additional species is given by the slope of the line through their
+            2 points. To measure accuracy, the technique was applied to historical data
+            to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+            most recent points of each cave. The chart reports the average percentage of
+            caves that it correctly predicted would occur within each top group of N caves
+            according to a sort of the number of species predicted. For example, a top 5
+            accuracy of 25% would mean that the technique correctly predicted which caves
+            would be among the top 5 highest producing species 25% of the time.</MoreLess
+          ></LocationBarGraph
         >
       {/if}
       {#if singlePointLocationDataSet.length > 0}
@@ -513,8 +519,8 @@
           items={singlePointLocationDataSet}
           {visitUnitName}
           {openLocation}
-          >This bar chart lists the caves for which only one data point was recorded and
-          for which predictions could not be made, sorting the caves by the number of
+          >This chart lists the caves for which only one data point was recorded and for
+          which predictions could not be made, sorting the caves by the number of
           species found on that single visit.</LocationBarGraph
         >
       {/if}
@@ -523,9 +529,9 @@
         title="Frequency of taxa found in this cluster"
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
-        >This bar chart shows the frequency at which taxa were found on visits to the
-        caves of this cluster. The bar for any given taxon depicts the fraction of the
-        total number of visits in which the taxon was found.</TaxonBarGraph
+        >This chart shows the frequency at which taxa were found on visits to the caves
+        of this cluster. The bar for any given taxon depicts the fraction of the total
+        number of visits in which the taxon was found.</TaxonBarGraph
       >
     {/if}
   </div>
