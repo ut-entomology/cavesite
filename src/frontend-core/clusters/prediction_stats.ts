@@ -18,11 +18,11 @@ export abstract class PredictionStatsGenerator<T> {
     this.dataset = dataset;
   }
 
+  abstract getActualValueSort(visitsElided: number): T[];
   abstract getIndexOfFirstPrediction(): number;
   abstract getItemUnique(dataItem: T): string | number;
   abstract putPredictionsInDataset(visitsElided: number): void;
   abstract sortDatasetByPredictions(): void;
-  abstract toActualValue(T: T, visitsElided: number): number;
 
   computeAverageStats(): PredictionTierStat[] {
     // Establish the structures that ultimately provide the average of all
@@ -104,13 +104,7 @@ export abstract class PredictionStatsGenerator<T> {
 
     // Sort the datasets having predictions by the actual species values.
 
-    let actualSortSet = this.dataset.slice(indexOfFirstPrediction);
-    actualSortSet.sort((a, b) => {
-      const valueA = this.toActualValue(a, visitsElided);
-      const valueB = this.toActualValue(b, visitsElided);
-      if (valueA == valueB) return 0;
-      return valueB - valueA; // sort highest first
-    });
+    let actualSortSet = this.getActualValueSort(visitsElided);
     actualSortSet = actualSortSet.slice(0, this.maxPredictionTiers);
 
     // Tally the offsets of each expected unique in the actual sort set, setting

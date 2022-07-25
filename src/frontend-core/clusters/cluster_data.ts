@@ -92,6 +92,17 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
     return avgStats;
   }
 
+  getActualValueSort(visitsElided: number): LocationGraphData[] {
+    let actualSortSet = this.dataset.slice(this.getIndexOfFirstPrediction());
+    actualSortSet.sort((a, b) => {
+      const valueA = this.toActualValue(a, visitsElided);
+      const valueB = this.toActualValue(b, visitsElided);
+      if (valueA == valueB) return 0;
+      return valueB - valueA; // sort highest first
+    });
+    return actualSortSet;
+  }
+
   getItemUnique(graphData: LocationGraphData): string | number {
     return graphData.locationID;
   }
@@ -308,7 +319,7 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
   private _recentTaxa: string[][];
   private _visitsElided = MAX_VISITS_ELIDED;
   private _taxaRemainingInCluster: Record<string, number>;
-  private _taxaRemainingInLocation: Record<string, number> = {};
+  private _itemsRemainingInLocation: TaxonVisitItem[] = [];
 
   constructor(
     config: ClusteringConfig,
@@ -339,11 +350,18 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
     for (let i = 0; i < this._recentTaxa.length; ++i) {
       for (let j = 0; j < this._recentTaxa[i].length; ++j) {
         const taxon = this._recentTaxa[i][j];
-        if (taxonVisitItemsMap[taxon] !== undefined) {
-          this._taxaRemainingInLocation[taxon] = (MAX_VISITS_ELIDED - i) * 100000 - j;
+        const item = taxonVisitItemsMap[taxon];
+        if (item !== undefined) {
+          this._itemsRemainingInLocation.push(item);
         }
       }
     }
+  }
+
+  getActualValueSort(_visitsElided: number): TaxonVisitItem[] {
+    // Requires caller to call with greatest number of visits elided first.
+
+    return this._itemsRemainingInLocation;
   }
 
   getIndexOfFirstPrediction(): number {
@@ -375,7 +393,7 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
       while (this._visitsElided > 0 && this._visitsElided > visitsElided) {
         for (const taxon of this._recentTaxa[recentVisits - visitsElided]) {
           delete this._taxaRemainingInCluster[taxon];
-          delete this._taxaRemainingInLocation[taxon];
+          this._itemsRemainingInLocation.shift();
         }
         --this._visitsElided;
       }
@@ -386,11 +404,6 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
         this.taxonVisitItemsMap[taxon].visits = visits;
       }
     }
-  }
-
-  toActualValue(item: TaxonVisitItem, _visitsElided: number): number {
-    // Requires caller to call with greatest number of visits elided first.
-    return this._taxaRemainingInLocation[item.taxon];
   }
 }
 
