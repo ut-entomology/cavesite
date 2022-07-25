@@ -63,6 +63,7 @@
           data: percentCommonByCluster,
           borderColor: clusterColors[colorIndex].foreground,
           backgroundColor: clusterColors[colorIndex].lightBackground,
+          tension: 0.5,
           fill: true,
           order: dataByCluster.length - i
         };
@@ -80,7 +81,8 @@
         text: `Percent Overlap in Taxa among Clusters`,
         font: { size: 15 },
         position: 'bottom',
-        padding: { top: dataByCluster.length == 3 ? -90 : -30 }
+        padding: -30
+        //padding: { top: dataByCluster.length == 3 ? -90 : -30 }
       }
     },
     scales: {
@@ -89,8 +91,15 @@
           font: {
             size: 12
           }
-        }
+        },
+        grid: {
+          circular: true
+        },
+        beginAtZero: true
       }
+    },
+    animation: {
+      duration: 0
     }
   }}
 />

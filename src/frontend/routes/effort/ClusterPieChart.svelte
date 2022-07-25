@@ -54,6 +54,9 @@
       //   display: _toDataLabel,
       //   color: 'black'
       // }
+    },
+    animation: {
+      duration: 0
     }
   }}
 />

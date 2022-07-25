@@ -495,11 +495,11 @@
           species <span class="eq">y</span> <span class="eq">=</span>
           <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
           <span class="eq">x</span>) fit to the points of the most recent {$clusterStore
-            .config.maxPointsToRegress} visits of the cave, <MoreLess
-            >provided there were at least 3 visits. For caves with only 2 visits, the
-            predicted additional species is given by the slope of the line through their
-            2 points. To measure accuracy, the technique was applied to historical data
-            to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+            .config.maxPointsToRegress} visits to the cave, provided there were at least
+          3 visits. <MoreLess
+            >For caves with only 2 visits, the predicted additional species is given by
+            the slope of the line through their 2 points. To measure accuracy, the
+            technique was applied to historical data to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
             most recent points of each cave. The chart reports the average percentage of
             caves that it correctly predicted would occur within each top group of N caves
             according to a sort of the number of species predicted. For example, a top 5
