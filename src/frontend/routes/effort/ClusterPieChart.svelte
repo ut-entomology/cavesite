@@ -48,7 +48,7 @@
         text: `Caves per Cluster (${dataByCluster.length} clusters)`,
         font: { size: 15 },
         position: 'bottom',
-        padding: { top: 10 }
+        padding: 20
       }
       // datalabels: {
       //   display: _toDataLabel,

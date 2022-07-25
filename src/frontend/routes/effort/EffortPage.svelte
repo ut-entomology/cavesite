@@ -389,7 +389,10 @@
             {clusterColors}
           />
         </div>
-        <div class="col d-flex align-items-center" style="max-width: 300px">
+        <div
+          class="col d-flex align-items-center"
+          style="max-width: 320px; margin-top: 50px"
+        >
           <ClusterPieChart
             dataByCluster={$clusterStore.dataByCluster}
             {clusterColors}
