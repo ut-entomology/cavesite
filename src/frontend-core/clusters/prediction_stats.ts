@@ -24,7 +24,7 @@ export abstract class PredictionStatsGenerator<T> {
   abstract sortDatasetByPredictions(): void;
   abstract toActualValue(T: T, visitsElided: number): number;
 
-  accumulateStats(averaging: boolean): PredictionTierStat[] {
+  computeAverageStats(): PredictionTierStat[] {
     // Establish the structures that ultimately provide the average of all
     // predictionHistorySampleDepth prediction tiers, after initially holding
     // the intermediate sums necessary for producing the average.
@@ -62,7 +62,12 @@ export abstract class PredictionStatsGenerator<T> {
 
       if (tierStats !== null) {
         for (let i = 0; i < tierStats.length; ++i) {
-          addToAverageTierStat(averageTierStats[i], tierStats[i]);
+          const averageTierStat = averageTierStats[i];
+          const predictedTierStat = tierStats[i];
+          let contributionCount = predictedTierStat.contributionCount;
+          averageTierStat.fractionCorrect +=
+            predictedTierStat.fractionCorrect * contributionCount;
+          averageTierStat.contributionCount += contributionCount;
         }
       }
       if (tierStats && tierStats.length > maxTierStats) {
@@ -73,7 +78,7 @@ export abstract class PredictionStatsGenerator<T> {
     // Turn the intermediate sums into weighted averages for each tier.
 
     averageTierStats = averageTierStats.slice(0, maxTierStats);
-    if (averaging) computeAverageTierStats(averageTierStats);
+    computeAverageTierStats(averageTierStats);
 
     // Return the cluster data complete with its prediction tier stats
     // providing a measure of prediction accuracy for each tier.
@@ -156,16 +161,6 @@ export abstract class PredictionStatsGenerator<T> {
     }
     return predictionTierStats;
   }
-}
-
-export function addToAverageTierStat(
-  averageTierStat: PredictionTierStat,
-  predictedTierStat: PredictionTierStat
-) {
-  let contributionCount = predictedTierStat.contributionCount;
-  averageTierStat.fractionCorrect +=
-    predictedTierStat.fractionCorrect * contributionCount;
-  averageTierStat.contributionCount += contributionCount;
 }
 
 export function computeAverageTierStats(averageTierStats: PredictionTierStat[]): void {

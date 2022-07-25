@@ -1,7 +1,6 @@
 import {
   PredictionTierStat,
   PredictionStatsGenerator,
-  addToAverageTierStat,
   computeAverageTierStats
 } from './prediction_stats';
 import type { Point } from '../../shared/point';
@@ -88,7 +87,7 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
   }
 
   computeAverageStats(): PredictionTierStat[] {
-    const avgStats = super.accumulateStats(true);
+    const avgStats = super.computeAverageStats();
     this.putPredictionsInDataset(0);
     return avgStats;
   }
@@ -207,7 +206,7 @@ function _generateAvgTaxaTierStats(
   const avgTaxaTierStats: PredictionTierStat[] = [];
   for (let i = 0; i < config.maxPredictionTiers; ++i) {
     avgTaxaTierStats.push({
-      fractionCorrect: 0,
+      fractionCorrect: 0, // temporarily sum of fractions * contributionCount
       contributionCount: 0
     });
   }
@@ -286,9 +285,13 @@ function _generateAvgTaxaTierStats(
       taxonVisitItems,
       taxonVisitItemsMap
     );
-    const avgLocationStats = taxaStatsGen.accumulateStats(false);
+    const avgLocationStats = taxaStatsGen.computeAverageStats();
     for (let i = 0; i < avgLocationStats.length; ++i) {
-      addToAverageTierStat(avgTaxaTierStats[i], avgLocationStats[i]);
+      const avgTaxaTierStat = avgTaxaTierStats[i];
+      const avgLocationTierStat = avgLocationStats[i];
+      avgTaxaTierStat.fractionCorrect +=
+        avgLocationTierStat.fractionCorrect * graphData.recentTaxa.length;
+      avgTaxaTierStat.contributionCount += graphData.recentTaxa.length;
     }
   }
 
