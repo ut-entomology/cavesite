@@ -343,7 +343,7 @@
     </TabHeader>
 
     <div style="font-size: 1rem; font-weight: bold; text-align: center">
-      &mdash; This page is still under development. Expect bugs. &mdash;
+      &mdash; This page is still under development &mdash;
     </div>
 
     {#if $clusterStore}
