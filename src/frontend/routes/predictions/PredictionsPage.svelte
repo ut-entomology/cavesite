@@ -532,7 +532,7 @@
             according to a sort of the number of species predicted.
             <i
               >For example, a top 5 accuracy of 25% would mean that the technique
-              correctly predicted which caves would be among the top 5 highest producing
+              correctly predicted which caves would be among the top 5 yielding the most
               species 25% of the time.</i
             ></MoreLess
           ></LocationBarGraph
