@@ -61,7 +61,7 @@
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 
-  $pageName = 'Collection Effort';
+  $pageName = 'Collection Predictions';
 
   const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
@@ -327,7 +327,7 @@
   afterUpdate(() => _setClusterSelectorColor(clusterIndex));
 </script>
 
-<DataTabRoute activeTab="Effort">
+<DataTabRoute activeTab="Predictions">
   <div class="container-fluid mb-3">
     <TabHeader title={$pageName}>
       <span slot="main-buttons">

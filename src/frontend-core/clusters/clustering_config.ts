@@ -1,4 +1,4 @@
-import { type TaxonRank, type ComparedTaxa } from '../../shared/model';
+import type { TaxonRank, ComparedTaxa } from '../../shared/model';
 
 export interface ClusteringConfig {
   maxClusters: number;

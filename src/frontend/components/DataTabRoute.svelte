@@ -22,8 +22,8 @@
       route: '/time'
     },
     {
-      label: 'Effort',
-      route: '/effort'
+      label: 'Predictions',
+      route: '/predictions'
     },
     {
       label: 'Query',
