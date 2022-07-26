@@ -84,7 +84,7 @@
 
     // Load specs for the children of the containing locations.
 
-    const res = await $client.post('api/location/get_children', {
+    const res = await $client.post('api/location/pull_children', {
       parentUniques: containingSpecs.map((spec) => spec.unique)
     });
     const ancestorChildSpecs: LocationSpec[][] = res.data.locationSpecs;
@@ -99,7 +99,7 @@
   }
 
   async function loadSpec(unique: string): Promise<LocationSpec> {
-    let res = await $client.post('api/location/get_list', {
+    let res = await $client.post('api/location/pull_list', {
       locationUniques: [unique]
     });
     const specs: LocationSpec[] = res.data.locationSpecs;

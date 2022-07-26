@@ -17,7 +17,7 @@ const MAX_LOOKUP_MATCHES = 120;
 
 export const router = Router();
 
-router.post('/get_children', async (req: Request, res) => {
+router.post('/pull_children', async (req: Request, res) => {
   const parentUniques = req.body.parentUniques;
   if (!Array.isArray(parentUniques) || parentUniques.length > 10) {
     return res.status(StatusCodes.BAD_REQUEST).send();
@@ -33,7 +33,7 @@ router.post('/get_children', async (req: Request, res) => {
   });
 });
 
-router.post('/get_effort', async (req: Request, res) => {
+router.post('/pull_effort', async (req: Request, res) => {
   const locationIDs: number[] = req.body.locationIDs;
   const comparedTaxa: ComparedTaxa = req.body.comparedTaxa;
   if (!checkComparedTaxa(comparedTaxa) || !checkIntegerList(locationIDs)) {
@@ -49,7 +49,7 @@ router.post('/get_effort', async (req: Request, res) => {
     .send({ efforts: efforts.map((effort) => _toRawEffortData(effort)) });
 });
 
-router.post('/get_list', async (req: Request, res) => {
+router.post('/pull_list', async (req: Request, res) => {
   const locationUniques = req.body.locationUniques;
   if (!Array.isArray(locationUniques)) {
     return res.status(StatusCodes.BAD_REQUEST).send();

@@ -9,7 +9,7 @@ const MAX_LOOKUP_MATCHES = 120;
 
 export const router = Router();
 
-router.post('/get_children', async (req: Request, res) => {
+router.post('/pull_children', async (req: Request, res) => {
   const parentUniques = req.body.parentUniques;
   if (!Array.isArray(parentUniques) || parentUniques.length > 10) {
     return res.status(StatusCodes.BAD_REQUEST).send();
@@ -25,7 +25,7 @@ router.post('/get_children', async (req: Request, res) => {
     .send({ taxonSpecs: taxa.map((ts) => ts.map((t) => _toTaxonSpec(t))) });
 });
 
-router.post('/get_list', async (req: Request, res) => {
+router.post('/pull_list', async (req: Request, res) => {
   const taxaNames = req.body.taxonUniques;
   if (!Array.isArray(taxaNames)) {
     return res.status(StatusCodes.BAD_REQUEST).send();

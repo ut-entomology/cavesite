@@ -21,7 +21,7 @@ export async function checkSelectedLocations(): Promise<boolean> {
 
   const locations = Object.values(selectedLocationsMap);
   const lastLocationIndex = locations.length - 1;
-  let res = await client.post('api/location/get_list', {
+  let res = await client.post('api/location/pull_list', {
     locationUniques: [locations[0].unique, locations[lastLocationIndex].unique]
   });
   const specs: LocationSpec[] = res.data.locationSpecs;
@@ -33,7 +33,7 @@ export async function checkSelectedLocations(): Promise<boolean> {
 }
 
 export async function updateSelectedLocations(): Promise<void> {
-  let res = await client.post('api/location/get_list', {
+  let res = await client.post('api/location/pull_list', {
     locationUniques: Object.values(selectedLocationsMap!).map((spec) => spec.unique)
   });
   const specs: LocationSpec[] = res.data.locationSpecs;

@@ -58,7 +58,7 @@
         uniqueToItemMap[item.unique] = item;
       }
     }
-    const res = await $client.post('api/taxa/get_list', {
+    const res = await $client.post('api/taxa/pull_list', {
       taxonUniques: neededUniques
     });
     const specs: TaxonSpec[] = res.data.taxonSpecs;

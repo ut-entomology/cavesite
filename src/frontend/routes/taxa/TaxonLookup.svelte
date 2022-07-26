@@ -53,7 +53,7 @@
   async function loadSpecIndicatingChildren(
     taxonUnique: string
   ): Promise<TaxonSpec | null> {
-    let res = await $client.post('api/taxa/get_list', {
+    let res = await $client.post('api/taxa/pull_list', {
       taxonUniques: [taxonUnique]
     });
     const taxonSpecs: TaxonSpec[] = res.data.taxonSpecs;

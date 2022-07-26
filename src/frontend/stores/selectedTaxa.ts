@@ -21,7 +21,7 @@ export async function checkSelectedTaxa(): Promise<boolean> {
 
   const taxa = Object.values(selectedTaxaMap);
   const lastTaxonIndex = taxa.length - 1;
-  let res = await client.post('api/taxa/get_list', {
+  let res = await client.post('api/taxa/pull_list', {
     taxonUniques: [taxa[0].unique, taxa[lastTaxonIndex].unique]
   });
   const specs: TaxonSpec[] = res.data.taxonSpecs;
@@ -33,7 +33,7 @@ export async function checkSelectedTaxa(): Promise<boolean> {
 }
 
 export async function updateSelectedTaxa(): Promise<void> {
-  let res = await client.post('api/taxa/get_list', {
+  let res = await client.post('api/taxa/pull_list', {
     taxonUniques: Object.values(selectedTaxaMap!).map((spec) => spec.unique)
   });
   const specs: TaxonSpec[] = res.data.taxonSpecs;

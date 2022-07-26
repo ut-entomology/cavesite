@@ -13,7 +13,7 @@ import {
 
 export const router = Router();
 
-router.post('/get_seeds', async (req: Request, res) => {
+router.post('/pull_seeds', async (req: Request, res) => {
   const clusterSpec: ClusterSpec = req.body.clusterSpec;
   const maxClusters: number = req.body.maxClusters;
   const useCumulativeTaxa: boolean = req.body.useCumulativeTaxa;
@@ -36,7 +36,7 @@ router.post('/get_seeds', async (req: Request, res) => {
     .send({ seeds: locations.map((location) => toLocationSpec(location)) });
 });
 
-router.post('/get_clusters', async (req: Request, res) => {
+router.post('/pull_clusters', async (req: Request, res) => {
   const clusterSpec: ClusterSpec = req.body.clusterSpec;
   const seedIDs: number[] = req.body.seedIDs;
 

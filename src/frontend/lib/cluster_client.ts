@@ -14,7 +14,7 @@ export async function loadSeeds(
   maxClusters: number,
   useCumulativeTaxa = false
 ): Promise<LocationSpec[]> {
-  let res = await client.post('api/cluster/get_seeds', {
+  let res = await client.post('api/cluster/pull_seeds', {
     clusterSpec,
     maxClusters,
     useCumulativeTaxa
@@ -29,7 +29,7 @@ export async function sortIntoClusters(
   clusterSpec: ClusterSpec,
   seedLocations: LocationSpec[]
 ): Promise<TaxaCluster[]> {
-  let res = await client.post('api/cluster/get_clusters', {
+  let res = await client.post('api/cluster/pull_clusters', {
     clusterSpec,
     seedIDs: seedLocations.map((location) => location.locationID)
   });
@@ -46,7 +46,7 @@ export async function loadPoints(
   const resultsByCluster: RawLocationEffort[][] = [];
   for (const taxaCluster of taxaClusters) {
     if (taxaCluster.locationIDs.length > 0) {
-      const res = await client.post('api/location/get_effort', {
+      const res = await client.post('api/location/pull_effort', {
         locationIDs: taxaCluster.locationIDs,
         comparedTaxa: effortComparedTaxa
       });

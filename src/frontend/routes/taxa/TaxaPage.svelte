@@ -65,7 +65,7 @@
 
     // Load specs for the children of the containing taxa.
 
-    const res = await $client.post('api/taxa/get_children', {
+    const res = await $client.post('api/taxa/pull_children', {
       parentUniques: containingSpecs.map((spec) => spec.unique)
     });
     const ancestorChildSpecs: TaxonSpec[][] = res.data.taxonSpecs;
@@ -80,7 +80,7 @@
   }
 
   async function loadSpec(unique: string): Promise<TaxonSpec> {
-    let res = await $client.post('api/taxa/get_list', {
+    let res = await $client.post('api/taxa/pull_list', {
       taxonUniques: [unique]
     });
     const specs: TaxonSpec[] = res.data.taxonSpecs;

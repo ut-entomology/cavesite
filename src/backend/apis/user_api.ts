@@ -63,7 +63,7 @@ router.post('/drop', async (req: Request<void, any, { userID: number }>, res) =>
   return res.status(StatusCodes.NO_CONTENT).send();
 });
 
-router.post('/get_all', async (_req: Request<void, any, void>, res) => {
+router.post('/pull_all', async (_req: Request<void, any, void>, res) => {
   const users = await User.getUsers(getDB());
   const userData: AdminUserInfo[] = [];
   for (const user of users) {

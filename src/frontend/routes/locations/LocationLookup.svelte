@@ -59,7 +59,7 @@
   async function loadSpecIndicatingChildren(
     locationUnique: string
   ): Promise<LocationSpec | null> {
-    let res = await $client.post('api/location/get_list', {
+    let res = await $client.post('api/location/pull_list', {
       locationUniques: [locationUnique]
     });
     const locationSpecs: LocationSpec[] = res.data.locationSpecs;

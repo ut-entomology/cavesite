@@ -41,7 +41,7 @@
   } | null = null;
 
   async function loadUsers() {
-    const res = await $client.post('/api/user/get_all');
+    const res = await $client.post('/api/user/pull_all');
     for (const userInfo of res.data) {
       userInfo.createdOn = new Date(userInfo.createdOn);
       userInfo.lastLoginDate = userInfo.lastLoginDate
