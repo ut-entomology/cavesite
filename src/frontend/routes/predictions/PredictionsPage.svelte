@@ -17,7 +17,7 @@
     ClusterSummaryStatsGenerator
   } from '../../../frontend-core/clusters/summary_stats';
 
-  const CLUSTER_STORE_VERSION = 5;
+  const CLUSTER_STORE_VERSION = 6;
 
   interface ClusterStore {
     version: number;
@@ -403,7 +403,10 @@
           <div class="col">
             max. recent points: <span>{$clusterStore.config.maxPointsToRegress}</span>
           </div>
-          <div class="col" />
+          <div class="col">
+            <span>{summaryStats.generalCaves.toFixed(1)}</span> caves,
+            <span>{summaryStats.generalTaxa.toFixed(1)}</span> taxa
+          </div>
         </div>
       </div>
 

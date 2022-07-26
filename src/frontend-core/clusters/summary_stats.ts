@@ -8,17 +8,21 @@ export interface ClusterSummaryStats {
   avgTop20PerPersonVisitCaves: number;
   avgTop3NextTaxa: number;
   avgTop6NextTaxa: number;
+  generalCaves: number;
+  generalTaxa: number;
 }
 
 export class ClusterSummaryStatsGenerator {
   dataByCluster: ClusterData[];
-  private _statSums: ClusterSummaryStats = {
+  private _stats: ClusterSummaryStats = {
     avgTop10PerVisitCaves: 0,
     avgTop20PerVisitCaves: 0,
     avgTop10PerPersonVisitCaves: 0,
     avgTop20PerPersonVisitCaves: 0,
     avgTop3NextTaxa: 0,
-    avgTop6NextTaxa: 0
+    avgTop6NextTaxa: 0,
+    generalCaves: 0,
+    generalTaxa: 0
   };
   private _caveSums: ClusterSummaryStats = {
     avgTop10PerVisitCaves: 0,
@@ -26,7 +30,9 @@ export class ClusterSummaryStatsGenerator {
     avgTop10PerPersonVisitCaves: 0,
     avgTop20PerPersonVisitCaves: 0,
     avgTop3NextTaxa: 0,
-    avgTop6NextTaxa: 0
+    avgTop6NextTaxa: 0,
+    generalCaves: 0,
+    generalTaxa: 0
   };
 
   constructor(dataByCluster: ClusterData[]) {
@@ -74,7 +80,33 @@ export class ClusterSummaryStatsGenerator {
     this._averageStat('avgTop3NextTaxa');
     this._averageStat('avgTop6NextTaxa');
 
-    return this._statSums;
+    if (this._stats.avgTop20PerVisitCaves == 0) {
+      this._stats.generalCaves = this._stats.avgTop10PerVisitCaves;
+    } else {
+      this._stats.generalCaves =
+        (this._stats.avgTop10PerVisitCaves + this._stats.avgTop20PerVisitCaves) / 2;
+    }
+    if (this._stats.avgTop20PerPersonVisitCaves == 0) {
+      this._stats.generalCaves = Math.max(
+        this._stats.generalCaves,
+        this._stats.avgTop10PerPersonVisitCaves
+      );
+    } else {
+      this._stats.generalCaves = Math.max(
+        this._stats.generalCaves,
+        (this._stats.avgTop10PerPersonVisitCaves +
+          this._stats.avgTop20PerPersonVisitCaves) /
+          2
+      );
+    }
+    if (this._stats.avgTop6NextTaxa == 0) {
+      this._stats.generalTaxa = this._stats.avgTop3NextTaxa;
+    } else {
+      this._stats.generalTaxa =
+        (this._stats.avgTop3NextTaxa + this._stats.avgTop6NextTaxa) / 2;
+    }
+
+    return this._stats;
   }
 
   private _addStat(
@@ -87,14 +119,14 @@ export class ClusterSummaryStatsGenerator {
     const stat = _getNearestStat(fromTopN, thruTopN, tierStats);
     if (stat !== null) {
       const caveCount = clusterData.locationGraphDataSet.length;
-      this._statSums[topProperty] += stat * caveCount;
+      this._stats[topProperty] += stat * caveCount;
       this._caveSums[topProperty] += caveCount;
     }
   }
 
   private _averageStat(topProperty: keyof ClusterSummaryStats): void {
-    const sum = this._statSums[topProperty];
-    this._statSums[topProperty] = (100 * sum) / this._caveSums[topProperty];
+    const sum = this._stats[topProperty];
+    this._stats[topProperty] = (100 * sum) / this._caveSums[topProperty];
   }
 }
 
