@@ -277,7 +277,11 @@
       instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters for new queries."
     >
       <span slot="main-buttons">
-        <button class="btn btn-minor" type="button" on:click={clearQuery}>Clear</button>
+        {#if $cachedResults}
+          <button class="btn btn-minor" type="button" on:click={clearQuery}
+            >Clear</button
+          >
+        {/if}
         <button class="btn btn-major" type="button" on:click={createNewQuery}
           >{QUERY_BUTTON_LABEL}</button
         >
