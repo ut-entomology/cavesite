@@ -135,6 +135,7 @@ describe('basic specimen methods', () => {
         familyID: 5,
         genusName: 'Argiope',
         genusID: 6,
+        subgenus: null,
         speciesName: 'aurantia',
         speciesID: 7,
         subspeciesName: null,
@@ -220,6 +221,7 @@ describe('basic specimen methods', () => {
         familyID: 8,
         genusName: null,
         genusID: null,
+        subgenus: null,
         speciesName: null,
         speciesID: null,
         subspeciesName: null,
@@ -360,8 +362,9 @@ describe('basic specimen methods', () => {
       orderID: 4,
       familyName: 'Araneidae',
       familyID: 5,
-      genusName: 'Argiope (Subby)',
+      genusName: 'Argiope',
       genusID: 6,
+      subgenus: 'Subby',
       speciesName: 'aurantia',
       speciesID: 7,
       subspeciesName: null,
@@ -378,7 +381,7 @@ describe('basic specimen methods', () => {
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
     expect((await Taxon.getByID(db, 5))?.taxonName).toEqual('Araneidae');
-    expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Argiope (Subby)');
+    expect((await Taxon.getByID(db, 6))?.taxonName).toEqual('Argiope');
     expect((await Taxon.getByID(db, 7))?.taxonName).toEqual('aurantia');
     expect((await _getLocationByID(db, 1))?.locationName).toEqual('North America');
     expect((await _getLocationByID(db, 3))?.locationName).toEqual('Texas');
@@ -436,6 +439,7 @@ describe('basic specimen methods', () => {
       familyID: 5,
       genusName: 'Argiope',
       genusID: 6,
+      subgenus: null,
       speciesName: null,
       speciesID: null,
       subspeciesName: null,
@@ -502,6 +506,7 @@ describe('basic specimen methods', () => {
       familyID: 5,
       genusName: 'Texoreddellia',
       genusID: 6,
+      subgenus: null,
       speciesName: 'aquilonalis',
       speciesID: 7,
       subspeciesName: null,

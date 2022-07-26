@@ -72,9 +72,9 @@ create table taxa (
     -- GBIF taxonRank, locally translated
     taxon_rank text not null,
     -- GBIF kingdom/phylum/class/order/family/genus/specificEpithet/infraspecificEpithet
-    taxon_name text not null, -- genus name optionally includes parenthesized subgenus
+    taxon_name text not null,
     -- Minimal unique scientific name sans author
-    unique_name text not null, -- genus unique includes subgenus; species uniques do not
+    unique_name text not null,
     -- extracted from GBIF scientificName
     author text,
     obligate text, -- 'cave', else null if not specified
@@ -85,7 +85,7 @@ create table taxa (
     -- comma-delimited series of taxon IDs, kingdom-to-parent
     parent_id_path text not null,
     -- |-delimited series of taxon names for containing taxa
-    parent_name_path text not null -- genus segment includes subgenus when provided
+    parent_name_path text not null
 );
 create index on taxa(taxon_name);
 create index on taxa(unique_name);
@@ -173,13 +173,14 @@ create table specimens (
     order_id integer references taxa,
     family_name text,
     family_id integer references taxa,
-    genus_name text, -- includes subgenus when provided
+    genus_name text,
     genus_id integer references taxa,
+    subgenus text, -- no associated ID, not in taxa table
     species_name text,
     species_id integer references taxa,
     subspecies_name text,
     subspecies_id integer references taxa,
-    taxon_unique text not null, -- only genus uniques include the subgenus
+    taxon_unique text not null,
     taxon_author text, -- author of taxon_unique
     obligate text, -- 'cave', else null if not specified
 

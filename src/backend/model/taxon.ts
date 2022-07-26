@@ -24,7 +24,6 @@ export interface TaxonSource {
   order?: string;
   family?: string;
   genus?: string;
-  subgenus?: string;
   specificEpithet?: string;
   infraspecificEpithet?: string;
   scientificName: string;
@@ -319,10 +318,7 @@ export class Taxon {
       if (!source.family) throw new ImportFailure('Genus given without family');
       taxonRank = TaxonRank.Genus;
       let genus = source.genus;
-      if (source.subgenus) genus = `${genus} (${source.subgenus})`;
       taxonNames.push(genus);
-    } else if (source.subgenus) {
-      throw new ImportFailure('Subgenus given without genus');
     }
     if (source.specificEpithet) {
       if (!source.genus)

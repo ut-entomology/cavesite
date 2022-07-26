@@ -141,20 +141,16 @@ export class LocationVisit extends TaxonCounter {
           !(
             (speciesName && caveObligatesMap[speciesName]) ||
             (subspeciesName && caveObligatesMap[subspeciesName]) ||
-            (specimen.genusName && caveObligatesMap[specimen.genusName])
+            (specimen.genusName && caveObligatesMap[specimen.genusName]) ||
+            (specimen.subgenus && caveObligatesMap[specimen.subgenus])
           )
         ) {
           return; // exclude non-cave obligates
         }
         break;
       case ComparedTaxa.generaHavingCaveObligates:
-        const genusSansSubgenus = specimen.genusName
-          ? specimen.genusName.includes('(')
-            ? specimen.genusName.substring(0, specimen.genusName.indexOf('(')).trimEnd()
-            : specimen.genusName
-          : null;
         const caveContainingGeneraMap = getCaveContainingGeneraMap();
-        if (!genusSansSubgenus || !caveContainingGeneraMap[genusSansSubgenus]) {
+        if (!specimen.genusName || !caveContainingGeneraMap[specimen.genusName]) {
           return; // exclude genera that don't contain cave obligates
         }
         break;

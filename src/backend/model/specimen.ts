@@ -11,6 +11,7 @@ import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
 import { type TaxonPathSpec, locationRanks } from '../../shared/model';
+import { getCaveObligatesMap } from '../effort/cave_obligates';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -103,6 +104,7 @@ export class Specimen implements TaxonPathSpec {
   familyID: number | null;
   genusName: string | null;
   genusID: number | null;
+  subgenus: string | null;
   speciesName: string | null;
   speciesID: number | null;
   subspeciesName: string | null;
@@ -153,6 +155,7 @@ export class Specimen implements TaxonPathSpec {
     this.familyID = data.familyID;
     this.genusName = data.genusName;
     this.genusID = data.genusID;
+    this.subgenus = data.subgenus;
     this.speciesName = data.speciesName;
     this.speciesID = data.speciesID;
     this.subspeciesName = data.subspeciesName;
@@ -181,6 +184,7 @@ export class Specimen implements TaxonPathSpec {
     let taxon: Taxon;
     let taxonNames: string[] = [];
     let taxonIDs: string[] = [];
+    let subgenus = null;
     let location: Location;
     let locationNames: (string | null)[];
     let locationIDs: (string | null)[];
@@ -213,9 +217,7 @@ export class Specimen implements TaxonPathSpec {
         // Extract subgenus.
 
         const match = detRemarks.match(SUBGENUS_REGEX);
-        if (match) {
-          taxonSource.subgenus = match[1];
-        }
+        if (match) subgenus = match[1];
 
         // Extract additional determiners, since Specify only allowed uploading one.
 
@@ -409,6 +411,12 @@ export class Specimen implements TaxonPathSpec {
         .join('|');
     }
 
+    // Determine whether is cave obligate. `taxon` will never represent a
+    // subgenus, so check for that directly.
+
+    let obligate = taxon.obligate;
+    if (subgenus && getCaveObligatesMap()[subgenus]) obligate = 'cave';
+
     // Assemble the specimen instance from the data.
 
     specimen = new Specimen({
@@ -443,13 +451,14 @@ export class Specimen implements TaxonPathSpec {
       familyID: getRankedID(taxonIDs, 4, taxon.taxonID),
       genusName: getRankedName(taxonNames, 5, taxon.taxonName),
       genusID: getRankedID(taxonIDs, 5, taxon.taxonID),
+      subgenus,
       speciesName: getRankedName(taxonNames, 6, taxon.taxonName),
       speciesID: getRankedID(taxonIDs, 6, taxon.taxonID),
       subspeciesName: getRankedName(taxonNames, 7, taxon.taxonName),
       subspeciesID: getRankedID(taxonIDs, 7, taxon.taxonID),
       taxonUnique: taxon.uniqueName,
       taxonAuthor: taxon.author,
-      obligate: taxon.obligate,
+      obligate,
       countyName: getRankedName(locationNames, 3, location.locationName),
       countyID: getRankedID(locationIDs, 3, location.locationID),
       localityName: location.locationName,
@@ -467,12 +476,12 @@ export class Specimen implements TaxonPathSpec {
           collection_remarks, occurrence_remarks, determination_remarks,
           type_status, specimen_count, life_stage, problems, kingdom_name, kingdom_id,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
-          family_name, family_id, genus_name, genus_id, species_name, species_id,
+          family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author, obligate,
           county_name, county_id, locality_name, public_latitude, public_longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
           $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-          $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43)`,
+          $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -505,6 +514,7 @@ export class Specimen implements TaxonPathSpec {
         specimen.familyID,
         specimen.genusName,
         specimen.genusID,
+        subgenus,
         specimen.speciesName,
         specimen.speciesID,
         specimen.subspeciesName,

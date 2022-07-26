@@ -22,6 +22,7 @@ export enum QueryColumnID {
   Order,
   Family,
   Genus,
+  Subgenus,
   Species,
   Subspecies,
   Obligate,
@@ -124,6 +125,8 @@ export interface QueryRow {
 
   genusName?: string | null;
   genusID?: number | null;
+
+  subgenus?: string | null;
 
   speciesName?: string | null;
   speciesID?: number | null;
@@ -437,7 +440,7 @@ setColumnInfo({
   columnID: QueryColumnID.Genus,
   fullName: 'Genus',
   abbrName: null,
-  description: 'Genus determined for the specimen (with subgenus in parentheses)',
+  description: 'Genus determined for the specimen',
   defaultSelection: false,
   column1: 'genus_name',
   column2: 'genus_id',
@@ -445,6 +448,18 @@ setColumnInfo({
   defaultEmWidth: 10,
   columnClass: null,
   getValue: (row: QueryRow) => _toItalic(row.genusName)
+});
+setColumnInfo({
+  columnID: QueryColumnID.Subgenus,
+  fullName: 'Subgenus',
+  abbrName: null,
+  description: 'Subgenus determined for the specimen, if any',
+  defaultSelection: false,
+  column1: 'subgenus',
+  options: nullableOptions,
+  defaultEmWidth: 10,
+  columnClass: null,
+  getValue: (row: QueryRow) => row.subgenus || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Species,

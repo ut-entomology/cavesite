@@ -1,14 +1,18 @@
 export type TaxonPathsByUniqueMap = Record<string, string[]>;
 
 const caveObligateTaxa = [
-  // Genera that are entirely cave obligate (possibly restricted to subgenus).
+  // Genera that are entirely cave obligate.
 
   'Brackenridgia',
-  'Cicurina (Cicurella)',
   'Speodesmus',
   'Speorthus',
   'Texamaurops',
   'Texoreddellia',
+
+  // Subenera that are entirely cave obligate. Must also list species within
+  // the subgenus that are cave obligate.
+
+  'Cicurella',
 
   // Species that are cave obligate not necessarily in cave-obligate genera.
 
@@ -314,6 +318,7 @@ export function getCaveContainingGeneraMap(): Record<string, boolean> {
     if (spaceOffset > 0) {
       genus = genus.substring(0, spaceOffset);
     }
+    // Also includes subgenera.
     caveContainingGeneraMap[genus] = true;
   }
   return caveContainingGeneraMap;

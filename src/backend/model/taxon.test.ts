@@ -502,7 +502,6 @@ test('taxa with subgenera', async () => {
     order: 'Araneae',
     family: 'Thomisidae',
     genus: 'Mecaphesa',
-    subgenus: 'Madeup',
     specificEpithet: 'dubia',
     infraspecificEpithet: 'notreal',
     scientificName: 'Mecaphesa dubia notreal (Keyserling, 1880)'
@@ -535,8 +534,8 @@ test('taxa with subgenera', async () => {
   expect(await Taxon.getByID(db, 6)).toEqual({
     taxonID: 6,
     taxonRank: TaxonRank.Genus,
-    taxonName: 'Mecaphesa (Madeup)',
-    uniqueName: 'Mecaphesa (Madeup)',
+    taxonName: 'Mecaphesa',
+    uniqueName: 'Mecaphesa',
     author: null,
     obligate: null,
     parentID: 5,
@@ -553,8 +552,7 @@ test('taxa with subgenera', async () => {
     obligate: null,
     parentID: 6,
     parentIDPath: '1,2,3,4,5,6',
-    parentNamePath:
-      'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa (Madeup)',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa',
     hasChildren: null
   });
   const readTaxon = await Taxon.getByID(db, 8);
@@ -567,14 +565,13 @@ test('taxa with subgenera', async () => {
     obligate: null,
     parentID: 7,
     parentIDPath: '1,2,3,4,5,6,7',
-    parentNamePath:
-      'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa (Madeup)|dubia',
+    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Thomisidae|Mecaphesa|dubia',
     hasChildren: null
   });
   expect(createdTaxon).toEqual(readTaxon);
 });
 
-test('create a cave-obligate genus and species, no subgenus', async () => {
+test('create a cave-obligate genus and species', async () => {
   await Taxon.dropAll(db);
 
   let createdTaxon = await Taxon.getOrCreate(db, {
@@ -648,73 +645,6 @@ test('create a cave-obligate genus and species, no subgenus', async () => {
     parentID: 12,
     parentIDPath: '7,8,9,10,11,12',
     parentNamePath: 'Animalia|Arthropoda|Insecta|Zygentoma|Nicoletiidae|Texoreddellia',
-    hasChildren: null
-  });
-  expect(createdTaxon).toEqual(readTaxon);
-});
-
-test('create a species in a cave-obligate genus with subgenus', async () => {
-  await Taxon.dropAll(db);
-  let createdTaxon = await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Arachnida',
-    order: 'Araneae',
-    family: 'Hahniidae',
-    genus: 'Cicurina',
-    subgenus: 'Cicurella',
-    specificEpithet: 'bandera',
-    scientificName: 'Cicurina bandera Gertsch'
-  });
-  await Taxon.commit(db);
-  expect(await Taxon.getByID(db, 4)).toEqual({
-    taxonID: 4,
-    taxonRank: TaxonRank.Order,
-    taxonName: 'Araneae',
-    uniqueName: 'Araneae',
-    author: null,
-    obligate: null,
-    parentID: 3,
-    parentIDPath: '1,2,3',
-    parentNamePath: 'Animalia|Arthropoda|Arachnida',
-    hasChildren: null
-  });
-  expect(await Taxon.getByID(db, 5)).toEqual({
-    taxonID: 5,
-    taxonRank: TaxonRank.Family,
-    taxonName: 'Hahniidae',
-    uniqueName: 'Hahniidae',
-    author: null,
-    obligate: null,
-    parentID: 4,
-    parentIDPath: '1,2,3,4',
-    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae',
-    hasChildren: null
-  });
-  expect(await Taxon.getByID(db, 6)).toEqual({
-    taxonID: 6,
-    taxonRank: TaxonRank.Genus,
-    taxonName: 'Cicurina (Cicurella)',
-    uniqueName: 'Cicurina (Cicurella)',
-    author: null,
-    obligate: 'cave',
-    parentID: 5,
-    parentIDPath: '1,2,3,4,5',
-    parentNamePath: 'Animalia|Arthropoda|Arachnida|Araneae|Hahniidae',
-    hasChildren: null
-  });
-  let readTaxon = await Taxon.getByID(db, 7);
-  expect(readTaxon).toEqual({
-    taxonID: 7,
-    taxonRank: TaxonRank.Species,
-    taxonName: 'bandera',
-    uniqueName: 'Cicurina bandera',
-    author: 'Gertsch',
-    obligate: 'cave',
-    parentID: 6,
-    parentIDPath: '1,2,3,4,5,6',
-    parentNamePath:
-      'Animalia|Arthropoda|Arachnida|Araneae|Hahniidae|Cicurina (Cicurella)',
     hasChildren: null
   });
   expect(createdTaxon).toEqual(readTaxon);
