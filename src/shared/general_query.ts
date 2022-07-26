@@ -146,8 +146,8 @@ export interface QueryRow {
   localityName?: string | null;
   localityID?: number | null;
 
-  publicLatitude?: number | null;
-  publicLongitude?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface QueryOption {
@@ -552,12 +552,12 @@ setColumnInfo({
   abbrName: null,
   description: 'Latitude of cave at which specimen was found',
   defaultSelection: false,
-  column1: 'public_latitude',
+  column1: 'latitude',
   asName: 'latitude',
   options: nullableOptions,
   defaultEmWidth: 6,
   columnClass: null,
-  getValue: (row: QueryRow) => getNumber(row.publicLatitude)
+  getValue: (row: QueryRow) => getNumber(row.latitude)
 });
 setColumnInfo({
   columnID: QueryColumnID.Longitude,
@@ -565,12 +565,12 @@ setColumnInfo({
   abbrName: null,
   description: 'Longitude of cave at which specimen was found',
   defaultSelection: false,
-  column1: 'public_longitude',
+  column1: 'longitude',
   asName: 'longitude',
   options: nullableOptions,
   defaultEmWidth: 6,
   columnClass: null,
-  getValue: (row: QueryRow) => getNumber(row.publicLongitude)
+  getValue: (row: QueryRow) => getNumber(row.longitude)
 });
 
 function _toItalic(name?: string | null) {

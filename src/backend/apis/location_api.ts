@@ -86,8 +86,8 @@ export function toLocationSpec(location: Location): LocationSpec {
     rank: location.locationRank,
     name: location.locationName,
     unique: location.locationUnique,
-    publicLatitude: location.publicLatitude,
-    publicLongitude: location.publicLongitude,
+    latitude: location.latitude,
+    longitude: location.longitude,
     parentNamePath: location.parentNamePath,
     hasChildren: location.hasChildren
   };

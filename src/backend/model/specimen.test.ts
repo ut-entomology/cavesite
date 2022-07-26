@@ -146,8 +146,8 @@ describe('basic specimen methods', () => {
         countyName: 'Travis County',
         countyID: 4,
         localityName: 'My backyard',
-        publicLatitude: 23.45,
-        publicLongitude: -93.21
+        latitude: 23.45,
+        longitude: -93.21
       });
       expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
       expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -232,8 +232,8 @@ describe('basic specimen methods', () => {
         countyName: null,
         countyID: null,
         localityName: 'Their backyard',
-        publicLatitude: null,
-        publicLongitude: null
+        latitude: null,
+        longitude: null
       });
       expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
       expect((await _getLocationByID(db, 6))?.locationName).toEqual('Their backyard');
@@ -375,8 +375,8 @@ describe('basic specimen methods', () => {
       countyName: 'Travis County',
       countyID: 4,
       localityName: 'My backyard',
-      publicLatitude: 23.45,
-      publicLongitude: -93.21
+      latitude: 23.45,
+      longitude: -93.21
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -450,8 +450,8 @@ describe('basic specimen methods', () => {
       countyName: 'Travis County',
       countyID: 4,
       localityName: 'My backyard',
-      publicLatitude: 23.45,
-      publicLongitude: -93.21
+      latitude: 23.45,
+      longitude: -93.21
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -517,8 +517,8 @@ describe('basic specimen methods', () => {
       countyName: 'Travis County',
       countyID: 4,
       localityName: 'My backyard',
-      publicLatitude: 23.45,
-      publicLongitude: -93.21
+      latitude: 23.45,
+      longitude: -93.21
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -1029,12 +1029,12 @@ describe('general specimen query', () => {
       {
         collectionStartDate: startDate1,
         partialStartDate: null,
-        latitude: specimen1!.publicLatitude
+        latitude: specimen1!.latitude
       },
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        latitude: specimen2!.publicLatitude
+        latitude: specimen2!.latitude
       }
     ]);
 
@@ -1046,12 +1046,12 @@ describe('general specimen query', () => {
       {
         collectionStartDate: startDate1,
         partialStartDate: null,
-        longitude: specimen1!.publicLongitude
+        longitude: specimen1!.longitude
       },
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        longitude: specimen2!.publicLongitude
+        longitude: specimen2!.longitude
       }
     ]);
   });
@@ -1155,8 +1155,8 @@ describe('general specimen query', () => {
       db, [_toColumnSpec(QueryColumnID.Latitude, false)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { latitude: specimen2!.publicLatitude },
-      { latitude: specimen1!.publicLatitude }
+      { latitude: specimen2!.latitude },
+      { latitude: specimen1!.latitude }
     ]);
 
     // prettier-ignore
@@ -1164,8 +1164,8 @@ describe('general specimen query', () => {
       db, [_toColumnSpec(QueryColumnID.Longitude, true)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { longitude: specimen1!.publicLongitude },
-      { longitude: specimen2!.publicLongitude }
+      { longitude: specimen1!.longitude },
+      { longitude: specimen2!.longitude }
     ]);
   });
 

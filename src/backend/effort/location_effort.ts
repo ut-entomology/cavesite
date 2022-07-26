@@ -279,8 +279,8 @@ export class LocationEffort {
                 countyName,
                 localityName: location.locationName,
                 isCave: firstVisitOfLocation!.isCave,
-                latitude: location.publicLatitude,
-                longitude: location.publicLongitude
+                latitude: location.latitude,
+                longitude: location.longitude
               },
               {
                 flags: effortFlags!,
@@ -366,8 +366,8 @@ export class LocationEffort {
           countyName,
           localityName: location.locationName,
           isCave: firstVisitOfLocation!.isCave,
-          latitude: location.publicLatitude,
-          longitude: location.publicLongitude
+          latitude: location.latitude,
+          longitude: location.longitude
         },
         {
           flags: effortFlags!,

@@ -140,8 +140,8 @@ export interface LocationSpec extends ModelSpec {
   rank: LocationRank;
   name: string;
   unique: string;
-  publicLatitude: number | null;
-  publicLongitude: number | null;
+  latitude: number | null;
+  longitude: number | null;
   parentNamePath: string;
   hasChildren: boolean | null;
 }
@@ -161,8 +161,8 @@ export function createContainingLocationSpecs(fromSpec: LocationSpec): LocationS
       rank: locationRanks[i],
       name: containingName,
       unique: toLocationUnique(parentNamePath, containingName),
-      publicLatitude: null,
-      publicLongitude: null,
+      latitude: null,
+      longitude: null,
       parentNamePath,
       hasChildren: true
     });

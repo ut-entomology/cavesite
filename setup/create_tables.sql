@@ -103,9 +103,9 @@ create table locations (
     -- GUID not used because it is specific to Specify installation and very long
     location_unique text not null,
     -- GBIF decimalLongitude
-    public_latitude float8,
+    latitude float8,
     -- GBIF decimalLatitude
-    public_longitude float8,
+    longitude float8,
     parent_id integer references locations, -- locally generated
 
     -- these allow for fast non-recursive location queries/autocompletion:
@@ -188,8 +188,8 @@ create table specimens (
     county_name text,
     county_id integer references locations,
     locality_name text not null,
-    public_latitude float8,
-    public_longitude float8
+    latitude float8,
+    longitude float8
 );
 create index on specimens(catalog_number);
 create index on specimens(collection_start_date);
@@ -222,8 +222,8 @@ create index on specimens(subspecies_id);
 create index on specimens(county_name);
 create index on specimens(county_id);
 create index on specimens(locality_name);
-create index on specimens(public_latitude);
-create index on specimens(public_longitude);
+create index on specimens(latitude);
+create index on specimens(longitude);
 
 create table key_data (
     user_id integer references users,

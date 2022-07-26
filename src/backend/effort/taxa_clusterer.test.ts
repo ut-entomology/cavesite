@@ -394,8 +394,8 @@ async function _createLocation(locationID: number) {
   const sourceLocation = {
     locationRank: LocationRank.Continent,
     locationName: 'Continent ' + locationID,
-    publicLatitude: null,
-    publicLongitude: null,
+    latitude: null,
+    longitude: null,
     parentID: null,
     hasChildren: null
   };

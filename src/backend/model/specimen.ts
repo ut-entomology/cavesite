@@ -118,8 +118,8 @@ export class Specimen implements TaxonPathSpec {
   countyName: string | null;
   countyID: number | null;
   localityName: string;
-  publicLatitude: number | null;
-  publicLongitude: number | null;
+  latitude: number | null;
+  longitude: number | null;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -166,8 +166,8 @@ export class Specimen implements TaxonPathSpec {
     this.countyName = data.countyName;
     this.countyID = data.countyID;
     this.localityName = data.localityName;
-    this.publicLatitude = data.publicLatitude;
-    this.publicLongitude = data.publicLongitude;
+    this.latitude = data.latitude;
+    this.longitude = data.longitude;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -462,8 +462,8 @@ export class Specimen implements TaxonPathSpec {
       countyName: getRankedName(locationNames, 3, location.locationName),
       countyID: getRankedID(locationIDs, 3, location.locationID),
       localityName: location.locationName,
-      publicLatitude: location.publicLatitude,
-      publicLongitude: location.publicLongitude
+      latitude: location.latitude,
+      longitude: location.longitude
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -478,7 +478,7 @@ export class Specimen implements TaxonPathSpec {
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author, obligate,
-          county_name, county_id, locality_name, public_latitude, public_longitude
+          county_name, county_id, locality_name, latitude, longitude
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
           $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
           $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44)`,
@@ -525,8 +525,8 @@ export class Specimen implements TaxonPathSpec {
         specimen.countyName,
         specimen.countyID,
         specimen.localityName,
-        specimen.publicLatitude,
-        specimen.publicLongitude
+        specimen.latitude,
+        specimen.longitude
       ]
     );
 

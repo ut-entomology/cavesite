@@ -38,8 +38,8 @@ export class Location {
   locationRank: LocationRank;
   locationName: string;
   locationUnique: string;
-  publicLatitude: number | null;
-  publicLongitude: number | null;
+  latitude: number | null;
+  longitude: number | null;
   parentID: number | null;
   parentIDPath: string;
   parentNamePath: string;
@@ -52,8 +52,8 @@ export class Location {
     this.locationRank = data.locationRank;
     this.locationName = data.locationName;
     this.locationUnique = data.locationUnique;
-    this.publicLatitude = data.publicLatitude;
-    this.publicLongitude = data.publicLongitude;
+    this.latitude = data.latitude;
+    this.longitude = data.longitude;
     this.parentID = data.parentID;
     this.parentIDPath = data.parentIDPath;
     this.parentNamePath = data.parentNamePath;
@@ -67,7 +67,7 @@ export class Location {
       const result = await db.query(
         `insert into locations(
 						location_rank, location_name, location_unique,
-            public_latitude, public_longitude,
+            latitude, longitude,
 						parent_id, parent_id_path, parent_name_path
 					) values ($1, $2, $3, $4, $5, $6, $7, $8)
 					returning location_id`,
@@ -75,8 +75,8 @@ export class Location {
           this.locationRank,
           this.locationName,
           this.locationUnique,
-          this.publicLatitude,
-          this.publicLongitude,
+          this.latitude,
+          this.longitude,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath
@@ -87,15 +87,15 @@ export class Location {
       const result = await db.query(
         `update locations set 
 						location_rank=$1, location_name=$2, location_unique=$3,
-            public_latitude=$4, public_longitude=$5,
+            latitude=$4, longitude=$5,
 						parent_id=$6, parent_id_path=$7, parent_name_path=$8
 					where location_id=$9`,
         [
           this.locationRank,
           this.locationName,
           this.locationUnique,
-          this.publicLatitude,
-          this.publicLongitude,
+          this.latitude,
+          this.longitude,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath,
@@ -230,8 +230,8 @@ export class Location {
       rank: LocationRank.Locality,
       name: locationName,
       unique: toLocationUnique(parentNamePath, locationName),
-      publicLatitude: latitude,
-      publicLongitude: longitude,
+      latitude: latitude,
+      longitude: longitude,
       parentNamePath,
       hasChildren: null
     };
@@ -277,8 +277,8 @@ export class Location {
       location = await Location.create(db, spec.parentNamePath, parentIDPath, {
         locationRank: spec.rank,
         locationName: spec.name,
-        publicLatitude: spec.publicLatitude,
-        publicLongitude: spec.publicLongitude,
+        latitude: spec.latitude,
+        longitude: spec.longitude,
         parentID: location?.locationID || null,
         hasChildren: spec.hasChildren || null
       });

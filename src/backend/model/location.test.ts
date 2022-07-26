@@ -21,8 +21,8 @@ describe('without location location uniques', () => {
       const sourceLocation = {
         locationRank: LocationRank.Continent,
         locationName: 'North America',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: null,
         hasChildren: null
       };
@@ -47,8 +47,8 @@ describe('without location location uniques', () => {
       const sourceLocation = {
         locationRank: LocationRank.Country,
         locationName: 'United States',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 1,
         hasChildren: null
       };
@@ -86,8 +86,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Someplace in U.S.',
         locationUnique: 'north america|united states|someplace in us',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -123,8 +123,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.StateProvince,
         locationName: 'Texas',
         locationUnique: 'north america|united states|texas',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -136,8 +136,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Someplace in Texas',
         locationUnique: 'united states|texas|someplace in texas',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -163,8 +163,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.County,
         locationName: 'Travis County',
         locationUnique: 'united states|texas|travis county',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -176,8 +176,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Missing Cave',
         locationUnique: 'texas|travis county|missing cave',
-        publicLatitude: 28.12,
-        publicLongitude: -97.34,
+        latitude: 28.12,
+        longitude: -97.34,
         parentID: 6,
         parentIDPath: '1,2,4,6',
         parentNamePath: 'North America|United States|Texas|Travis County',
@@ -203,8 +203,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.Country,
         locationName: 'Mexico',
         locationUnique: 'north america|mexico',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 1,
         parentIDPath: '1',
         parentNamePath: 'North America',
@@ -215,8 +215,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.StateProvince,
         locationName: 'Chihuahua',
         locationUnique: 'north america|mexico|chihuahua',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 8,
         parentIDPath: '1,8',
         parentNamePath: 'North America|Mexico',
@@ -227,8 +227,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.County,
         locationName: 'Mun. Xyz',
         locationUnique: 'mexico|chihuahua|mun xyz',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 9,
         parentIDPath: '1,8,9',
         parentNamePath: 'North America|Mexico|Chihuahua',
@@ -240,8 +240,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Invisible Spring',
         locationUnique: 'chihuahua|mun xyz|invisible spring',
-        publicLatitude: 21.12,
-        publicLongitude: -96.34,
+        latitude: 21.12,
+        longitude: -96.34,
         parentID: 10,
         parentIDPath: '1,8,9,10',
         parentNamePath: 'North America|Mexico|Chihuahua|Mun. Xyz',
@@ -274,8 +274,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.County,
         locationName: 'Bastrop County',
         locationUnique: 'united states|texas|bastrop county',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -287,8 +287,8 @@ describe('without location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Fire Cave',
         locationUnique: 'texas|bastrop county|fire cave',
-        publicLatitude: 28.5,
-        publicLongitude: -97.5,
+        latitude: 28.5,
+        longitude: -97.5,
         parentID: 12,
         parentIDPath: '1,2,4,12',
         parentNamePath: 'North America|United States|Texas|Bastrop County',
@@ -302,8 +302,8 @@ describe('without location location uniques', () => {
     {
       const expectedLocation = await _getByID(db, 4);
       expect(expectedLocation?.locationName).toEqual('Texas');
-      expectedLocation!.publicLatitude = 23.5;
-      expectedLocation!.publicLongitude = -97.5;
+      expectedLocation!.latitude = 23.5;
+      expectedLocation!.longitude = -97.5;
       await expectedLocation!.save(db);
       const readLocation = await _getByID(db, 4);
       expect(readLocation).toEqual(expectedLocation);
@@ -441,7 +441,7 @@ describe('without location location uniques', () => {
       });
       let matches = await Location.matchName(db, 'Missing Cave', 10);
       expect(matches.length).toEqual(1);
-      expect(matches[0].publicLatitude).not.toEqual(30);
+      expect(matches[0].latitude).not.toEqual(30);
 
       await Location.getOrCreate(db, {
         continent: 'North America',
@@ -457,7 +457,7 @@ describe('without location location uniques', () => {
 
       matches = await Location.matchName(db, 'Missing Cave', 10);
       expect(matches.length).toEqual(1);
-      expect(matches[0].publicLatitude).toEqual(30);
+      expect(matches[0].latitude).toEqual(30);
       matches = await Location.matchName(db, 'Piney Cave', 10);
       expect(matches.length).toEqual(1);
       matches = await Location.matchName(db, 'Mexico', 10);
@@ -488,8 +488,8 @@ describe('with location location uniques', () => {
         locationRank: LocationRank.Continent,
         locationName: 'North America',
         locationUnique: 'north america',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: null,
         hasChildren: null
       };
@@ -516,8 +516,8 @@ describe('with location location uniques', () => {
         locationRank: LocationRank.Country,
         locationName: 'United States',
         locationUnique: 'north america|united states',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 1,
         hasChildren: null
       };
@@ -556,8 +556,8 @@ describe('with location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Someplace in U.S.',
         locationUnique: 'north america|united states|someplace in us',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -597,8 +597,8 @@ describe('with location location uniques', () => {
         locationRank: LocationRank.StateProvince,
         locationName: 'Texas',
         locationUnique: 'north america|united states|texas',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -610,8 +610,8 @@ describe('with location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Someplace in Texas',
         locationUnique: 'united states|texas|someplace in texas',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -641,8 +641,8 @@ describe('with location location uniques', () => {
         locationRank: LocationRank.Locality,
         locationName: 'Another Place in Texas',
         locationUnique: 'united states|texas|another place in texas',
-        publicLatitude: null,
-        publicLongitude: null,
+        latitude: null,
+        longitude: null,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
