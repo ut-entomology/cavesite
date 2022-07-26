@@ -66,9 +66,13 @@ export class TaxonCounter {
 
   static createFromPathSpec(
     pathSpec: TaxonPathSpec,
+    subgenus: string | null,
     speciesName: string | null,
     subspeciesName: string | null
   ): TaxonCounter {
+    let genusSubgenus = pathSpec.genusName;
+    if (subgenus) genusSubgenus = `${genusSubgenus} (${subgenus})`;
+
     return new TaxonCounter({
       kingdomNames: pathSpec.kingdomName,
       kingdomCounts: _toInitialCount(pathSpec.kingdomName, pathSpec.phylumName)!,
@@ -79,9 +83,9 @@ export class TaxonCounter {
       orderNames: pathSpec.orderName,
       orderCounts: _toInitialCount(pathSpec.orderName, pathSpec.familyName),
       familyNames: pathSpec.familyName,
-      familyCounts: _toInitialCount(pathSpec.familyName, pathSpec.genusName),
-      genusNames: pathSpec.genusName,
-      genusCounts: _toInitialCount(pathSpec.genusName, pathSpec.speciesName),
+      familyCounts: _toInitialCount(pathSpec.familyName, genusSubgenus),
+      genusNames: genusSubgenus,
+      genusCounts: _toInitialCount(genusSubgenus, pathSpec.speciesName),
       speciesNames: speciesName,
       speciesCounts: _toInitialCount(pathSpec.speciesName, pathSpec.subspeciesName),
       subspeciesNames: subspeciesName,

@@ -50,35 +50,44 @@
     // Identify the taxon uniques for which we lack information and
     // load the taxon specs for just these taxa.
 
-    const neededUniques: string[] = [];
-    const uniqueToItemMap: Record<string, TaxonItem> = {};
+    const lookupUniques: string[] = [];
+    const lookupUniqueToSpecMap: Record<string, TaxonSpec> = {};
     for (const item of subset) {
       if (item.rank === undefined) {
-        neededUniques.push(item.unique);
-        uniqueToItemMap[item.unique] = item;
+        lookupUniques.push(_getLookupUnique(item.unique));
       }
     }
     const res = await $client.post('api/taxa/pull_list', {
-      taxonUniques: neededUniques
+      taxonUniques: lookupUniques
     });
     const specs: TaxonSpec[] = res.data.taxonSpecs;
+    for (const spec of specs) {
+      lookupUniqueToSpecMap[spec.unique] = spec;
+    }
 
     // Populate the deficient items with the loaded taxon specs.
 
-    for (const spec of specs) {
-      const item = uniqueToItemMap[spec.unique];
-      item.rank = spec.rank;
-      if (!kingdomPhylumClass.includes(item.rank)) {
-        item.path = spec.parentNamePath
-          .split('|')
-          .slice(TaxonRankIndex.Class, TaxonRankIndex.Genus)
-          .join(' ');
+    for (const item of subset) {
+      if (item.rank === undefined) {
+        const spec = lookupUniqueToSpecMap[_getLookupUnique(item.unique)];
+        item.rank = spec.rank;
+        if (!kingdomPhylumClass.includes(item.rank)) {
+          item.path = spec.parentNamePath
+            .split('|')
+            .slice(TaxonRankIndex.Class, TaxonRankIndex.Genus)
+            .join(' ');
+        }
       }
     }
   }
 
   function getItemPercent(item: TaxonItem): number {
     return (100 * item.visits) / totalVisits;
+  }
+
+  function _getLookupUnique(unique: string): string {
+    const parenOffset = unique.indexOf('(');
+    return parenOffset < 0 ? unique : unique.substring(0, parenOffset - 1);
   }
 </script>
 

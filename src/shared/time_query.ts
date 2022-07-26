@@ -492,7 +492,12 @@ export class TimeChartTallier {
       let counter = counters[timeCode];
       if (!counter) {
         if (pathSpec !== null) {
-          counter = TaxonCounter.createFromPathSpec(pathSpec, species, subspecies);
+          counter = TaxonCounter.createFromPathSpec(
+            pathSpec,
+            null,
+            species,
+            subspecies
+          );
           counters[timeCode] = counter;
         } else {
           counters[timeCode] = null; // reserve column for time code in chart

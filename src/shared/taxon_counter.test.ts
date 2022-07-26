@@ -3,7 +3,12 @@ import { TaxonCounter } from './taxon_counter';
 
 test('gradually refining same taxon, twice', () => {
   let partial: Partial<TaxonPathSpec> = {};
-  const counter = TaxonCounter.createFromPathSpec(toPathSpec(partial), null, null);
+  const counter = TaxonCounter.createFromPathSpec(
+    toPathSpec(partial),
+    null,
+    null,
+    null
+  );
   expect(counter.getSpeciesCount()).toEqual(1);
 
   partial.phylumName = 'Arthropoda';
@@ -98,7 +103,12 @@ test('gradually refining same taxon, twice', () => {
 test('adding sibling taxa at each rank, twice', () => {
   let partial1: Partial<TaxonPathSpec> = {};
   let partial2: Partial<TaxonPathSpec> = {};
-  const counter = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
+  const counter = TaxonCounter.createFromPathSpec(
+    toPathSpec(partial1),
+    null,
+    null,
+    null
+  );
   expect(counter.getSpeciesCount()).toEqual(1);
 
   partial2.phylumName = 'Mollusca';
@@ -257,6 +267,7 @@ test('adding distantly lower ranks, twice each', () => {
 
       const counter = TaxonCounter.createFromPathSpec(
         toPathSpec(partial1),
+        null,
         fieldDef1.sp,
         fieldDef1.subsp
       );
