@@ -12,13 +12,18 @@
     toClusterData
   } from '../../../frontend-core/clusters/cluster_data';
   import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
+  import {
+    type ClusterSummaryStats,
+    ClusterSummaryStatsGenerator
+  } from '../../../frontend-core/clusters/summary_stats';
 
-  const CLUSTER_STORE_VERSION = 4;
+  const CLUSTER_STORE_VERSION = 5;
 
   interface ClusterStore {
     version: number;
     config: ClusteringConfig;
     dataByCluster: ClusterData[];
+    summaryStats: ClusterSummaryStats;
   }
 
   const clusterStore = createSessionStore<ClusterStore | null>('clusters', null);
@@ -258,10 +263,16 @@
         if (aTaxaCount == bTaxaCount) return 0;
         return bTaxaCount - aTaxaCount; // sort most taxa first
       });
+
+      const summaryStats = new ClusterSummaryStatsGenerator(
+        dataByCluster
+      ).getSummaryStats();
+
       clusterStore.set({
         version: CLUSTER_STORE_VERSION,
         config,
-        dataByCluster
+        dataByCluster,
+        summaryStats
       });
 
       loadState = LoadState.ready;
@@ -336,20 +347,30 @@
     </div>
 
     {#if $clusterStore}
+      {@const summaryStats = $clusterStore.summaryStats}
+
       <div class="cluster_summary_info">
         <div class="row mt-3">
           <div class="col">
             <span>{$clusterStore.config.maxClusters} clusters max</span>
           </div>
           <div class="col">comparing: <span>{clusterSpec.comparedTaxa}</span></div>
-          <div class="col" />
+          <div class="col">
+            <span>{summaryStats.avgTop10PerVisitCaves.toFixed(1)}</span>/<span
+              >{summaryStats.avgTop20PerVisitCaves.toFixed(1)}</span
+            > visit caves
+          </div>
         </div>
         <div class="row">
           <div class="col"><span>{clusterSpec.metric.basis}</span></div>
           <div class="col">
             highest comparison: <span>{clusterSpec.metric.highestComparedRank}</span>
           </div>
-          <div class="col" />
+          <div class="col">
+            <span>{summaryStats.avgTop10PerPersonVisitCaves.toFixed(1)}</span>/<span
+              >{summaryStats.avgTop20PerPersonVisitCaves.toFixed(1)}</span
+            > person-visit caves
+          </div>
         </div>
         <div class="row">
           <div class="col">
@@ -362,7 +383,11 @@
               {clusterSpec.maxSpecies}</span
             >
           </div>
-          <div class="col" />
+          <div class="col">
+            <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span>/<span
+              >{summaryStats.avgTop6NextTaxa.toFixed(1)}</span
+            > taxa
+          </div>
         </div>
         <div class="row">
           <div class="col">

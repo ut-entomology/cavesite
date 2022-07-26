@@ -35,25 +35,26 @@ export function toClusterData(
   visitsByTaxonUnique: Record<string, number>,
   locationGraphDataSet: LocationGraphData[]
 ): ClusterData {
-  const perVisitStatsGen = new PerVisitSpeciesCountStatsGenerator(
+  const avgPerVisitTierStats = new PerVisitSpeciesCountStatsGenerator(
     config,
     locationGraphDataSet
-  );
-  const perPersonVistStatsGen = new PerPersonVisitSpeciesCountStatsGenerator(
+  ).computeAverageStats();
+  const avgPerPersonVisitTierStats = new PerPersonVisitSpeciesCountStatsGenerator(
     config,
     locationGraphDataSet
+  ).computeAverageStats();
+  const avgTaxaTierStats = generateAvgTaxaTierStats(
+    config,
+    locationGraphDataSet,
+    visitsByTaxonUnique
   );
 
   return {
     visitsByTaxonUnique,
     locationGraphDataSet,
-    avgPerVisitTierStats: perVisitStatsGen.computeAverageStats(),
-    avgPerPersonVisitTierStats: perPersonVistStatsGen.computeAverageStats(),
-    avgTaxaTierStats: generateAvgTaxaTierStats(
-      config,
-      locationGraphDataSet,
-      visitsByTaxonUnique
-    )
+    avgPerVisitTierStats,
+    avgPerPersonVisitTierStats,
+    avgTaxaTierStats
   };
 }
 
