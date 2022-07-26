@@ -84,12 +84,12 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
     errors.push('CAVESITE_DB_PASSWORD - missing');
   }
 
-  // Normalize CAVESITE_PRELOAD_DATA
-
-  const preloadData = process.env.CAVESITE_PRELOAD_DATA?.trim().toLowerCase();
-  process.env.CAVESITE_PRELOAD_DATA = ['yes', 'true', 'on'].includes(preloadData!)
-    ? 'yes'
-    : 'no';
+  // Normalize CAVESITE_PRELOAD_DATA -- unused
+  // CAVESITE_PRELOAD_DATA - Whether to have pages open showing data ('yes' or 'true').
+  // const preloadData = process.env.CAVESITE_PRELOAD_DATA?.trim().toLowerCase();
+  // process.env.CAVESITE_PRELOAD_DATA = ['yes', 'true', 'on'].includes(preloadData!)
+  //   ? 'yes'
+  //   : 'no';
 
   // Show problems found with environment variables.
 
@@ -111,7 +111,6 @@ CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 
 CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
-CAVESITE_PRELOAD_DATA - Whether to have pages open showing data ('yes' or 'true').
 
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.
 CAVESITE_LOG_DIR* - Directory for the website access log files.`);
