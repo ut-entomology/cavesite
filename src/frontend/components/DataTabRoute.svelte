@@ -26,8 +26,8 @@
       route: '/predictions'
     },
     {
-      label: 'Query',
-      route: '/query'
+      label: 'Queries',
+      route: '/queries'
     }
   ];
 

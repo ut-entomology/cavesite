@@ -36,7 +36,7 @@
   import { columnInfoMap } from '../../../shared/general_query';
   import { client, errorReason } from '../../stores/client';
 
-  $pageName = 'Query Results';
+  $pageName = 'Queries';
 
   const QUERY_BUTTON_LABEL = 'New Query';
   const SMALL_STEP_ROWS = 20;
@@ -267,7 +267,7 @@
   }
 </script>
 
-<DataTabRoute activeTab="Query">
+<DataTabRoute activeTab="Queries">
   <div id="em_sample" />
   <div class="container-fluid">
     <TabHeader
