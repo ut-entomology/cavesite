@@ -9,10 +9,6 @@
       route: '/admin/users'
     },
     {
-      label: 'Coordinates',
-      route: '/admin/coords'
-    },
-    {
       label: 'Schedule',
       route: '/admin/schedule'
     },

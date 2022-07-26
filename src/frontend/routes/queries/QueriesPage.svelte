@@ -32,6 +32,7 @@
     type RowControlsConfig
   } from '../../components/RowControls.svelte';
   import ColumnResizer from '../../components/ColumnResizer.svelte';
+  import MoreLess from '../../components/MoreLess.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import { columnInfoMap } from '../../../shared/general_query';
   import { client, errorReason } from '../../stores/client';
@@ -270,12 +271,22 @@
 <DataTabRoute activeTab="Queries">
   <div id="em_sample" />
   <div class="container-fluid">
-    <TabHeader
-      title={$pageName}
-      center={false}
-      expandable={true}
-      instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters for new queries."
-    >
+    <TabHeader title={$pageName} center={false} expandable={true}>
+      <span slot="instructions"
+        >Query the data according to your custom criteria. Use the <a href="/taxa"
+          >Taxa</a
+        >
+        and <a href="/locations">Locations</a> tabs to specify the optional query
+        filters.
+        <MoreLess
+          >Queries always return distinct rows, returning one row per specimen only when
+          you include the Catalog Number in the query. Include the Result Count field to
+          see the number of occurrences of each distinct row. For example, to see the
+          number of records there are for each location, query for just the Result
+          Count, Locality, and County fields (some localities have identical names in
+          different counties).</MoreLess
+        ></span
+      >
       <span slot="main-buttons">
         {#if $cachedResults}
           <button class="btn btn-minor" type="button" on:click={clearQuery}

@@ -131,10 +131,14 @@
 
 <DataTabRoute activeTab="Locations">
   <div class="container-fluid">
-    <TabHeader
-      title={$pageName}
-      instructions={`This tab shows the locations that you have selected for use in other tabs. Selections appear <b>checked ${checkmarkIcon} and bolded</b>. Click on the ${plusIcon} or ${checkmarkIcon} to toggle selections. Click on a location link or on "Browse Locations" to browse, add, and remove locations. Type locations in the box for autocompletion assistance and fast selection.`}
-    >
+    <TabHeader title={$pageName}>
+      <span slot="instructions"
+        >This tab shows the locations that you have selected for use in other tabs.
+        Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on the {@html plusIcon}
+        or {@html checkmarkIcon} to toggle selections. Click on a location link or on "Browse
+        Locations" to browse, add, and remove locations. Type locations in the box for autocompletion
+        assistance and fast selection.</span
+      >
       <span slot="main-buttons">
         {#if rootNode}
           <button class="btn btn-minor" type="button" on:click={expandTree}

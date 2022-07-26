@@ -5,7 +5,6 @@
     <g><path d="M274,21.6L274,21.6c-8.8-7.2-20.1-11.6-32.4-11.6c-28.3,0-51.2,22.9-51.2,51.2l-0.2,0.1l0.2,877.6c0.1,28.2,23,51,51.2,51c13.4,0,25.6-5.2,34.8-13.6l513.3-436.7c12.3-9.4,20.2-24.1,20.2-40.7c0-16.1-7.5-30.5-19.1-39.9v0L274.4,21.9C274.3,21.8,274.2,21.7,274,21.6L274,21.6L274,21.6z"/></g></svg>`;
 
   export let title: string;
-  export let instructions: string | null = null;
   export let center = true;
   export let expandable = false;
 
@@ -47,9 +46,9 @@
     <slot name="main-buttons" />
   </div>
 </div>
-{#if instructions}
+{#if $$slots.instructions}
   <div class="row justify-content-center">
-    <div class="tab-instructions">{@html instructions}</div>
+    <div class="tab-instructions"><slot name="instructions" /></div>
   </div>
 {/if}
 {#if $$slots['work-buttons']}

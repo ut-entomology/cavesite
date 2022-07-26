@@ -469,11 +469,13 @@
 
 <DataTabRoute activeTab="Time">
   <div class="container-fluid">
-    <TabHeader
-      title={$pageName}
-      center={false}
-      instructions="Use the <a href='/taxa'>Taxa</a> and <a href='/locations'>Locations</a> tabs to specify the optional filters to use when loading data. Click on the colored boxes in a chart's legend to hide and show particular life stages. See the notes at the bottom for important caveats."
-    >
+    <TabHeader title={$pageName} center={false}>
+      <span slot="instructions"
+        >Use the <a href="/taxa">Taxa</a> and <a href="/locations">Locations</a> tabs to
+        specify the optional filters to use when loading data. Click on the colored boxes
+        in a chart's legend to hide and show particular life stages. See the notes at the
+        bottom for important caveats.</span
+      >
       <span slot="main-buttons">
         {#if $cachedData}
           <button class="btn btn-minor" type="button" on:click={clearData}>Clear</button
