@@ -30,7 +30,7 @@
 </script>
 
 <script lang="ts">
-  import { afterUpdate } from 'svelte';
+  import { afterUpdate, tick } from 'svelte';
 
   import DataTabRoute from '../../components/DataTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
@@ -84,9 +84,8 @@
     idle,
     determiningSeeds,
     sortingIntoClusters,
-    loadingPoints,
-    fittingModels,
-    generatingPlotData,
+    loadingData,
+    processingData,
     ready
   }
 
@@ -234,7 +233,7 @@
       loadState = LoadState.sortingIntoClusters;
       const taxaClusters = await sortIntoClusters($client, clusterSpec, seedLocations);
 
-      loadState = LoadState.loadingPoints;
+      loadState = LoadState.loadingData;
       const rawClientEffortSetByCluster = await loadPoints(
         $client,
         config.comparedTaxa,
@@ -246,7 +245,9 @@
 
       // Process the loaded data.
 
-      loadState = LoadState.generatingPlotData;
+      loadState = LoadState.processingData;
+      await tick();
+
       const dataByCluster: ClusterData[] = [];
       for (let i = 0; i < taxaClusters.length; ++i) {
         dataByCluster.push(
@@ -598,12 +599,10 @@
     <BusyMessage message="Determining seed locations..." />
   {:else if loadState == LoadState.sortingIntoClusters}
     <BusyMessage message="Sorting into clusters..." />
-  {:else if loadState == LoadState.loadingPoints}
-    <BusyMessage message="Loading points..." />
-  {:else if loadState == LoadState.generatingPlotData}
-    <BusyMessage message="Generating plot data..." />
-  {:else if loadState == LoadState.fittingModels}
-    <BusyMessage message="Fitting models..." />
+  {:else if loadState == LoadState.loadingData}
+    <BusyMessage message="Loading the data..." />
+  {:else if loadState == LoadState.processingData}
+    <BusyMessage message="Processing the data..." />
   {/if}
 {/if}
 
