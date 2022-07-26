@@ -577,6 +577,8 @@
 {/if}
 
 <style lang="scss">
+  @import '../../variables.scss';
+
   .cluster_summary_info {
     font-size: 0.85rem;
     color: #999;
@@ -587,10 +589,14 @@
 
   #cluster_selector {
     display: inline-block;
+    border-top-left-radius: $border-radius;
+    border-bottom-left-radius: $border-radius;
   }
   #cluster_color {
     display: inline-block;
     width: 1.3rem;
+    border-top-right-radius: $border-radius;
+    border-bottom-right-radius: $border-radius;
   }
 
   .eq {
