@@ -40,6 +40,7 @@
 
   .notice-container {
     top: $verticalMessagePosition !important;
+    z-index: 10001;
   }
 
   .button {

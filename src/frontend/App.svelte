@@ -166,7 +166,12 @@
   {/if}
 {:catch err}
   {@const message = err.response ? errorReason(err.response) : err.message}
-  <Notice header="ERROR" alert="danger" {message} on:close={() => {}} />
+  <Notice
+    header="ERROR"
+    alert="danger"
+    message={message + '\n' + err.stack}
+    on:close={() => {}}
+  />
 {/await}
 
 <style lang="scss" global>
