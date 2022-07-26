@@ -2,7 +2,6 @@
 
 -- The taxa, locations, and specimens tables are all imported read-only data, so
 -- the schema optimizes them for search at the expense of not being modifiable.
--- The users and private_coordinates tables are maintained through the website.
 
 -- The database requires each location specification to include a named locality
 -- with which it can associate coordinates; otherwise it would need to associate
@@ -225,16 +224,6 @@ create index on specimens(county_id);
 create index on specimens(locality_name);
 create index on specimens(public_latitude);
 create index on specimens(public_longitude);
-
-create table private_coordinates (
-    -- Users will be supplying this data, not GBIF
-    location_unique text unique not null,
-    modified_by integer references users,
-    modified_on timestamptz not null,
-    latitude float8 not null,
-    longitude float8 not null,
-    uncertainty_meters float8
-);
 
 create table key_data (
     user_id integer references users,
