@@ -377,10 +377,13 @@ export abstract class TaxaClusterer extends Clusterer {
           visitsByTaxonUnique[taxonUnique] = tally.visits;
         }
       }
-      taxaClusters.push({
-        visitsByTaxonUnique,
-        locationIDs: locationIDsByCluster[i]
-      });
+      const locationIDs = locationIDsByCluster[i];
+      if (locationIDs.length > 0) {
+        taxaClusters.push({
+          visitsByTaxonUnique,
+          locationIDs
+        });
+      }
     }
     return taxaClusters;
   }
