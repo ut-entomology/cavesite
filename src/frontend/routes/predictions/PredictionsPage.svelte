@@ -549,9 +549,10 @@
           items={singlePointLocationDataSet}
           {visitUnitName}
           {openLocation}
-          >This chart lists the caves for which only one data point was recorded and for
-          which predictions could not be made, sorting the caves by the number of
-          species found on that single visit.</LocationBarGraph
+          >This chart lists the caves for which only a single visit was made, preventing
+          these caves from being assigned predictions for the number of additional
+          species that can be expected on the next {visitUnitName}. It sorts the caves
+          by the number of species found on that single visit.</LocationBarGraph
         >
       {/if}
       <hr />
@@ -559,9 +560,11 @@
         title="Frequency of taxa found in this cluster"
         visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
         locationGraphDataSet={clusterData.locationGraphDataSet}
-        >This chart shows the frequency at which taxa were found on visits to the caves
-        of this cluster. The bar for any given taxon depicts the fraction of the total
-        number of visits in which the taxon was found.</TaxonBarGraph
+        >This chart shows all the taxa found in the caves of this cluster, sorted by the
+        number of visits in which they were found. It illustrates the frequency of
+        occurrence of taxa in this cluster rather than the frequency of occurrence of
+        specimens. Each bar depicts the fraction of the total number of visits in which
+        a taxon was found.</TaxonBarGraph
       >
     {/if}
   </div>

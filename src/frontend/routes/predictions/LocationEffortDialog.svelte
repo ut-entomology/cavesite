@@ -114,9 +114,10 @@
       title="Frequency of taxa found in this cave"
       visitsByTaxonUnique={locationGraphData.visitsByTaxonUnique}
       locationGraphDataSet={[locationGraphData]}
-      >This chart shows the taxa found in this cave, sorted by the frequency at which
-      they were found on visits to the cave. The purple bar for any given taxon depicts
-      the fraction of the total number of visits in which the taxon was found.</TaxonBarGraph
+      >This chart shows all the taxa found in this cave, sorted by the number of visits
+      in which they were found. It illustrates the frequency of occurrence of taxa in
+      the cave rather than the frequency of occurrence of specimens. Each bar depicts
+      the fraction of the total number of visits in which a taxon was found..</TaxonBarGraph
     >
   </div>
 </InfoDialog>
