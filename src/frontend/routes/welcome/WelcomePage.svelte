@@ -25,6 +25,7 @@
     </ul>
     <p>The following features are under development:</p>
     <ul>
+      <li>Refined clustering for predictions</li>
       <li>Map display of data</li>
       <li>Ability to download data</li>
     </ul>
