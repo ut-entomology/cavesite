@@ -8,9 +8,11 @@ import { User } from '../model/user';
 import { AdminUserInfo, NewUserInfo } from '../../shared/user_auth';
 import { Session } from '../model/session';
 import { EmailType, sendEmail } from '../util/email_util';
+import { checkInteger, checkString } from '../util/http_util';
 
 export const router = Router();
 
+const MAX_STR_LENGTH = 80;
 const GENERATED_PASSWORD_LENGTH = 10; // characters
 let PASSWORD_CHARSET = 'abcdefghijklmnopqrstuvwxyz';
 PASSWORD_CHARSET += PASSWORD_CHARSET.toUpperCase() + '0123456789!?#$%&+*';
@@ -19,16 +21,11 @@ router.use(requirePermissions(Permission.Admin));
 
 router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
   const userInfo = req.body;
-  if (
-    !userInfo ||
-    !userInfo.firstName ||
-    !userInfo.lastName ||
-    !userInfo.email ||
-    // @ts-ignore
-    isNaN(parseInt(userInfo.permissions))
-  ) {
+  const userID = req.session!.userID;
+  if (!_checkNewUserInfo(userInfo) || !checkInteger(userID)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
+
   const password = User.generatePassword(PASSWORD_CHARSET, GENERATED_PASSWORD_LENGTH);
   const user = await User.create(
     getDB(),
@@ -38,7 +35,7 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
     userInfo.affiliation,
     password,
     userInfo.permissions,
-    req.session!.userID
+    userID
   );
   await sendEmail(EmailType.NewAccount, user, { password });
   const loginUserInfo = req.session!.userInfo;
@@ -51,7 +48,7 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
 
 router.post('/drop', async (req: Request<void, any, { userID: number }>, res) => {
   const userID = req.body.userID;
-  if (!userID) {
+  if (!checkInteger(userID)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
   if (userID == req.session!.userInfo.userID) {
@@ -74,14 +71,7 @@ router.post('/pull_all', async (_req: Request<void, any, void>, res) => {
 
 router.post('/update', async (req: Request<void, any, NewUserInfo>, res) => {
   const userInfo = req.body;
-  if (
-    !userInfo ||
-    !userInfo.userID ||
-    !userInfo.firstName ||
-    !userInfo.lastName ||
-    !userInfo.email ||
-    !userInfo.permissions
-  ) {
+  if (!checkInteger(userInfo.userID) || !_checkNewUserInfo(userInfo)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
   if (
@@ -105,3 +95,19 @@ router.post('/update', async (req: Request<void, any, NewUserInfo>, res) => {
   Session.refreshUserInfo(user);
   return res.status(StatusCodes.OK).send(user.toAdminUserInfo());
 });
+
+function _checkNewUserInfo(userInfo?: NewUserInfo): boolean {
+  return (
+    !userInfo ||
+    !checkInteger(userInfo.permissions) ||
+    !checkString(userInfo.firstName) ||
+    userInfo.firstName.length > MAX_STR_LENGTH ||
+    !checkString(userInfo.lastName) ||
+    userInfo.lastName.length > MAX_STR_LENGTH ||
+    !checkString(userInfo.email) ||
+    userInfo.email.length > MAX_STR_LENGTH ||
+    (!!userInfo.affiliation &&
+      (!checkString(userInfo.affiliation) ||
+        userInfo.affiliation.length > MAX_STR_LENGTH))
+  );
+}

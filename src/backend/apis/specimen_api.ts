@@ -17,6 +17,8 @@ import {
 
 export const router = Router();
 
+const MAX_BATCH_SIZE = 1000;
+
 router.post('/query', async (req: Request, res) => {
   const query: GeneralQuery = req.body.query;
   const skip: number = req.body.skip;
@@ -64,11 +66,10 @@ router.post('/query', async (req: Request, res) => {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
-  if (!checkInteger(skip) || !checkInteger(limit)) {
+  if (!checkInteger(skip) || !checkInteger(limit) || limit > MAX_BATCH_SIZE) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 
-  // TODO: Impose an upper limit on batch size.
   const result: [QueryRow[], number | null] = await Specimen.generalQuery(
     getDB(),
     query.columnSpecs,

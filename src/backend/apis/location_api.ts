@@ -55,7 +55,7 @@ router.post('/pull_list', async (req: Request, res) => {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
   for (const name of locationUniques) {
-    if (typeof name !== 'string' || name.length > 100) {
+    if (typeof name !== 'string' || name.length > 120) {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
