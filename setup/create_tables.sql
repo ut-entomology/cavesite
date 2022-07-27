@@ -3,17 +3,6 @@
 -- The taxa, locations, and specimens tables are all imported read-only data, so
 -- the schema optimizes them for search at the expense of not being modifiable.
 
--- The database requires each location specification to include a named locality
--- with which it can associate coordinates; otherwise it would need to associate
--- multiple different coordinates with the same county, state, etc. However, a
--- location need not have a county or state, only a country and continent.
-
--- The database allows for but does not require assigning GUIDs to locations.
--- A location must have a GUID to be assigned private coordinates. However,
--- GUIDs are not used to distinguish locations, but rather a normalization of
--- the three most specific location names provided for the location.
-
--- TODO: Revisit whether I should switch private coordinate GUIDs to location uniques.
 -- TODO: We need to provide the following Specify-to-GBIF field mappings:
 -- * Change map of collectionobject.Remarks => occurrenceRemarks to
 --    collectionobject.(CollectionObjectAttributeID).Remarks => occurrenceRemarks;
@@ -23,7 +12,7 @@
 -- * "specimens" => GBIF organismQuantityType (if prep.CountAmt non-zero/non-null)
 -- * locality.GUID => GBIF locationID
 -- * collectionobject.(CollectionObjectAttributeID).Text4 => GBIF lifeStage
--- * generate GBIF.eventRemarks = "started <PARTIAL>; ended <PARTIAL>" for date
+-- * append to GBIF.eventRemarks = "started <PARTIAL>; ended <PARTIAL>" for date
 -- *   precisions of 2 or 3, where <PARTIAL> is either YYYY or MM/YYYY.
 
 -- The precision of the start and end dates are ONLY available in
@@ -95,7 +84,6 @@ create table locations (
     committed boolean not null default false,
 
     location_id serial primary key, -- locally generated
-    -- GBIF substring of georeferenceSources (Specify location.guid)
     location_rank text not null, -- locally assigned
     -- GBIF continent/country/stateProvince/county/locality (Specify LocalityName)
     location_name text not null,
