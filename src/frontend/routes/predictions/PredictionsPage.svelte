@@ -345,7 +345,9 @@
           controls for exploring clusters. There is an element of randomness to each
           clustering, so you'll want to repeatedly generate clusters with the same
           criteria to find the best clustering. You can also use this tab to see graphs
-          of visits to the caves and the frequency of encountering taxa in any cave.</MoreLess
+          of visits to the caves and the frequency of encountering taxa in any cave.
+          This tab only characterizes localities having the text "cave" in their names,
+          including, for example, the word "cavern".</MoreLess
         ></span
       >
       <span slot="main-buttons">
