@@ -101,10 +101,6 @@ scp uploadable.csv user@caves.tacc.utexas.edu:~/
     cd /var/www
     node build/tools/load-csv.js ~/uploadable.csv
     
-And maybe:
-
-    node build/tools/tally-effort.js
-
 (14) Only do one of these if not previously done. To set up the server for testing purposes and see console log output:
 
     cd /var/www
