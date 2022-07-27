@@ -76,8 +76,8 @@
   :global(.location_bar_chart .outer_bar:hover) {
     cursor: pointer;
   }
-  :global(.location_bar_chart .outer_bar:hover .location_name) {
-    color: $blueLinkForeColor;
+  :global(.location_bar_chart .location_name) {
+    color: #0049cf;
     text-decoration: underline;
   }
 </style>
