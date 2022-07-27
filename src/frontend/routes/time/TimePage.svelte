@@ -239,7 +239,7 @@
 
     const blankDateQuery = convertTimeQuery(specedTimeQuery, false, true);
     const recordsMissingDates =
-      (await _loadBatch(blankDateQuery, 0))[0]?.resultCount! || 0;
+      (await _loadBatch(blankDateQuery, 0))[0]?.recordCount! || 0;
 
     // Tally the data for the charts.
 

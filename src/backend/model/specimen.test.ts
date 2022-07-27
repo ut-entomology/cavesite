@@ -1587,24 +1587,24 @@ describe('general specimen query', () => {
     // prettier-ignore
     results = await Specimen.generalQuery(
       db, [
-        _toColumnSpec(QueryColumnID.ResultCount, true),
+        _toColumnSpec(QueryColumnID.RecordCount, true),
         _toColumnSpec(QueryColumnID.Family, true)
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { resultCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID },
-      { resultCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID }
+      { recordCount: 1, familyName: 'Plethodontidae', familyID: specimen2!.familyID },
+      { recordCount: 2, familyName: 'Araneidae', familyID: specimen1!.familyID }
     ]);
 
     // prettier-ignore
     results = await Specimen.generalQuery(
       db, [
-        _toColumnSpec(QueryColumnID.ResultCount, true),
+        _toColumnSpec(QueryColumnID.RecordCount, true),
         _toColumnSpec(QueryColumnID.Genus, true)
       ], null, null, null, 0, 10);
     expect(results[0]).toEqual([
-      { resultCount: 1, genusName: 'Argiope', genusID: specimen1!.genusID },
-      { resultCount: 1, genusName: 'Eurycea', genusID: specimen2!.genusID },
-      { resultCount: 1, genusName: 'Gea', genusID: specimen3!.genusID }
+      { recordCount: 1, genusName: 'Argiope', genusID: specimen1!.genusID },
+      { recordCount: 1, genusName: 'Eurycea', genusID: specimen2!.genusID },
+      { recordCount: 1, genusName: 'Gea', genusID: specimen3!.genusID }
     ]);
   });
 
@@ -1690,7 +1690,7 @@ describe('general specimen query', () => {
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [_toColumnSpec(QueryColumnID.ResultCount, null, 'Blank')], 
+      db, [_toColumnSpec(QueryColumnID.RecordCount, null, 'Blank')], 
       null, null, null, 0, 10);
     expect(results).toEqual([[], 0]);
   });

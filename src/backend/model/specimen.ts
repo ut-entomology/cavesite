@@ -593,7 +593,7 @@ export class Specimen implements TaxonPathSpec {
       const columnInfo = columnInfoMap[columnSpec.columnID];
       if (columnInfo.asName !== undefined) {
         const columnTerm = `${columnInfo.column1} as ${columnInfo.asName}`;
-        if (columnID == QueryColumnID.ResultCount) {
+        if (columnID == QueryColumnID.RecordCount) {
           groupCountTerm = columnTerm;
         } else {
           selectedColumns.push(columnTerm);
@@ -689,9 +689,9 @@ export class Specimen implements TaxonPathSpec {
 
     const camelRows = result.rows.map((row) => {
       const data: any = toCamelRow(row);
-      if (data.resultCount) {
+      if (data.recordCount) {
         // postgres returns counts as strings
-        data.resultCount = parseInt(data.resultCount);
+        data.recordCount = parseInt(data.recordCount);
       }
       return data;
     });

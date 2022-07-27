@@ -12,7 +12,7 @@ test('date season date ranges', () => {
   const tallier = new TimeChartTallier();
 
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2021, 2, 24),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -26,7 +26,7 @@ test('date season date ranges', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2021, 11, 31),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -40,7 +40,7 @@ test('date season date ranges', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -54,7 +54,7 @@ test('date season date ranges', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2023, 6, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -68,7 +68,7 @@ test('date season date ranges', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2023, 9, 1),
     taxonUnique: 'Xysticus',
     specimenCount: 1,
@@ -109,7 +109,7 @@ test('distribution of specimens between start and end dates', () => {
   const tallier = new TimeChartTallier();
 
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 30), // 2 days in 1st month
     collectionEndDate: new Date(2022, 1, 2), // 2 days in 2nd month
     phylumName: 'Arthropoda',
@@ -140,11 +140,11 @@ test('distribution of specimens between start and end dates', () => {
   ]);
 });
 
-test('overlapping dates for different taxa and specimen and result counts', () => {
+test('overlapping dates for different taxa and specimen and record counts', () => {
   const tallier = new TimeChartTallier();
 
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -158,7 +158,7 @@ test('overlapping dates for different taxa and specimen and result counts', () =
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -172,7 +172,7 @@ test('overlapping dates for different taxa and specimen and result counts', () =
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 5,
+    recordCount: 5,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -220,7 +220,7 @@ test('overlapping dates and taxa for different specimen counts', () => {
   const tallier = new TimeChartTallier();
 
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -234,7 +234,7 @@ test('overlapping dates and taxa for different specimen counts', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -248,7 +248,7 @@ test('overlapping dates and taxa for different specimen counts', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -296,7 +296,7 @@ test('separation of different life stages', () => {
   const tallier = new TimeChartTallier();
 
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -310,7 +310,7 @@ test('separation of different life stages', () => {
     lifeStage: 'adult'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -324,7 +324,7 @@ test('separation of different life stages', () => {
     lifeStage: 'immature'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -338,7 +338,7 @@ test('separation of different life stages', () => {
     lifeStage: 'juvie'
   });
   tallier.addTimeQueryRow({
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -412,7 +412,7 @@ test('life stage indications in remarks', () => {
 
   tallier.addTimeQueryRow({
     // 1 adult, 2 immature
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -428,7 +428,7 @@ test('life stage indications in remarks', () => {
   });
   tallier.addTimeQueryRow({
     // 1 adult, 6 immature
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -444,7 +444,7 @@ test('life stage indications in remarks', () => {
   });
   tallier.addTimeQueryRow({
     // 3 adults, 2 unspecified
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -459,7 +459,7 @@ test('life stage indications in remarks', () => {
   });
   tallier.addTimeQueryRow({
     // 2 adults, 1 immature, 7 unspecified
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',
@@ -474,7 +474,7 @@ test('life stage indications in remarks', () => {
   });
   tallier.addTimeQueryRow({
     // 5 immatures
-    resultCount: 1,
+    recordCount: 1,
     collectionStartDate: new Date(2022, 0, 1),
     phylumName: 'Arthropoda',
     className: 'Arachnida',

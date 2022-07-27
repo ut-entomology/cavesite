@@ -283,7 +283,7 @@
           only when you include the Catalog Number in the query. Include the Result
           Count field to see the number of records associated with each distinct row.
           For example, to see the number of specimen records there are for each
-          location, query for just the Result Count, Locality, and County fields (some
+          location, query for just the Record Count, Locality, and County fields (some
           localities have identical names in different counties).</MoreLess
         ></span
       >

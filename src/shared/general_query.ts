@@ -16,7 +16,7 @@ export enum QueryColumnID {
   TypeStatus,
   TaxonUnique,
   // these do not initially appear, but QueryColumnInfo provides this info
-  ResultCount,
+  RecordCount,
   Phylum,
   Class,
   Order,
@@ -80,7 +80,7 @@ export interface GeneralQuery {
  * distinct sets without repeating entries, providing query flexibility.
  */
 export interface QueryRow {
-  resultCount?: number;
+  recordCount?: number;
 
   catalogNumber?: string;
   occurrenceGuid?: string;
@@ -190,17 +190,17 @@ const getNames = (names?: string | null) => (names ? names.replace('|', '; ') : 
 const getNumber = (num?: number | null) => (num ? num.toString() : '');
 
 setColumnInfo({
-  columnID: QueryColumnID.ResultCount,
-  fullName: 'Result Count',
-  abbrName: 'Results',
-  description: 'Number of results in the data that are identical to the given result.',
+  columnID: QueryColumnID.RecordCount,
+  fullName: 'Record Count',
+  abbrName: 'Records',
+  description: 'Number of specimen records associated with the resulting row.',
   defaultSelection: false,
   column1: 'count(*)',
-  asName: 'result_count',
+  asName: 'record_count',
   options: null,
   defaultEmWidth: 4,
   columnClass: 'center',
-  getValue: (row: QueryRow) => getNumber(row.resultCount)
+  getValue: (row: QueryRow) => getNumber(row.recordCount)
 });
 setColumnInfo({
   columnID: QueryColumnID.CatalogNumber,
