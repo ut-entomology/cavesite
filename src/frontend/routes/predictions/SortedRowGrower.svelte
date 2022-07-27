@@ -72,7 +72,7 @@
   </div>
 
   <div class="row ms-4 mb-2 me-3 justify-content-between">
-    <div class="col">
+    <div class="col small">
       {#if !canGrow}
         (no more rows)
       {/if}
