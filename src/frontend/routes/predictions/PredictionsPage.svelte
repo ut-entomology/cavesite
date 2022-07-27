@@ -332,6 +332,22 @@
 <DataTabRoute activeTab="Predictions">
   <div class="container-fluid mb-3">
     <TabHeader title={$pageName}>
+      <span slot="instructions"
+        >This tab allows you to make predictions about the number of additional species
+        you can expect to find on your next visit or person-visit to a cave and the most
+        likely taxa of these additional species. <MoreLess
+          >The tab also shows you the expected accuracy of the predictions according to
+          the accuracy of the predictive technique on recent historical data. To produce
+          these predictions, you must first partition the data into clusters of similar
+          caves. Caves are considered similar primarily by the commonality of their
+          constituent taxa and secondarily by their proximity to one another. Selecting
+          the appropriate clustering is a bit of an art, so you are provided with
+          controls for exploring clusters. There is an element of randomness to each
+          clustering, so you'll want to repeatedly generate clusters with the same
+          criteria to find the best clustering. You can also use this tab to see graphs
+          of visits to the caves and the taxa found in any cave.</MoreLess
+        ></span
+      >
       <span slot="main-buttons">
         {#if $clusterStore}
           <button class="btn btn-minor" type="button" on:click={_clearData}
