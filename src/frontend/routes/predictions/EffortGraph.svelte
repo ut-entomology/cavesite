@@ -15,6 +15,7 @@
   export let graphDataSet: LocationGraphData[];
   export let graphSpec: EffortGraphSpec;
   export let title = graphSpec.graphTitle;
+  export let showPointSlice = false;
   export let model: PowerFitModel | null = null;
   export let totalCaves = graphDataSet.length;
   export let dataPointColor: string | null = null;
@@ -31,13 +32,17 @@
     pointCount = 0;
     pointSets = [];
     for (const graphData of graphDataSet) {
-      const pointSet = slicePointSet(
-        graphSpec.pointExtractor(graphData),
-        graphSpec.pointSliceSpec
-      );
-      if (pointSet !== null) {
-        pointSets.push(pointSet);
-        pointCount += pointSet.length;
+      if (showPointSlice) {
+        const pointSet = slicePointSet(
+          graphSpec.pointExtractor(graphData),
+          graphSpec.pointSliceSpec
+        );
+        if (pointSet !== null) {
+          pointSets.push(pointSet);
+          pointCount += pointSet.length;
+        }
+      } else {
+        pointSets.push(graphSpec.pointExtractor(graphData));
       }
     }
 

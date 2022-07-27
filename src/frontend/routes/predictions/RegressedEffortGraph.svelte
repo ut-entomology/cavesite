@@ -104,6 +104,7 @@
         totalCaves={sourceDataSet.length}
         graphDataSet={fittedDataSet}
         graphSpec={modelGraphSpec}
+        showPointSlice={true}
         {model}
       />
     </div>

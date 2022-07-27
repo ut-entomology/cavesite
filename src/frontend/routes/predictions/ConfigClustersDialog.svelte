@@ -14,6 +14,7 @@
   let comparedTaxa = config.comparedTaxa;
   let ignoreSubgenera = config.ignoreSubgenera;
   let highestComparedRank = config.highestComparedRank;
+  let minPointsToRegress = config.minPointsToRegress || 0;
   let maxPointsToRegress = config.maxPointsToRegress || Infinity;
 
   let allowedPointsToRegress: number[] = [];
@@ -28,17 +29,30 @@
         comparedTaxa,
         ignoreSubgenera,
         highestComparedRank,
+        minPointsToRegress,
         maxPointsToRegress
       })
     );
+  }
+
+  function _changedMinPoints() {
+    if (minPointsToRegress > maxPointsToRegress) {
+      maxPointsToRegress = minPointsToRegress;
+    }
+  }
+
+  function _changedMaxPoints() {
+    if (maxPointsToRegress < minPointsToRegress) {
+      minPointsToRegress = maxPointsToRegress;
+    }
   }
 </script>
 
 <ModalDialog title="Configure Cave Clusters" contentClasses="config-effort-content">
   <div class="row mb-2">
     <div class="col">
-      Specify the criteria for clustering caves by the commonality of their genera and
-      for estimating recent rates of adding species to their checklists.
+      Specify the criteria for clustering caves and caverns by the commonality of their
+      genera and for predicting species remaining to be found.
     </div>
   </div>
 
@@ -108,12 +122,25 @@
     <div class="row mt-3 mb-2 gx-2 align-items-center">
       <div class="col-sm-7">
         <div>
-          <b>Max. recent points</b> to regress for modeling species encounter rates
+          <b>Min./max. recent visits</b> to use for making predictions
         </div>
       </div>
       <div class="col-sm-2">
         <select
+          bind:value={minPointsToRegress}
+          on:change={_changedMinPoints}
+          class="form-select form-select-sm item_select"
+        >
+          {#each allowedPointsToRegress as minPoints}
+            <option value={minPoints}>{minPoints}</option>
+          {/each}
+          <option value={Infinity}>All</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <select
           bind:value={maxPointsToRegress}
+          on:change={_changedMaxPoints}
           class="form-select form-select-sm item_select"
         >
           {#each allowedPointsToRegress as maxPoints}

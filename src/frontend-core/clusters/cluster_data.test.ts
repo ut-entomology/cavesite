@@ -17,6 +17,7 @@ const baseConfig: ClusteringConfig = {
   ignoreSubgenera: false,
   // @ts-ignore unused param
   highestComparedRank: null,
+  minPointsToRegress: 2,
   maxPointsToRegress: 3,
   predictionHistorySampleDepth: 1,
   maxPredictionTiers: 4

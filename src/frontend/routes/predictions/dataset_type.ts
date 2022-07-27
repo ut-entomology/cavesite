@@ -17,14 +17,12 @@ export function getGraphSpec(
 
   let graphTitle: string;
   let xAxisLabel: string;
-  let maxPointCount = Infinity;
   let pointExtractor: (graphData: LocationGraphData) => Point[];
 
   if (datasetType == DatasetType.visits) {
     if (forModel) {
       graphTitle = 'Avg. model of cumulative species across visits';
       xAxisLabel = 'visits in regressed range';
-      maxPointCount = config.maxPointsToRegress || Infinity;
     } else {
       graphTitle = 'Cumulative species across visits';
       xAxisLabel = 'visits';
@@ -34,7 +32,6 @@ export function getGraphSpec(
     if (forModel) {
       graphTitle = 'Avg. model of cumulative species across person-visits';
       xAxisLabel = 'person-visits in regressed range';
-      maxPointCount = config.maxPointsToRegress || Infinity;
     } else {
       graphTitle = 'Cumulative species across person-visits';
       xAxisLabel = 'person-visits';
@@ -45,8 +42,8 @@ export function getGraphSpec(
     graphTitle,
     xAxisLabel,
     pointSliceSpec: {
-      minPointCount: 0,
-      maxPointCount,
+      minPointCount: config.minPointsToRegress || 0,
+      maxPointCount: config.maxPointsToRegress || Infinity,
       recentPointsToIgnore: 0
     },
     pointExtractor

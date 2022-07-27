@@ -59,6 +59,7 @@ export function toClusterData(
 }
 
 export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerator<LocationGraphData> {
+  minPointsToRegress: number | null;
   maxPointsToRegress: number | null;
 
   constructor(config: ClusteringConfig, locationGraphDataSet: LocationGraphData[]) {
@@ -67,6 +68,7 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
       config.maxPredictionTiers,
       locationGraphDataSet
     );
+    this.minPointsToRegress = config.minPointsToRegress;
     this.maxPointsToRegress = config.maxPointsToRegress;
   }
 
@@ -109,7 +111,7 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
 
   putPredictionsInDataset(visitsElided: number): void {
     const sliceSpec = {
-      minPointCount: 0, // we need to see actual number of points available
+      minPointCount: this.minPointsToRegress || 0,
       maxPointCount: this.maxPointsToRegress || Infinity,
       recentPointsToIgnore: visitsElided
     };

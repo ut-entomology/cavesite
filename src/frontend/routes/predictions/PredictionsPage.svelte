@@ -17,7 +17,7 @@
     ClusterSummaryStatsGenerator
   } from '../../../frontend-core/clusters/summary_stats';
 
-  const CLUSTER_STORE_VERSION = 6;
+  const CLUSTER_STORE_VERSION = 7;
 
   interface ClusterStore {
     version: number;
@@ -102,8 +102,8 @@
   let visitUnitName: string;
   let locationGraphData: LocationGraphData | null = null;
 
-  let singlePointLocationDataSet: LocationGraphData[];
-  let multiPointLocationDataSet: LocationGraphData[];
+  let nonPredictionLocationDataset: LocationGraphData[];
+  let predictionLocationDataset: LocationGraphData[];
   let greatestSingleVisitLocationValue: number;
   let greatestMultiVisitLocationValue: number;
   let predictionTierStats: PredictionTierStat[];
@@ -157,19 +157,19 @@
         if (points.length == 1) return points[0].y;
         return points[points.length - 1].y - points[points.length - 2].y;
       };
-      singlePointLocationDataSet = dataset.slice(0, firstNonNullIndex);
-      multiPointLocationDataSet = dataset.slice(firstNonNullIndex);
+      nonPredictionLocationDataset = dataset.slice(0, firstNonNullIndex);
+      predictionLocationDataset = dataset.slice(firstNonNullIndex);
       // Have to sort here to get greatest value.
-      sortLocationGraphDataSet(singlePointLocationDataSet, getLastDeltaSpecies);
+      sortLocationGraphDataSet(nonPredictionLocationDataset, getLastDeltaSpecies);
       greatestSingleVisitLocationValue = getLastDeltaSpecies(
-        singlePointLocationDataSet[0]
+        nonPredictionLocationDataset[0]
       );
     } else {
-      singlePointLocationDataSet = [];
-      multiPointLocationDataSet = dataset;
+      nonPredictionLocationDataset = [];
+      predictionLocationDataset = dataset;
     }
-    if (multiPointLocationDataSet.length > 0) {
-      greatestMultiVisitLocationValue = getLocationValue(multiPointLocationDataSet[0])!;
+    if (predictionLocationDataset.length > 0) {
+      greatestMultiVisitLocationValue = getLocationValue(predictionLocationDataset[0])!;
     }
 
     effortFlags = 0;
@@ -197,11 +197,11 @@
     count: number,
     increasing: boolean
   ): Promise<[any[], boolean]> {
-    sortLocationGraphDataSet(singlePointLocationDataSet, getLastDeltaSpecies);
-    if (increasing) singlePointLocationDataSet.reverse();
+    sortLocationGraphDataSet(nonPredictionLocationDataset, getLastDeltaSpecies);
+    if (increasing) nonPredictionLocationDataset.reverse();
     return [
-      singlePointLocationDataSet.slice(0, count),
-      count < singlePointLocationDataSet.length
+      nonPredictionLocationDataset.slice(0, count),
+      count < nonPredictionLocationDataset.length
     ];
   }
 
@@ -209,11 +209,11 @@
     count: number,
     increasing: boolean
   ): Promise<[any[], boolean]> {
-    sortLocationGraphDataSet(multiPointLocationDataSet, getLocationValue);
-    if (increasing) multiPointLocationDataSet.reverse();
+    sortLocationGraphDataSet(predictionLocationDataset, getLocationValue);
+    if (increasing) predictionLocationDataset.reverse();
     return [
-      multiPointLocationDataSet.slice(0, count),
-      count < multiPointLocationDataSet.length
+      predictionLocationDataset.slice(0, count),
+      count < predictionLocationDataset.length
     ];
   }
 
@@ -292,6 +292,7 @@
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         ignoreSubgenera: false,
         highestComparedRank: TaxonRank.Genus,
+        minPointsToRegress: 3,
         maxPointsToRegress: 12,
         predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
         maxPredictionTiers: PREDICTION_TIERS
@@ -348,6 +349,8 @@
     </div>
 
     {#if $clusterStore}
+      {@const minPointsToRegress = $clusterStore.config.minPointsToRegress}
+      {@const maxPointsToRegress = $clusterStore.config.maxPointsToRegress}
       {@const summaryStats = $clusterStore.summaryStats}
 
       <div class="cluster_summary_info">
@@ -402,7 +405,8 @@
             metric weight: <span>{clusterSpec.metric.weight}</span>
           </div>
           <div class="col">
-            max. recent points: <span>{$clusterStore.config.maxPointsToRegress}</span>
+            min./max. recent pts: <span>{$clusterStore.config.minPointsToRegress}</span
+            >/<span>{$clusterStore.config.maxPointsToRegress}</span>
           </div>
           <div class="col">
             <span>{summaryStats.generalCaves.toFixed(1)}</span> caves,
@@ -510,7 +514,7 @@
       {/if}
       <LocationFootnotes flags={effortFlags} />
 
-      {#if multiPointLocationDataSet.length > 0}
+      {#if predictionLocationDataset.length > 0}
         <hr />
         <LocationBarGraph
           title="Predicted additional species on next {visitUnitName}"
@@ -519,19 +523,22 @@
           greatestValue={greatestMultiVisitLocationValue}
           getValue={getLocationValue}
           getPoints={getLocationPoints}
-          items={multiPointLocationDataSet}
+          items={predictionLocationDataset}
           {visitUnitName}
           {openLocation}
           >This chart shows the number of additional species predicted to be found at a
           cave on the next {visitUnitName} to the cave, according to a power curve (total
           species <span class="eq">y</span> <span class="eq">=</span>
           <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
-          <span class="eq">x</span>) fit to the points of the most recent {$clusterStore
-            .config.maxPointsToRegress} visits to the cave, provided there were at least
-          3 visits. For caves with only 2 visits, the predicted additional species is given
-          by the slope of the line through their points. To measure accuracy, <MoreLess
-            >the technique was applied to historical data to predict each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
-            most recent points of each cave. The chart reports the average percentage of
+          <span class="eq">x</span>) fit to the points of the most recent {#if minPointsToRegress != maxPointsToRegress}{minPointsToRegress}
+            to{/if}
+          {maxPointsToRegress}
+          visits to the cave, as requested. {#if minPointsToRegress == 2}For caves with
+            only 2 visits, the predicted additional species is given by the slope of the
+            line through their points.{/if} To measure accuracy, <MoreLess
+            >the technique was applied to historical data to predict the additional
+            species of each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+            most recent visits to each cave. The chart reports the average percentage of
             caves that it correctly predicted would occur within each top group of N caves
             according to a sort of the number of species predicted.
             <i
@@ -542,21 +549,20 @@
           ></LocationBarGraph
         >
       {/if}
-      {#if singlePointLocationDataSet.length > 0}
+      {#if nonPredictionLocationDataset.length > 0}
         <hr />
         <LocationBarGraph
-          title="Species found on only visit to cave"
+          title="Caves with too few visits for predictions"
           getItems={_getSingleVisitLocationSubset}
           greatestValue={greatestSingleVisitLocationValue}
-          getValue={getLocationValue}
+          getValue={getLastDeltaSpecies}
           getPoints={getLocationPoints}
-          items={singlePointLocationDataSet}
+          items={nonPredictionLocationDataset}
           {visitUnitName}
           {openLocation}
-          >This chart lists the caves for which only a single visit was made, preventing
-          these caves from being assigned predictions for the number of additional
-          species that can be expected on the next {visitUnitName}. It sorts the caves
-          by the number of species found on that single visit.</LocationBarGraph
+          >This chart lists the caves having fewer than the requested minimum {minPointsToRegress}
+          visits for making predictions. It sorts the caves by the number of species found
+          on the most recent visit.</LocationBarGraph
         >
       {/if}
       <hr />
