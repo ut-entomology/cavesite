@@ -279,12 +279,12 @@
         and <a href="/locations">Locations</a> tabs to specify the optional query
         filters.
         <MoreLess
-          >Queries always return distinct rows, returning one row per specimen only when
-          you include the Catalog Number in the query. Include the Result Count field to
-          see the number of occurrences of each distinct row. For example, to see the
-          number of records there are for each location, query for just the Result
-          Count, Locality, and County fields (some localities have identical names in
-          different counties).</MoreLess
+          >Queries always return distinct rows, returning one row per specimen record
+          only when you include the Catalog Number in the query. Include the Result
+          Count field to see the number of records associated with each distinct row.
+          For example, to see the number of specimen records there are for each
+          location, query for just the Result Count, Locality, and County fields (some
+          localities have identical names in different counties).</MoreLess
         ></span
       >
       <span slot="main-buttons">
