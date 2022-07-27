@@ -95,7 +95,7 @@ function toEventRemarks(record: CsvSpecimen): string {
   if (!ended) {
     if (started) eventRemarks.push('dated ' + started);
   } else {
-    eventRemarks.push('started ' + started);
+    if (started) eventRemarks.push('started ' + started);
     eventRemarks.push('ended ' + ended);
   }
   return eventRemarks.join('; ');
