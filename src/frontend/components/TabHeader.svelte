@@ -91,7 +91,6 @@
   }
   .expander :global(svg) {
     margin-top: -0.25rem;
-    margin-left: 0.05rem;
     width: 1rem;
     height: 1rem;
     fill: $blueLinkForeColor;
