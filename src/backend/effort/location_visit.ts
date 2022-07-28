@@ -194,12 +194,7 @@ export class LocationVisit extends TaxonCounter {
 
       const collectors = specimen.normalizedCollectors;
       const visitData: LocationVisitData = Object.assign(
-        TaxonCounter.createFromPathSpec(
-          specimen,
-          specimen.subgenus,
-          speciesName,
-          subspeciesName
-        ),
+        TaxonCounter.createFromPathSpec(specimen, speciesName, subspeciesName),
         {
           locationID: specimen.localityID,
           isCave: specimen.localityName.toLowerCase().includes('cave'),

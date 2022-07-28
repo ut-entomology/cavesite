@@ -58,7 +58,6 @@ function _checkClusterSpec(clusterSpec: ClusterSpec): boolean {
   return (
     _checkMetric(clusterSpec.metric) &&
     checkComparedTaxa(clusterSpec.comparedTaxa) &&
-    checkBoolean(clusterSpec.ignoreSubgenera!) &&
     checkInteger(clusterSpec.minSpecies!) &&
     clusterSpec.minSpecies! >= 0 &&
     checkInteger(clusterSpec.maxSpecies!) &&

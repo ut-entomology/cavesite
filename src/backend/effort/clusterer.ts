@@ -10,7 +10,6 @@ export abstract class Clusterer {
   protected _db: DB;
   protected _metric: DissimilarityMetric;
   protected _comparedTaxa: ComparedTaxa;
-  protected _ignoreSubgenera: boolean;
   protected _minSpecies: number;
   protected _maxSpecies: number;
 
@@ -28,8 +27,6 @@ export abstract class Clusterer {
       clusterSpec.comparedTaxa === undefined
         ? ComparedTaxa.all
         : clusterSpec.comparedTaxa;
-    this._ignoreSubgenera =
-      clusterSpec.ignoreSubgenera === undefined ? false : clusterSpec.ignoreSubgenera;
     this._minSpecies = clusterSpec.minSpecies || 0;
     this._maxSpecies = clusterSpec.maxSpecies || 1000000; // impossible number
   }

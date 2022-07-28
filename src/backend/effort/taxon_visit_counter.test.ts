@@ -4,12 +4,7 @@ import { TaxonVisitCounter } from './taxon_visit_counter';
 
 test('merge gradually lengthening taxon path specs', () => {
   let partial: Partial<TaxonPathSpec> = {};
-  const counter = TaxonCounter.createFromPathSpec(
-    toPathSpec(partial),
-    null,
-    null,
-    null
-  );
+  const counter = TaxonCounter.createFromPathSpec(toPathSpec(partial), null, null);
   const vCounter = new TaxonVisitCounter(
     TaxonVisitCounter.addInitialVisits(counter, counter)
   );
@@ -90,18 +85,8 @@ test('merge gradually lengthening taxon path specs', () => {
 test('adding sibling taxa at each rank', () => {
   let partial1: Partial<TaxonPathSpec> = {};
   let partial2: Partial<TaxonPathSpec> = {};
-  let counter1 = TaxonCounter.createFromPathSpec(
-    toPathSpec(partial1),
-    null,
-    null,
-    null
-  );
-  let counter2 = TaxonCounter.createFromPathSpec(
-    toPathSpec(partial2),
-    null,
-    null,
-    null
-  );
+  let counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
+  let counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null);
   const vCounter = new TaxonVisitCounter(
     TaxonVisitCounter.addInitialVisits(counter1, counter1)
   );
@@ -113,11 +98,11 @@ test('adding sibling taxa at each rank', () => {
 
   partial2.phylumName = 'Mollusca';
   partial1.phylumName = 'Arthropoda';
-  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null, null);
+  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
   vCounter.mergeCounter(counter1);
   expect(vCounter.getSpeciesCount()).toEqual(1);
   checkVisits(vCounter, [[3], [1], [], [], [], [], [], []]);
-  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null, null);
+  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null);
   vCounter.mergeCounter(counter2);
   expect(vCounter.getSpeciesCount()).toEqual(2);
   checkVisits(vCounter, [[4], [1, 1], [], [], [], [], [], []]);
@@ -127,11 +112,11 @@ test('adding sibling taxa at each rank', () => {
 
   partial2 = Object.assign({ className: 'Insecta' }, partial1);
   partial1.className = 'Arachnida';
-  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null, null);
+  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
   vCounter.mergeCounter(counter1);
   expect(vCounter.getSpeciesCount()).toEqual(2);
   checkVisits(vCounter, [[6], [2, 2], [1], [], [], [], [], []]);
-  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null, null);
+  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null);
   vCounter.mergeCounter(counter2);
   expect(vCounter.getSpeciesCount()).toEqual(3);
   checkVisits(vCounter, [[7], [3, 2], [1, 1], [], [], [], [], []]);
@@ -141,11 +126,11 @@ test('adding sibling taxa at each rank', () => {
 
   partial2 = Object.assign({ orderName: 'Ixodida' }, partial1);
   partial1.orderName = 'Araneae';
-  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null, null);
+  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
   vCounter.mergeCounter(counter1);
   expect(vCounter.getSpeciesCount()).toEqual(3);
   checkVisits(vCounter, [[9], [5, 2], [2, 2], [1], [], [], [], []]);
-  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null, null);
+  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null);
   vCounter.mergeCounter(counter2);
   expect(vCounter.getSpeciesCount()).toEqual(4);
   checkVisits(vCounter, [[10], [6, 2], [3, 2], [1, 1], [], [], [], []]);
@@ -155,11 +140,11 @@ test('adding sibling taxa at each rank', () => {
 
   partial2 = Object.assign({ familyName: 'Ixodida' }, partial1);
   partial1.familyName = 'Theridiidae';
-  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null, null);
+  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
   vCounter.mergeCounter(counter1);
   expect(vCounter.getSpeciesCount()).toEqual(4);
   checkVisits(vCounter, [[12], [8, 2], [5, 2], [2, 2], [1], [], [], []]);
-  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null, null);
+  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null);
   vCounter.mergeCounter(counter2);
   expect(vCounter.getSpeciesCount()).toEqual(5);
   checkVisits(vCounter, [[13], [9, 2], [6, 2], [3, 2], [1, 1], [], [], []]);
@@ -169,11 +154,11 @@ test('adding sibling taxa at each rank', () => {
 
   partial2 = Object.assign({ genusName: 'Steatoda' }, partial1);
   partial1.genusName = 'Latrodectus';
-  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null, null);
+  counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
   vCounter.mergeCounter(counter1);
   expect(vCounter.getSpeciesCount()).toEqual(5);
   checkVisits(vCounter, [[15], [11, 2], [8, 2], [5, 2], [2, 2], [1], [], []]);
-  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null, null);
+  counter2 = TaxonCounter.createFromPathSpec(toPathSpec(partial2), null, null);
   vCounter.mergeCounter(counter2);
   expect(vCounter.getSpeciesCount()).toEqual(6);
   checkVisits(vCounter, [[16], [12, 2], [9, 2], [6, 2], [3, 2], [1, 1], [], []]);
@@ -185,7 +170,6 @@ test('adding sibling taxa at each rank', () => {
   partial1.speciesName = 'mactans';
   counter1 = TaxonCounter.createFromPathSpec(
     toPathSpec(partial1),
-    null,
     'Latrodectus mactans',
     null
   );
@@ -194,7 +178,6 @@ test('adding sibling taxa at each rank', () => {
   checkVisits(vCounter, [[18], [14, 2], [11, 2], [8, 2], [5, 2], [3, 1], [1], []]);
   counter2 = TaxonCounter.createFromPathSpec(
     toPathSpec(partial2),
-    null,
     'Steatoda triangulosa',
     null
   );
@@ -209,7 +192,6 @@ test('adding sibling taxa at each rank', () => {
   partial1.subspeciesName = 'madeup1';
   counter1 = TaxonCounter.createFromPathSpec(
     toPathSpec(partial1),
-    null,
     'Latrodectus mactans',
     'Latrodectus mactans madeup1'
   );
@@ -218,7 +200,6 @@ test('adding sibling taxa at each rank', () => {
   checkVisits(vCounter, [[21], [17, 2], [14, 2], [11, 2], [8, 2], [6, 1], [3, 1], [1]]);
   counter2 = TaxonCounter.createFromPathSpec(
     toPathSpec(partial2),
-    null,
     'Latrodectus mactans',
     'Latrodectus mactans madeup2'
   );
@@ -263,12 +244,7 @@ test('adding multiple taxa at once', () => {
     familyName: 'Theridiidae',
     genusName: 'Steatoda'
   };
-  let counter1 = TaxonCounter.createFromPathSpec(
-    toPathSpec(partial1),
-    null,
-    null,
-    null
-  );
+  let counter1 = TaxonCounter.createFromPathSpec(toPathSpec(partial1), null, null);
   counter1.updateForPathSpec(toPathSpec(partial2), null, null);
 
   let partial3: Partial<TaxonPathSpec> = {
@@ -297,7 +273,6 @@ test('adding multiple taxa at once', () => {
   };
   let counter2 = TaxonCounter.createFromPathSpec(
     toPathSpec(partial3),
-    null,
     'Latrodectus mactans',
     null
   );

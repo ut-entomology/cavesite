@@ -12,7 +12,6 @@
 
   let maxClusters = config.maxClusters;
   let comparedTaxa = config.comparedTaxa;
-  let ignoreSubgenera = config.ignoreSubgenera;
   let highestComparedRank = config.highestComparedRank;
   let proximityResolution = config.proximityResolution;
   let minPointsToRegress = config.minPointsToRegress || 0;
@@ -28,7 +27,6 @@
       Object.assign({}, config, {
         maxClusters,
         comparedTaxa,
-        ignoreSubgenera,
         highestComparedRank,
         proximityResolution,
         minPointsToRegress,
@@ -134,20 +132,7 @@
         </select>
       </div>
     </div>
-    <div class="row mt-4 ms-1 mb-2 gx-2">
-      <div class="col-sm form-check checkable">
-        <input
-          id="ignore_subgenera_checkbox"
-          type="checkbox"
-          bind:checked={ignoreSubgenera}
-          class="form-check-input"
-        />
-        <label class="form-check-label" for="ignore_subgenera_checkbox"
-          ><b>Ignore subgenera</b> when comparing taxa for clustering</label
-        >
-      </div>
-    </div>
-    <div class="row mt-3 ms-1 mb-2 gx-2">
+    <div class="row mt-3 mb-2 gx-2 justify-content-center">
       <div class="col-sm form-check checkable">
         <input
           id="proximity_checkbox"

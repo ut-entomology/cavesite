@@ -281,7 +281,6 @@ export const comparedTaxa = Object.values(ComparedTaxa);
 export interface ClusterSpec {
   metric: DissimilarityMetric;
   comparedTaxa?: ComparedTaxa;
-  ignoreSubgenera?: boolean;
   minSpecies?: number;
   maxSpecies?: number;
 }

@@ -530,25 +530,6 @@ export abstract class TaxaClusterer extends Clusterer {
     taxonVisits: number[]
   ): void {
     if (taxonNames.length == 0) return;
-    if (rankIndex == TaxonRankIndex.Genus && this._ignoreSubgenera) {
-      const sansSubgenera: Record<string, boolean> = {};
-      for (const originalGenus of taxonNames) {
-        let sansSubgenus = this._sansSubgeneraMap[originalGenus];
-        if (!sansSubgenus) {
-          const leftParenOffset = originalGenus.indexOf('(');
-          if (leftParenOffset > 0) {
-            // Don't presume to know whether a space precedes subgenus paren.
-            sansSubgenus = originalGenus.substring(0, leftParenOffset).trimEnd();
-          } else {
-            sansSubgenus = originalGenus;
-          }
-          this._sansSubgeneraMap[originalGenus] = sansSubgenus;
-        }
-        sansSubgenera[sansSubgenus] = true;
-      }
-      // Eliminate duplicate occurrences of each genus.
-      taxonNames = Object.keys(sansSubgenera);
-    }
 
     for (let i = 0; i < taxonNames.length; ++i) {
       const taxonUnique = taxonNames[i];

@@ -69,7 +69,6 @@
 
   const clusterSpec = {
     comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
-    ignoreSubgenera: false,
     minSpecies: 0,
     maxSpecies: 10000,
     metric: {
@@ -118,7 +117,6 @@
   // Handle load of new cluster.
   $: if ($clusterStore) {
     clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
-    clusterSpec.ignoreSubgenera = $clusterStore.config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = $clusterStore.config.highestComparedRank;
     clusterSpec.metric.proximityResolution = $clusterStore.config.proximityResolution;
 
@@ -223,7 +221,6 @@
     clusterStore.set(null);
 
     clusterSpec.comparedTaxa = config.comparedTaxa;
-    clusterSpec.ignoreSubgenera = config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = config.highestComparedRank;
     clusterSpec.metric.proximityResolution = config.proximityResolution;
 
@@ -293,7 +290,6 @@
       clusteringRequest = {
         maxClusters: MAX_CLUSTERS,
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
-        ignoreSubgenera: false,
         highestComparedRank: TaxonRank.Genus,
         proximityResolution: false,
         minPointsToRegress: 3,
@@ -399,10 +395,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col">
-            subgenera:
-            <span>{clusterSpec.ignoreSubgenera ? 'ignoring' : 'heeding'}</span>
-          </div>
+          <div class="col" />
           <div class="col">
             <span
               >{clusterSpec.minSpecies} &lt;= species &lt;=
