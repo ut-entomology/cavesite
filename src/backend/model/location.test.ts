@@ -26,15 +26,12 @@ describe('without location location uniques', () => {
         parentID: null,
         hasChildren: null
       };
-      const expectedLocation = Object.assign(
-        {
-          locationID: 1,
-          parentIDPath: '',
-          parentNamePath: '',
-          locationUnique: 'north america'
-        },
-        sourceLocation
-      );
+      const expectedLocation = Object.assign({}, sourceLocation, {
+        locationID: 1,
+        parentIDPath: '',
+        parentNamePath: '',
+        locationUnique: 'north america'
+      });
       const createdLocation = await Location.create(db, '', '', sourceLocation);
       expect(createdLocation).toEqual(expectedLocation);
       const readLocation = await _getByID(db, createdLocation.locationID);
@@ -52,15 +49,12 @@ describe('without location location uniques', () => {
         parentID: 1,
         hasChildren: null
       };
-      const expectedLocation = Object.assign(
-        {
-          locationID: 2,
-          parentIDPath: '1',
-          parentNamePath: 'North America',
-          locationUnique: 'north america|united states'
-        },
-        sourceLocation
-      );
+      const expectedLocation = Object.assign({}, sourceLocation, {
+        locationID: 2,
+        parentIDPath: '1',
+        parentNamePath: 'North America',
+        locationUnique: 'north america|united states'
+      });
       const createdLocation = await Location.create(
         db,
         'North America',
@@ -493,10 +487,11 @@ describe('with location location uniques', () => {
         parentID: null,
         hasChildren: null
       };
-      const expectedLocation = Object.assign(
-        { locationID: 1, parentIDPath: '', parentNamePath: '' },
-        sourceLocation
-      );
+      const expectedLocation = Object.assign({}, sourceLocation, {
+        locationID: 1,
+        parentIDPath: '',
+        parentNamePath: ''
+      });
       const createdLocation = await Location.create(db, '', '', sourceLocation);
       expect(createdLocation).toEqual(expectedLocation);
       let readLocation = await _getByID(db, createdLocation.locationID);
@@ -521,10 +516,11 @@ describe('with location location uniques', () => {
         parentID: 1,
         hasChildren: null
       };
-      const expectedLocation = Object.assign(
-        { locationID: 2, parentIDPath: '1', parentNamePath: 'North America' },
-        sourceLocation
-      );
+      const expectedLocation = Object.assign({}, sourceLocation, {
+        locationID: 2,
+        parentIDPath: '1',
+        parentNamePath: 'North America'
+      });
       const createdLocation = await Location.create(
         db,
         'North America',
