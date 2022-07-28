@@ -217,7 +217,7 @@ setColumnInfo({
 });
 setColumnInfo({
   columnID: QueryColumnID.CollectionStartDate,
-  fullName: 'Starting Collection Date',
+  fullName: 'Date Collection Started',
   abbrName: 'Start Date',
   description: 'First day of collection, which may be the only collection date',
   defaultSelection: true,
@@ -233,7 +233,7 @@ setColumnInfo({
 });
 setColumnInfo({
   columnID: QueryColumnID.CollectionEndDate,
-  fullName: 'Ending Collection Date',
+  fullName: 'Date Collection Ended',
   abbrName: 'End Date',
   description: 'Last day of collection, if collected over more than one day',
   defaultSelection: true,
