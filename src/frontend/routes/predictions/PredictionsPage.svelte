@@ -52,7 +52,9 @@
     DissimilarityTransform,
     TaxonWeight,
     ComparedTaxa,
-    EffortFlags
+    EffortFlags,
+    taxonRanks,
+    comparedTaxa
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
@@ -101,6 +103,7 @@
   let getLocationPoints: (locationData: LocationGraphData) => Point[];
   let visitUnitName: string;
   let locationGraphData: LocationGraphData | null = null;
+  let totalCaves: number;
 
   let nonPredictionLocationDataset: LocationGraphData[];
   let predictionLocationDataset: LocationGraphData[];
@@ -120,7 +123,9 @@
     clusterSpec.metric.highestComparedRank = $clusterStore.config.highestComparedRank;
     clusterSpec.metric.proximityResolution = $clusterStore.config.proximityResolution;
 
+    totalCaves = 0;
     for (let i = 0; i < $clusterStore.dataByCluster.length; ++i) {
+      totalCaves += $clusterStore.dataByCluster[i].locationGraphDataSet.length;
       clusterColors[i] = new ClusterColorSet(
         `hsl(${i * (360 / $clusterStore!.dataByCluster.length)}, 60%, 60%)`
       );
@@ -362,10 +367,6 @@
       </span>
     </TabHeader>
 
-    <div style="font-size: 1rem; font-weight: bold; text-align: center">
-      &mdash; This page is still under development &mdash;
-    </div>
-
     {#if $clusterStore}
       {@const minRecentPredictionPoints =
         $clusterStore.config.minRecentPredictionPoints}
@@ -373,53 +374,97 @@
         $clusterStore.config.maxRecentPredictionPoints}
       {@const summaryStats = $clusterStore.summaryStats}
 
-      <div class="cluster_summary_info">
-        <div class="row mt-3">
-          <div class="col">
-            max clusters: <span>{$clusterStore.config.maxClusters}</span>
-          </div>
-          <div class="col">comparing: <span>{clusterSpec.comparedTaxa}</span></div>
-          <div class="col">
-            <span>{summaryStats.avgTop10PerVisitCaves.toFixed(1)}</span>/<span
-              >{summaryStats.avgTop20PerVisitCaves.toFixed(1)}</span
-            > visit caves
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            actual clusters: <span>{$clusterStore.dataByCluster.length}</span>
-          </div>
-          <div class="col">
-            highest comparison: <span>{clusterSpec.metric.highestComparedRank}</span>
-          </div>
-          <div class="col">
-            <span>{summaryStats.avgTop10PerPersonVisitCaves.toFixed(1)}</span>/<span
-              >{summaryStats.avgTop20PerPersonVisitCaves.toFixed(1)}</span
-            > person-visit caves
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">caves having taxa: <span>TBD</span></div>
-          <div class="col">
-            using proximity: <span>{$clusterStore.config.proximityResolution}</span>
-          </div>
-          <div class="col">
-            <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span>/<span
-              >{summaryStats.avgTop6NextTaxa.toFixed(1)}</span
-            > taxa
-          </div>
-        </div>
-        <div class="row">
-          <div class="col" />
-          <div class="col">
-            min./max. recent pts: <span
-              >{$clusterStore.config.minRecentPredictionPoints}</span
-            >/<span>{$clusterStore.config.maxRecentPredictionPoints}</span>
-          </div>
-          <div class="col">
-            overall accuracy:
-            <span>{Math.round(summaryStats.generalCaves)}</span> /
-            <span>{Math.round(summaryStats.generalTaxa)}</span>
+      <div class="cluster_title">
+        {totalCaves} caves having
+        {#if clusterSpec.comparedTaxa == ComparedTaxa.all}
+          any taxon,
+        {:else if clusterSpec.comparedTaxa == ComparedTaxa.caveObligates}
+          cave obligates,
+        {:else if clusterSpec.comparedTaxa == ComparedTaxa.generaHavingCaveObligates}
+          genera of cave obligates,
+        {/if}
+        {$clusterStore.dataByCluster.length} clusters
+      </div>
+      <div class="cluster_params">
+        max. <span>{$clusterStore.config.maxClusters}</span> clusters, comparing
+        <span>
+          {#if clusterSpec.comparedTaxa == ComparedTaxa.all}
+            all taxa
+          {:else if clusterSpec.comparedTaxa == ComparedTaxa.caveObligates}
+            cave obligates
+          {:else if clusterSpec.comparedTaxa == ComparedTaxa.generaHavingCaveObligates}
+            genera of cave obligates
+          {/if}
+        </span>
+        &lt;= <span>{clusterSpec.metric.highestComparedRank}</span>,
+        <br />
+        <span>{clusterSpec.metric.proximityResolution ? 'using' : 'not using'}</span>
+        proximity, min.&ndash;max.
+        <span>{$clusterStore.config.minRecentPredictionPoints}</span>&ndash;<span
+          >{$clusterStore.config.maxRecentPredictionPoints}</span
+        > recent visits
+      </div>
+
+      <div class="row mt-3 ms-4 me-4 justify-content-center">
+        <div class="col-sm col-md-12 col-lg-10 accuracy_stats">
+          <div class="row pt-2">
+            <div class="col-md-4">
+              <div class="row">
+                <div class="col mt-2 text-center accuracy_header">Overall Accuracy</div>
+              </div>
+              <div class="row mt-2">
+                <div class="col stat">
+                  <span>{Math.round(summaryStats.generalCaves)}</span> % +spp.
+                </div>
+              </div>
+              <div class="row">
+                <div class="col stat">
+                  <span>{Math.round(summaryStats.generalTaxa)}</span> % +taxa
+                </div>
+              </div>
+              <div class="row mt-3 mb-2 text-center">
+                <div class="col">about accuracy</div>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col-6 text-end accuracy_header">Accuracy Summary</div>
+                <div class="col-3 stat">Top 10</div>
+                <div class="col-2 stat">Top 20</div>
+              </div>
+              <div class="row mt-1">
+                <div class="col-6 text-end">+spp. next visit</div>
+                <div class="col-3 stat">
+                  <span>{summaryStats.avgTop10PerVisitCaves.toFixed(1)}</span> %
+                </div>
+                <div class="col-2 stat">
+                  <span>{summaryStats.avgTop20PerVisitCaves.toFixed(1)}</span> %
+                </div>
+              </div>
+              <div class="row mt-1">
+                <div class="col-6 text-end">+spp. next person-visit</div>
+                <div class="col-3 stat">
+                  <span>{summaryStats.avgTop10PerPersonVisitCaves.toFixed(1)}</span> %
+                </div>
+                <div class="col-2 stat">
+                  <span>{summaryStats.avgTop20PerPersonVisitCaves.toFixed(1)}</span> %
+                </div>
+              </div>
+              <div class="row mt-2">
+                <div class="col-6" />
+                <div class="col-3 stat">Top 3</div>
+                <div class="col-2 stat">Top 6</div>
+              </div>
+              <div class="row mt-1 mb-2">
+                <div class="col-6 text-end">+taxa per cave</div>
+                <div class="col-3 stat">
+                  <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span> %
+                </div>
+                <div class="col-2 stat">
+                  <span>{summaryStats.avgTop6NextTaxa.toFixed(1)}</span> %
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -624,12 +669,36 @@
 <style lang="scss">
   @import '../../variables.scss';
 
-  .cluster_summary_info {
-    font-size: 0.85rem;
-    color: #999;
+  .cluster_title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
   }
-  .cluster_summary_info span {
+  .cluster_params {
+    font-size: 0.95rem;
+    color: #999;
+    text-align: center;
+  }
+  .cluster_params span {
     color: #000;
+  }
+
+  .accuracy_header {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+  .accuracy_stats {
+    font-size: 0.95rem;
+    border: 1px solid $footnoteColor;
+    border-radius: $border-radius;
+    background-color: #eee;
+    margin-bottom: -0.5rem;
+  }
+  .accuracy_stats .stat {
+    text-align: center;
+  }
+  .accuracy_stats .stat span {
+    font-weight: bold;
   }
 
   #cluster_selector {
