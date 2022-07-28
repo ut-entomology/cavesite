@@ -8,7 +8,7 @@
   }
 
   const avgModelConfig = createSessionStore<AverageModelConfig>('avg_model_config', {
-    minX: 0,
+    minX: 8,
     minPointCount: 8,
     weightPower: 2
   });
@@ -86,6 +86,18 @@
     );
   }
 
+  function _minPointCountChanged() {
+    if (minX < minPointCount) {
+      minX = minPointCount;
+    }
+  }
+
+  function _minXChanged() {
+    if (minX < minPointCount) {
+      minPointCount = minX;
+    }
+  }
+
   function _openAboutModel() {
     showingInfoBox = true;
   }
@@ -129,6 +141,7 @@
                   id="inputMinPointCount"
                   bind:value={minPointCount}
                   class="form-select form-select-sm item_select"
+                  on:change={_minPointCountChanged}
                 >
                   {#each minPointCountOptions as option}
                     <option value={option}>{option}</option>
@@ -146,6 +159,7 @@
                   id="inputMinX"
                   bind:value={minX}
                   class="form-select form-select-sm item_select"
+                  on:change={_minXChanged}
                 >
                   {#each { length: MAX_MIN_X + 1 } as _, option}
                     <option value={option}>{option}</option>
