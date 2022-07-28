@@ -1,8 +1,14 @@
 import { type DB } from '../integrations/postgres';
-import { type ClusterSpec, type TaxaCluster, ComparedTaxa } from '../../shared/model';
+import {
+  type ClusterSpec,
+  type TaxaCluster,
+  ComparedTaxa,
+  DissimilarityMetric
+} from '../../shared/model';
 
 export abstract class Clusterer {
   protected _db: DB;
+  protected _metric: DissimilarityMetric;
   protected _comparedTaxa: ComparedTaxa;
   protected _ignoreSubgenera: boolean;
   protected _minSpecies: number;
@@ -17,6 +23,7 @@ export abstract class Clusterer {
 
   constructor(db: DB, clusterSpec: ClusterSpec) {
     this._db = db;
+    this._metric = clusterSpec.metric;
     this._comparedTaxa =
       clusterSpec.comparedTaxa === undefined
         ? ComparedTaxa.all

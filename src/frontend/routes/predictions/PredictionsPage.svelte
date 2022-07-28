@@ -76,7 +76,8 @@
       basis: DissimilarityBasis.diffMinusCommonTaxa,
       transform: DissimilarityTransform.none,
       highestComparedRank: TaxonRank.Genus,
-      weight: TaxonWeight.equalWeighted
+      weight: TaxonWeight.equalWeighted,
+      proximityResolution: false
     }
   };
 
@@ -119,6 +120,7 @@
     clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
     clusterSpec.ignoreSubgenera = $clusterStore.config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = $clusterStore.config.highestComparedRank;
+    clusterSpec.metric.proximityResolution = $clusterStore.config.proximityResolution;
 
     for (let i = 0; i < $clusterStore.dataByCluster.length; ++i) {
       clusterColors[i] = new ClusterColorSet(
@@ -223,6 +225,7 @@
     clusterSpec.comparedTaxa = config.comparedTaxa;
     clusterSpec.ignoreSubgenera = config.ignoreSubgenera;
     clusterSpec.metric.highestComparedRank = config.highestComparedRank;
+    clusterSpec.metric.proximityResolution = config.proximityResolution;
 
     try {
       // Configure and load the data.
@@ -292,6 +295,7 @@
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         ignoreSubgenera: false,
         highestComparedRank: TaxonRank.Genus,
+        proximityResolution: false,
         minPointsToRegress: 3,
         maxPointsToRegress: 12,
         predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,

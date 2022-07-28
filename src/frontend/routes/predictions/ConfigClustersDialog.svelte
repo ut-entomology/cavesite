@@ -14,6 +14,7 @@
   let comparedTaxa = config.comparedTaxa;
   let ignoreSubgenera = config.ignoreSubgenera;
   let highestComparedRank = config.highestComparedRank;
+  let proximityResolution = config.proximityResolution;
   let minPointsToRegress = config.minPointsToRegress || 0;
   let maxPointsToRegress = config.maxPointsToRegress || Infinity;
 
@@ -29,6 +30,7 @@
         comparedTaxa,
         ignoreSubgenera,
         highestComparedRank,
+        proximityResolution,
         minPointsToRegress,
         maxPointsToRegress
       })
@@ -88,20 +90,6 @@
     </div>
     <div class="row mt-3 mb-2 gx-2 align-items-center">
       <div class="col-sm-7">
-        <div><b>Ignore subgenera</b> when comparing taxa for clustering</div>
-      </div>
-      <div class="col-sm-4">
-        <select
-          bind:value={ignoreSubgenera}
-          class="form-select form-select-sm item_select"
-        >
-          <option value={true}>Yes, ignore</option>
-          <option value={false}>No, don't ignore</option>
-        </select>
-      </div>
-    </div>
-    <div class="row mt-3 mb-2 gx-2 align-items-center">
-      <div class="col-sm-7">
         <div><b>Highest taxonomic rank</b> to use in comparisons</div>
       </div>
       <div class="col-sm-5 align-middle">
@@ -150,6 +138,32 @@
         </select>
       </div>
     </div>
+    <div class="row mt-4 ms-1 mb-2 gx-2">
+      <div class="col-sm form-check checkable">
+        <input
+          id="ignore_subgenera_checkbox"
+          type="checkbox"
+          bind:checked={ignoreSubgenera}
+          class="form-check-input"
+        />
+        <label class="form-check-label" for="ignore_subgenera_checkbox"
+          ><b>Ignore subgenera</b> when comparing taxa for clustering</label
+        >
+      </div>
+    </div>
+    <div class="row mt-3 ms-1 mb-2 gx-2">
+      <div class="col-sm form-check checkable">
+        <input
+          id="proximity_checkbox"
+          type="checkbox"
+          bind:checked={proximityResolution}
+          class="form-check-input"
+        />
+        <label class="form-check-label" for="proximity_checkbox"
+          ><b>Use proximity</b> to select among equally similar clusters</label
+        >
+      </div>
+    </div>
   </div>
 
   <div class="dialog_controls row g-2">
@@ -166,6 +180,10 @@
   .fields .row div div:first-child {
     margin-left: 1rem;
     text-indent: -1rem;
+  }
+
+  .checkable label {
+    margin-left: 0.4em;
   }
 
   .dialog_controls button {

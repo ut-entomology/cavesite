@@ -36,13 +36,15 @@ const minusDiffMetric1: DissimilarityMetric = {
   basis: DissimilarityBasis.diffTaxa,
   transform: DissimilarityTransform.none,
   highestComparedRank: TaxonRank.Kingdom,
-  weight: TaxonWeight.unweighted
+  weight: TaxonWeight.unweighted,
+  proximityResolution: false
 };
 const commonMinusDiffMetric1: DissimilarityMetric = {
   basis: DissimilarityBasis.diffMinusCommonTaxa,
   transform: DissimilarityTransform.none,
   highestComparedRank: TaxonRank.Kingdom,
-  weight: TaxonWeight.unweighted
+  weight: TaxonWeight.unweighted,
+  proximityResolution: false
 };
 // const commonMinusDiffFamilyMetric1: DissimilarityMetric = {
 //   basis: DissimilarityBasis.diffMinusCommonTaxa,
@@ -279,8 +281,9 @@ test('clustering at all taxonomic ranks', async () => {
 });
 
 test('clustering identical taxa by physical proxomity', async () => {
+  const metric = Object.assign(commonMinusDiffMetric1, { proximityResolution: true });
   const clusterer = createClusterer(db, {
-    metric: commonMinusDiffMetric1,
+    metric,
     comparedTaxa: ComparedTaxa.all
   });
   const effortSpecs: EffortSpec[] = [];

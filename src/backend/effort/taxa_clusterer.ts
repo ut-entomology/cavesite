@@ -425,7 +425,11 @@ export abstract class TaxaClusterer extends Clusterer {
     // are of equal minimal distance from the provided location effort. NOTE: I
     // can comment out this condition to experiment with how helpful this is.
 
-    if (locationEffort.latitude !== null && locationEffort.longitude !== null) {
+    if (
+      this._metric.proximityResolution &&
+      locationEffort.latitude !== null &&
+      locationEffort.longitude !== null
+    ) {
       let minDistanceSoFar = Infinity;
       let indexesForMinDistances: number[] = [];
 

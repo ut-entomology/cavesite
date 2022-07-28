@@ -5,6 +5,7 @@ export interface ClusteringConfig {
   comparedTaxa: ComparedTaxa;
   ignoreSubgenera: boolean;
   highestComparedRank: TaxonRank;
+  proximityResolution: boolean;
   minPointsToRegress: number | null;
   maxPointsToRegress: number | null;
   predictionHistorySampleDepth: number;

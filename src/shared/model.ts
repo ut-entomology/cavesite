@@ -268,6 +268,7 @@ export interface DissimilarityMetric {
   transform: DissimilarityTransform;
   highestComparedRank: TaxonRank;
   weight: TaxonWeight;
+  proximityResolution: boolean;
 }
 
 export enum ComparedTaxa {
