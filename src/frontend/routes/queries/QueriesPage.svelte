@@ -33,6 +33,7 @@
   } from '../../components/RowControls.svelte';
   import ColumnResizer from '../../components/ColumnResizer.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
+  import BusyMessage from '../../common/BusyMessage.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import { columnInfoMap } from '../../../shared/general_query';
   import { client, errorReason } from '../../stores/client';
@@ -42,6 +43,7 @@
   const QUERY_BUTTON_LABEL = 'New Query';
   const SMALL_STEP_ROWS = 20;
   const BIG_STEP_ROWS = 400;
+  const DEFAULT_DOWNLOAD_FILENAME = 'cavedata.csv';
 
   const rowControlsConfig: RowControlsConfig = {
     smallStepRows: SMALL_STEP_ROWS,
@@ -56,6 +58,7 @@
 
   let templateQuery: GeneralQuery | null = null;
   let lastRowNumber = 0;
+  let downloadingData = false;
 
   $: if ($cachedResults && $cachedResults.version != CACHED_VERSION) {
     $cachedResults = null;
@@ -205,6 +208,58 @@
     }
   }
 
+  async function downloadData() {
+    const columnSpecs = $cachedResults!.query.columnSpecs;
+    downloadingData = true;
+
+    const headers: string[] = [];
+    for (const columnSpec of columnSpecs) {
+      const columnInfo = columnInfoMap[columnSpec.columnID];
+      headers.push(_escapeCsvColumn(columnInfo.fullName));
+    }
+
+    let csvLines: string[] = [headers.join(',')];
+    let batchRows: QueryRow[];
+    let offset = 0;
+    do {
+      batchRows = await _loadRows(offset, BIG_STEP_ROWS);
+      for (const row of batchRows) {
+        const columns: string[] = [];
+        for (const columnSpec of columnSpecs) {
+          const columnInfo = columnInfoMap[columnSpec.columnID];
+          const columnValue = columnInfo.getValue(row).toString();
+          columns.push(_escapeCsvColumn(columnValue));
+        }
+        csvLines.push(columns.join(','));
+      }
+      offset += BIG_STEP_ROWS;
+    } while (batchRows.length > 0);
+    const text = csvLines.join('\n');
+    const file = new Blob([text], { type: 'text/plain' });
+
+    // from https://stackoverflow.com/a/30832210/650894
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = DEFAULT_DOWNLOAD_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+
+    downloadingData = false;
+  }
+
+  function _escapeCsvColumn(column: string): string {
+    // Excel compatible
+    return `"${column
+      .replaceAll('<i>', '')
+      .replaceAll('</i>', '')
+      .replaceAll('"', '""')}"`;
+  }
+
   function _initColumnWidths() {
     if ($columnPxWidths.length == 0) {
       const emInPx = _getEmInPx();
@@ -292,6 +347,16 @@
           <button class="btn btn-minor" type="button" on:click={clearQuery}
             >Clear</button
           >
+          <button
+            class="btn btn-minor download_icon ps-2 pe-2"
+            type="button"
+            on:click={downloadData}
+            ><img
+              src="/download-icon.png"
+              title="Download data"
+              alt="Download data"
+            /></button
+          >
         {/if}
         <button class="btn btn-major" type="button" on:click={createNewQuery}
           >{QUERY_BUTTON_LABEL}</button
@@ -359,6 +424,10 @@
     onQuery={performQuery}
     onClose={() => (templateQuery = null)}
   />
+{/if}
+
+{#if downloadingData}
+  <BusyMessage message="Downloading data..." />
 {/if}
 
 <style lang="scss">
@@ -450,5 +519,11 @@
     margin: 3rem 0;
     text-align: center;
     font-size: 1.1rem;
+  }
+
+  .download_icon img {
+    margin-top: -0.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
   }
 </style>

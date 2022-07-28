@@ -227,8 +227,8 @@ export class TimeChartTallier {
     // Count adults, immatures, and unspecifieds.
 
     const lifeStage = row.lifeStage?.toLowerCase();
-    let adultCount = this._countLifeStage(ADULTS_REGEX, row.occurrenceRemarks!);
-    let immatureCount = this._countLifeStage(IMMATURES_REGEX, row.occurrenceRemarks!);
+    let adultCount = this._countLifeStage(ADULTS_REGEX, row.specimenNotes!);
+    let immatureCount = this._countLifeStage(IMMATURES_REGEX, row.specimenNotes!);
     if (adultCount == 0 && lifeStage == 'adult') {
       adultCount = specimenCount - immatureCount;
     }

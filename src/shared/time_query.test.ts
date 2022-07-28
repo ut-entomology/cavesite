@@ -424,7 +424,7 @@ test('life stage indications in remarks', () => {
     taxonUnique: 'Cicurina',
     specimenCount: 3,
     lifeStage: 'adult',
-    occurrenceRemarks: '2 immatures'
+    specimenNotes: '2 immatures'
   });
   tallier.addTimeQueryRow({
     // 1 adult, 6 immature
@@ -440,7 +440,7 @@ test('life stage indications in remarks', () => {
     taxonUnique: 'Cicurina',
     specimenCount: 7,
     lifeStage: 'immature',
-    occurrenceRemarks: '1 adult'
+    specimenNotes: '1 adult'
   });
   tallier.addTimeQueryRow({
     // 3 adults, 2 unspecified
@@ -455,7 +455,7 @@ test('life stage indications in remarks', () => {
     subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 5,
-    occurrenceRemarks: '3 adults'
+    specimenNotes: '3 adults'
   });
   tallier.addTimeQueryRow({
     // 2 adults, 1 immature, 7 unspecified
@@ -470,7 +470,7 @@ test('life stage indications in remarks', () => {
     subspeciesName: null,
     taxonUnique: 'Cicurina',
     specimenCount: 10,
-    occurrenceRemarks: '2 adults, 1 im.'
+    specimenNotes: '2 adults, 1 im.'
   });
   tallier.addTimeQueryRow({
     // 5 immatures
@@ -486,7 +486,7 @@ test('life stage indications in remarks', () => {
     taxonUnique: 'Cicurina',
     specimenCount: 5,
     lifeStage: 'immature',
-    occurrenceRemarks: '5 immatures'
+    specimenNotes: '5 immatures'
   });
 
   const history = tallier.getHistoryStageTallies();
