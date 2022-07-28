@@ -72,6 +72,8 @@ export function shortenValue(value: number, precision: number): string {
 }
 
 export function shortenPValue(pValue: number): string {
+  // I'm not sure how to handle failure of regression library to determine
+  // p-value; sometimes these NaN p-values should clearly be 0.
   if (isNaN(pValue)) return '?';
   return pValue < 0.001 ? '0.0' : shortenValue(pValue, 2);
 }
