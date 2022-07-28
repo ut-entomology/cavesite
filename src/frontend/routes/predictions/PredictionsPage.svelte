@@ -376,7 +376,7 @@
       <div class="cluster_summary_info">
         <div class="row mt-3">
           <div class="col">
-            <span>{$clusterStore.config.maxClusters} clusters max</span>
+            max clusters: <span>{$clusterStore.config.maxClusters}</span>
           </div>
           <div class="col">comparing: <span>{clusterSpec.comparedTaxa}</span></div>
           <div class="col">
@@ -386,7 +386,9 @@
           </div>
         </div>
         <div class="row">
-          <div class="col"><span>{clusterSpec.metric.basis}</span></div>
+          <div class="col">
+            actual clusters: <span>{$clusterStore.dataByCluster.length}</span>
+          </div>
           <div class="col">
             highest comparison: <span>{clusterSpec.metric.highestComparedRank}</span>
           </div>
@@ -397,12 +399,9 @@
           </div>
         </div>
         <div class="row">
-          <div class="col" />
+          <div class="col">caves having taxa: <span>TBD</span></div>
           <div class="col">
-            <span
-              >{clusterSpec.minSpecies} &lt;= species &lt;=
-              {clusterSpec.maxSpecies}</span
-            >
+            using proximity: <span>{$clusterStore.config.proximityResolution}</span>
           </div>
           <div class="col">
             <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span>/<span
@@ -411,24 +410,16 @@
           </div>
         </div>
         <div class="row">
-          <div class="col">
-            metric transform: <span>{clusterSpec.metric.transform}</span>
-          </div>
           <div class="col" />
-          <div class="col" />
-        </div>
-        <div class="row">
-          <div class="col">
-            metric weight: <span>{clusterSpec.metric.weight}</span>
-          </div>
           <div class="col">
             min./max. recent pts: <span
               >{$clusterStore.config.minRecentPredictionPoints}</span
             >/<span>{$clusterStore.config.maxRecentPredictionPoints}</span>
           </div>
           <div class="col">
-            <span>{Math.round(summaryStats.generalCaves)}</span> caves,
-            <span>{Math.round(summaryStats.generalTaxa)}</span> taxa
+            overall accuracy:
+            <span>{Math.round(summaryStats.generalCaves)}</span> /
+            <span>{Math.round(summaryStats.generalTaxa)}</span>
           </div>
         </div>
       </div>
