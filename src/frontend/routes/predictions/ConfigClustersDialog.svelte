@@ -97,10 +97,6 @@
           bind:value={highestComparedRank}
           class="form-select form-select-sm item_select"
         >
-          <option value={TaxonRank.Kingdom}>Kingdom</option>
-          <option value={TaxonRank.Phylum}>Phylum</option>
-          <option value={TaxonRank.Class}>Class</option>
-          <option value={TaxonRank.Order}>Order</option>
           <option value={TaxonRank.Family}>Family</option>
           <option value={TaxonRank.Genus}>Genus</option>
           <option value={TaxonRank.Species}>Species</option>

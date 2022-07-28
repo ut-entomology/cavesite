@@ -73,10 +73,10 @@
     minSpecies: 0,
     maxSpecies: 10000,
     metric: {
-      basis: DissimilarityBasis.diffMinusCommonTaxa,
+      basis: DissimilarityBasis.diffTaxa,
       transform: DissimilarityTransform.none,
       highestComparedRank: TaxonRank.Genus,
-      weight: TaxonWeight.equalWeighted,
+      weight: TaxonWeight.halfAgainWeight,
       proximityResolution: false
     }
   };
@@ -431,8 +431,8 @@
             >/<span>{$clusterStore.config.maxPointsToRegress}</span>
           </div>
           <div class="col">
-            <span>{summaryStats.generalCaves.toFixed(1)}</span> caves,
-            <span>{summaryStats.generalTaxa.toFixed(1)}</span> taxa
+            <span>{Math.round(summaryStats.generalCaves)}</span> caves,
+            <span>{Math.round(summaryStats.generalTaxa)}</span> taxa
           </div>
         </div>
       </div>
