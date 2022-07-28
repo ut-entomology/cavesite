@@ -542,7 +542,7 @@ setColumnInfo({
   column1: 'locality_name',
   column2: 'locality_id',
   options: null,
-  defaultEmWidth: 20,
+  defaultEmWidth: 16,
   columnClass: null,
   getValue: (row: QueryRow) => row.localityName || ''
 });
@@ -555,7 +555,7 @@ setColumnInfo({
   column1: 'latitude',
   asName: 'latitude',
   options: nullableOptions,
-  defaultEmWidth: 6,
+  defaultEmWidth: 3,
   columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.latitude)
 });
@@ -568,7 +568,7 @@ setColumnInfo({
   column1: 'longitude',
   asName: 'longitude',
   options: nullableOptions,
-  defaultEmWidth: 6,
+  defaultEmWidth: 3,
   columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.longitude)
 });
