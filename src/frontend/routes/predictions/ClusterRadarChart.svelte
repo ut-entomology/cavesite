@@ -82,6 +82,7 @@
           data: percentCommonByCluster,
           borderColor: clusterColors[colorIndex].foreground,
           backgroundColor: clusterColors[colorIndex].lightBackground,
+          pointRadius: 4,
           tension: 0.5,
           fill: true,
           order: dataByCluster.length - i
