@@ -42,8 +42,8 @@ export function getGraphSpec(
     graphTitle,
     xAxisLabel,
     pointSliceSpec: {
-      minPointCount: config.minPointsToRegress || 0,
-      maxPointCount: config.maxPointsToRegress || Infinity,
+      minPointCount: config.minRecentPredictionPoints || 0,
+      maxPointCount: config.maxRecentPredictionPoints || Infinity,
       recentPointsToIgnore: 0
     },
     pointExtractor

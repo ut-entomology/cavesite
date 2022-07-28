@@ -17,7 +17,7 @@
     ClusterSummaryStatsGenerator
   } from '../../../frontend-core/clusters/summary_stats';
 
-  const CLUSTER_STORE_VERSION = 7;
+  const CLUSTER_STORE_VERSION = 8;
 
   interface ClusterStore {
     version: number;
@@ -292,8 +292,8 @@
         comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
         highestComparedRank: TaxonRank.Genus,
         proximityResolution: false,
-        minPointsToRegress: 3,
-        maxPointsToRegress: 12,
+        minRecentPredictionPoints: 3,
+        maxRecentPredictionPoints: 12,
         predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
         maxPredictionTiers: PREDICTION_TIERS
       };
@@ -367,8 +367,10 @@
     </div>
 
     {#if $clusterStore}
-      {@const minPointsToRegress = $clusterStore.config.minPointsToRegress}
-      {@const maxPointsToRegress = $clusterStore.config.maxPointsToRegress}
+      {@const minRecentPredictionPoints =
+        $clusterStore.config.minRecentPredictionPoints}
+      {@const maxRecentPredictionPoints =
+        $clusterStore.config.maxRecentPredictionPoints}
       {@const summaryStats = $clusterStore.summaryStats}
 
       <div class="cluster_summary_info">
@@ -420,8 +422,9 @@
             metric weight: <span>{clusterSpec.metric.weight}</span>
           </div>
           <div class="col">
-            min./max. recent pts: <span>{$clusterStore.config.minPointsToRegress}</span
-            >/<span>{$clusterStore.config.maxPointsToRegress}</span>
+            min./max. recent pts: <span
+              >{$clusterStore.config.minRecentPredictionPoints}</span
+            >/<span>{$clusterStore.config.maxRecentPredictionPoints}</span>
           </div>
           <div class="col">
             <span>{Math.round(summaryStats.generalCaves)}</span> caves,
@@ -545,12 +548,12 @@
           cave on the next {visitUnitName} to the cave, according to a power curve (total
           species <span class="eq">y</span> <span class="eq">=</span>
           <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
-          <span class="eq">x</span>) fit to the points of the most recent {#if minPointsToRegress != maxPointsToRegress}{minPointsToRegress}
+          <span class="eq">x</span>) fit to the points of the most recent {#if minRecentPredictionPoints != maxRecentPredictionPoints}{minRecentPredictionPoints}
             to{/if}
-          {maxPointsToRegress}
-          visits to the cave, as requested. {#if minPointsToRegress == 2}For caves with
-            only 2 visits, the predicted additional species is given by the slope of the
-            line through their points.{/if} To measure accuracy, <MoreLess
+          {maxRecentPredictionPoints}
+          visits to the cave, as requested. {#if minRecentPredictionPoints == 2}For
+            caves with only 2 visits, the predicted additional species is given by the
+            slope of the line through their points.{/if} To measure accuracy, <MoreLess
             >the technique was applied to historical data to predict the additional
             species of each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
             most recent visits to each cave. The chart reports the average percentage of
@@ -575,7 +578,7 @@
           items={nonPredictionLocationDataset}
           {visitUnitName}
           {openLocation}
-          >This chart lists the caves having fewer than the requested minimum {minPointsToRegress}
+          >This chart lists the caves having fewer than the requested minimum {minRecentPredictionPoints}
           visits for making predictions. It sorts the caves by the number of species found
           on the most recent visit.</LocationBarGraph
         >

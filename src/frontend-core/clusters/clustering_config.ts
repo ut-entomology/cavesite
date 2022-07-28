@@ -5,8 +5,8 @@ export interface ClusteringConfig {
   comparedTaxa: ComparedTaxa;
   highestComparedRank: TaxonRank;
   proximityResolution: boolean;
-  minPointsToRegress: number | null;
-  maxPointsToRegress: number | null;
+  minRecentPredictionPoints: number | null;
+  maxRecentPredictionPoints: number | null;
   predictionHistorySampleDepth: number;
   maxPredictionTiers: number;
 }

@@ -3,7 +3,7 @@
   import { MAX_ALLOWED_CLUSTERS, TaxonRank, ComparedTaxa } from '../../../shared/model';
   import type { ClusteringConfig } from '../../../frontend-core/clusters/clustering_config';
 
-  const MIN_MIN_POINTS_TO_REGRESS = 3;
+  const MIN_MIN_POINTS_TO_REGRESS = 2;
   const MAX_MAX_POINTS_TO_REGRESS = 20;
 
   export let config: ClusteringConfig;
@@ -14,8 +14,8 @@
   let comparedTaxa = config.comparedTaxa;
   let highestComparedRank = config.highestComparedRank;
   let proximityResolution = config.proximityResolution;
-  let minPointsToRegress = config.minPointsToRegress || 0;
-  let maxPointsToRegress = config.maxPointsToRegress || Infinity;
+  let minRecentPredictionPoints = config.minRecentPredictionPoints || 0;
+  let maxRecentPredictionPoints = config.maxRecentPredictionPoints || Infinity;
 
   let allowedPointsToRegress: number[] = [];
   for (let i = MIN_MIN_POINTS_TO_REGRESS; i <= MAX_MAX_POINTS_TO_REGRESS; ++i) {
@@ -29,21 +29,21 @@
         comparedTaxa,
         highestComparedRank,
         proximityResolution,
-        minPointsToRegress,
-        maxPointsToRegress
+        minRecentPredictionPoints,
+        maxRecentPredictionPoints
       })
     );
   }
 
   function _changedMinPoints() {
-    if (minPointsToRegress > maxPointsToRegress) {
-      maxPointsToRegress = minPointsToRegress;
+    if (minRecentPredictionPoints > maxRecentPredictionPoints) {
+      maxRecentPredictionPoints = minRecentPredictionPoints;
     }
   }
 
   function _changedMaxPoints() {
-    if (maxPointsToRegress < minPointsToRegress) {
-      minPointsToRegress = maxPointsToRegress;
+    if (maxRecentPredictionPoints < minRecentPredictionPoints) {
+      minRecentPredictionPoints = maxRecentPredictionPoints;
     }
   }
 </script>
@@ -109,7 +109,7 @@
       </div>
       <div class="col-sm-2">
         <select
-          bind:value={minPointsToRegress}
+          bind:value={minRecentPredictionPoints}
           on:change={_changedMinPoints}
           class="form-select form-select-sm item_select"
         >
@@ -121,7 +121,7 @@
       </div>
       <div class="col-sm-2">
         <select
-          bind:value={maxPointsToRegress}
+          bind:value={maxRecentPredictionPoints}
           on:change={_changedMaxPoints}
           class="form-select form-select-sm item_select"
         >

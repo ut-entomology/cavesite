@@ -50,7 +50,7 @@
   $: xAxisUnits = graphSpec.xAxisLabel.match(X_UNITS_REGEX)![0];
 
   $: {
-    maxPointCount = clusteringConfig.maxPointsToRegress || Infinity;
+    maxPointCount = clusteringConfig.maxRecentPredictionPoints || Infinity;
     let maxMinPointCount = maxPointCount;
     if (maxMinPointCount > MAX_MIN_POINT_COUNT) {
       maxMinPointCount = MAX_MIN_POINT_COUNT;
