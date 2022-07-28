@@ -72,6 +72,7 @@ export function shortenValue(value: number, precision: number): string {
 }
 
 export function shortenPValue(pValue: number): string {
+  if (isNaN(pValue)) return '?';
   return pValue < 0.001 ? '0.0' : shortenValue(pValue, 2);
 }
 
