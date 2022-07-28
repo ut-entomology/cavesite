@@ -61,7 +61,7 @@
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 
-  $pageName = 'Collection Predictions';
+  $pageName = 'Collecting Predictions';
 
   const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
