@@ -45,6 +45,7 @@
   import LocationFootnotes from './LocationFootnotes.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
+  import EmptyTab from '../../components/EmptyTab.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     TaxonRank,
@@ -630,6 +631,8 @@
         specimens. Each bar depicts the fraction of the total number of visits in which
         a taxon was found.</TaxonBarGraph
       >
+    {:else}
+      <EmptyTab message={'Click the "Load Clusters" button to generate predictions.'} />
     {/if}
   </div>
 </DataTabRoute>
