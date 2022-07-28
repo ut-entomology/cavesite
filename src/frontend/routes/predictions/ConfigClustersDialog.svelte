@@ -116,7 +116,6 @@
           {#each allowedPointsToRegress as minPoints}
             <option value={minPoints}>{minPoints}</option>
           {/each}
-          <option value={Infinity}>All</option>
         </select>
       </div>
       <div class="col-sm-2">
