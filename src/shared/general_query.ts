@@ -31,11 +31,11 @@ export enum QueryColumnID {
   Latitude,
   Longitude,
   Collectors,
-  CollectionRemarks,
+  LocalityNotes,
   Determiners,
   DeterminationYear,
-  DeterminationRemarks,
-  OccurrenceRemarks,
+  DeterminationNotes,
+  SpecimenNotes,
   Problems,
   _LENGTH
 }
@@ -97,11 +97,11 @@ export interface QueryRow {
 
   determiners?: string | null; // |-delimited names, last name last
 
-  collectionRemarks?: string | null;
+  localityNotes?: string | null;
 
-  occurrenceRemarks?: string | null;
+  specimenNotes?: string | null;
 
-  determinationRemarks?: string | null;
+  determinationNotes?: string | null;
 
   typeStatus?: string | null;
 
@@ -288,40 +288,40 @@ setColumnInfo({
   getValue: (row: QueryRow) => getNumber(row.determinationYear)
 });
 setColumnInfo({
-  columnID: QueryColumnID.CollectionRemarks,
-  fullName: 'Collection Remarks',
+  columnID: QueryColumnID.LocalityNotes,
+  fullName: 'Locality & Habitat Notes',
   abbrName: null,
-  description: 'Remarks about the collecting trip and habitat',
+  description: 'Notes on the location and habitat',
   defaultSelection: false,
-  column1: 'collection_remarks',
+  column1: 'locality_notes',
   options: nullableOptions,
   defaultEmWidth: 16,
   columnClass: null,
-  getValue: (row: QueryRow) => row.collectionRemarks || ''
+  getValue: (row: QueryRow) => row.localityNotes || ''
 });
 setColumnInfo({
-  columnID: QueryColumnID.OccurrenceRemarks,
-  fullName: 'Occurrence Remarks',
+  columnID: QueryColumnID.SpecimenNotes,
+  fullName: 'Specimen Notes',
   abbrName: null,
-  description: 'Remarks about the specimens collected',
+  description: 'Notes about the specimens collected',
   defaultSelection: false,
-  column1: 'occurrence_remarks',
+  column1: 'specimen_notes',
   options: nullableOptions,
   defaultEmWidth: 16,
   columnClass: null,
-  getValue: (row: QueryRow) => row.occurrenceRemarks || ''
+  getValue: (row: QueryRow) => row.specimenNotes || ''
 });
 setColumnInfo({
-  columnID: QueryColumnID.DeterminationRemarks,
-  fullName: 'Determination Remarks',
-  abbrName: 'Det. Remarks',
-  description: 'Remarks about the determination',
+  columnID: QueryColumnID.DeterminationNotes,
+  fullName: 'Determination Notes',
+  abbrName: 'Det. Notes',
+  description: 'Notes on the determination',
   defaultSelection: false,
-  column1: 'determination_remarks',
+  column1: 'determination_notes',
   options: nullableOptions,
   defaultEmWidth: 16,
   columnClass: null,
-  getValue: (row: QueryRow) => row.determinationRemarks || ''
+  getValue: (row: QueryRow) => row.determinationNotes || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.TypeStatus,

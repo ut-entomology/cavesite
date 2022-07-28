@@ -134,11 +134,11 @@ create table specimens (
     -- GBIF identifiedBy (|-delimited names, last name last)
     determiners text,
     -- GBIF eventRemarks (collecting event/info/habitat/end date)
-    collection_remarks text,
+    locality_notes text,
     -- GBIF occurrenceRemarks (collection object remarks)
-    occurrence_remarks text,
+    specimen_notes text,
     -- GBIF identificationRemarks
-    determination_remarks text,
+    determination_notes text,
     -- GBIF typeStatus
     type_status text,
     -- GBIF organismQuantity
@@ -185,9 +185,9 @@ create index on specimens(collection_end_date);
 create index on specimens(collectors);
 create index on specimens(determiners);
 create index on specimens(determination_year);
-create index on specimens(collection_remarks);
-create index on specimens(occurrence_remarks);
-create index on specimens(determination_remarks);
+create index on specimens(locality_notes);
+create index on specimens(specimen_notes);
+create index on specimens(determination_notes);
 create index on specimens(type_status);
 create index on specimens(specimen_count);
 create index on specimens(problems);

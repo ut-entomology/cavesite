@@ -113,7 +113,7 @@ export function convertTimeQuery(
       optionText: null
     });
     columnSpecs.push({
-      columnID: QueryColumnID.OccurrenceRemarks,
+      columnID: QueryColumnID.SpecimenNotes,
       ascending: null,
       optionText: null
     });

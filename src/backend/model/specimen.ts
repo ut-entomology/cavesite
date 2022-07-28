@@ -82,9 +82,9 @@ export class Specimen implements TaxonPathSpec {
   normalizedCollectors: string | null;
   determinationYear: number | null;
   determiners: string | null; // |-delimited names, last name last
-  collectionRemarks: string | null;
-  occurrenceRemarks: string | null;
-  determinationRemarks: string | null;
+  localityNotes: string | null;
+  specimenNotes: string | null;
+  determinationNotes: string | null;
   typeStatus: string | null;
   specimenCount: number | null;
   lifeStage: string | null;
@@ -136,9 +136,9 @@ export class Specimen implements TaxonPathSpec {
     this.normalizedCollectors = data.normalizedCollectors;
     this.determinationYear = data.determinationYear;
     this.determiners = data.determiners; // |-delimited names, last name last
-    this.collectionRemarks = data.collectionRemarks;
-    this.occurrenceRemarks = data.occurrenceRemarks;
-    this.determinationRemarks = data.determinationRemarks;
+    this.localityNotes = data.localityNotes;
+    this.specimenNotes = data.specimenNotes;
+    this.determinationNotes = data.determinationNotes;
     this.typeStatus = data.typeStatus;
     this.specimenCount = data.specimenCount;
     this.lifeStage = data.lifeStage;
@@ -276,7 +276,7 @@ export class Specimen implements TaxonPathSpec {
     }
 
     // Extract the start and end dates, getting the end date from
-    // collectionRemarks, when present.
+    // eventRemarks, when present.
 
     let startDate = source.eventDate ? new Date(source.eventDate) : null;
     let startMatch: RegExpMatchArray | null = null;
@@ -285,14 +285,14 @@ export class Specimen implements TaxonPathSpec {
     let endMatch: RegExpMatchArray | null = null;
     let partialEndDate: string | null = null;
 
-    let collectionRemarks = source.eventRemarks || null;
-    if (collectionRemarks) {
-      const matches = collectionRemarks.matchAll(PARTIAL_DATES_REGEX);
+    let localityNotes = source.eventRemarks || null;
+    if (localityNotes) {
+      const matches = localityNotes.matchAll(PARTIAL_DATES_REGEX);
       const reverseMatchesArray = Array.from(matches).reverse();
       if (reverseMatchesArray.length > 0) {
         // Extract the partial start date or partial/full end date, doing so
         // in reverse order of matching so that we can safely remove each
-        // from collectionRemarks as it is encountered.
+        // from localityNotes as it is encountered.
 
         for (const match of reverseMatchesArray) {
           // Assumes eventRemarks dates are in Texas time (Central).
@@ -304,31 +304,29 @@ export class Specimen implements TaxonPathSpec {
             [endDate, partialEndDate] = _parseEndDate(match);
             endMatch = match;
           }
-          collectionRemarks =
-            collectionRemarks.substring(0, match.index) +
-            collectionRemarks.substring(match.index! + match[0].length);
+          localityNotes =
+            localityNotes.substring(0, match.index) +
+            localityNotes.substring(match.index! + match[0].length);
         }
 
-        // Clean up collectionRemarks punctuation after date removals.
+        // Clean up localityNotes punctuation after date removals.
 
-        collectionRemarks = collectionRemarks
+        localityNotes = localityNotes
           .replaceAll('; ;', '; ')
           .replaceAll(', ,', ', ')
           .replace('  ', ' ')
           .trim();
-        if (collectionRemarks == '') {
-          collectionRemarks = null;
+        if (localityNotes == '') {
+          localityNotes = null;
         } else {
-          if (',;'.includes(collectionRemarks[0])) {
-            collectionRemarks = collectionRemarks.substring(1).trim();
+          if (',;'.includes(localityNotes[0])) {
+            localityNotes = localityNotes.substring(1).trim();
           }
-          if (',;'.includes(collectionRemarks[collectionRemarks.length - 1])) {
-            collectionRemarks = collectionRemarks
-              .substring(0, collectionRemarks.length - 1)
-              .trim();
+          if (',;'.includes(localityNotes[localityNotes.length - 1])) {
+            localityNotes = localityNotes.substring(0, localityNotes.length - 1).trim();
           }
         }
-        if (collectionRemarks == '') collectionRemarks = null;
+        if (localityNotes == '') localityNotes = null;
 
         // Check dates for problems and provide reasonable recoveries.
 
@@ -433,9 +431,9 @@ export class Specimen implements TaxonPathSpec {
       normalizedCollectors,
       determinationYear,
       determiners,
-      collectionRemarks: collectionRemarks,
-      occurrenceRemarks: source.occurrenceRemarks || null,
-      determinationRemarks: detRemarks || null,
+      localityNotes: localityNotes,
+      specimenNotes: source.occurrenceRemarks || null,
+      determinationNotes: detRemarks || null,
       typeStatus,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
       lifeStage: lifeStage || null,
@@ -474,7 +472,7 @@ export class Specimen implements TaxonPathSpec {
           catalog_number, occurrence_guid, taxon_id, locality_id,
           collection_start_date, partial_start_date, collection_end_date, partial_end_date,
           collectors, normalized_collectors, determination_year, determiners,
-          collection_remarks, occurrence_remarks, determination_remarks,
+          locality_notes, specimen_notes, determination_notes,
           type_status, specimen_count, life_stage, problems, kingdom_name, kingdom_id,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
@@ -496,9 +494,9 @@ export class Specimen implements TaxonPathSpec {
         specimen.normalizedCollectors,
         specimen.determinationYear,
         specimen.determiners,
-        specimen.collectionRemarks,
-        specimen.occurrenceRemarks,
-        specimen.determinationRemarks,
+        specimen.localityNotes,
+        specimen.specimenNotes,
+        specimen.determinationNotes,
         specimen.typeStatus,
         specimen.specimenCount,
         specimen.lifeStage,

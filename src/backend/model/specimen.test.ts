@@ -116,9 +116,9 @@ describe('basic specimen methods', () => {
         normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
         determinationYear: detDate.getUTCFullYear(),
         determiners: 'Person A|Person B',
-        collectionRemarks: 'meadow',
-        occurrenceRemarks: baseSource.occurrenceRemarks,
-        determinationRemarks: baseSource.identificationRemarks,
+        localityNotes: 'meadow',
+        specimenNotes: baseSource.occurrenceRemarks,
+        determinationNotes: baseSource.identificationRemarks,
         typeStatus: null,
         specimenCount: 1,
         lifeStage: null,
@@ -202,9 +202,9 @@ describe('basic specimen methods', () => {
         normalizedCollectors: 'body',
         determinationYear: null,
         determiners: 'Person C',
-        collectionRemarks: null,
-        occurrenceRemarks: null,
-        determinationRemarks: null,
+        localityNotes: null,
+        specimenNotes: null,
+        determinationNotes: null,
         typeStatus: null,
         specimenCount: null,
         lifeStage: null,
@@ -345,9 +345,9 @@ describe('basic specimen methods', () => {
       normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
       determiners: 'Person A|Person B',
-      collectionRemarks: 'meadow',
-      occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: 'blind; subgenus Subby; more notes',
+      localityNotes: 'meadow',
+      specimenNotes: baseSource.occurrenceRemarks,
+      determinationNotes: 'blind; subgenus Subby; more notes',
       typeStatus: null,
       specimenCount: 1,
       lifeStage: null,
@@ -420,9 +420,9 @@ describe('basic specimen methods', () => {
       normalizedCollectors: 'baz, jr.|foo|one|someone, ii',
       determinationYear: detDate.getUTCFullYear(),
       determiners: 'Person A|Person B',
-      collectionRemarks: 'meadow',
-      occurrenceRemarks: baseSource.occurrenceRemarks,
-      determinationRemarks: 'big one; n. sp. A',
+      localityNotes: 'meadow',
+      specimenNotes: baseSource.occurrenceRemarks,
+      determinationNotes: 'big one; n. sp. A',
       typeStatus: 'undescribed',
       specimenCount: 1,
       lifeStage: null,
@@ -487,9 +487,9 @@ describe('basic specimen methods', () => {
       normalizedCollectors: 'one',
       determinationYear: null,
       determiners: null,
-      collectionRemarks: null,
-      occurrenceRemarks: null,
-      determinationRemarks: null,
+      localityNotes: null,
+      specimenNotes: null,
+      determinationNotes: null,
       typeStatus: null,
       specimenCount: null,
       lifeStage: null,
@@ -897,52 +897,52 @@ describe('general specimen query', () => {
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [dateSpec, _toColumnSpec(QueryColumnID.CollectionRemarks)],
+      db, [dateSpec, _toColumnSpec(QueryColumnID.LocalityNotes)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
         partialStartDate: null,
-        collectionRemarks: 'cave'
+        localityNotes: 'cave'
       },
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        collectionRemarks: null
+        localityNotes: null
       }
     ]);
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [dateSpec, _toColumnSpec(QueryColumnID.OccurrenceRemarks)],
+      db, [dateSpec, _toColumnSpec(QueryColumnID.SpecimenNotes)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
         partialStartDate: null,
-        occurrenceRemarks: baseSource.occurrenceRemarks
+        specimenNotes: baseSource.occurrenceRemarks
       },
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        occurrenceRemarks: null
+        specimenNotes: null
       }
     ]);
 
     // prettier-ignore
     results = await Specimen.generalQuery(
-      db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationRemarks)],
+      db, [dateSpec, _toColumnSpec(QueryColumnID.DeterminationNotes)],
       null, null, null, 0, 10);
     expect(results[0]).toEqual([
       {
         collectionStartDate: startDate1,
         partialStartDate: null,
-        determinationRemarks: baseSource.identificationRemarks
+        determinationNotes: baseSource.identificationRemarks
       },
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        determinationRemarks: null
+        determinationNotes: null
       }
     ]);
 
@@ -1660,13 +1660,13 @@ describe('general specimen query', () => {
     let results = await Specimen.generalQuery(
       db, [
         _toColumnSpec(QueryColumnID.CatalogNumber, true),
-        _toColumnSpec(QueryColumnID.CollectionRemarks, null, 'Non-blank')
+        _toColumnSpec(QueryColumnID.LocalityNotes, null, 'Non-blank')
       ], null, null, taxonFilter, 0, 10);
     expect(results[0]).toEqual([
       {
         catalogNumber: 'Q3',
         occurrenceGuid: 'GQ3',
-        collectionRemarks: specimen3?.collectionRemarks
+        localityNotes: specimen3?.localityNotes
       }
     ]);
     expect(results[1]).toEqual(1);
