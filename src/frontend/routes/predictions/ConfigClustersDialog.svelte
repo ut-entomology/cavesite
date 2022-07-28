@@ -132,7 +132,7 @@
         </select>
       </div>
     </div>
-    <div class="row mt-3 mb-2 gx-2 justify-content-center">
+    <div class="row mt-3 ms-1 mb-2 gx-2 justify-content-center">
       <div class="col-sm form-check checkable">
         <input
           id="proximity_checkbox"
