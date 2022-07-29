@@ -40,8 +40,8 @@
     let:item
   >
     <div slot="description">
-      The above selected taxa are found in the following localities, sorted by the
-      number of specimen records they have.
+      The following are all the taxa available for the above selected locations, sorted
+      by the number of records found among the locations.
     </div>
     <div class="row gx-3 taxon_row">
       <div class="col-3 text-center">
