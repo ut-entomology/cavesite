@@ -9,7 +9,7 @@
 <script lang="ts">
   import ClearerAutoComplete from '../common/ClearerAutoComplete.svelte';
   import SelectionButton from '../components/SelectionButton.svelte';
-  import CircleIconButton from './CircleIconButton.svelte';
+  import LoupeButton from './LoupeButton.svelte';
   import { errorReason } from '../stores/client';
   import type { ModelSpec } from '../../shared/model';
   import type {
@@ -21,12 +21,6 @@
   import { showNotice } from '../common/VariableNotice.svelte';
 
   const LOAD_DELAY_MILLIS = 333;
-  const loupeIcon = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
-<g><path d="M497.938,430.063l-126.914-126.91C389.287,272.988,400,237.762,400,200C400,89.719,310.281,0,200,0
-		C89.719,0,0,89.719,0,200c0,110.281,89.719,200,200,200c37.762,0,72.984-10.711,103.148-28.973l126.914,126.91
-		C439.438,507.313,451.719,512,464,512c12.281,0,24.563-4.688,33.938-14.063C516.688,479.195,516.688,448.805,497.938,430.063z
-		M64,200c0-74.992,61.016-136,136-136s136,61.008,136,136s-61.016,136-136,136S64,274.992,64,200z"/></g></svg>`;
 
   export let typeLabel: string;
   export let selectionsTree: SelectionsTree<ModelSpec>;
@@ -66,6 +60,8 @@
   } else {
     selectedSpec = null;
   }
+
+  $: loupeLabel = `Open ${typeLabel} in browser`;
 
   async function _loadMatches(partialName: string): Promise<MatchedItem[]> {
     matchedSpecs = await loadMatches(partialName);
@@ -165,18 +161,12 @@
   </div>
   <div class="col-sm-1 auto_control">
     {#if selectedSpec}
-      <CircleIconButton class="loupe_button" label="Open {typeLabel} in browser">
-        <div class="loupe_icon" on:click={_openSelectedSpec}>
-          {@html loupeIcon}
-        </div>
-      </CircleIconButton>
+      <LoupeButton label={loupeLabel} on:click={_openSelectedSpec} />
     {/if}
   </div>
 </div>
 
 <style lang="scss">
-  @import '../variables.scss';
-
   .selectable_autocomplete :global(.autocomplete-list-item span) {
     font-size: 0.8em;
     color: #999;
@@ -192,21 +182,5 @@
   }
   .auto_control {
     margin-top: 0.05rem;
-  }
-  :global(.loupe_button) {
-    margin-left: 0.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
-    padding-left: 0.25rem;
-  }
-  .loupe_icon {
-    margin-top: -0.1rem;
-    width: 1rem;
-    height: 1rem;
-    fill: $blueLinkForeColor;
-    cursor: pointer;
-  }
-  .loupe_icon:hover {
-    fill: white;
   }
 </style>
