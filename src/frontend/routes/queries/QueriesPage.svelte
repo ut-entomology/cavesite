@@ -28,6 +28,7 @@
   import TabHeader from '../../components/TabHeader.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
   import QueryFilterDialog, { getDefaultDateRange } from './QueryFilterDialog.svelte';
+  import QueryDownloadDialog from './QueryDownloadDialog.svelte';
   import RowControls, {
     type RowControlsConfig
   } from '../../components/RowControls.svelte';
@@ -43,7 +44,6 @@
   const QUERY_BUTTON_LABEL = 'New Query';
   const SMALL_STEP_ROWS = 20;
   const BIG_STEP_ROWS = 400;
-  const DEFAULT_DOWNLOAD_FILENAME = 'cavedata.csv';
 
   const rowControlsConfig: RowControlsConfig = {
     smallStepRows: SMALL_STEP_ROWS,
@@ -58,6 +58,7 @@
 
   let templateQuery: GeneralQuery | null = null;
   let lastRowNumber = 0;
+  let requestDownload = false;
   let downloadingData = false;
 
   $: if ($cachedResults && $cachedResults.version != CACHED_VERSION) {
@@ -208,10 +209,20 @@
     }
   }
 
-  async function downloadData() {
-    const columnSpecs = $cachedResults!.query.columnSpecs;
+  async function _downloadData(filename: string) {
+    requestDownload = false;
     downloadingData = true;
 
+    filename = filename.trim();
+    if (!filename.endsWith('.csv')) {
+      if (filename.endsWith('.')) {
+        filename += 'csv';
+      } else {
+        filename += '.csv';
+      }
+    }
+
+    const columnSpecs = $cachedResults!.query.columnSpecs;
     const headers: string[] = [];
     for (const columnSpec of columnSpecs) {
       const columnInfo = columnInfoMap[columnSpec.columnID];
@@ -241,7 +252,7 @@
     const a = document.createElement('a');
     const url = URL.createObjectURL(file);
     a.href = url;
-    a.download = DEFAULT_DOWNLOAD_FILENAME;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     setTimeout(function () {
@@ -350,7 +361,7 @@
           <button
             class="btn btn-minor download_icon ps-2 pe-2"
             type="button"
-            on:click={downloadData}
+            on:click={() => (requestDownload = true)}
             ><img
               src="/download-icon.png"
               title="Download data"
@@ -423,6 +434,14 @@
     initialQuery={templateQuery}
     onQuery={performQuery}
     onClose={() => (templateQuery = null)}
+  />
+{/if}
+
+{#if requestDownload && $cachedResults}
+  <QueryDownloadDialog
+    rowCount={$cachedResults.totalRows}
+    submit={_downloadData}
+    close={() => (requestDownload = false)}
   />
 {/if}
 
