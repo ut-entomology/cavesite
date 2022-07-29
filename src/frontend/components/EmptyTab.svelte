@@ -6,13 +6,13 @@
 
 <style>
   .message {
-    margin: 3rem 0;
+    margin: 2rem 0;
     text-align: center;
     font-size: 1.1rem;
   }
 
   :global(.no-selection-paren) {
-    margin-top: 0.8rem;
-    font-size: 85%;
+    margin-top: 0.2rem;
+    font-size: 90%;
   }
 </style>

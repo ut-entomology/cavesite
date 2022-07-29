@@ -17,6 +17,7 @@
   import { pageName } from '../../../stores/pageName';
 
   $pageName = 'Registered Users';
+  const tabName = 'Users';
 
   const EXPANDED_SYMBOL = '&#9660';
   const COLLAPSED_SYMBOL = '&#9654;';
@@ -161,10 +162,10 @@
   }
 </script>
 
-<AdminTabRoute activeTab="Users">
+<AdminTabRoute activeTab={tabName}>
   {#await loadUsers() then}
     <div class="container-fluid">
-      <TabHeader title={$pageName}>
+      <TabHeader {tabName} title={$pageName}>
         <span slot="main-buttons">
           <button class="btn btn-major add_user" on:click={addUser}>Add User</button>
         </span>

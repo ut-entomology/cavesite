@@ -64,6 +64,7 @@
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Collecting Predictions';
+  const tabName = 'Predictions';
 
   const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
@@ -346,9 +347,9 @@
   afterUpdate(() => _setClusterSelectorColor(clusterIndex));
 </script>
 
-<DataTabRoute activeTab="Predictions">
+<DataTabRoute activeTab={tabName}>
   <div class="container-fluid mb-3">
-    <TabHeader title={$pageName}>
+    <TabHeader {tabName} title={$pageName}>
       <span slot="instructions"
         >This tab allows you to make predictions about the number of additional species
         you can expect to find on your next visit or person-visit to a cave and the most

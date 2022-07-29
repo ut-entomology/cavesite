@@ -10,6 +10,8 @@
   import SelectableTaxon from './SelectableTaxon.svelte';
   import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
   import LocalitiesForTaxa from './LocalitiesForTaxa.svelte';
+  import HowToUseTab from '../../components/HowToUseTab.svelte';
+  import TaxaHowTo from './TaxaHowTo.svelte';
   import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
   import { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../../shared/model';
@@ -31,6 +33,7 @@
   import { getTaxonFilter } from '../../lib/query_filtering';
 
   $pageName = 'Selected Taxa';
+  const tabName = 'Taxa';
 
   let browseTaxonUnique: string | null = null;
   let rootTree: SvelteComponent;
@@ -194,9 +197,9 @@
   }
 </script>
 
-<DataTabRoute activeTab="Taxa">
+<DataTabRoute activeTab={tabName}>
   <div class="container-fluid">
-    <TabHeader title={$pageName}>
+    <TabHeader {tabName} title={$pageName} provideHowTo={!!rootNode}>
       <span slot="instructions"
         >This tab shows the taxa that you have selected for use in other tabs.
         Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on the {@html plusIcon}
@@ -219,6 +222,7 @@
           on:click={() => openTaxonBrowser(ROOT_TAXON_UNIQUE)}>Browse Taxa</button
         >
       </span>
+      <div slot="how-to"><TaxaHowTo /></div>
     </TabHeader>
 
     <div class="taxon_lookup container-fluid">
@@ -236,6 +240,7 @@
       <EmptyTab
         message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
       />
+      <HowToUseTab {tabName}><TaxaHowTo /></HowToUseTab>
     {:else}
       <div class="tree_area">
         <div class="container-fluid gx-1">

@@ -34,6 +34,7 @@
   import { getLocationFilter } from '../../lib/query_filtering';
 
   $pageName = 'Selected Locations';
+  const tabName = 'Locations';
 
   let browseLocationUnique: string | null = null;
   let rootTree: SvelteComponent;
@@ -224,9 +225,9 @@
   }
 </script>
 
-<DataTabRoute activeTab="Locations">
+<DataTabRoute activeTab={tabName}>
   <div class="container-fluid">
-    <TabHeader title={$pageName}>
+    <TabHeader {tabName} title={$pageName}>
       <span slot="instructions"
         >This tab shows the locations that you have selected for use in other tabs.
         Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on the {@html plusIcon}

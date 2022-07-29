@@ -4,11 +4,12 @@
   import { pageName } from '../../stores/pageName';
 
   $pageName = 'Welcome';
+  const tabName = 'Welcome';
 </script>
 
-<DataTabRoute activeTab="Welcome">
+<DataTabRoute activeTab={tabName}>
   <div class="container-fluid">
-    <TabHeader title={$pageName} />
+    <TabHeader {tabName} title={$pageName} />
     <p>
       Welcome to a preview of the <u><b>Texas Underground</b></u> website. This site provides
       access to the Biospeleological Collection at the University of Texas at Austin, restricted

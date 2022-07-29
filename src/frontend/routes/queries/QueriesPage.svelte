@@ -40,6 +40,7 @@
   import { client, errorReason } from '../../stores/client';
 
   $pageName = 'Queries';
+  const tabName = 'Queries';
 
   const QUERY_BUTTON_LABEL = 'New Query';
   const SMALL_STEP_ROWS = 20;
@@ -334,10 +335,10 @@
   }
 </script>
 
-<DataTabRoute activeTab="Queries">
+<DataTabRoute activeTab={tabName}>
   <div id="em_sample" />
   <div class="container-fluid">
-    <TabHeader title={$pageName} center={false} expandable={true}>
+    <TabHeader {tabName} title={$pageName} center={false} expandable={true}>
       <span slot="instructions"
         >Query the data according to your custom criteria. Use the <a href="/taxa"
           >Taxa</a

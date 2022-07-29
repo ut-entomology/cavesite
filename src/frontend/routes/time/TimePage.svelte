@@ -69,6 +69,8 @@
   import { LocationRank } from '../../../shared/model';
 
   $pageName = 'Seasonality and History';
+  const tabName = 'Time';
+
   const CACHED_DATA_VERSION = 5;
 
   enum CountUnits {
@@ -467,9 +469,9 @@
   }
 </script>
 
-<DataTabRoute activeTab="Time">
+<DataTabRoute activeTab={tabName}>
   <div class="container-fluid">
-    <TabHeader title={$pageName} center={false}>
+    <TabHeader {tabName} title={$pageName} center={false}>
       <span slot="instructions"
         >Use the <a href="/taxa">Taxa</a> and <a href="/locations">Locations</a> tabs to
         specify the optional filters to use when loading data. Click on the colored boxes
