@@ -38,6 +38,7 @@
   import ConfigClustersDialog from './ConfigClustersDialog.svelte';
   import ClusterPieChart from './ClusterPieChart.svelte';
   import ClusterRadarChart from './ClusterRadarChart.svelte';
+  import PredictionLookup from './PredictionLookup.svelte';
   import EffortGraph from './EffortGraph.svelte';
   import RegressedEffortGraph from './RegressedEffortGraph.svelte';
   import LocationEffortDialog from './LocationEffortDialog.svelte';
@@ -53,9 +54,7 @@
     DissimilarityTransform,
     TaxonWeight,
     ComparedTaxa,
-    EffortFlags,
-    taxonRanks,
-    comparedTaxa
+    EffortFlags
   } from '../../../shared/model';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
@@ -63,6 +62,7 @@
   import { DatasetType, getGraphSpec } from './dataset_type';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
+  import { cachedData } from '../time/TimePage.svelte';
 
   $pageName = 'Collecting Predictions';
 
@@ -484,6 +484,15 @@
           <ClusterPieChart
             dataByCluster={$clusterStore.dataByCluster}
             {clusterColors}
+          />
+        </div>
+      </div>
+
+      <div class="row mt-4 mb-4 justify-content-center">
+        <div class="col-md-8">
+          <PredictionLookup
+            dataByCluster={$clusterStore.dataByCluster}
+            openCave={openLocation}
           />
         </div>
       </div>
