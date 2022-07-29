@@ -62,7 +62,6 @@
   import { DatasetType, getGraphSpec } from './dataset_type';
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
-  import { cachedData } from '../time/TimePage.svelte';
 
   $pageName = 'Collecting Predictions';
 
@@ -104,6 +103,7 @@
   let getLocationPoints: (locationData: LocationGraphData) => Point[];
   let visitUnitName: string;
   let locationGraphData: LocationGraphData | null = null;
+  let locationClusterNumber: number;
   let totalCaves: number;
 
   let nonPredictionLocationDataset: LocationGraphData[];
@@ -188,6 +188,17 @@
 
   function openLocation(locationData: LocationGraphData): void {
     locationGraphData = locationData;
+
+    const dataByCluster = $clusterStore!.dataByCluster;
+    for (let i = 0; i < dataByCluster.length; ++i) {
+      const clusterData = dataByCluster[i];
+      for (const graphData of clusterData.locationGraphDataSet) {
+        if (graphData === locationData) {
+          locationClusterNumber = i + 1;
+          return;
+        }
+      }
+    }
   }
 
   function closeLocation() {
@@ -658,6 +669,7 @@
   {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
   <LocationEffortDialog
     config={$clusterStore.config}
+    clusterNumber={locationClusterNumber}
     clusterVisitsByTaxonUnique={clusterData.visitsByTaxonUnique}
     {locationGraphData}
     locationGraphDataSet={clusterData.locationGraphDataSet}

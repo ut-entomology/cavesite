@@ -11,6 +11,7 @@
   import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
 
   export let config: ClusteringConfig;
+  export let clusterNumber: number;
   export let clusterVisitsByTaxonUnique: Record<string, number>;
   export let locationGraphData: LocationGraphData;
   export let locationGraphDataSet: LocationGraphData[];
@@ -30,6 +31,10 @@
   const titleSuffix = locationGraphData.countyName
     ? ',<br/>' + locationGraphData.countyName
     : '';
+  const predictedPerVisitDiff = locationGraphData.predictedPerVisitDiff;
+  const predictedPerPersonVisitDiff = locationGraphData.predictedPerPersonVisitDiff;
+  const hasPrediction =
+    predictedPerVisitDiff !== null || predictedPerPersonVisitDiff !== null;
 
   $: graphSpec = getGraphSpec(config, datasetType, false);
 </script>
@@ -41,6 +46,24 @@
   onClose={close}
 >
   <div class="container-fluid location_effort_dialog">
+    <div class="row justify-content-center location_stats">
+      <div class="col-auto">
+        Cluster <span>#{clusterNumber}</span>,
+        {#if hasPrediction}
+          {#if predictedPerVisitDiff !== null}
+            +<span>{predictedPerVisitDiff.toFixed(1)}</span> spp. next visit{predictedPerPersonVisitDiff !==
+            null
+              ? ','
+              : ''}
+          {/if}
+          {#if predictedPerPersonVisitDiff !== null}
+            +<span>{predictedPerPersonVisitDiff.toFixed(1)}</span> spp. next person-visit
+          {/if}
+        {:else}
+          no +spp. predictions available
+        {/if}
+      </div>
+    </div>
     <div class="row justify-content-center">
       <div class="col-auto">
         <div class="btn-group" role="group" aria-label="Switch datasets">
@@ -125,5 +148,13 @@
 <style lang="scss">
   :global(.location_effort_dialog) {
     margin-bottom: -0.5rem;
+  }
+
+  .location_stats {
+    margin-top: -0.8rem;
+    margin-bottom: 1rem;
+  }
+  .location_stats span {
+    font-weight: bold;
   }
 </style>
