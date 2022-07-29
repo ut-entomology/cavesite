@@ -198,7 +198,7 @@ setColumnInfo({
   column1: 'count(*)',
   asName: 'record_count',
   options: null,
-  defaultEmWidth: 4,
+  defaultEmWidth: 5,
   columnClass: 'center',
   getValue: (row: QueryRow) => getNumber(row.recordCount)
 });
@@ -210,7 +210,7 @@ setColumnInfo({
   defaultSelection: true,
   column1: 'catalog_number',
   column2: 'occurrence_guid',
-  defaultEmWidth: 7,
+  defaultEmWidth: 6,
   options: null,
   columnClass: null,
   getValue: (row: QueryRow) => row.catalogNumber || ''
@@ -271,7 +271,7 @@ setColumnInfo({
   defaultSelection: false,
   column1: 'determiners',
   options: nullableOptions,
-  defaultEmWidth: 8,
+  defaultEmWidth: 10,
   columnClass: null,
   getValue: (row: QueryRow) => getNames(row.determiners)
 });
@@ -283,7 +283,7 @@ setColumnInfo({
   defaultSelection: false,
   column1: 'determination_year',
   options: nullableOptions,
-  defaultEmWidth: 4,
+  defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => getNumber(row.determinationYear)
 });
@@ -319,7 +319,7 @@ setColumnInfo({
   defaultSelection: false,
   column1: 'determination_notes',
   options: nullableOptions,
-  defaultEmWidth: 16,
+  defaultEmWidth: 12,
   columnClass: null,
   getValue: (row: QueryRow) => row.determinationNotes || ''
 });
@@ -345,12 +345,12 @@ setColumnInfo({
 setColumnInfo({
   columnID: QueryColumnID.SpecimenCount,
   fullName: 'Specimen Count',
-  abbrName: 'Count',
+  abbrName: 'Specimens',
   description: 'The number of specimens collected',
   defaultSelection: false,
   column1: 'specimen_count',
   options: nullableOptions, // there are no 0s, only nulls
-  defaultEmWidth: 4,
+  defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => row.specimenCount || ''
 });
@@ -393,7 +393,7 @@ setColumnInfo({
   column1: 'phylum_name',
   column2: 'phylum_id',
   options: nullableOptions,
-  defaultEmWidth: 10,
+  defaultEmWidth: 8,
   columnClass: null,
   getValue: (row: QueryRow) => row.phylumName || ''
 });
@@ -457,33 +457,33 @@ setColumnInfo({
   defaultSelection: false,
   column1: 'subgenus',
   options: nullableOptions,
-  defaultEmWidth: 10,
+  defaultEmWidth: 6,
   columnClass: null,
   getValue: (row: QueryRow) => row.subgenus || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.Species,
-  fullName: 'Species',
-  abbrName: null,
+  fullName: 'Species Epithet',
+  abbrName: 'Species',
   description: 'Specific epithet determined for the specimen',
   defaultSelection: false,
   column1: 'species_name',
   column2: 'species_id',
   options: nullableOptions,
-  defaultEmWidth: 10,
+  defaultEmWidth: 9,
   columnClass: null,
   getValue: (row: QueryRow) => _toItalic(row.speciesName)
 });
 setColumnInfo({
   columnID: QueryColumnID.Subspecies,
-  fullName: 'Subspecies',
-  abbrName: null,
+  fullName: 'Subspecies Epithet',
+  abbrName: 'Subspecies',
   description: 'Infraspecific epithet determined for the specimen',
   defaultSelection: false,
   column1: 'subspecies_name',
   column2: 'subspecies_id',
   options: nullableOptions,
-  defaultEmWidth: 10,
+  defaultEmWidth: 9,
   columnClass: null,
   getValue: (row: QueryRow) => _toItalic(row.subspeciesName)
 });
@@ -516,7 +516,7 @@ setColumnInfo({
     { text: 'Yes', sql: 'X is not null' },
     { text: 'No', sql: 'X is null' }
   ],
-  defaultEmWidth: 8,
+  defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => (row.obligate ? 'Yes' : 'No')
 });
@@ -529,7 +529,7 @@ setColumnInfo({
   column1: 'county_name',
   column2: 'county_id',
   options: nullableOptions,
-  defaultEmWidth: 16,
+  defaultEmWidth: 12,
   columnClass: null,
   getValue: (row: QueryRow) => row.countyName || ''
 });
@@ -554,7 +554,7 @@ setColumnInfo({
   defaultSelection: false,
   column1: 'latitude',
   options: nullableOptions,
-  defaultEmWidth: 3,
+  defaultEmWidth: 6,
   columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.latitude)
 });
@@ -566,7 +566,7 @@ setColumnInfo({
   defaultSelection: false,
   column1: 'longitude',
   options: nullableOptions,
-  defaultEmWidth: 3,
+  defaultEmWidth: 6,
   columnClass: null,
   getValue: (row: QueryRow) => getNumber(row.longitude)
 });
