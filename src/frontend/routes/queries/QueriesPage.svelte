@@ -484,6 +484,7 @@
 
   #results_header {
     border-bottom: 1px solid #888;
+    overflow: hidden;
   }
 
   #results_grid,
