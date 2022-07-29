@@ -146,8 +146,7 @@ function getAppInfo() {
     appInfo = {
       appTitle: process.env.CAVESITE_TITLE!,
       appSubtitle: process.env.CAVESITE_SUBTITLE!,
-      hiddenRoutes,
-      preloadData: process.env.CAVESITE_PRELOAD_DATA == 'yes'
+      hiddenRoutes
     };
   }
   return appInfo;

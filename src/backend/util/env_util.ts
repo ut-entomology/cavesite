@@ -84,13 +84,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
     errors.push('CAVESITE_DB_PASSWORD - missing');
   }
 
-  // Normalize CAVESITE_PRELOAD_DATA -- unused
-  // CAVESITE_PRELOAD_DATA - Whether to have pages open showing data ('yes' or 'true').
-  // const preloadData = process.env.CAVESITE_PRELOAD_DATA?.trim().toLowerCase();
-  // process.env.CAVESITE_PRELOAD_DATA = ['yes', 'true', 'on'].includes(preloadData!)
-  //   ? 'yes'
-  //   : 'no';
-
   // Show problems found with environment variables.
 
   if (errors && errors.length > 0) {

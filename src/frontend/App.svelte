@@ -71,8 +71,7 @@
       appInfo.set({
         appTitle: loginInfo.appTitle,
         appSubtitle: loginInfo.appSubtitle,
-        hiddenRoutes: loginInfo.hiddenRoutes,
-        preloadData: loginInfo.preloadData
+        hiddenRoutes: loginInfo.hiddenRoutes
       });
       if (loginInfo.userInfo && loginInfo.expiration) {
         $userInfo = loginInfo.userInfo;

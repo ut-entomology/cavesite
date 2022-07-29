@@ -31,7 +31,6 @@ export interface AppInfo {
   appTitle: string;
   appSubtitle: string;
   hiddenRoutes: string[];
-  preloadData: boolean;
 }
 
 export interface LoginInfo extends AppInfo {
