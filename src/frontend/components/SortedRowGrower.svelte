@@ -1,4 +1,9 @@
 <script lang="ts" context="module">
+  // This component takes an items and a getItems. The distinction is imperfect, as
+  // items are mainly used to detect whether the items have changed. Attempts to
+  // dyanimcally update items upon calls to getItems have to be careful not to cause
+  // an infinite loop of reactive updating.
+
   // the boolean return value indicates whether there are more items
   export type RowItemGetter = (
     count: number,

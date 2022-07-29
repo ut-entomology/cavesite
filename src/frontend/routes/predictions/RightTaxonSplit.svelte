@@ -1,22 +1,11 @@
 <script lang="ts" context="module">
+  import { kingdomPhylumClass, genusSpeciesSubspecies } from '../../../shared/model';
   export interface TaxonItem {
     unique: string;
     visits: number;
     rank?: TaxonRank;
     path?: string;
   }
-
-  export const kingdomPhylumClass = [
-    TaxonRank.Kingdom,
-    TaxonRank.Phylum,
-    TaxonRank.Class
-  ];
-
-  export const genusSpeciesSubspecies = [
-    TaxonRank.Genus,
-    TaxonRank.Species,
-    TaxonRank.Subspecies
-  ];
 
   function toRank(item: TaxonItem): TaxonRank {
     // get around lack of TypeScript support in HTML portion

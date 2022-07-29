@@ -66,7 +66,12 @@ router.post('/query', async (req: Request, res) => {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
   }
-  if (!checkInteger(skip) || !checkInteger(limit) || limit > MAX_BATCH_SIZE) {
+  if (
+    !checkInteger(skip) ||
+    !checkInteger(limit) ||
+    limit < 1 ||
+    limit > MAX_BATCH_SIZE
+  ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 

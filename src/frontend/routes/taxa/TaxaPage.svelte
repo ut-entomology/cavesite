@@ -9,6 +9,7 @@
   import ExpandableSelectableTree from '../../components/ExpandableSelectableTree.svelte';
   import SelectableTaxon from './SelectableTaxon.svelte';
   import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
+  import LocalitiesForTaxa from './LocalitiesForTaxa.svelte';
   import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
   import { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';
   import { type TaxonSpec, createContainingTaxonSpecs } from '../../../shared/model';
@@ -21,6 +22,13 @@
   import { client } from '../../stores/client';
   import { ROOT_TAXON_UNIQUE } from '../../../shared/model';
   import { noTypeCheck } from '../../util/svelte_types';
+  import {
+    type GeneralQuery,
+    type QueryColumnSpec,
+    type QueryRow,
+    QueryColumnID
+  } from '../../../shared/general_query';
+  import { getTaxonFilter } from '../../lib/query_filtering';
 
   $pageName = 'Selected Taxa';
 
@@ -29,6 +37,9 @@
   let rootNode: ExpandableNode<TaxonSpec> | null = null;
   let requestClearConfirmation = false;
   let clearInput: () => void;
+  let locationRows: QueryRow[] = [];
+  let increasingLocationRows = false;
+  let moreLocationsExist = false;
 
   const selectionsTree = new TaxonSelectionsTree(
     $selectedTaxa ? Object.values($selectedTaxa) : []
@@ -49,6 +60,7 @@
       selectionsTree.removeSelection([], rootNode.spec);
       selectedTaxa.set(selectionsTree.getSelectionSpecs());
     }
+    _resetLocations();
     clearInput();
   };
 
@@ -78,6 +90,46 @@
     return containingTaxa;
   }
 
+  async function getLocationRows(
+    count: number,
+    increasing: boolean
+  ): Promise<[QueryRow[], boolean]> {
+    const query = await _createLocationQuery(increasing);
+    if (locationRows.length == 0 || increasing != increasingLocationRows) {
+      try {
+        let res = await $client.post('api/specimen/query', {
+          query,
+          skip: 0,
+          limit: count + 1
+        });
+        locationRows = res.data.rows; // must indicate whether there are more rows
+        moreLocationsExist = locationRows.length > count;
+      } catch (err: any) {
+        locationRows = [];
+      }
+    } else if (count < locationRows.length) {
+      // Don't change locationRows, as that would create an infinite loop of updates.
+      moreLocationsExist = true;
+      return [locationRows.slice(0, count), true];
+    } else if (moreLocationsExist) {
+      count -= locationRows.length;
+      try {
+        let res = await $client.post('api/specimen/query', {
+          query,
+          skip: locationRows.length - 1,
+          limit: count + 1
+        });
+        const rows = res.data.rows;
+        locationRows.push(...rows); // must indicate whether there are more rows
+        moreLocationsExist = rows.length > count;
+      } catch (err: any) {
+        locationRows = [];
+      }
+    }
+    increasingLocationRows = increasing;
+    return [locationRows, moreLocationsExist];
+  }
+
   async function loadSpec(unique: string): Promise<TaxonSpec> {
     let res = await $client.post('api/taxa/pull_list', {
       taxonUniques: [unique]
@@ -93,6 +145,7 @@
     if (spec.taxonID == 0) {
       spec = await loadSpec(spec.unique);
     }
+    _resetLocations();
     selectionsTree.addSelection(spec);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
     if (clear) clearInput();
@@ -103,9 +156,41 @@
     containingTaxa: SpecNode<TaxonSpec>[],
     spec: TaxonSpec
   ) {
+    _resetLocations();
     if (clear) clearInput();
     selectionsTree.removeSelection(containingTaxa, spec);
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
+  }
+
+  async function _createLocationQuery(increasing: boolean): Promise<GeneralQuery> {
+    const columnSpecs: QueryColumnSpec[] = [];
+    columnSpecs.push({
+      columnID: QueryColumnID.RecordCount,
+      ascending: increasing,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.Locality,
+      ascending: true,
+      optionText: null
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.County,
+      ascending: true,
+      optionText: null
+    });
+
+    return {
+      columnSpecs,
+      dateFilter: null,
+      locationFilter: null,
+      taxonFilter: await getTaxonFilter()
+    };
+  }
+
+  function _resetLocations() {
+    locationRows = [];
+    moreLocationsExist = false;
   }
 </script>
 
@@ -147,12 +232,12 @@
       />
     </div>
 
-    <div class="tree_area">
-      {#if !rootNode}
-        <EmptyTab
-          message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
-        />
-      {:else}
+    {#if !rootNode}
+      <EmptyTab
+        message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
+      />
+    {:else}
+      <div class="tree_area">
         <div class="container-fluid gx-1">
           <ExpandableSelectableTree
             bind:this={rootTree}
@@ -168,8 +253,15 @@
             />
           </ExpandableSelectableTree>
         </div>
-      {/if}
-    </div>
+      </div>
+
+      <hr />
+      <LocalitiesForTaxa
+        {locationRows}
+        {getLocationRows}
+        increasing={increasingLocationRows}
+      />
+    {/if}
   </div>
 </DataTabRoute>
 
@@ -211,11 +303,11 @@
     max-width: 30rem;
   }
 
-  :global(.tree_area) {
+  .tree_area {
     margin-bottom: 1.5rem;
   }
 
-  :global(.tree_area .taxon_selector) {
+  .tree_area :global(.taxon_selector) {
     margin-right: 0;
   }
 </style>

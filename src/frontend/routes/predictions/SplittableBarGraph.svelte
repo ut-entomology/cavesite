@@ -1,5 +1,7 @@
 <script lang="ts">
-  import SortedRowGrower, { type RowItemGetter } from './SortedRowGrower.svelte';
+  import SortedRowGrower, {
+    type RowItemGetter
+  } from '../../components/SortedRowGrower.svelte';
   import StatsHeaderRow from './StatsHeaderRow.svelte';
   import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
   import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';

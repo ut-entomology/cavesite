@@ -33,6 +33,18 @@ export enum TaxonRankIndex {
   Subspecies
 }
 
+export const kingdomPhylumClass = [
+  TaxonRank.Kingdom,
+  TaxonRank.Phylum,
+  TaxonRank.Class
+];
+
+export const genusSpeciesSubspecies = [
+  TaxonRank.Genus,
+  TaxonRank.Species,
+  TaxonRank.Subspecies
+];
+
 export const italicRanks = [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies];
 
 export const taxonRanks = Object.values(TaxonRank);

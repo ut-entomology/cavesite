@@ -1,6 +1,6 @@
 <script lang="ts">
   import SplittableBarGraph from './SplittableBarGraph.svelte';
-  import type { RowItemGetter } from './SortedRowGrower.svelte';
+  import type { RowItemGetter } from '../../components/SortedRowGrower.svelte';
   import RightLocationSplit from './RightLocationSplit.svelte';
   import type { Point } from '../../../shared/point';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';

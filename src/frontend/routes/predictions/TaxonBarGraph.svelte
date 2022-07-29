@@ -1,10 +1,11 @@
 <script lang="ts">
   import SplittableBarGraph from './SplittableBarGraph.svelte';
-  import RightTaxonSplit, {
-    type TaxonItem,
+  import RightTaxonSplit, { type TaxonItem } from './RightTaxonSplit.svelte';
+  import {
+    type TaxonSpec,
+    TaxonRankIndex,
     kingdomPhylumClass
-  } from './RightTaxonSplit.svelte';
-  import { type TaxonSpec, TaxonRankIndex } from '../../../shared/model';
+  } from '../../../shared/model';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
   import type { PredictionTierStat } from '../../../frontend-core/clusters/prediction_stats';
   import { client } from '../../stores/client';
