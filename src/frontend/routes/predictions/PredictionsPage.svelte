@@ -36,6 +36,7 @@
   import TabHeader from '../../components/TabHeader.svelte';
   import BusyMessage from '../../common/BusyMessage.svelte';
   import ConfigClustersDialog from './ConfigClustersDialog.svelte';
+  import AboutAccuracyDialog from './AboutAccuracyDialog.svelte';
   import ClusterPieChart from './ClusterPieChart.svelte';
   import ClusterRadarChart from './ClusterRadarChart.svelte';
   import PredictionLookup from './PredictionLookup.svelte';
@@ -107,6 +108,7 @@
   let datasetType = DatasetType.personVisits;
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
+  let showingAboutAccuracy = false;
   let showingAverageModel = false;
   let getLastDeltaSpecies: (locationData: LocationGraphData) => number;
   let getLocationValue: (locationData: LocationGraphData) => number | null;
@@ -436,7 +438,12 @@
                 </div>
               </div>
               <div class="row mt-3 mb-2 text-center">
-                <div class="col">about accuracy</div>
+                <div
+                  class="col link_text"
+                  on:click={() => (showingAboutAccuracy = true)}
+                >
+                  about accuracy
+                </div>
               </div>
             </div>
             <div class="col-md-8">
@@ -657,6 +664,10 @@
     {/if}
   </div>
 </DataTabRoute>
+
+{#if showingAboutAccuracy}
+  <AboutAccuracyDialog close={() => (showingAboutAccuracy = false)} />
+{/if}
 
 {#if clusteringRequest !== null}
   <ConfigClustersDialog

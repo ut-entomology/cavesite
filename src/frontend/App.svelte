@@ -271,6 +271,12 @@
     font-size: 90%;
   }
 
+  .link_text {
+    color: $blueLinkForeColor;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
   // Modals
 
   .dialog {
