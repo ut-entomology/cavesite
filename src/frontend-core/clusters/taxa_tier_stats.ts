@@ -37,47 +37,21 @@ export function generateAvgTaxaTierStats(
     taxonVisitItemsMap[taxon] = taxonVisitItem;
   }
 
-  // Determine the taxa present in the cluster excluding all recent taxa
-  // in all locations. Further limit the taxa to just those involved in
-  // the query, as specified by clusterVisitsByTaxonUnique.
-
-  const baseVisitsByTaxonUnique: Record<string, number> = {};
-  for (const graphData of locationGraphDataSet) {
-    const locationTaxa = Object.assign({}, graphData.visitsByTaxonUnique);
-    for (const recentTaxa of graphData.recentTaxa) {
-      for (const taxon of recentTaxa) {
-        delete locationTaxa[taxon];
-      }
-    }
-    for (const [taxon, visits] of Object.entries(locationTaxa)) {
-      if (clusterVisitsByTaxonUnique[taxon] !== undefined) {
-        const oldVisits = baseVisitsByTaxonUnique[taxon];
-        if (oldVisits === undefined) {
-          baseVisitsByTaxonUnique[taxon] = visits;
-        } else {
-          baseVisitsByTaxonUnique[taxon] = oldVisits + visits;
-        }
-      }
-    }
-  }
-
   // For each location, test historical predictions for that location assuming
   // all other locations remain unchanged, accumulating the statistics.
 
   let maxStatsLength = 0;
   for (const graphData of locationGraphDataSet) {
-    // Determine the taxa available in the cluster, ignoring additions
-    // made the recent visits to the present location.
+    // Determine the taxa found in other caves of the cluster.
 
-    const trialClusterVisitsByTaxonUnique = Object.assign({}, baseVisitsByTaxonUnique);
+    const otherCaveVisitsByTaxonUnique: Record<string, number> = {};
     for (const otherGraphData of locationGraphDataSet) {
       if (otherGraphData !== graphData) {
-        for (const recentTaxa of otherGraphData.recentTaxa) {
-          for (const taxon of recentTaxa) {
-            const visits = clusterVisitsByTaxonUnique[taxon];
-            if (visits !== undefined) {
-              trialClusterVisitsByTaxonUnique[taxon] = visits;
-            }
+        for (const taxon of Object.keys(otherGraphData.visitsByTaxonUnique)) {
+          if (taxonVisitItemsMap[taxon] !== undefined) {
+            let visits = otherCaveVisitsByTaxonUnique[taxon] || 0;
+            visits += otherGraphData.visitsByTaxonUnique[taxon];
+            otherCaveVisitsByTaxonUnique[taxon] = visits;
           }
         }
       }
@@ -88,7 +62,7 @@ export function generateAvgTaxaTierStats(
 
     const taxaStatsGen = new TaxaVisitsStatsGenerator(
       config,
-      trialClusterVisitsByTaxonUnique,
+      otherCaveVisitsByTaxonUnique,
       graphData,
       taxonVisitItems,
       taxonVisitItemsMap
@@ -122,7 +96,7 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
 
   constructor(
     config: ClusteringConfig,
-    clusterVisitsByTaxonUnique: Record<string, number>,
+    otherCaveVisitsByTaxonUnique: Record<string, number>,
     graphData: LocationGraphData,
     taxonVisitItems: TaxonVisitItem[],
     taxonVisitItemsMap: Record<string, TaxonVisitItem>
@@ -157,7 +131,7 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
     // _taxaRemainingInCluster with found in other clusters but not yet found
     // in the present location (before the remaining to-be-tested visits).
 
-    this._taxaRemainingInCluster = Object.assign({}, clusterVisitsByTaxonUnique);
+    this._taxaRemainingInCluster = Object.assign({}, otherCaveVisitsByTaxonUnique);
     for (const taxon of Object.keys(graphData.visitsByTaxonUnique)) {
       if (!taxaRemainingInLocation.includes(taxon)) {
         delete this._taxaRemainingInCluster[taxon];
