@@ -82,7 +82,7 @@
       delay={LOAD_DELAY_MILLIS}
       valueFieldName="unique"
       labelFieldName="unique"
-      placeholder="Enter the name of a cave to see its taxa and predictions"
+      placeholder="Type a cave name and click the loupe for predictions"
       minCharactersToSearch={2}
       hideArrow={true}
       cleanUserText={false}
