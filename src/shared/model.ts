@@ -210,7 +210,7 @@ const PUNCT_REGEX = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_
 
 export const MAX_DAYS_TREATED_AS_PER_PERSON = 3;
 export const TRAP_DAYS_PER_VISIT = 3;
-export const MAX_VISITS_ELIDED = 3;
+export const MAX_VISITS_DOCKED = 3;
 
 export enum EffortFlags {
   missingDate = 0x01,

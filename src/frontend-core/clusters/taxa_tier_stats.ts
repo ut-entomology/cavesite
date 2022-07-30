@@ -3,7 +3,7 @@ import {
   PredictionStatsGenerator,
   computeAverageTierStats
 } from './prediction_stats';
-import { MAX_VISITS_ELIDED } from '../../shared/model';
+import { MAX_VISITS_DOCKED } from '../../shared/model';
 import type { LocationGraphData } from './location_graph_data';
 import type { ClusteringConfig } from './clustering_config';
 
@@ -57,7 +57,7 @@ export function generateAvgTaxaTierStats(
       }
     }
 
-    // Compute the average statistics over the elided visits of this location
+    // Compute the average statistics over the docked visits of this location
     // and incorporate them into the running totals.
 
     const taxaStatsGen = new TaxaVisitsStatsGenerator(
@@ -90,7 +90,7 @@ export function generateAvgTaxaTierStats(
 export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisitItem> {
   taxonVisitItemsMap: Record<string, TaxonVisitItem>;
   private _recentTaxa: string[][];
-  private _visitsElided = MAX_VISITS_ELIDED;
+  private _visitsDocked = MAX_VISITS_DOCKED;
   private _taxaRemainingInCluster: Record<string, number>;
   private _itemsRemainingInLocation: TaxonVisitItem[] = [];
 
@@ -139,8 +139,8 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
     }
   }
 
-  getActualValueSort(_visitsElided: number): TaxonVisitItem[] {
-    // Requires caller to call with greatest number of visits elided first.
+  getActualValueSort(_visitsDocked: number): TaxonVisitItem[] {
+    // Requires caller to call with greatest number of visits docked first.
 
     return this._itemsRemainingInLocation;
   }
@@ -162,20 +162,20 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
     });
   }
 
-  putPredictionsInDataset(visitsElided: number): void {
-    // Requires caller to call with greatest number of visits elided first.
+  putPredictionsInDataset(visitsDocked: number): void {
+    // Requires caller to call with greatest number of visits docked first.
 
     const recentVisits = this._recentTaxa.length;
-    if (recentVisits >= visitsElided) {
-      // Bring the remaining taxa up to date with current visits elided.
-      while (this._visitsElided > 0 && this._visitsElided > visitsElided) {
-        for (const taxon of this._recentTaxa[recentVisits - visitsElided]) {
+    if (recentVisits >= visitsDocked) {
+      // Bring the remaining taxa up to date with current visits docked.
+      while (this._visitsDocked > 0 && this._visitsDocked > visitsDocked) {
+        for (const taxon of this._recentTaxa[recentVisits - visitsDocked]) {
           if (this._taxaRemainingInCluster[taxon] !== undefined) {
             delete this._taxaRemainingInCluster[taxon];
             this._itemsRemainingInLocation.shift();
           }
         }
-        --this._visitsElided;
+        --this._visitsDocked;
       }
     }
 

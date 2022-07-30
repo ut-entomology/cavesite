@@ -1,5 +1,5 @@
 import type { DataOf } from '../../shared/data_of';
-import { MAX_VISITS_ELIDED } from '../../shared/model';
+import { MAX_VISITS_DOCKED } from '../../shared/model';
 import {
   type TaxonCounterData,
   type NamesFieldName,
@@ -93,7 +93,7 @@ export class TaxonVisitCounter extends TaxonCounter {
         this.recentTaxa = this.recentTaxa.split('#');
       }
       this.recentTaxa.push('');
-      if (this.recentTaxa.length > MAX_VISITS_ELIDED) {
+      if (this.recentTaxa.length > MAX_VISITS_DOCKED) {
         this.recentTaxa.shift();
       }
     }

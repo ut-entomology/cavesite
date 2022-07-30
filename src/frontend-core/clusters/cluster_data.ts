@@ -78,11 +78,11 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
     return avgStats;
   }
 
-  getActualValueSort(visitsElided: number): LocationGraphData[] {
+  getActualValueSort(visitsDocked: number): LocationGraphData[] {
     let actualSortSet = this.dataset.slice(this.getIndexOfFirstPrediction());
     actualSortSet.sort((a, b) => {
-      const valueA = this.toActualValue(a, visitsElided);
-      const valueB = this.toActualValue(b, visitsElided);
+      const valueA = this.toActualValue(a, visitsDocked);
+      const valueB = this.toActualValue(b, visitsDocked);
       if (valueA == valueB) return 0;
       return valueB - valueA; // sort highest first
     });
@@ -109,11 +109,11 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
     sortLocationGraphDataSet(this.dataset, this.getPredictedValue.bind(this));
   }
 
-  putPredictionsInDataset(visitsElided: number): void {
+  putPredictionsInDataset(visitsDocked: number): void {
     const sliceSpec = {
       minPointCount: this.minRecentPredictionPoints || 0,
       maxPointCount: this.maxRecentPredictionPoints || Infinity,
-      recentPointsToIgnore: visitsElided
+      recentPointsToIgnore: visitsDocked
     };
     for (const graphData of this.dataset) {
       this.setPredictedDiff(
@@ -126,9 +126,9 @@ export abstract class SpeciesCountStatsGenerator extends PredictionStatsGenerato
     }
   }
 
-  toActualValue(locationGraphData: LocationGraphData, visitsElided: number): number {
+  toActualValue(locationGraphData: LocationGraphData, visitsDocked: number): number {
     const points = this.getAllPoints(locationGraphData);
-    const nextIndex = points.length - visitsElided;
+    const nextIndex = points.length - visitsDocked;
     const [prior, next] = [points[nextIndex - 1], points[nextIndex]];
     return (next.y - prior.y) / (next.x - prior.x);
   }

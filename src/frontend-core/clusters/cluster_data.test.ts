@@ -131,30 +131,30 @@ test('delta species predictions', () => {
 
 test('too few points to make predictions', () => {
   let config = baseConfig;
-  let visitsElided = 1;
+  let visitsDocked = 1;
 
   // prettier-ignore
   let dataset = [_makeGraphData(1, [[1, 1]])];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(visitsElided);
-  let stats = statsGen._computePredictionTierStats(visitsElided);
+  statsGen.putPredictionsInDataset(visitsDocked);
+  let stats = statsGen._computePredictionTierStats(visitsDocked);
   expect(stats).toBeNull();
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2]])];
   statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(visitsElided);
-  stats = statsGen._computePredictionTierStats(visitsElided);
+  statsGen.putPredictionsInDataset(visitsDocked);
+  stats = statsGen._computePredictionTierStats(visitsDocked);
   expect(stats).toBeNull();
 
   config = Object.assign({}, config, { predictionHistorySampleDepth: 3 });
-  visitsElided = 3;
+  visitsDocked = 3;
 
   // prettier-ignore
   dataset = [_makeGraphData(1, [[1, 1], [2, 2], [3,3]])];
   statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(visitsElided);
-  stats = statsGen._computePredictionTierStats(visitsElided);
+  statsGen.putPredictionsInDataset(visitsDocked);
+  stats = statsGen._computePredictionTierStats(visitsDocked);
   expect(stats).toBeNull();
 
   // prettier-ignore
@@ -163,8 +163,8 @@ test('too few points to make predictions', () => {
     _makeGraphData(1, [[1, 1], [2, 2], [3,3]])
   ];
   statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
-  statsGen.putPredictionsInDataset(visitsElided);
-  stats = statsGen._computePredictionTierStats(visitsElided);
+  statsGen.putPredictionsInDataset(visitsDocked);
+  stats = statsGen._computePredictionTierStats(visitsDocked);
   expect(stats).toBeNull();
 });
 
@@ -181,25 +181,25 @@ test('increasing prediction history depth', () => {
   ];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
 
-  let visitsElided = 1;
-  statsGen.putPredictionsInDataset(visitsElided);
-  let actualStats = statsGen._computePredictionTierStats(visitsElided);
+  let visitsDocked = 1;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  let actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [1, 2]);
   // prettier-ignore
   let expectedStats = _makeTierStats([[1, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
-  visitsElided = 2;
-  statsGen.putPredictionsInDataset(visitsElided);
-  actualStats = statsGen._computePredictionTierStats(visitsElided);
+  visitsDocked = 2;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[0, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
-  visitsElided = 3;
-  statsGen.putPredictionsInDataset(visitsElided);
-  actualStats = statsGen._computePredictionTierStats(visitsElided);
+  visitsDocked = 3;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[1, 1], [1, 2]]);
@@ -220,26 +220,26 @@ test('predictions tiers in presence of too few points', () => {
     ];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(config, dataset);
 
-  let visitsElided = 1;
-  statsGen.putPredictionsInDataset(visitsElided);
-  let actualStats = statsGen._computePredictionTierStats(visitsElided);
+  let visitsDocked = 1;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  let actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [3, 1, 2]);
   // prettier-ignore
   let expectedStats = _makeTierStats([[1, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
-  visitsElided = 2;
-  statsGen.putPredictionsInDataset(visitsElided);
-  actualStats = statsGen._computePredictionTierStats(visitsElided);
+  visitsDocked = 2;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [3, 2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[0, 1], [1, 2]]);
   expect(actualStats).toEqual(expectedStats);
 
   statsGen = new PerVisitSpeciesCountStatsGenerator(baseConfig, dataset);
-  visitsElided = 3;
-  statsGen.putPredictionsInDataset(visitsElided);
-  actualStats = statsGen._computePredictionTierStats(visitsElided);
+  visitsDocked = 3;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [3, 2, 1]);
   // prettier-ignore
   expectedStats = _makeTierStats([[1, 1], [1, 2]]);
@@ -257,25 +257,25 @@ test('predictions having zero delta species', () => {
     ];
   let statsGen = new PerVisitSpeciesCountStatsGenerator(baseConfig, dataset);
 
-  let visitsElided = 1;
-  statsGen.putPredictionsInDataset(visitsElided);
-  let actualStats = statsGen._computePredictionTierStats(visitsElided);
+  let visitsDocked = 1;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  let actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [1, 2, 3]);
   // prettier-ignore
   let expectedStats = _makeTierStats([[1, 1], [1, 2], [1, 3]]);
   expect(actualStats).toEqual(expectedStats);
 
-  visitsElided = 2;
-  statsGen.putPredictionsInDataset(visitsElided);
-  actualStats = statsGen._computePredictionTierStats(visitsElided);
+  visitsDocked = 2;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [2, 1, 3]);
   // prettier-ignore
   expectedStats = _makeTierStats([[0, 1], [1, 2], [1, 3]]);
   expect(actualStats).toEqual(expectedStats);
 
-  visitsElided = 3;
-  statsGen.putPredictionsInDataset(visitsElided);
-  actualStats = statsGen._computePredictionTierStats(visitsElided);
+  visitsDocked = 3;
+  statsGen.putPredictionsInDataset(visitsDocked);
+  actualStats = statsGen._computePredictionTierStats(visitsDocked);
   _checkSortOrder(dataset, [2, 1, 3]);
   // prettier-ignore
   expectedStats = _makeTierStats([[1, 1], [1, 2], [1, 3]]);

@@ -18,10 +18,10 @@ export abstract class PredictionStatsGenerator<T> {
     this.dataset = dataset;
   }
 
-  abstract getActualValueSort(visitsElided: number): T[];
+  abstract getActualValueSort(visitsDocked: number): T[];
   abstract getIndexOfFirstPrediction(): number;
   abstract getItemUnique(dataItem: T): string | number;
-  abstract putPredictionsInDataset(visitsElided: number): void;
+  abstract putPredictionsInDataset(visitsDocked: number): void;
   abstract sortDatasetByPredictions(): void;
 
   computeAverageStats(): PredictionTierStat[] {
@@ -39,23 +39,23 @@ export abstract class PredictionStatsGenerator<T> {
 
     // Test predictions for the most recent predictionHistorySampleDepth prior to
     // the current last point, averaging the results at each prediction tier. The
-    // number of visits elided is the number of most recent actual points
+    // number of visits docked is the number of most recent actual points
     // assumed to not yet have been collected for the purpose of the test. Each
     // subsequent point thus serves as a test of the prior prediction.
 
     let maxTierStats = 0;
     for (
-      let visitsElided = this.predictionHistorySampleDepth;
-      visitsElided > 0;
-      --visitsElided
+      let visitsDocked = this.predictionHistorySampleDepth;
+      visitsDocked > 0;
+      --visitsDocked
     ) {
       // Put the predictions directly into the data items.
 
-      this.putPredictionsInDataset(visitsElided);
+      this.putPredictionsInDataset(visitsDocked);
 
-      // Compute the tier stats for the current number of visits elided.
+      // Compute the tier stats for the current number of visits docked.
 
-      const tierStats = this._computePredictionTierStats(visitsElided);
+      const tierStats = this._computePredictionTierStats(visitsDocked);
 
       // Add the points to the averaging structure, but weighting each tier stat
       // within the average according to its number of contributing data items.
@@ -86,7 +86,7 @@ export abstract class PredictionStatsGenerator<T> {
     return averageTierStats;
   }
 
-  _computePredictionTierStats(visitsElided: number): PredictionTierStat[] | null {
+  _computePredictionTierStats(visitsDocked: number): PredictionTierStat[] | null {
     // Sort the dataset most-predicted species first.
 
     this.sortDatasetByPredictions();
@@ -103,7 +103,7 @@ export abstract class PredictionStatsGenerator<T> {
 
     // Sort the datasets having predictions by the actual species values.
 
-    let actualSortSet = this.getActualValueSort(visitsElided);
+    let actualSortSet = this.getActualValueSort(visitsDocked);
     actualSortSet = actualSortSet.slice(0, this.maxPredictionTiers);
 
     // Tally the offsets of each expected unique in the actual sort set, setting
