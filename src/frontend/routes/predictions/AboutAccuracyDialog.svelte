@@ -196,8 +196,26 @@
     N prediction, according to historical data. The page reports these fractions as
     percentages. For example, a top 5 accuracy of 25% would mean that 25% of the taxa
     shown in the top N group can be expected to be among the next N taxa found in the
-    cave, according to historical data.
+    cave, according to historical data. However, due to predictions of no taxa having
+    zero weight in fraction averaging, this technique only assesses which taxa can be
+    found when there are additional taxa to be found; one should instead look at
+    predictions of number of additional species for determining how many taxa remain.
   </p>
 
-  <h3>caveats</h3>
+  <h3>Caveat</h3>
+
+  <p>
+    This page makes predictions of numbers of additional species based on data that does
+    not reflect all visits made to the caves. The algorithms are only aware of visits
+    for which at least one specimen was collected and deposited in the UT Austin
+    collection. Cave researcher James Reddell explains that there are many visits for
+    which no specimens are collected, either because none were found or because none of
+    interest were found. As a result, predictions of numbers of additional species
+    should be treated as best-case scenarios. However, predictions for caves that are
+    known to be regularly sampled can be treated as potentially more accurate.
+  </p>
+  <p>
+    This caveat does not apply to predictions of the taxa that remain to be found in a
+    cave, because these predictions already ignore visits for which no taxa are found.
+  </p>
 </InfoDialog>
