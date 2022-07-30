@@ -42,7 +42,9 @@
           pointCount += pointSet.length;
         }
       } else {
-        pointSets.push(graphSpec.pointExtractor(graphData));
+        const pointSet = graphSpec.pointExtractor(graphData);
+        pointSets.push(pointSet);
+        pointCount += pointSet.length;
       }
     }
 
