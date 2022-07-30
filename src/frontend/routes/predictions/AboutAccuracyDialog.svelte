@@ -16,7 +16,7 @@
     per-cluster basis.
   </p>
 
-  <h3>Predicting number of additional species (+spp.)</h3>
+  <h3>Predicting numbers of additional species (+spp.)</h3>
 
   <p>
     Predictions of the number of additional species expected to be found are made
@@ -198,8 +198,54 @@
     shown in the top N group can be expected to be among the next N taxa found in the
     cave, according to historical data. However, due to predictions of no taxa having
     zero weight in fraction averaging, this technique only assesses which taxa can be
-    found when there are additional taxa to be found; one should instead look at
+    found when there are additional taxa to be found; you should instead look at
     predictions of number of additional species for determining how many taxa remain.
+  </p>
+
+  <h3>Accuracy Summary and Overall Accuracy</h3>
+
+  <p>
+    The accuracy summary and overall accuracy percentages provide measures of the
+    accuracy of the clustering itself, encompassing the predictions made for all of the
+    clusters. You can glance at these numbers when experimenting with clusterings to
+    find one that might be suitable, sparing you from having to examine the clusters in
+    detail.
+  </p>
+  <p>
+    Top 10 and Top 20 summary accuracies of predicted numbers of additional species are
+    given for both visits ("+spp. next visit") and person visits ("+spp. next
+    person-visit"). The Top 10 summary accuracy is the average top 10 accuracy
+    associated with the clusters, weighted by the number of caves in each cluster. If a
+    cluster does not have enough predictions for a top 10 accuracy, the nearest lower
+    top N accuracy is used instead. The Top 20 sumary accuracy is the average top 20
+    accuracy associated with the clusters, also weighted by the number of caves in each
+    cluster. If a cluster does not have enough predictions for a top 20 accuracy, the
+    nearest lower to N accuracy greater than 10 is used instead, if there is any.
+  </p>
+  <p>
+    Top 3 and Top 6 summary accuracies of predicted remaining taxa are also given
+    ("+taxa per cave"). The Top 3 summary accuracy is the average top 3 accuracy
+    associated with the clusters, weighted by the number of caves in each cluster. If a
+    cluster does not have enough predictions for a top 3 accuracy, the nearest lower top
+    N accuracy is used instead. The Top 6 sumary accuracy is the average top 6 accuracy
+    associated with the clusters, also weighted by the number of caves in each cluster.
+    If a cluster does not have enough predictions for a top 6 accuracy, the nearest
+    lower to N accuracy greater than 3 is used instead, if there is any.
+  </p>
+  <p>
+    The overall accuracy of predicted numbers of additional species ("+spp.") is a
+    function of a number computed for the Top 10 and Top 20 visit summary accuracies and
+    a number computed for the Top 10 and Top 20 person-visit summary accuracies. For
+    each pair of summary accuracies, if the Top 20 accuracy is zero, the number is the
+    Top 10 accuracy. Otherwise, the number is the average of the Top 10 and Top 20
+    accuracies. The overall accuracy of predicted numbers of additional species is the
+    greater of these two numbers.
+  </p>
+  <p>
+    The overall accuracy of predicted remaining taxa is a function of the Top 3 and Top
+    6 summary accuracies for predicted remaining taxa. If the Top 6 accuracy is zero,
+    the overall accuracy is the Top 3 accuracy. Otherwise, the overall accuracy is the
+    average of the Top 3 and Top 6 accuracies.
   </p>
 
   <h3>Caveat</h3>
