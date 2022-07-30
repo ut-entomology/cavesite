@@ -144,7 +144,7 @@
           class="form-check-input"
         />
         <label class="form-check-label" for="proximity_checkbox"
-          ><b>Use proximity</b> to select among equally similar clusters</label
+          ><b>Use proximity</b> to place caves among equally similar clusters</label
         >
       </div>
     </div>

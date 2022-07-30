@@ -66,20 +66,29 @@
   $pageName = 'Collecting Predictions';
   const tabName = 'Predictions';
 
-  const MAX_CLUSTERS = 10;
   const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
-  const PREDICTION_TIERS = 50;
+
+  const DEFAULT_CLUSTERING_CONFIG = {
+    maxClusters: 12,
+    comparedFauna: ComparedFauna.generaHavingCaveObligates,
+    highestComparedRank: TaxonRank.Species,
+    proximityResolution: false,
+    minRecentPredictionPoints: 4,
+    maxRecentPredictionPoints: 12,
+    predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
+    maxPredictionTiers: 50
+  };
 
   const clusterSpec = {
-    comparedFauna: ComparedFauna.generaHavingCaveObligates,
+    comparedFauna: ComparedFauna.all, // ignored; overwritten
     minSpecies: 0,
     maxSpecies: 10000,
     metric: {
       basis: DissimilarityBasis.diffTaxa,
       transform: DissimilarityTransform.none,
-      highestComparedRank: TaxonRank.Genus,
+      highestComparedRank: TaxonRank.Species, // ignored; overwritten
       weight: TaxonWeight.halfAgainWeight,
-      proximityResolution: false
+      proximityResolution: false // ignored; overwritten
     }
   };
 
@@ -305,16 +314,7 @@
     if ($clusterStore) {
       clusteringRequest = $clusterStore.config;
     } else {
-      clusteringRequest = {
-        maxClusters: MAX_CLUSTERS,
-        comparedFauna: ComparedFauna.generaHavingCaveObligates,
-        highestComparedRank: TaxonRank.Genus,
-        proximityResolution: false,
-        minRecentPredictionPoints: 3,
-        maxRecentPredictionPoints: 12,
-        predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
-        maxPredictionTiers: PREDICTION_TIERS
-      };
+      clusteringRequest = DEFAULT_CLUSTERING_CONFIG;
     }
   }
 
@@ -402,7 +402,7 @@
         max. <span>{$clusterStore.config.maxClusters}</span> clusters, comparing
         <span>
           {#if clusterSpec.comparedFauna == ComparedFauna.all}
-            all taxa
+            all fauna
           {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
             cave obligates
           {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
