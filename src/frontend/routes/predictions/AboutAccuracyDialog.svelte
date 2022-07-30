@@ -242,10 +242,10 @@
     greater of these two numbers.
   </p>
   <p>
-    The overall accuracy of predicted remaining taxa is a function of the Top 3 and Top
-    6 summary accuracies for predicted remaining taxa. If the Top 6 accuracy is zero,
-    the overall accuracy is the Top 3 accuracy. Otherwise, the overall accuracy is the
-    average of the Top 3 and Top 6 accuracies.
+    The overall accuracy of predicted remaining taxa ("+taxa") is a function of the Top
+    3 and Top 6 summary accuracies for predicted remaining taxa. If the Top 6 accuracy
+    is zero, the overall accuracy is the Top 3 accuracy. Otherwise, the overall accuracy
+    is the average of the Top 3 and Top 6 accuracies.
   </p>
 
   <h3>Caveat</h3>
