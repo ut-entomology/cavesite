@@ -50,6 +50,7 @@
   import EmptyTab from '../../components/EmptyTab.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
+    PREDICTION_HISTORY_SAMPLE_DEPTH,
     TaxonRank,
     DissimilarityBasis,
     DissimilarityTransform,
@@ -66,8 +67,6 @@
 
   $pageName = 'Collecting Predictions';
   const tabName = 'Predictions';
-
-  const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
 
   const DEFAULT_CLUSTERING_CONFIG = {
     maxClusters: 12,
