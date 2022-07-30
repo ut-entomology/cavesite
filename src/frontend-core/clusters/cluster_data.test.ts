@@ -13,7 +13,7 @@ import {
 const baseConfig: ClusteringConfig = {
   maxClusters: 2,
   // @ts-ignore unused param
-  comparedTaxa: null,
+  comparedFauna: null,
   // @ts-ignore unused param
   highestComparedRank: null,
   minRecentPredictionPoints: 2,

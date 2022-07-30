@@ -10,7 +10,7 @@ import {
   DissimilarityMetric,
   DissimilarityTransform,
   TaxonWeight,
-  ComparedTaxa,
+  ComparedFauna,
   type TaxaCluster
 } from '../../shared/model';
 import { Clusterer } from './clusterer';
@@ -64,7 +64,7 @@ beforeAll(async () => {
 test('selecting seed locations comparing all taxa', async () => {
   const clusterer = createClusterer(db, {
     metric: minusDiffMetric1,
-    comparedTaxa: ComparedTaxa.all
+    comparedFauna: ComparedFauna.all
   });
   const effortSpecs: EffortSpec[] = [];
 
@@ -197,7 +197,7 @@ test('selecting seed locations comparing all taxa', async () => {
 test('clustering at all taxonomic ranks', async () => {
   const clusterer = createClusterer(db, {
     metric: commonMinusDiffMetric1,
-    comparedTaxa: ComparedTaxa.all
+    comparedFauna: ComparedFauna.all
   });
   const effortSpecs: EffortSpec[] = [];
 
@@ -284,7 +284,7 @@ test('clustering identical taxa by physical proxomity', async () => {
   const metric = Object.assign(commonMinusDiffMetric1, { proximityResolution: true });
   const clusterer = createClusterer(db, {
     metric,
-    comparedTaxa: ComparedTaxa.all
+    comparedFauna: ComparedFauna.all
   });
   const effortSpecs: EffortSpec[] = [];
   const partialTallies = {
@@ -362,11 +362,11 @@ afterAll(async () => {
 });
 
 async function _addEfforts(effortSpecs: EffortSpec[]): Promise<void> {
-  await LocationEffort.dropAll(db, ComparedTaxa.all);
+  await LocationEffort.dropAll(db, ComparedFauna.all);
   for (const effortSpec of effortSpecs) {
     await LocationEffort.create(
       db,
-      ComparedTaxa.all,
+      ComparedFauna.all,
       {
         locationID: effortSpec.locationID,
         countyName: 'Dummy County',
@@ -379,7 +379,7 @@ async function _addEfforts(effortSpecs: EffortSpec[]): Promise<void> {
       _toTallies(effortSpec.partialTallies)
     );
   }
-  await LocationEffort.commit(db, ComparedTaxa.all);
+  await LocationEffort.commit(db, ComparedFauna.all);
 }
 
 function _checkClusters(

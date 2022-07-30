@@ -5,7 +5,7 @@ import { Location } from '../backend/model/location';
 import { type SpecimenSource, Specimen } from '../backend/model/specimen';
 import { LocationVisit } from '../backend/effort/location_visit';
 import { LocationEffort } from '../backend/effort/location_effort';
-import { comparedTaxa } from '../shared/model';
+import { comparedFauna } from '../shared/model';
 
 export async function loadDB(
   getNextSpecimenSource: () => Promise<SpecimenSource | null>
@@ -28,7 +28,7 @@ export async function loadDB(
 
   // Tally and commit location effort data.
 
-  for (const compare of comparedTaxa) {
+  for (const compare of comparedFauna) {
     await LocationEffort.tallyEffort(db, compare);
     // Commit data as the process proceeds.
     await LocationVisit.commit(db, compare);
@@ -54,7 +54,7 @@ async function _loadSpecimens(
     try {
       const specimen = await Specimen.create(db, specimenSource);
       if (specimen) {
-        for (const compare of comparedTaxa) {
+        for (const compare of comparedFauna) {
           await LocationVisit.addSpecimen(db, compare, specimen);
         }
       } else {

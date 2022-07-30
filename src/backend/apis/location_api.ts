@@ -8,8 +8,8 @@ import { LocationEffort } from '../effort/location_effort';
 import {
   type LocationSpec,
   type RawLocationEffort,
-  ComparedTaxa,
-  checkComparedTaxa,
+  ComparedFauna,
+  checkComparedFauna,
   MIN_LOOKUP_CHAR_LENGTH
 } from '../../shared/model';
 
@@ -35,13 +35,13 @@ router.post('/pull_children', async (req: Request, res) => {
 
 router.post('/pull_effort', async (req: Request, res) => {
   const locationIDs: number[] = req.body.locationIDs;
-  const comparedTaxa: ComparedTaxa = req.body.comparedTaxa;
-  if (!checkComparedTaxa(comparedTaxa) || !checkIntegerList(locationIDs)) {
+  const comparedFauna: ComparedFauna = req.body.comparedFauna;
+  if (!checkComparedFauna(comparedFauna) || !checkIntegerList(locationIDs)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
   const efforts = await LocationEffort.getByLocationIDs(
     getDB(),
-    comparedTaxa,
+    comparedFauna,
     locationIDs
   );
   return res

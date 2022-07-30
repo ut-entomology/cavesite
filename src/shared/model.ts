@@ -283,16 +283,16 @@ export interface DissimilarityMetric {
   proximityResolution: boolean;
 }
 
-export enum ComparedTaxa {
+export enum ComparedFauna {
   all = 'all_taxa',
   caveObligates = 'cave_obligates',
   generaHavingCaveObligates = 'cave_genera'
 }
-export const comparedTaxa = Object.values(ComparedTaxa);
+export const comparedFauna = Object.values(ComparedFauna);
 
 export interface ClusterSpec {
   metric: DissimilarityMetric;
-  comparedTaxa?: ComparedTaxa;
+  comparedFauna?: ComparedFauna;
   minSpecies?: number;
   maxSpecies?: number;
 }
@@ -302,6 +302,6 @@ export interface TaxaCluster {
   locationIDs: number[];
 }
 
-export function checkComparedTaxa(comparedTaxa: ComparedTaxa | undefined): boolean {
-  return comparedTaxa === undefined || comparedTaxa.includes(comparedTaxa);
+export function checkComparedFauna(comparedFauna: ComparedFauna | undefined): boolean {
+  return comparedFauna === undefined || comparedFauna.includes(comparedFauna);
 }

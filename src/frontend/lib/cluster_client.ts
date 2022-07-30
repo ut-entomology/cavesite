@@ -4,7 +4,7 @@ import type {
   RawLocationEffort,
   LocationSpec,
   ClusterSpec,
-  ComparedTaxa,
+  ComparedFauna,
   TaxaCluster
 } from '../../shared/model';
 
@@ -40,7 +40,7 @@ export async function sortIntoClusters(
 
 export async function loadPoints(
   client: AxiosInstance,
-  effortComparedTaxa: ComparedTaxa,
+  effortComparedFauna: ComparedFauna,
   taxaClusters: TaxaCluster[]
 ): Promise<RawLocationEffort[][]> {
   const resultsByCluster: RawLocationEffort[][] = [];
@@ -48,7 +48,7 @@ export async function loadPoints(
     if (taxaCluster.locationIDs.length > 0) {
       const res = await client.post('api/location/pull_effort', {
         locationIDs: taxaCluster.locationIDs,
-        comparedTaxa: effortComparedTaxa
+        comparedFauna: effortComparedFauna
       });
       resultsByCluster.push(res.data.efforts);
     }

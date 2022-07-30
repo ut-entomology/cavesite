@@ -1,8 +1,8 @@
-import type { TaxonRank, ComparedTaxa } from '../../shared/model';
+import type { TaxonRank, ComparedFauna } from '../../shared/model';
 
 export interface ClusteringConfig {
   maxClusters: number;
-  comparedTaxa: ComparedTaxa;
+  comparedFauna: ComparedFauna;
   highestComparedRank: TaxonRank;
   proximityResolution: boolean;
   minRecentPredictionPoints: number | null;

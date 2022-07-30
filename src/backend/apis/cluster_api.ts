@@ -9,7 +9,7 @@ import { checkBoolean, checkInteger, checkIntegerList } from '../util/http_util'
 import {
   MAX_ALLOWED_CLUSTERS,
   ClusterSpec,
-  checkComparedTaxa,
+  checkComparedFauna,
   DissimilarityMetric,
   DissimilarityBasis,
   DissimilarityTransform,
@@ -57,7 +57,7 @@ router.post('/pull_clusters', async (req: Request, res) => {
 function _checkClusterSpec(clusterSpec: ClusterSpec): boolean {
   return (
     _checkMetric(clusterSpec.metric) &&
-    checkComparedTaxa(clusterSpec.comparedTaxa) &&
+    checkComparedFauna(clusterSpec.comparedFauna) &&
     checkInteger(clusterSpec.minSpecies!) &&
     clusterSpec.minSpecies! >= 0 &&
     checkInteger(clusterSpec.maxSpecies!) &&

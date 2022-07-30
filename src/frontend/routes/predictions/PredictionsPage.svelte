@@ -53,7 +53,7 @@
     DissimilarityBasis,
     DissimilarityTransform,
     TaxonWeight,
-    ComparedTaxa,
+    ComparedFauna,
     EffortFlags
   } from '../../../shared/model';
   import { client } from '../../stores/client';
@@ -71,7 +71,7 @@
   const PREDICTION_TIERS = 50;
 
   const clusterSpec = {
-    comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
+    comparedFauna: ComparedFauna.generaHavingCaveObligates,
     minSpecies: 0,
     maxSpecies: 10000,
     metric: {
@@ -121,7 +121,7 @@
 
   // Handle load of new cluster.
   $: if ($clusterStore) {
-    clusterSpec.comparedTaxa = $clusterStore.config.comparedTaxa;
+    clusterSpec.comparedFauna = $clusterStore.config.comparedFauna;
     clusterSpec.metric.highestComparedRank = $clusterStore.config.highestComparedRank;
     clusterSpec.metric.proximityResolution = $clusterStore.config.proximityResolution;
 
@@ -238,7 +238,7 @@
   async function _loadData(config: ClusteringConfig) {
     clusterStore.set(null);
 
-    clusterSpec.comparedTaxa = config.comparedTaxa;
+    clusterSpec.comparedFauna = config.comparedFauna;
     clusterSpec.metric.highestComparedRank = config.highestComparedRank;
     clusterSpec.metric.proximityResolution = config.proximityResolution;
 
@@ -254,7 +254,7 @@
       loadState = LoadState.loadingData;
       const rawClientEffortSetByCluster = await loadPoints(
         $client,
-        config.comparedTaxa,
+        config.comparedFauna,
         taxaClusters
       );
       const locationGraphDataSetByCluster = toLocationGraphDataSetByCluster(
@@ -307,7 +307,7 @@
     } else {
       clusteringRequest = {
         maxClusters: MAX_CLUSTERS,
-        comparedTaxa: ComparedTaxa.generaHavingCaveObligates,
+        comparedFauna: ComparedFauna.generaHavingCaveObligates,
         highestComparedRank: TaxonRank.Genus,
         proximityResolution: false,
         minRecentPredictionPoints: 3,
@@ -389,11 +389,11 @@
 
       <div class="cluster_title">
         {totalCaves} caves having
-        {#if clusterSpec.comparedTaxa == ComparedTaxa.all}
+        {#if clusterSpec.comparedFauna == ComparedFauna.all}
           any taxon,
-        {:else if clusterSpec.comparedTaxa == ComparedTaxa.caveObligates}
+        {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
           cave obligates,
-        {:else if clusterSpec.comparedTaxa == ComparedTaxa.generaHavingCaveObligates}
+        {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
           genera of cave obligates,
         {/if}
         {$clusterStore.dataByCluster.length} clusters
@@ -401,11 +401,11 @@
       <div class="cluster_params">
         max. <span>{$clusterStore.config.maxClusters}</span> clusters, comparing
         <span>
-          {#if clusterSpec.comparedTaxa == ComparedTaxa.all}
+          {#if clusterSpec.comparedFauna == ComparedFauna.all}
             all taxa
-          {:else if clusterSpec.comparedTaxa == ComparedTaxa.caveObligates}
+          {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
             cave obligates
-          {:else if clusterSpec.comparedTaxa == ComparedTaxa.generaHavingCaveObligates}
+          {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
             genera of cave obligates
           {/if}
         </span>

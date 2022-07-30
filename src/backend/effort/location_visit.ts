@@ -6,7 +6,7 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
-import { EffortFlags, ComparedTaxa, toSpeciesAndSubspecies } from '../../shared/model';
+import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
 import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligates';
 import { partialDateHasMonth } from '../../shared/time_query';
@@ -44,9 +44,9 @@ export class LocationVisit extends TaxonCounter {
 
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
 
-  async save(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
+  async save(db: DB, comparedFauna: ComparedFauna): Promise<void> {
     const result = await db.query(
-      `insert into ${comparedTaxa}_for_visits(
+      `insert into ${comparedFauna}_for_visits(
             location_id, is_cave, start_date, start_epoch_day, end_date, end_epoch_day,
             flags, normalized_collectors, kingdom_names, kingdom_counts,
             phylum_names, phylum_counts, class_names, class_counts,
@@ -109,24 +109,24 @@ export class LocationVisit extends TaxonCounter {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
-  static async commit(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
-    await db.query(`delete from ${comparedTaxa}_for_visits where committed=true`);
-    await db.query(`update ${comparedTaxa}_for_visits set committed=true`);
+  static async commit(db: DB, comparedFauna: ComparedFauna): Promise<void> {
+    await db.query(`delete from ${comparedFauna}_for_visits where committed=true`);
+    await db.query(`update ${comparedFauna}_for_visits set committed=true`);
   }
 
   private static async create(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     data: LocationVisitData
   ): Promise<LocationVisit> {
     const visit = new LocationVisit(data);
-    await visit.save(db, comparedTaxa);
+    await visit.save(db, comparedFauna);
     return visit;
   }
 
   static async addSpecimen(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     specimen: Specimen
   ): Promise<void> {
     const [speciesName, subspeciesName] = toSpeciesAndSubspecies(
@@ -134,8 +134,8 @@ export class LocationVisit extends TaxonCounter {
       specimen.taxonUnique
     );
 
-    switch (comparedTaxa) {
-      case ComparedTaxa.caveObligates:
+    switch (comparedFauna) {
+      case ComparedFauna.caveObligates:
         const caveObligatesMap = getCaveObligatesMap();
         if (
           !(
@@ -148,7 +148,7 @@ export class LocationVisit extends TaxonCounter {
           return; // exclude non-cave obligates
         }
         break;
-      case ComparedTaxa.generaHavingCaveObligates:
+      case ComparedFauna.generaHavingCaveObligates:
         const caveContainingGeneraMap = getCaveContainingGeneraMap();
         if (!specimen.genusName || !caveContainingGeneraMap[specimen.genusName]) {
           return; // exclude genera that don't contain cave obligates
@@ -172,7 +172,7 @@ export class LocationVisit extends TaxonCounter {
 
     const visit = await LocationVisit.getByKey(
       db,
-      comparedTaxa,
+      comparedFauna,
       specimen.localityID,
       endEpochDay,
       specimen.normalizedCollectors
@@ -207,21 +207,21 @@ export class LocationVisit extends TaxonCounter {
           collectorCount: collectors ? collectors.split('|').length : 1
         }
       );
-      await this.create(db, comparedTaxa, visitData);
+      await this.create(db, comparedFauna, visitData);
     } else {
       visit.updateForPathSpec(specimen, speciesName, subspeciesName);
-      await visit.save(db, comparedTaxa);
+      await visit.save(db, comparedFauna);
     }
   }
 
   // for testing purposes...
-  static async dropAll(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
-    await db.query(`delete from ${comparedTaxa}_for_visits`);
+  static async dropAll(db: DB, comparedFauna: ComparedFauna): Promise<void> {
+    await db.query(`delete from ${comparedFauna}_for_visits`);
   }
 
   static async getNextCaveBatch(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     skip: number,
     limit: number
   ): Promise<LocationVisit[]> {
@@ -230,7 +230,7 @@ export class LocationVisit extends TaxonCounter {
     // at the time they are known. I've forgotten why I'm sorting by
     // collectors here -- this may not be necessary.
     const result = await db.query(
-      `select * from ${comparedTaxa}_for_visits
+      `select * from ${comparedFauna}_for_visits
         where is_cave=true and committed=false
         order by location_id, end_epoch_day, normalized_collectors
         limit $1 offset $2`,
@@ -241,13 +241,13 @@ export class LocationVisit extends TaxonCounter {
 
   static async getByKey(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     locationID: number,
     endEpochDay: number,
     normalizedCollectors: string | null
   ): Promise<LocationVisit | null> {
     let result = await db.query(
-      `select * from ${comparedTaxa}_for_visits
+      `select * from ${comparedFauna}_for_visits
         where location_id=$1 and end_epoch_day=$2 and normalized_collectors=$3
           and committed=false`,
       [locationID, endEpochDay, normalizedCollectors]

@@ -4,7 +4,7 @@ import { DatabaseMutex } from '../util/test_util';
 import { Specimen, SpecimenSource } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { LocationEffort } from './location_effort';
-import { ComparedTaxa } from '../../shared/model';
+import { ComparedFauna } from '../../shared/model';
 
 type PartialSpecimenSource = Pick<
   SpecimenSource,
@@ -41,7 +41,7 @@ beforeAll(async () => {
 });
 
 test('tallying species counts per unit effort', async () => {
-  await LocationVisit.dropAll(db, ComparedTaxa.all);
+  await LocationVisit.dropAll(db, ComparedFauna.all);
 
   // Sequentially add specimens to one location from different dates.
 
@@ -1098,7 +1098,7 @@ test('tallying species counts per unit effort', async () => {
 
   let efforts = await LocationEffort.getByLocationIDs(
     db,
-    ComparedTaxa.all,
+    ComparedFauna.all,
     [locationID2],
     false
   );
@@ -1107,7 +1107,7 @@ test('tallying species counts per unit effort', async () => {
 
   efforts = await LocationEffort.getByLocationIDs(
     db,
-    ComparedTaxa.all,
+    ComparedFauna.all,
     [locationID2, locationID1],
     false
   );
@@ -1162,14 +1162,14 @@ async function _addSpecimen(data: PartialSpecimenSource): Promise<Specimen> {
   ++nextCatalogNumber;
   const specimen = await Specimen.create(db, source);
   if (!specimen) throw Error('Invalid specimen');
-  await LocationVisit.addSpecimen(db, ComparedTaxa.all, specimen);
+  await LocationVisit.addSpecimen(db, ComparedFauna.all, specimen);
   return specimen;
 }
 
 async function _getEffort(locationID: number): Promise<LocationEffort> {
   const effort = await LocationEffort.getByLocationIDs(
     db,
-    ComparedTaxa.all,
+    ComparedFauna.all,
     [locationID],
     false
   );
@@ -1177,8 +1177,8 @@ async function _getEffort(locationID: number): Promise<LocationEffort> {
 }
 
 async function _retally(): Promise<void> {
-  await LocationEffort.dropAll(db, ComparedTaxa.all);
-  await LocationEffort.tallyEffort(db, ComparedTaxa.all);
+  await LocationEffort.dropAll(db, ComparedFauna.all);
+  await LocationEffort.tallyEffort(db, ComparedFauna.all);
 }
 
 function _toISODate(dateString: string): string {

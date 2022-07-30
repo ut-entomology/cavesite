@@ -1,6 +1,10 @@
 <script lang="ts">
   import ModalDialog from '../../common/ModalDialog.svelte';
-  import { MAX_ALLOWED_CLUSTERS, TaxonRank, ComparedTaxa } from '../../../shared/model';
+  import {
+    MAX_ALLOWED_CLUSTERS,
+    TaxonRank,
+    ComparedFauna
+  } from '../../../shared/model';
   import type { ClusteringConfig } from '../../../frontend-core/clusters/clustering_config';
 
   const MIN_MIN_POINTS_TO_REGRESS = 2;
@@ -11,7 +15,7 @@
   export let submit: (config: ClusteringConfig) => void;
 
   let maxClusters = config.maxClusters;
-  let comparedTaxa = config.comparedTaxa;
+  let comparedFauna = config.comparedFauna;
   let highestComparedRank = config.highestComparedRank;
   let proximityResolution = config.proximityResolution;
   let minRecentPredictionPoints = config.minRecentPredictionPoints || 0;
@@ -26,7 +30,7 @@
     submit(
       Object.assign({}, config, {
         maxClusters,
-        comparedTaxa,
+        comparedFauna,
         highestComparedRank,
         proximityResolution,
         minRecentPredictionPoints,
@@ -71,18 +75,18 @@
     </div>
     <div class="row mt-3 mb-2 gx-2 align-items-center">
       <div class="col-sm-7">
-        <div><b>Taxa to compare</b> when clustering caves by common fauna</div>
+        <div><b>Fauna to compare</b> when clustering caves by common taxa</div>
       </div>
       <div class="col-sm-5 align-middle">
         <select
-          bind:value={comparedTaxa}
+          bind:value={comparedFauna}
           class="form-select form-select-sm item_select"
         >
-          <option value={ComparedTaxa.all}>All taxa</option>
-          <option value={ComparedTaxa.generaHavingCaveObligates}
+          <option value={ComparedFauna.all}>All fauna</option>
+          <option value={ComparedFauna.generaHavingCaveObligates}
             >Genera of cave obligates</option
           >
-          <option value={ComparedTaxa.caveObligates}>Only cave obligates</option>
+          <option value={ComparedFauna.caveObligates}>Only cave obligates</option>
         </select>
       </div>
     </div>

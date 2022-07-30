@@ -24,16 +24,16 @@
         // shortcut to save processing time
         percentCommonByCluster.push(100);
       } else {
-        const comparedTaxaMap = comparedClusterData.visitsByTaxonUnique;
+        const comparedFaunaMap = comparedClusterData.visitsByTaxonUnique;
         let commonCount = 0;
         for (const taxon of Object.keys(baseTaxaMap)) {
-          if (comparedTaxaMap[taxon]) {
+          if (comparedFaunaMap[taxon]) {
             ++commonCount;
           }
         }
         percentCommonByCluster.push(
           parseFloat(
-            ((100 * commonCount) / Object.keys(comparedTaxaMap).length).toFixed(1)
+            ((100 * commonCount) / Object.keys(comparedFaunaMap).length).toFixed(1)
           )
         );
       }

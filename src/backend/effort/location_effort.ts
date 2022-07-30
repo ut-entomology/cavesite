@@ -13,7 +13,7 @@ import {
   MAX_DAYS_TREATED_AS_PER_PERSON,
   PITFALL_TRAP_DAYS_PER_VISIT,
   EffortFlags,
-  ComparedTaxa,
+  ComparedFauna,
   LocationRankIndex
 } from '../../shared/model';
 
@@ -106,14 +106,14 @@ export class LocationEffort {
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
 
-  static async commit(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
-    await db.query(`delete from ${comparedTaxa}_for_effort where committed=true`);
-    await db.query(`update ${comparedTaxa}_for_effort set committed=true`);
+  static async commit(db: DB, comparedFauna: ComparedFauna): Promise<void> {
+    await db.query(`delete from ${comparedFauna}_for_effort where committed=true`);
+    await db.query(`update ${comparedFauna}_for_effort set committed=true`);
   }
 
   static async create(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     locationInfo: LocationInfo,
     data: LocationEffortData,
     counterData: TaxonVisitCounterData
@@ -152,7 +152,7 @@ export class LocationEffort {
       )
     );
     const result = await db.query(
-      `insert into ${comparedTaxa}_for_effort (
+      `insert into ${comparedFauna}_for_effort (
             location_id, county_name, locality_name, is_cave, latitude, longitude,
             flags, total_visits, total_person_visits, total_species,
             kingdom_names, kingdom_visits, phylum_names, phylum_visits,
@@ -202,18 +202,18 @@ export class LocationEffort {
   }
 
   // for testing purposes...
-  static async dropAll(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
-    await db.query(`delete from ${comparedTaxa}_for_effort`);
+  static async dropAll(db: DB, comparedFauna: ComparedFauna): Promise<void> {
+    await db.query(`delete from ${comparedFauna}_for_effort`);
   }
 
   static async getByLocationIDs(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     locationIDs: number[],
     committed: boolean = true
   ): Promise<LocationEffort[]> {
     const result = await db.query(
-      `select * from ${comparedTaxa}_for_effort
+      `select * from ${comparedFauna}_for_effort
         where location_id=any ($1) and committed=$2`,
       [
         // @ts-ignore
@@ -227,14 +227,14 @@ export class LocationEffort {
 
   static async getNextBatch(
     db: DB,
-    comparedTaxa: ComparedTaxa,
+    comparedFauna: ComparedFauna,
     minSpecies: number,
     maxSpecies: number,
     skip: number,
     limit: number
   ): Promise<LocationEffort[]> {
     const result = await db.query(
-      `select * from ${comparedTaxa}_for_effort
+      `select * from ${comparedFauna}_for_effort
         where total_species between $1 and $2 and committed=true
         order by total_species desc, location_id limit $3 offset $4`,
       [minSpecies, maxSpecies, limit, skip]
@@ -242,7 +242,7 @@ export class LocationEffort {
     return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
   }
 
-  static async tallyEffort(db: DB, comparedTaxa: ComparedTaxa): Promise<void> {
+  static async tallyEffort(db: DB, comparedFauna: ComparedFauna): Promise<void> {
     let priorLocationID = 0;
     let startDate: Date | null = null;
     let effortFlags: EffortFlags;
@@ -258,7 +258,7 @@ export class LocationEffort {
 
     let visits = await LocationVisit.getNextCaveBatch(
       db,
-      comparedTaxa,
+      comparedFauna,
       skipCount,
       VISIT_BATCH_SIZE
     );
@@ -273,7 +273,7 @@ export class LocationEffort {
 
             await this.create(
               db,
-              comparedTaxa,
+              comparedFauna,
               {
                 locationID,
                 countyName,
@@ -348,7 +348,7 @@ export class LocationEffort {
       skipCount += visits.length;
       visits = await LocationVisit.getNextCaveBatch(
         db,
-        comparedTaxa,
+        comparedFauna,
         skipCount,
         VISIT_BATCH_SIZE
       );
@@ -360,7 +360,7 @@ export class LocationEffort {
 
       await this.create(
         db,
-        comparedTaxa,
+        comparedFauna,
         {
           locationID,
           countyName,

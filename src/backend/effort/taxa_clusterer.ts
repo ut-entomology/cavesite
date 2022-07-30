@@ -22,12 +22,12 @@ export interface TaxonTally {
 export type TaxonTallyMap = Record<string, TaxonTally>;
 
 const EFFORT_BATCH_SIZE = 100;
-const sampleLocationIDByComparedTaxa: Record<string, number> = {};
-const cachedTaxonNamesByRankByLocationIDByComparedTaxa: Record<
+const sampleLocationIDByComparedFauna: Record<string, number> = {};
+const cachedTaxonNamesByRankByLocationIDByComparedFauna: Record<
   string,
   (string[] | null)[][]
 > = {};
-const cachedTaxonVisitsByRankByLocationIDByComparedTaxa: Record<
+const cachedTaxonVisitsByRankByLocationIDByComparedFauna: Record<
   string,
   (number[] | null)[][]
 > = {};
@@ -103,21 +103,21 @@ export abstract class TaxaClusterer extends Clusterer {
       }
     }
 
-    if (!clusterSpec.comparedTaxa) throw 'ComparedTaxa not specified';
+    if (!clusterSpec.comparedFauna) throw 'ComparedFauna not specified';
 
     this._taxonNamesByRankByLocationID =
-      cachedTaxonNamesByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa];
+      cachedTaxonNamesByRankByLocationIDByComparedFauna[clusterSpec.comparedFauna];
     if (this._taxonNamesByRankByLocationID === undefined) {
       this._taxonNamesByRankByLocationID = [];
-      cachedTaxonNamesByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa] =
+      cachedTaxonNamesByRankByLocationIDByComparedFauna[clusterSpec.comparedFauna] =
         this._taxonNamesByRankByLocationID;
     }
 
     this._taxonVisitsByRankByLocationID =
-      cachedTaxonVisitsByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa];
+      cachedTaxonVisitsByRankByLocationIDByComparedFauna[clusterSpec.comparedFauna];
     if (this._taxonVisitsByRankByLocationID === undefined) {
       this._taxonVisitsByRankByLocationID = [];
-      cachedTaxonVisitsByRankByLocationIDByComparedTaxa[clusterSpec.comparedTaxa] =
+      cachedTaxonVisitsByRankByLocationIDByComparedFauna[clusterSpec.comparedFauna] =
         this._taxonVisitsByRankByLocationID;
     }
   }
@@ -153,7 +153,7 @@ export abstract class TaxaClusterer extends Clusterer {
       let skipCount = 0;
       let locationEfforts = await LocationEffort.getNextBatch(
         this._db,
-        this._comparedTaxa,
+        this._comparedFauna,
         this._minSpecies,
         this._maxSpecies,
         skipCount,
@@ -232,7 +232,7 @@ export abstract class TaxaClusterer extends Clusterer {
         skipCount += locationEfforts.length;
         locationEfforts = await LocationEffort.getNextBatch(
           this._db,
-          this._comparedTaxa,
+          this._comparedFauna,
           this._minSpecies,
           this._maxSpecies,
           skipCount,
@@ -267,7 +267,7 @@ export abstract class TaxaClusterer extends Clusterer {
 
     const seedEfforts = await LocationEffort.getByLocationIDs(
       this._db,
-      this._comparedTaxa,
+      this._comparedFauna,
       seedLocationIDs
     );
     for (let i = 0; i < seedLocationIDs.length; ++i) {
@@ -486,7 +486,7 @@ export abstract class TaxaClusterer extends Clusterer {
   protected async _getNextBatchToCluster(skipCount: number): Promise<LocationEffort[]> {
     return await LocationEffort.getNextBatch(
       this._db,
-      this._comparedTaxa,
+      this._comparedFauna,
       this._minSpecies,
       this._maxSpecies,
       skipCount,
@@ -560,7 +560,7 @@ export abstract class TaxaClusterer extends Clusterer {
     // Clear the cache if the effort data has since been updated.
 
     let sampleLocationID: number | undefined =
-      sampleLocationIDByComparedTaxa[this._comparedTaxa];
+      sampleLocationIDByComparedFauna[this._comparedFauna];
     if (sampleLocationID !== undefined) {
       const location = await Location.getByIDs(this._db, [sampleLocationID]);
       if (location === null) sampleLocationID = undefined;
@@ -569,7 +569,7 @@ export abstract class TaxaClusterer extends Clusterer {
       // Clear the existing map because it's shared by all clients.
       this._taxonNamesByRankByLocationID.length = 0;
       this._taxonVisitsByRankByLocationID.length = 0;
-      sampleLocationIDByComparedTaxa[this._comparedTaxa] = effort.locationID;
+      sampleLocationIDByComparedFauna[this._comparedFauna] = effort.locationID;
     }
 
     // Compute the taxon names by rank for this effort.
