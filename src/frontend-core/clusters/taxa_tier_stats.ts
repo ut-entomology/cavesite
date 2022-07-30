@@ -126,6 +126,30 @@ export class TaxaVisitsStatsGenerator extends PredictionStatsGenerator<TaxonVisi
       }
     }
 
+    // The following alternative to the above produces slightly worse predictions
+    // on average, presumably because higher taxonomic ranks are more likely to
+    // have more determinations and hence occur on more visits.
+
+    // const taxaRemainingInLocation: string[] = [];
+    // for (let visitIndex = 0; visitIndex < this._recentTaxa.length; ++visitIndex) {
+    //   const visitTaxa = this._recentTaxa[visitIndex];
+    //   const orderedVisitItems: TaxonVisitItem[] = [];
+    //   for (const taxon of visitTaxa) {
+    //     const item = taxonVisitItemsMap[taxon];
+    //     if (item !== undefined) {
+    //       taxaRemainingInLocation.push(taxon);
+    //       while (true) {
+    //         const taxonIndex = Math.floor(Math.random() * visitTaxa.length);
+    //         if (orderedVisitItems[taxonIndex] === undefined) {
+    //           orderedVisitItems[taxonIndex] = item;
+    //           break;
+    //         }
+    //       }
+    //     }
+    //   }
+    //   this._itemsRemainingInLocation.push(...Object.values(orderedVisitItems));
+    // }
+
     // Remove from cluster all taxa found in the present location up to the
     // oldest recent visit to be tested for predictive ability. This leaves
     // _taxaRemainingInCluster with found in other clusters but not yet found
