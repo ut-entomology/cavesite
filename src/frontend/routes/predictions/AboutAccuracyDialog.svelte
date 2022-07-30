@@ -87,14 +87,14 @@
   </p>
   <p>
     To produce a measure of accuracy for each top N group, the most recent {PREDICTION_HISTORY_SAMPLE_DEPTH}
-    visits are first stripped from all caves. The above technique is then applied to the
-    remaining points, as if this were the dataset from which predictions should be made.
-    Predictions of the number of additional species expected are made for each cave having
-    a sufficient number of visits, separately for the next visit and the next person-visit.
-    In each set, the caves are then sorted by their predictions, highest predictions first.
-    Let's call this the "predicted sort". The "actual sort" is a sort of the caves according
-    to the number of additional species actually found on the next visit or person-visit.
-    Since we started {PREDICTION_HISTORY_SAMPLE_DEPTH}
+    visits are first docked from all caves. The above technique is then applied to the remaining
+    points, as if this were the dataset from which predictions should be made. Predictions
+    of the number of additional species expected are made for each cave having a sufficient
+    number of visits, separately for the next visit and the next person-visit. In each set,
+    the caves are then sorted by their predictions, highest predictions first. Let's call
+    this the "predicted sort". The "actual sort" is a sort of the caves according to the
+    number of additional species actually found on the next visit or person-visit. Since
+    we started {PREDICTION_HISTORY_SAMPLE_DEPTH}
     visits back, we have this data, found at {PREDICTION_HISTORY_SAMPLE_DEPTH - 1} visits
     back.
   </p>
@@ -109,12 +109,12 @@
     fraction.
   </p>
   <p>
-    After producing fractions and weights for each top N group from a strip of the most
-    recent {PREDICTION_HISTORY_SAMPLE_DEPTH} visits, the process repeats stripping one fewer
-    number of recent visits, until all possible numbers of visits have been stripped. For
-    each top N group, the fractions collected for the group are averaged together, weighted
-    by the number of caves contributing to the fractions. The result is a single fraction
-    for each top N group of the cluster indicating the fraction of caves correctly predicted
+    After producing fractions and weights for each top N group from a dock of the most
+    recent {PREDICTION_HISTORY_SAMPLE_DEPTH} visits, the process repeats docking one fewer
+    number of recent visits, until all possible numbers of visits have been docked. For each
+    top N group, the fractions collected for the group are averaged together, weighted by
+    the number of caves contributing to the fractions. The result is a single fraction for
+    each top N group of the cluster indicating the fraction of caves correctly predicted
     to occur within the top N group, on average, across the cluster.
   </p>
   <p>
@@ -131,31 +131,39 @@
   <h3>Predicting next expected taxa (+taxa)</h3>
 
   <p>
-    Caves are sorted into clusters primarily by the similarity of their fauna under the
-    assumption that the more similar the fauna has been in the past, the more similar it
-    will be in the future. The additional fauna expected to be found in a cave is merely
-    the fauna found in the cluster to which the cave belongs but not yet found in the
-    cave. For each cave, these remaining fauna are sorted by their determined taxa
-    according to the number of visits to other caves of the cluster for which specimens
-    were given the same determination. The greater the number of visits a taxon has, the
-    higher the taxon appears in the sort, and presumably the more likely the taxon will
-    appear in future visits to the cave. Taxonomic predictions therefore predict the
-    taxa most likely to be encountered next according to historical prevalence.
+    Caves are sorted into clusters by the similarity of their fauna under the assumption
+    that the more similar the fauna has been in the past, the more similar it will be in
+    the future. The additional fauna expected to be found in a cave is merely the fauna
+    found elsewhere in the cluster to which the cave belongs but not yet found in the
+    cave. For each cave, these remaining fauna are sorted by the number of visits to
+    other caves of the cluster in which their taxa have been found. The greater the
+    number of visits a taxon has, the higher the taxon appears in the sort, and
+    presumably the more likely the taxon will appear in future visits to the cave. The
+    taxonomic predictions therefore use historical prevalence to predict the taxa most
+    likely to be encountered next.
   </p>
   <p>
     Predictions are not necessarily available for each taxonomic rank. They instead
-    suggest the most specific taxa that will be assigned to future specimens according
-    to the most specific taxa assigned to past specimens. For example, if all past
-    insects of a cluster have been determined to species, there will be no prediction
-    for the class Insecta, only predictions for the determined species; and if some past
-    specimens were only determined to Insecta but the cave does not yet have a specimen
-    with this incomplete determination, there will be a prediction for future specimens
-    only determined to class Insecta according to its past prevalence. As past specimens
-    are further determined, predicted taxa will become more specific too.
+    suggest the most specific determinations that will be made for future specimens
+    according to the most specific determinations made for past specimens. For example,
+    if all past insects of a cluster have been determined to species, the cluster will
+    provide no prediction for the class Insecta, only predictions for species previously
+    determined; and if some past specimens were determined to Insecta but the cave does
+    not yet have a specimen with this incomplete determination, there will be a
+    prediction for future specimens only determined to class Insecta according to its
+    prevalence elsewhere in the cluster. Over time, as past specimens become further
+    determined, predicted taxa will become more specific too.
   </p>
   <p>
-    Accuracy for taxonomic predictions is measured analogously to the accuracy for the
-    number of additional species expected to be found.
+    The accuracy of taxonomic predictions is measured similarly to the accuracy for the
+    number of additional species expected. The process starts by first docking the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+    most recent visits from a single cave, leaving all other caves of the cluster complete.
+    It then identifies all taxonomic determinations found elsewhere in the cluster but not
+    yet in this cave, and it sorts these taxa by the number of visits in which they occurred
+    in other caves, highest counts first. This is the "predicted sort". The "actual sort"
+    consists of the actual taxa known to have been added to the cave during the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+    visits that were docked. It is sorted first by the visit on which the taxa were first
+    encountered and second by highest taxonomic rank first.
   </p>
 
   <h3>caveats</h3>
