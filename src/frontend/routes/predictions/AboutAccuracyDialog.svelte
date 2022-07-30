@@ -110,22 +110,22 @@
   </p>
   <p>
     After producing fractions and weights for each top N group from a dock of the most
-    recent {PREDICTION_HISTORY_SAMPLE_DEPTH} visits, the process repeats docking one fewer
-    number of recent visits, until all possible numbers of visits have been docked. For each
-    top N group, the fractions collected for the group are averaged together, weighted by
-    the number of caves contributing to the fractions. The result is a single fraction for
+    recent {PREDICTION_HISTORY_SAMPLE_DEPTH} visits, the process repeats, docking one fewer
+    number of recent visits each time, until all possible numbers of visits have been docked.
+    For each top N group, the fractions collected for the group are averaged together, weighted
+    by the number of caves contributing the fractions. The result is a single fraction for
     each top N group of the cluster indicating the fraction of caves correctly predicted
-    to occur within the top N group, on average, across the cluster.
+    to occur within the top N group of caves, on average, across the cluster.
   </p>
   <p>
     The fraction for a top N group of predictions indicates the fraction of caves
     predicted to occur within the top N group that can be expected to actually be a top
     N prediction, according to historical data. The page reports these fractions as
     percentages. For example, a top 5 accuracy of 25% would mean that 25% of the caves
-    shown in the top N group can actually be expected to among the top N best yielding
-    caves on the next visit or person-visit. Put another way, a top 5 accuracy of 25%
-    would mean that 25% of the top N predictions can be expected to have been correctly
-    placed among the top N, according to historical data.
+    shown in the top N group can actually be expected to be among the top N best
+    yielding caves on the next visit or person-visit. Put another way, a top 5 accuracy
+    of 25% would mean that 25% of the top N predictions can be expected to have been
+    correctly placed among the top N, according to historical data.
   </p>
 
   <h3>Predicting next expected taxa (+taxa)</h3>
@@ -163,25 +163,41 @@
     in other caves, highest counts first. This is the "predicted sort". The "actual sort"
     consists of the actual taxa known to have been added to the cave during the {PREDICTION_HISTORY_SAMPLE_DEPTH}
     visits that were docked. It is sorted first by the visit on which the taxa were first
-    encountered and second by highest taxonomic rank first.
+    encountered and second by taxonomic rank, highest rank first. Determinations of higher
+    rank are more likely than those of lower rank, given that they encompass more species,
+    making a rank sort within a visit more likely to order the taxa found within the visit
+    similarly to the order of taxa by frequency in the predicted sort.
+  </p>
+  <p>
+    As with predictions of number of species, accuracy is measured for each top N
+    predicted taxa. For each value of N, the taxa common to both the top N of the
+    predicted sort and the top N of the actual sort are counted, and this count is
+    divided by N. This is the fraction of taxa that were correctly predicted to occur
+    within the top N taxa of the sort. However, it is possible that the predicted sort
+    has fewer taxa than the actual sort, due to the cave producing taxa not found
+    elsewhere in the cluster. For this reason, the number of taxa in each top N of the
+    predicted sort are also tracked, and this number serves as the weight associated
+    with the particular top N fraction.
+  </p>
+  <p>
+    After producing fractions and weights for each top N group from a dock of the most
+    recent {PREDICTION_HISTORY_SAMPLE_DEPTH} visits to the cave, the process repeats, docking
+    one fewer number of recent visits each time, until all possible numbers of visits have
+    been docked for the cave. The algorithm repeats this process for each cave, collecting
+    all the fractions and all the weights associated with each top N group of taxa. Then,
+    for each top N group, the fractions collected for the group are averaged together, weighted
+    by the number of taxa contributing the fractions. The result is a single fraction for
+    each top N group of the cluster indicating the fraction of taxa correctly predicted to
+    occur within the top N group of taxa, on average, across the cluster.
+  </p>
+  <p>
+    The fraction for a top N group of predictions indicates the fraction of taxa
+    predicted to occur within the top N group that can be expected to actually be a top
+    N prediction, according to historical data. The page reports these fractions as
+    percentages. For example, a top 5 accuracy of 25% would mean that 25% of the taxa
+    shown in the top N group can be expected to be among the next N taxa found in the
+    cave, according to historical data.
   </p>
 
   <h3>caveats</h3>
 </InfoDialog>
-
-This chart shows the frequency at which taxa were found on visits to the caves of this
-cluster, restricted to the taxa not yet found in the present cave. The purple bar for
-any given taxon depicts the fraction of the total number of visits in which the taxon
-was found. The left column indicates the accuracy with which this chart predicts
-additional species that can be expected to be found at the cave, according to historical
-data. To determine the accuracy, the additional taxa found on the three most recent
-visits to each cave were removed, one cave at a time and one visit at a time, and the
-taxa found in the other caves of the cluster were used to predict the most likely next
-taxa of this cave. The more visits in which those taxa were found, the higher they
-appear in a sort of the taxa. The percentage for the top N taxa indicates the average
-rate at which each next visit to the cave yielded taxa in the top N taxa of this sort.
-<i
-  >For example, a top 5 accuracy of 25% would mean that this prediction technique
-  correctly predicted 25% of the taxa occurring among the next N taxa found in the cave.</i
-> These percentages are independent of the individual taxa and are the same for all caves
-of the cluster.
