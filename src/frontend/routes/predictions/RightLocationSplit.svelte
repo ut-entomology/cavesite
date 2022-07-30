@@ -25,8 +25,8 @@
   if (locationData.flags & EffortFlags.missingDayOfMonth) {
     superscripts.push('M');
   }
-  if (locationData.flags & EffortFlags.pitfallTrap) {
-    superscripts.push('P');
+  if (locationData.flags & EffortFlags.trap) {
+    superscripts.push('T');
   }
   if (locationData.flags & EffortFlags.missingDate) {
     superscripts.push('X');

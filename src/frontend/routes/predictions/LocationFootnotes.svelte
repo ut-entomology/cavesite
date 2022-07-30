@@ -2,7 +2,7 @@
   import SectionFootnotes from '../../components/SectionFootnotes.svelte';
   import {
     MAX_DAYS_TREATED_AS_PER_PERSON,
-    PITFALL_TRAP_DAYS_PER_VISIT,
+    TRAP_DAYS_PER_VISIT,
     EffortFlags
   } from '../../../shared/model';
 
@@ -51,15 +51,15 @@
         >{/if}
     </li>
   {/if}
-  {#if flags & EffortFlags.pitfallTrap}
+  {#if flags & EffortFlags.trap}
     <li>
       {opening} indicate collection over a range of more than {MAX_DAYS_TREATED_AS_PER_PERSON}
-      days. These records are all assumed to be pitfall trap specimens and are approximated
-      as one visit for every {PITFALL_TRAP_DAYS_PER_VISIT}
+      days. These records are assumed to be specimens collected via traps and are approximated
+      as one visit for every {TRAP_DAYS_PER_VISIT}
       days of the range, dividing the collected species across the visits.
       {#if !singleCave}<span class="super_info"
           >(Designated below via the superscript
-          <span>P</span>.)</span
+          <span>T</span>.)</span
         >{/if}
     </li>
   {/if}

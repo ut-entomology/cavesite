@@ -209,7 +209,7 @@ const PUNCT_REGEX = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_
 //// Effort //////////////////////////////////////////////////////////////////
 
 export const MAX_DAYS_TREATED_AS_PER_PERSON = 3;
-export const PITFALL_TRAP_DAYS_PER_VISIT = 3;
+export const TRAP_DAYS_PER_VISIT = 3;
 export const MAX_VISITS_ELIDED = 3;
 
 export enum EffortFlags {
@@ -217,7 +217,7 @@ export enum EffortFlags {
   missingMonth = 0x02,
   missingDayOfMonth = 0x04,
   multiDayPersonVisit = 0x08,
-  pitfallTrap = 0x10
+  trap = 0x10
 }
 
 export interface RawLocationEffort {

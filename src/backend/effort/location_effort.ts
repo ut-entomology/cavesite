@@ -11,7 +11,7 @@ import { TaxonCounter } from '../../shared/taxon_counter';
 import { TaxonVisitCounter, type TaxonVisitCounterData } from './taxon_visit_counter';
 import {
   MAX_DAYS_TREATED_AS_PER_PERSON,
-  PITFALL_TRAP_DAYS_PER_VISIT,
+  TRAP_DAYS_PER_VISIT,
   EffortFlags,
   ComparedFauna,
   LocationRankIndex
@@ -330,8 +330,8 @@ export class LocationEffort {
           perVisitPoints.push([totalVisits, totalSpecies]);
           perPersonVisitPoints.push([totalPersonVisits, totalSpecies]);
         } else {
-          // treat as a pitfall trap
-          const visitEquivalent = Math.ceil(spanInDays / PITFALL_TRAP_DAYS_PER_VISIT);
+          // treat as a trap
+          const visitEquivalent = Math.ceil(spanInDays / TRAP_DAYS_PER_VISIT);
           for (let i = 1; i <= visitEquivalent; ++i) {
             ++totalVisits;
             ++totalPersonVisits;
@@ -341,7 +341,7 @@ export class LocationEffort {
             perVisitPoints.push([totalVisits, speciesCount]);
             perPersonVisitPoints.push([totalPersonVisits, speciesCount]);
           }
-          effortFlags! |= EffortFlags.pitfallTrap;
+          effortFlags! |= EffortFlags.trap;
         }
       }
 
