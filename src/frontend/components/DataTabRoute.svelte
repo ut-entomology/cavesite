@@ -60,7 +60,7 @@
     border: solid 1px white;
     border-radius: $border-radius;
     max-width: 800px;
-    margin: 2rem auto 2rem auto;
+    margin: 0 auto 2rem auto;
     padding: 0.5rem 0 1rem 0;
 
     -webkit-box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.45);
