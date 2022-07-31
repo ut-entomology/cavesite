@@ -17,7 +17,7 @@
   export let title = graphSpec.graphTitle;
   export let showPointSlice = false;
   export let model: PowerFitModel | null = null;
-  export let totalCaves = graphDataSet.length;
+  export let totalCaves: number;
   export let dataPointColor: string | null = null;
   export let dataPointWidth: number | null = null;
 

@@ -233,6 +233,11 @@
     lower to N accuracy greater than 3 is used instead, if there is any.
   </p>
   <p>
+    The overall accuracy number of caves is the number of caves for which predictions of
+    expected number of additional species could be made, based on the provided
+    clustering criteria.
+  </p>
+  <p>
     The overall accuracy of predicted numbers of additional species ("+spp.") is a
     function of a number computed for the Top 10 and Top 20 visit summary accuracies and
     a number computed for the Top 10 and Top 20 person-visit summary accuracies. For

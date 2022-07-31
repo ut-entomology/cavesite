@@ -10,6 +10,7 @@ export interface ClusterSummaryStats {
   avgTop6NextTaxa: number;
   generalCaves: number;
   generalTaxa: number;
+  cavesWithPredictions: number;
 }
 
 export class ClusterSummaryStatsGenerator {
@@ -22,7 +23,8 @@ export class ClusterSummaryStatsGenerator {
     avgTop3NextTaxa: 0,
     avgTop6NextTaxa: 0,
     generalCaves: 0,
-    generalTaxa: 0
+    generalTaxa: 0,
+    cavesWithPredictions: 0
   };
   private _caveSums: ClusterSummaryStats = {
     avgTop10PerVisitCaves: 0,
@@ -32,7 +34,8 @@ export class ClusterSummaryStatsGenerator {
     avgTop3NextTaxa: 0,
     avgTop6NextTaxa: 0,
     generalCaves: 0,
-    generalTaxa: 0
+    generalTaxa: 0,
+    cavesWithPredictions: 0
   };
 
   constructor(dataByCluster: ClusterData[]) {
@@ -71,6 +74,12 @@ export class ClusterSummaryStatsGenerator {
         clusterData, clusterData.avgTaxaTierStats,
         4, 6, 'avgTop6NextTaxa',
       );
+
+      for (const graphData of clusterData.locationGraphDataSet) {
+        if (graphData.predictedPerVisitDiff !== null) {
+          ++this._stats.cavesWithPredictions;
+        }
+      }
     }
 
     this._averageStat('avgTop10PerVisitCaves');

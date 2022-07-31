@@ -96,6 +96,7 @@
         <EffortGraph
           title={graphSpec.graphTitle}
           graphDataSet={[locationGraphData]}
+          totalCaves={1}
           {graphSpec}
           dataPointColor="black"
           dataPointWidth={2}

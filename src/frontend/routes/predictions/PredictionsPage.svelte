@@ -17,7 +17,7 @@
     ClusterSummaryStatsGenerator
   } from '../../../frontend-core/clusters/summary_stats';
 
-  const CLUSTER_STORE_VERSION = 8;
+  const CLUSTER_STORE_VERSION = 9;
 
   interface ClusterStore {
     version: number;
@@ -422,14 +422,17 @@
 
         <div class="row mt-3 ms-4 me-4 justify-content-center">
           <div class="col-sm col-md-12 col-lg-10 accuracy_stats">
-            <div class="row pt-2">
+            <div class="row pt-3">
               <div class="col-md-4">
                 <div class="row">
-                  <div class="col mt-2 text-center accuracy_header">
-                    Overall Accuracy
-                  </div>
+                  <div class="col text-center accuracy_header">Overall Accuracy</div>
                 </div>
                 <div class="row mt-2">
+                  <div class="col stat">
+                    <span>{summaryStats.cavesWithPredictions}</span> caves
+                  </div>
+                </div>
+                <div class="row">
                   <div class="col stat">
                     <span>{Math.round(summaryStats.generalCaves)}</span> % +spp.
                   </div>
@@ -439,7 +442,7 @@
                     <span>{Math.round(summaryStats.generalTaxa)}</span> % +taxa
                   </div>
                 </div>
-                <div class="row mt-3 mb-2 text-center">
+                <div class="row mt-2 mb-3 text-center">
                   <div
                     class="col link_text"
                     on:click={() => (showingAboutAccuracy = true)}
@@ -477,7 +480,7 @@
                   <div class="col-3 stat">Top 3</div>
                   <div class="col-2 stat">Top 6</div>
                 </div>
-                <div class="row mt-1 mb-2">
+                <div class="row mt-1 mb-3">
                   <div class="col-6 text-end">+taxa per cave</div>
                   <div class="col-3 stat">
                     <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span> %
@@ -583,6 +586,7 @@
                 title={graphTitlePrefix + graphSpec.graphTitle}
                 color={clusterColor}
                 graphDataSet={clusterData.locationGraphDataSet}
+                totalCaves={clusterData.locationGraphDataSet.length}
                 {graphSpec}
               />
             </div>

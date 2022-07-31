@@ -42,6 +42,7 @@
   let maxPointCount: number;
   let weightPower = $avgModelConfig.weightPower;
   let minPointCountOptions: number[];
+  let minXOptions: number[];
   let model: PowerFitModel | null;
   let modelGraphSpec: EffortGraphSpec;
   let fittedDataSet: LocationGraphData[];
@@ -55,12 +56,18 @@
     if (maxMinPointCount > MAX_MIN_POINT_COUNT) {
       maxMinPointCount = MAX_MIN_POINT_COUNT;
     }
+
     minPointCountOptions = [];
     for (let i = MIN_MIN_POINT_COUNT; i <= maxMinPointCount; ++i) {
       minPointCountOptions.push(i);
     }
     if (minPointCount > maxMinPointCount) {
       minPointCount = maxMinPointCount;
+    }
+
+    minXOptions = [];
+    for (let i = MIN_MIN_POINT_COUNT; i <= MAX_MIN_X; ++i) {
+      minXOptions.push(i);
     }
   }
 
@@ -161,7 +168,7 @@
                   class="form-select form-select-sm item_select"
                   on:change={_minXChanged}
                 >
-                  {#each { length: MAX_MIN_X + 1 } as _, option}
+                  {#each minXOptions as option}
                     <option value={option}>{option}</option>
                   {/each}
                 </select>
