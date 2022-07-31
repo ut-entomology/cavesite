@@ -27,9 +27,8 @@
       </ul>
       <p>The following features are under development:</p>
       <ul>
-        <li>Refined clustering for predictions</li>
         <li>Map display of data</li>
-        <li>Ability to download data</li>
+        <li>Needed admin pages</li>
       </ul>
       <p>
         <b>EXPECT BUGS</b> (of all kinds). The site is still under development. Please report
