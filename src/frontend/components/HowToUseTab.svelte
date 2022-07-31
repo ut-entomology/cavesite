@@ -13,10 +13,15 @@
   @import '../variables.scss';
 
   .how_to_box {
-    border: solid 1px black;
+    border: solid 1px white;
     border-radius: $border-radius;
     max-width: 800px;
-    margin: 0 auto;
+    margin: 2rem auto;
+    padding: 0.5rem 0 1rem 0;
+    font-size: 0.95rem;
+
+    -webkit-box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.5);
   }
   .title {
     margin: 1rem auto;
