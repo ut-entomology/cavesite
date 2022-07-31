@@ -48,6 +48,7 @@
   import TaxonBarGraph from './TaxonBarGraph.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
+  import ConfirmationRequest from '../../common/ConfirmationRequest.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
     PREDICTION_HISTORY_SAMPLE_DEPTH,
@@ -116,6 +117,7 @@
   let locationGraphData: LocationGraphData | null = null;
   let locationClusterNumber: number;
   let totalCaves: number;
+  let requestClearConfirmation = false;
 
   let nonPredictionLocationDataset: LocationGraphData[];
   let predictionLocationDataset: LocationGraphData[];
@@ -217,6 +219,7 @@
   }
 
   function _clearData() {
+    requestClearConfirmation = false;
     clusterStore.set(null);
     $clusterStore = null;
   }
@@ -372,8 +375,10 @@
         >
         <span slot="main-buttons">
           {#if $clusterStore}
-            <button class="btn btn-minor" type="button" on:click={_clearData}
-              >Clear</button
+            <button
+              class="btn btn-minor"
+              type="button"
+              on:click={() => (requestClearConfirmation = true)}>Clear</button
             >
           {/if}
           <button class="btn btn-major" type="button" on:click={_openConfigDialog}
@@ -695,6 +700,16 @@
     locationGraphDataSet={clusterData.locationGraphDataSet}
     taxonTierStats={clusterData.avgTaxaTierStats}
     close={closeLocation}
+  />
+{/if}
+
+{#if requestClearConfirmation}
+  <ConfirmationRequest
+    alert="warning"
+    message="Clear these clusters and predictions?"
+    okayButton="Clear"
+    onOkay={_clearData}
+    onCancel={() => (requestClearConfirmation = false)}
   />
 {/if}
 
