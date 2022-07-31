@@ -1,8 +1,11 @@
 <script lang="ts">
   import RouteTab, { type Tab } from './RouteTab.svelte';
+  import HowToUse from './HowToUse.svelte';
   import { appInfo } from '../stores/app_info';
+  import { showingHowTo } from '../stores/showingHowTo';
 
   export let activeTab: string;
+  export let embedHowTo = false;
 
   const tabs: Tab[] = [
     {
@@ -38,5 +41,36 @@
 </script>
 
 <RouteTab {tabs} {activeTab}>
-  <slot />
+  <slot name="body" />
+
+  {#if $$slots['how-to'] && embedHowTo && !$showingHowTo}
+    <div class="how_to_box">
+      <div class="how_to_title">How to use the {activeTab} tab</div>
+      <HowToUse>
+        <slot name="how-to" />
+      </HowToUse>
+    </div>
+  {/if}
 </RouteTab>
+
+<style lang="scss">
+  @import '../variables.scss';
+
+  .how_to_box {
+    border: solid 1px white;
+    border-radius: $border-radius;
+    max-width: 800px;
+    margin: 2rem auto 2rem auto;
+    padding: 0.5rem 0 1rem 0;
+
+    -webkit-box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.45);
+    box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.45);
+  }
+
+  .how_to_title {
+    margin: 1rem auto;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+</style>

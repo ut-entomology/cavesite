@@ -10,7 +10,7 @@
   import SelectableTaxon from './SelectableTaxon.svelte';
   import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
   import LocalitiesForTaxa from './LocalitiesForTaxa.svelte';
-  import HowToUseTab from '../../components/HowToUseTab.svelte';
+  import HowToUseTab from '../../components/HowToUse.svelte';
   import TaxaHowTo from './TaxaHowTo.svelte';
   import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
   import { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';
@@ -197,77 +197,80 @@
   }
 </script>
 
-<DataTabRoute activeTab={tabName}>
-  <div class="container-fluid">
-    <TabHeader {tabName} title={$pageName} provideHowTo={!!rootNode}>
-      <span slot="instructions"
-        >This tab shows the taxa that you have selected for use in other tabs.
-        Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on the {@html plusIcon}
-        or {@html checkmarkIcon} to toggle selections. Click on a taxon link or on "Browse
-        Taxa" to browse, add, and remove taxa. Type taxa in the box for autocompletion assistance
-        and fast selection.</span
-      >
-      <span slot="main-buttons">
-        {#if rootNode}
-          <button class="btn btn-minor" type="button" on:click={expandTree}
-            >Expand All</button
-          >
-          <button class="btn btn-minor" type="button" on:click={clearSelections}
-            >Clear</button
-          >
-        {/if}
-        <button
-          class="btn btn-major"
-          type="button"
-          on:click={() => openTaxonBrowser(ROOT_TAXON_UNIQUE)}>Browse Taxa</button
+<DataTabRoute activeTab={tabName} embedHowTo={!rootNode}>
+  <svelte:fragment slot="how-to"><TaxaHowTo /></svelte:fragment>
+  <svelte:fragment slot="body">
+    <div class="container-fluid mb-3">
+      <TabHeader {tabName} title={$pageName}>
+        <span slot="instructions"
+          >This tab shows the taxa that you have selected for use in other tabs.
+          Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on
+          the {@html plusIcon}
+          or {@html checkmarkIcon} to toggle selections. Click on a taxon link or on "Browse
+          Taxa" to browse, add, and remove taxa. Type taxa in the box for autocompletion
+          assistance and fast selection.</span
         >
-      </span>
-      <div slot="how-to"><TaxaHowTo /></div>
-    </TabHeader>
-
-    <div class="taxon_lookup container-fluid">
-      <TaxonLookup
-        {selectionsTree}
-        {getContainingTaxa}
-        addSelection={addSelection.bind(null, false)}
-        removeSelection={removeSelection.bind(null, false)}
-        openUnique={async (unique) => openTaxonBrowser(unique)}
-        setClearer={(clearer) => (clearInput = clearer)}
-      />
-    </div>
-
-    {#if !rootNode}
-      <EmptyTab
-        message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
-      />
-      <HowToUseTab {tabName}><TaxaHowTo /></HowToUseTab>
-    {:else}
-      <div class="tree_area">
-        <div class="container-fluid gx-1">
-          <ExpandableSelectableTree
-            bind:this={rootTree}
-            node={rootNode}
-            showRoot={false}
-            let:selectableConfig
+        <span slot="main-buttons">
+          {#if rootNode}
+            <button class="btn btn-minor" type="button" on:click={expandTree}
+              >Expand All</button
+            >
+            <button class="btn btn-minor" type="button" on:click={clearSelections}
+              >Clear</button
+            >
+          {/if}
+          <button
+            class="btn btn-major"
+            type="button"
+            on:click={() => openTaxonBrowser(ROOT_TAXON_UNIQUE)}>Browse Taxa</button
           >
-            <SelectableTaxon
-              {...selectableConfig}
-              gotoUnique={async (unique) => openTaxonBrowser(unique)}
-              addSelection={addSelection.bind(null, true)}
-              removeSelection={removeSelection.bind(null, true)}
-            />
-          </ExpandableSelectableTree>
-        </div>
+        </span>
+        <div slot="how-to"><TaxaHowTo /></div>
+      </TabHeader>
+
+      <div class="taxon_lookup container-fluid">
+        <TaxonLookup
+          {selectionsTree}
+          {getContainingTaxa}
+          addSelection={addSelection.bind(null, false)}
+          removeSelection={removeSelection.bind(null, false)}
+          openUnique={async (unique) => openTaxonBrowser(unique)}
+          setClearer={(clearer) => (clearInput = clearer)}
+        />
       </div>
 
-      <hr />
-      <LocalitiesForTaxa
-        {locationRows}
-        {getLocationRows}
-        increasing={increasingLocationRows}
-      />
-    {/if}
-  </div>
+      {#if !rootNode}
+        <EmptyTab
+          message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
+        />
+      {:else}
+        <div class="tree_area">
+          <div class="container-fluid gx-1">
+            <ExpandableSelectableTree
+              bind:this={rootTree}
+              node={rootNode}
+              showRoot={false}
+              let:selectableConfig
+            >
+              <SelectableTaxon
+                {...selectableConfig}
+                gotoUnique={async (unique) => openTaxonBrowser(unique)}
+                addSelection={addSelection.bind(null, true)}
+                removeSelection={removeSelection.bind(null, true)}
+              />
+            </ExpandableSelectableTree>
+          </div>
+        </div>
+
+        <hr />
+        <LocalitiesForTaxa
+          {locationRows}
+          {getLocationRows}
+          increasing={increasingLocationRows}
+        />
+      {/if}
+    </div>
+  </svelte:fragment>
 </DataTabRoute>
 
 {#if requestClearConfirmation}

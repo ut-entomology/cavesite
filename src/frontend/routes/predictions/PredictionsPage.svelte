@@ -349,319 +349,325 @@
 </script>
 
 <DataTabRoute activeTab={tabName}>
-  <div class="container-fluid mb-3">
-    <TabHeader {tabName} title={$pageName}>
-      <span slot="instructions"
-        >This tab allows you to make predictions about the number of additional species
-        you can expect to find on your next visit or person-visit to a cave and the most
-        likely taxa of these additional species. <MoreLess
-          >The tab also shows you the expected accuracy of the predictions according to
-          the accuracy of the predictive technique on recent historical data. To produce
-          these predictions, you must first partition the data into clusters of similar
-          caves. Caves are considered similar primarily by the commonality of their
-          constituent taxa and secondarily by their proximity to one another. Selecting
-          the appropriate clustering is a bit of an art, so you are provided with
-          controls for exploring clusters. There is an element of randomness to each
-          clustering, so you'll want to repeatedly generate clusters with the same
-          criteria to find the best one. You can also use this tab to see graphs of
-          visits to the caves and the frequency of encountering taxa in any cave. This
-          tab only characterizes localities having the text "cave" in their names,
-          including, for example, the word "cavern".</MoreLess
-        ></span
-      >
-      <span slot="main-buttons">
-        {#if $clusterStore}
-          <button class="btn btn-minor" type="button" on:click={_clearData}
-            >Clear</button
-          >
-        {/if}
-        <button class="btn btn-major" type="button" on:click={_openConfigDialog}
-          >{$clusterStore ? 'Change' : 'Load'} Clusters</button
+  <svelte:fragment slot="body">
+    <div class="container-fluid mb-3">
+      <TabHeader {tabName} title={$pageName}>
+        <span slot="instructions"
+          >This tab allows you to make predictions about the number of additional
+          species you can expect to find on your next visit or person-visit to a cave
+          and the most likely taxa of these additional species. <MoreLess
+            >The tab also shows you the expected accuracy of the predictions according
+            to the accuracy of the predictive technique on recent historical data. To
+            produce these predictions, you must first partition the data into clusters
+            of similar caves. Caves are considered similar primarily by the commonality
+            of their constituent taxa and secondarily by their proximity to one another.
+            Selecting the appropriate clustering is a bit of an art, so you are provided
+            with controls for exploring clusters. There is an element of randomness to
+            each clustering, so you'll want to repeatedly generate clusters with the
+            same criteria to find the best one. You can also use this tab to see graphs
+            of visits to the caves and the frequency of encountering taxa in any cave.
+            This tab only characterizes localities having the text "cave" in their
+            names, including, for example, the word "cavern".</MoreLess
+          ></span
         >
-      </span>
-    </TabHeader>
-
-    {#if $clusterStore}
-      {@const minRecentPredictionPoints =
-        $clusterStore.config.minRecentPredictionPoints}
-      {@const maxRecentPredictionPoints =
-        $clusterStore.config.maxRecentPredictionPoints}
-      {@const summaryStats = $clusterStore.summaryStats}
-
-      <div class="cluster_title">
-        {totalCaves} caves having
-        {#if clusterSpec.comparedFauna == ComparedFauna.all}
-          any taxon,
-        {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
-          cave obligates,
-        {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
-          genera of cave obligates,
-        {/if}
-        {$clusterStore.dataByCluster.length} clusters
-      </div>
-      <div class="cluster_params">
-        max. <span>{$clusterStore.config.maxClusters}</span> clusters, comparing
-        <span>
-          {#if clusterSpec.comparedFauna == ComparedFauna.all}
-            all fauna
-          {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
-            cave obligates
-          {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
-            genera of cave obligates
+        <span slot="main-buttons">
+          {#if $clusterStore}
+            <button class="btn btn-minor" type="button" on:click={_clearData}
+              >Clear</button
+            >
           {/if}
-        </span>
-        &lt;= <span>{clusterSpec.metric.highestComparedRank}</span>,
-        <br />
-        <span>{clusterSpec.metric.proximityResolution ? 'using' : 'not using'}</span>
-        proximity, min.&ndash;max.
-        <span>{$clusterStore.config.minRecentPredictionPoints}</span>&ndash;<span
-          >{$clusterStore.config.maxRecentPredictionPoints}</span
-        > recent visits
-      </div>
-
-      <div class="row mt-3 ms-4 me-4 justify-content-center">
-        <div class="col-sm col-md-12 col-lg-10 accuracy_stats">
-          <div class="row pt-2">
-            <div class="col-md-4">
-              <div class="row">
-                <div class="col mt-2 text-center accuracy_header">Overall Accuracy</div>
-              </div>
-              <div class="row mt-2">
-                <div class="col stat">
-                  <span>{Math.round(summaryStats.generalCaves)}</span> % +spp.
-                </div>
-              </div>
-              <div class="row">
-                <div class="col stat">
-                  <span>{Math.round(summaryStats.generalTaxa)}</span> % +taxa
-                </div>
-              </div>
-              <div class="row mt-3 mb-2 text-center">
-                <div
-                  class="col link_text"
-                  on:click={() => (showingAboutAccuracy = true)}
-                >
-                  about accuracy
-                </div>
-              </div>
-            </div>
-            <div class="col-md-8">
-              <div class="row">
-                <div class="col-6 text-end accuracy_header">Accuracy Summary</div>
-                <div class="col-3 stat">Top 10</div>
-                <div class="col-2 stat">Top 20</div>
-              </div>
-              <div class="row mt-1">
-                <div class="col-6 text-end">+spp. next visit</div>
-                <div class="col-3 stat">
-                  <span>{summaryStats.avgTop10PerVisitCaves.toFixed(1)}</span> %
-                </div>
-                <div class="col-2 stat">
-                  <span>{summaryStats.avgTop20PerVisitCaves.toFixed(1)}</span> %
-                </div>
-              </div>
-              <div class="row mt-1">
-                <div class="col-6 text-end">+spp. next person-visit</div>
-                <div class="col-3 stat">
-                  <span>{summaryStats.avgTop10PerPersonVisitCaves.toFixed(1)}</span> %
-                </div>
-                <div class="col-2 stat">
-                  <span>{summaryStats.avgTop20PerPersonVisitCaves.toFixed(1)}</span> %
-                </div>
-              </div>
-              <div class="row mt-2">
-                <div class="col-6" />
-                <div class="col-3 stat">Top 3</div>
-                <div class="col-2 stat">Top 6</div>
-              </div>
-              <div class="row mt-1 mb-2">
-                <div class="col-6 text-end">+taxa per cave</div>
-                <div class="col-3 stat">
-                  <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span> %
-                </div>
-                <div class="col-2 stat">
-                  <span>{summaryStats.avgTop6NextTaxa.toFixed(1)}</span> %
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row justify-content-center">
-        <div class="col" style="max-width: 460px">
-          <ClusterRadarChart
-            dataByCluster={$clusterStore.dataByCluster}
-            {clusterColors}
-          />
-        </div>
-        <div
-          class="col d-flex align-items-center"
-          style="max-width: 320px; margin-top: 50px"
-        >
-          <ClusterPieChart
-            dataByCluster={$clusterStore.dataByCluster}
-            {clusterColors}
-          />
-        </div>
-      </div>
-
-      <div class="row mt-4 mb-4 justify-content-center">
-        <div class="col-md-8">
-          <PredictionLookup
-            dataByCluster={$clusterStore.dataByCluster}
-            openCave={openLocation}
-          />
-        </div>
-      </div>
-
-      <div class="row justify-content-between mt-4 ms-4 me-4">
-        <div class="col-auto d-flex align-items-center">
-          <div class="form-group">
-            <div class="input-group">
-              <select
-                id="cluster_selector"
-                class="form-select form-select-sm item_select me-1"
-                bind:value={clusterIndex}
-              >
-                {#each $clusterStore.dataByCluster as _, i}
-                  <option value={i}>Cluster #{i + 1}</option>
-                {/each}
-              </select>
-              <div id="cluster_color" />
-            </div>
-          </div>
-        </div>
-        <div class="col-auto">
-          <div class="btn-group" role="group" aria-label="Switch datasets">
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={datasetType}
-              name="dataset"
-              id={DatasetType.visits}
-              value={DatasetType.visits}
-            />
-            <label class="btn btn-outline-primary" for={DatasetType.visits}
-              >Visits</label
-            >
-            <input
-              type="radio"
-              class="btn-check"
-              bind:group={datasetType}
-              name="dataset"
-              id={DatasetType.personVisits}
-              value={DatasetType.personVisits}
-            />
-            <label class="btn btn-outline-primary" for={DatasetType.personVisits}
-              >Person-Visits</label
-            >
-          </div>
-        </div>
-        <div class="col-auto">
-          <button class="btn btn-major" type="button" on:click={_toggleModel}
-            >{showingAverageModel ? 'Hide Avg. Model' : 'Show Avg. Model'}</button
+          <button class="btn btn-major" type="button" on:click={_openConfigDialog}
+            >{$clusterStore ? 'Change' : 'Load'} Clusters</button
           >
+        </span>
+      </TabHeader>
+
+      {#if $clusterStore}
+        {@const minRecentPredictionPoints =
+          $clusterStore.config.minRecentPredictionPoints}
+        {@const maxRecentPredictionPoints =
+          $clusterStore.config.maxRecentPredictionPoints}
+        {@const summaryStats = $clusterStore.summaryStats}
+
+        <div class="cluster_title">
+          {totalCaves} caves having
+          {#if clusterSpec.comparedFauna == ComparedFauna.all}
+            any taxon,
+          {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
+            cave obligates,
+          {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
+            genera of cave obligates,
+          {/if}
+          {$clusterStore.dataByCluster.length} clusters
         </div>
-      </div>
+        <div class="cluster_params">
+          max. <span>{$clusterStore.config.maxClusters}</span> clusters, comparing
+          <span>
+            {#if clusterSpec.comparedFauna == ComparedFauna.all}
+              all fauna
+            {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
+              cave obligates
+            {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
+              genera of cave obligates
+            {/if}
+          </span>
+          &lt;= <span>{clusterSpec.metric.highestComparedRank}</span>,
+          <br />
+          <span>{clusterSpec.metric.proximityResolution ? 'using' : 'not using'}</span>
+          proximity, min.&ndash;max.
+          <span>{$clusterStore.config.minRecentPredictionPoints}</span>&ndash;<span
+            >{$clusterStore.config.maxRecentPredictionPoints}</span
+          > recent visits
+        </div>
 
-      {@const config = $clusterStore.config}
-      {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
-      {@const clusterColor = clusterColors[clusterIndex].foreground}
-      {@const multipleClusters =
-        $clusterStore && $clusterStore.dataByCluster.length > 1}
-      {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
+        <div class="row mt-3 ms-4 me-4 justify-content-center">
+          <div class="col-sm col-md-12 col-lg-10 accuracy_stats">
+            <div class="row pt-2">
+              <div class="col-md-4">
+                <div class="row">
+                  <div class="col mt-2 text-center accuracy_header">
+                    Overall Accuracy
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col stat">
+                    <span>{Math.round(summaryStats.generalCaves)}</span> % +spp.
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col stat">
+                    <span>{Math.round(summaryStats.generalTaxa)}</span> % +taxa
+                  </div>
+                </div>
+                <div class="row mt-3 mb-2 text-center">
+                  <div
+                    class="col link_text"
+                    on:click={() => (showingAboutAccuracy = true)}
+                  >
+                    about accuracy
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="row">
+                  <div class="col-6 text-end accuracy_header">Accuracy Summary</div>
+                  <div class="col-3 stat">Top 10</div>
+                  <div class="col-2 stat">Top 20</div>
+                </div>
+                <div class="row mt-1">
+                  <div class="col-6 text-end">+spp. next visit</div>
+                  <div class="col-3 stat">
+                    <span>{summaryStats.avgTop10PerVisitCaves.toFixed(1)}</span> %
+                  </div>
+                  <div class="col-2 stat">
+                    <span>{summaryStats.avgTop20PerVisitCaves.toFixed(1)}</span> %
+                  </div>
+                </div>
+                <div class="row mt-1">
+                  <div class="col-6 text-end">+spp. next person-visit</div>
+                  <div class="col-3 stat">
+                    <span>{summaryStats.avgTop10PerPersonVisitCaves.toFixed(1)}</span> %
+                  </div>
+                  <div class="col-2 stat">
+                    <span>{summaryStats.avgTop20PerPersonVisitCaves.toFixed(1)}</span> %
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-6" />
+                  <div class="col-3 stat">Top 3</div>
+                  <div class="col-2 stat">Top 6</div>
+                </div>
+                <div class="row mt-1 mb-2">
+                  <div class="col-6 text-end">+taxa per cave</div>
+                  <div class="col-3 stat">
+                    <span>{summaryStats.avgTop3NextTaxa.toFixed(1)}</span> %
+                  </div>
+                  <div class="col-2 stat">
+                    <span>{summaryStats.avgTop6NextTaxa.toFixed(1)}</span> %
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {#if !showingAverageModel}
-        {@const graphSpec = getGraphSpec(config, datasetType, false)}
-        <div class="row mt-3 mb-1">
-          <div class="col" style="height: 350px">
-            <EffortGraph
-              title={graphTitlePrefix + graphSpec.graphTitle}
-              color={clusterColor}
-              graphDataSet={clusterData.locationGraphDataSet}
-              {graphSpec}
+        <div class="row justify-content-center">
+          <div class="col" style="max-width: 460px">
+            <ClusterRadarChart
+              dataByCluster={$clusterStore.dataByCluster}
+              {clusterColors}
+            />
+          </div>
+          <div
+            class="col d-flex align-items-center"
+            style="max-width: 320px; margin-top: 50px"
+          >
+            <ClusterPieChart
+              dataByCluster={$clusterStore.dataByCluster}
+              {clusterColors}
             />
           </div>
         </div>
+
+        <div class="row mt-4 mb-4 justify-content-center">
+          <div class="col-md-8">
+            <PredictionLookup
+              dataByCluster={$clusterStore.dataByCluster}
+              openCave={openLocation}
+            />
+          </div>
+        </div>
+
+        <div class="row justify-content-between mt-4 ms-4 me-4">
+          <div class="col-auto d-flex align-items-center">
+            <div class="form-group">
+              <div class="input-group">
+                <select
+                  id="cluster_selector"
+                  class="form-select form-select-sm item_select me-1"
+                  bind:value={clusterIndex}
+                >
+                  {#each $clusterStore.dataByCluster as _, i}
+                    <option value={i}>Cluster #{i + 1}</option>
+                  {/each}
+                </select>
+                <div id="cluster_color" />
+              </div>
+            </div>
+          </div>
+          <div class="col-auto">
+            <div class="btn-group" role="group" aria-label="Switch datasets">
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={datasetType}
+                name="dataset"
+                id={DatasetType.visits}
+                value={DatasetType.visits}
+              />
+              <label class="btn btn-outline-primary" for={DatasetType.visits}
+                >Visits</label
+              >
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={datasetType}
+                name="dataset"
+                id={DatasetType.personVisits}
+                value={DatasetType.personVisits}
+              />
+              <label class="btn btn-outline-primary" for={DatasetType.personVisits}
+                >Person-Visits</label
+              >
+            </div>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-major" type="button" on:click={_toggleModel}
+              >{showingAverageModel ? 'Hide Avg. Model' : 'Show Avg. Model'}</button
+            >
+          </div>
+        </div>
+
+        {@const config = $clusterStore.config}
+        {@const clusterData = $clusterStore.dataByCluster[clusterIndex]}
+        {@const clusterColor = clusterColors[clusterIndex].foreground}
+        {@const multipleClusters =
+          $clusterStore && $clusterStore.dataByCluster.length > 1}
+        {@const graphTitlePrefix = multipleClusters ? `#${clusterIndex + 1}: ` : ''}
+
+        {#if !showingAverageModel}
+          {@const graphSpec = getGraphSpec(config, datasetType, false)}
+          <div class="row mt-3 mb-1">
+            <div class="col" style="height: 350px">
+              <EffortGraph
+                title={graphTitlePrefix + graphSpec.graphTitle}
+                color={clusterColor}
+                graphDataSet={clusterData.locationGraphDataSet}
+                {graphSpec}
+              />
+            </div>
+          </div>
+        {:else}
+          {@const graphSpec = getGraphSpec(config, datasetType, true)}
+          <RegressedEffortGraph
+            title={graphTitlePrefix + graphSpec.graphTitle}
+            color={clusterColor}
+            sourceDataSet={clusterData.locationGraphDataSet}
+            {graphSpec}
+            clusteringConfig={$clusterStore.config}
+          />
+        {/if}
+        <LocationFootnotes flags={effortFlags} />
+
+        {#if predictionLocationDataset.length > 0}
+          <hr />
+          <LocationBarGraph
+            title="Predicted additional species on next {visitUnitName}"
+            tierStats={predictionTierStats}
+            getItems={_getMultiVisitLocationSubset}
+            greatestValue={greatestMultiVisitLocationValue}
+            getValue={getLocationValue}
+            getPoints={getLocationPoints}
+            items={predictionLocationDataset}
+            {visitUnitName}
+            {openLocation}
+            >This chart shows the number of additional species predicted to be found at
+            a cave on the next {visitUnitName} to the cave, according to a power curve (total
+            species <span class="eq">y</span> <span class="eq">=</span>
+            <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
+            <span class="eq">x</span>) fit to the points of the most recent {#if minRecentPredictionPoints != maxRecentPredictionPoints}{minRecentPredictionPoints}
+              to{/if}
+            {maxRecentPredictionPoints}
+            visits to the cave, as requested. {#if minRecentPredictionPoints == 2}For
+              caves with only 2 visits, the predicted additional species is given by the
+              slope of the line through their points.{/if} To measure accuracy, <MoreLess
+              >the technique was applied to historical data to predict the additional
+              species of each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+              most recent visits to each cave. The chart reports the average percentage of
+              caves that it correctly predicted would occur within each top group of N caves
+              according to a sort of the number of species predicted.
+              <i
+                >For example, a top 5 accuracy of 25% would mean that the technique
+                correctly predicted which caves would be among the top 5 yielding the
+                most species 25% of the time.</i
+              ></MoreLess
+            ></LocationBarGraph
+          >
+        {/if}
+        {#if nonPredictionLocationDataset.length > 0}
+          <hr />
+          <LocationBarGraph
+            title="Caves with too few visits for predictions"
+            getItems={_getSingleVisitLocationSubset}
+            greatestValue={greatestSingleVisitLocationValue}
+            getValue={getLastDeltaSpecies}
+            getPoints={getLocationPoints}
+            items={nonPredictionLocationDataset}
+            {visitUnitName}
+            {openLocation}
+            >This chart lists the caves having fewer than the requested minimum {minRecentPredictionPoints}
+            visits for making predictions. It sorts the caves by the number of species found
+            on the most recent visit.</LocationBarGraph
+          >
+        {/if}
+        <hr />
+        <TaxonBarGraph
+          title="Frequency of taxa found in this cluster"
+          visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
+          locationGraphDataSet={clusterData.locationGraphDataSet}
+          >This chart shows all the taxa found in the caves of this cluster, sorted by
+          the number of visits in which they were found. It illustrates the frequency of
+          occurrence of taxa in this cluster rather than the frequency of occurrence of
+          specimens. Each bar depicts the fraction of the total number of visits in
+          which a taxon was found.</TaxonBarGraph
+        >
       {:else}
-        {@const graphSpec = getGraphSpec(config, datasetType, true)}
-        <RegressedEffortGraph
-          title={graphTitlePrefix + graphSpec.graphTitle}
-          color={clusterColor}
-          sourceDataSet={clusterData.locationGraphDataSet}
-          {graphSpec}
-          clusteringConfig={$clusterStore.config}
+        <EmptyTab
+          message={'Click the "Load Clusters" button to generate predictions.'}
         />
       {/if}
-      <LocationFootnotes flags={effortFlags} />
-
-      {#if predictionLocationDataset.length > 0}
-        <hr />
-        <LocationBarGraph
-          title="Predicted additional species on next {visitUnitName}"
-          tierStats={predictionTierStats}
-          getItems={_getMultiVisitLocationSubset}
-          greatestValue={greatestMultiVisitLocationValue}
-          getValue={getLocationValue}
-          getPoints={getLocationPoints}
-          items={predictionLocationDataset}
-          {visitUnitName}
-          {openLocation}
-          >This chart shows the number of additional species predicted to be found at a
-          cave on the next {visitUnitName} to the cave, according to a power curve (total
-          species <span class="eq">y</span> <span class="eq">=</span>
-          <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
-          <span class="eq">x</span>) fit to the points of the most recent {#if minRecentPredictionPoints != maxRecentPredictionPoints}{minRecentPredictionPoints}
-            to{/if}
-          {maxRecentPredictionPoints}
-          visits to the cave, as requested. {#if minRecentPredictionPoints == 2}For
-            caves with only 2 visits, the predicted additional species is given by the
-            slope of the line through their points.{/if} To measure accuracy, <MoreLess
-            >the technique was applied to historical data to predict the additional
-            species of each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
-            most recent visits to each cave. The chart reports the average percentage of
-            caves that it correctly predicted would occur within each top group of N caves
-            according to a sort of the number of species predicted.
-            <i
-              >For example, a top 5 accuracy of 25% would mean that the technique
-              correctly predicted which caves would be among the top 5 yielding the most
-              species 25% of the time.</i
-            ></MoreLess
-          ></LocationBarGraph
-        >
-      {/if}
-      {#if nonPredictionLocationDataset.length > 0}
-        <hr />
-        <LocationBarGraph
-          title="Caves with too few visits for predictions"
-          getItems={_getSingleVisitLocationSubset}
-          greatestValue={greatestSingleVisitLocationValue}
-          getValue={getLastDeltaSpecies}
-          getPoints={getLocationPoints}
-          items={nonPredictionLocationDataset}
-          {visitUnitName}
-          {openLocation}
-          >This chart lists the caves having fewer than the requested minimum {minRecentPredictionPoints}
-          visits for making predictions. It sorts the caves by the number of species found
-          on the most recent visit.</LocationBarGraph
-        >
-      {/if}
-      <hr />
-      <TaxonBarGraph
-        title="Frequency of taxa found in this cluster"
-        visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
-        locationGraphDataSet={clusterData.locationGraphDataSet}
-        >This chart shows all the taxa found in the caves of this cluster, sorted by the
-        number of visits in which they were found. It illustrates the frequency of
-        occurrence of taxa in this cluster rather than the frequency of occurrence of
-        specimens. Each bar depicts the fraction of the total number of visits in which
-        a taxon was found.</TaxonBarGraph
-      >
-    {:else}
-      <EmptyTab message={'Click the "Load Clusters" button to generate predictions.'} />
-    {/if}
-  </div>
+    </div>
+  </svelte:fragment>
 </DataTabRoute>
 
 {#if showingAboutAccuracy}

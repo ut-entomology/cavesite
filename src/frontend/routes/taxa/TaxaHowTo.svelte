@@ -54,3 +54,9 @@
 </p>
 
 <p>If you click on the plus of a taxonomic rank that already contains selected taxa,</p>
+
+<ExampleImage
+  src="/taxa/collapsed-selections.png"
+  alt="Example of tree collapsed to just Araneae"
+  padding={0.2}
+/>

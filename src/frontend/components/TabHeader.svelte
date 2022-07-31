@@ -1,5 +1,7 @@
 <script lang="ts">
   import InfoDialog from '../dialogs/InfoDialog.svelte';
+  import HowToUse from './HowToUse.svelte';
+  import { showingHowTo } from '../stores/showingHowTo';
 
   const expandIcon = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve" transform="rotate(-90)">
     <g><path d="M274,21.6L274,21.6c-8.8-7.2-20.1-11.6-32.4-11.6c-28.3,0-51.2,22.9-51.2,51.2l-0.2,0.1l0.2,877.6c0.1,28.2,23,51,51.2,51c13.4,0,25.6-5.2,34.8-13.6l513.3-436.7c12.3-9.4,20.2-24.1,20.2-40.7c0-16.1-7.5-30.5-19.1-39.9v0L274.4,21.9C274.3,21.8,274.2,21.7,274,21.6L274,21.6L274,21.6z"/></g></svg>`;
@@ -9,10 +11,8 @@
   export let tabName: string;
   export let title: string;
   export let center = true;
-  export let provideHowTo = false;
   export let expandable = false;
 
-  let showingHowTo = false;
   let expanded = false;
 
   function toggleExpansion() {
@@ -29,8 +29,8 @@
 <div class="row mt-3 mb-3 justify-content-between">
   <div class="col-auto tab_title">
     {@html title}
-    {#if $$slots['how-to'] && provideHowTo}
-      <div class="how_to_button" on:click={() => (showingHowTo = true)}>
+    {#if $$slots['how-to']}
+      <div class="how_to_button" on:click={() => ($showingHowTo = true)}>
         <div>?</div>
       </div>
     {/if}
@@ -69,14 +69,16 @@
   </div>
 {/if}
 
-{#if showingHowTo}
+{#if $showingHowTo}
   <InfoDialog
     title="How to use the {tabName} tab"
     classes="how_to_dialog"
     maxWidth="800px"
-    onClose={() => (showingHowTo = false)}
+    onClose={() => ($showingHowTo = false)}
   >
-    <slot name="how-to" />
+    <HowToUse>
+      <slot name="how-to" />
+    </HowToUse>
   </InfoDialog>
 {/if}
 

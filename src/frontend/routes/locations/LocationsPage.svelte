@@ -226,72 +226,75 @@
 </script>
 
 <DataTabRoute activeTab={tabName}>
-  <div class="container-fluid">
-    <TabHeader {tabName} title={$pageName}>
-      <span slot="instructions"
-        >This tab shows the locations that you have selected for use in other tabs.
-        Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on the {@html plusIcon}
-        or {@html checkmarkIcon} to toggle selections. Click on a location link or on "Browse
-        Locations" to browse, add, and remove locations. Type locations in the box for autocompletion
-        assistance and fast selection.</span
-      >
-      <span slot="main-buttons">
-        {#if rootNode}
-          <button class="btn btn-minor" type="button" on:click={expandTree}
-            >Expand All</button
-          >
-          <button class="btn btn-minor" type="button" on:click={clearSelections}
-            >Clear</button
-          >
-        {/if}
-        <button
-          class="btn btn-major"
-          type="button"
-          on:click={() => openLocationBrowser(ROOT_LOCATION_UNIQUE)}
-          >Browse Locations</button
+  <svelte:fragment slot="body">
+    <div class="container-fluid mb-3">
+      <TabHeader {tabName} title={$pageName}>
+        <span slot="instructions"
+          >This tab shows the locations that you have selected for use in other tabs.
+          Selections appear <b>checked {@html checkmarkIcon} and bolded</b>. Click on
+          the {@html plusIcon}
+          or {@html checkmarkIcon} to toggle selections. Click on a location link or on "Browse
+          Locations" to browse, add, and remove locations. Type locations in the box for
+          autocompletion assistance and fast selection.</span
         >
-      </span>
-    </TabHeader>
-
-    <div class="location_lookup container-fluid">
-      <LocationLookup
-        {selectionsTree}
-        {getContainingLocations}
-        addSelection={addSelection.bind(null, false)}
-        removeSelection={removeSelection.bind(null, false)}
-        openUnique={async (unique) => openLocationBrowser(unique)}
-        setClearer={(clearer) => (clearInput = clearer)}
-      />
-    </div>
-
-    {#if !rootNode}
-      <EmptyTab
-        message="No locations selected<div class='no-selection-paren'>(equivalent to selecting all locations)</div>"
-      />
-    {:else}
-      <div class="tree_area">
-        <div class="container-fluid gx-1">
-          <ExpandableSelectableTree
-            bind:this={rootTree}
-            node={rootNode}
-            {containingSpecNodes}
-            showRoot={false}
-            let:selectableConfig
+        <span slot="main-buttons">
+          {#if rootNode}
+            <button class="btn btn-minor" type="button" on:click={expandTree}
+              >Expand All</button
+            >
+            <button class="btn btn-minor" type="button" on:click={clearSelections}
+              >Clear</button
+            >
+          {/if}
+          <button
+            class="btn btn-major"
+            type="button"
+            on:click={() => openLocationBrowser(ROOT_LOCATION_UNIQUE)}
+            >Browse Locations</button
           >
-            <SelectableLocation
-              {...selectableConfig}
-              gotoUnique={async (unique) => openLocationBrowser(unique)}
-              addSelection={addSelection.bind(null, true)}
-              removeSelection={removeSelection.bind(null, true)}
-            />
-          </ExpandableSelectableTree>
-        </div>
+        </span>
+      </TabHeader>
+
+      <div class="location_lookup container-fluid">
+        <LocationLookup
+          {selectionsTree}
+          {getContainingLocations}
+          addSelection={addSelection.bind(null, false)}
+          removeSelection={removeSelection.bind(null, false)}
+          openUnique={async (unique) => openLocationBrowser(unique)}
+          setClearer={(clearer) => (clearInput = clearer)}
+        />
       </div>
 
-      <hr />
-      <TaxaForLocations {taxonRows} {getTaxonRows} increasing={increasingTaxonRows} />
-    {/if}
-  </div>
+      {#if !rootNode}
+        <EmptyTab
+          message="No locations selected<div class='no-selection-paren'>(equivalent to selecting all locations)</div>"
+        />
+      {:else}
+        <div class="tree_area">
+          <div class="container-fluid gx-1">
+            <ExpandableSelectableTree
+              bind:this={rootTree}
+              node={rootNode}
+              {containingSpecNodes}
+              showRoot={false}
+              let:selectableConfig
+            >
+              <SelectableLocation
+                {...selectableConfig}
+                gotoUnique={async (unique) => openLocationBrowser(unique)}
+                addSelection={addSelection.bind(null, true)}
+                removeSelection={removeSelection.bind(null, true)}
+              />
+            </ExpandableSelectableTree>
+          </div>
+        </div>
+
+        <hr />
+        <TaxaForLocations {taxonRows} {getTaxonRows} increasing={increasingTaxonRows} />
+      {/if}
+    </div>
+  </svelte:fragment>
 </DataTabRoute>
 
 {#if requestClearConfirmation}

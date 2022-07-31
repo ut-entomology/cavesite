@@ -336,98 +336,101 @@
 </script>
 
 <DataTabRoute activeTab={tabName}>
-  <div id="em_sample" />
-  <div class="container-fluid">
-    <TabHeader {tabName} title={$pageName} center={false} expandable={true}>
-      <span slot="instructions"
-        >Query the data according to your custom criteria. Use the <a href="/taxa"
-          >Taxa</a
-        >
-        and <a href="/locations">Locations</a> tabs to specify the optional query
-        filters.
-        <MoreLess
-          >Queries always return distinct rows, returning one row per specimen record
-          only when you include the Catalog Number in the query. Include the Result
-          Count field to see the number of records associated with each distinct row.
-          For example, to see the number of specimen records there are for each
-          location, query for just the Record Count, Locality, and County fields (some
-          localities have identical names in different counties).</MoreLess
-        ></span
-      >
-      <span slot="main-buttons">
-        {#if $cachedResults}
-          <button class="btn btn-minor" type="button" on:click={clearQuery}
-            >Clear</button
+  <svelte:fragment slot="body">
+    <div id="em_sample" />
+    <div class="container-fluid">
+      <TabHeader {tabName} title={$pageName} center={false} expandable={true}>
+        <span slot="instructions"
+          >Query the data according to your custom criteria. Use the <a href="/taxa"
+            >Taxa</a
           >
-          <button
-            class="btn btn-minor download_icon ps-2 pe-2"
-            type="button"
-            on:click={() => (requestDownload = true)}
-            ><img
-              src="/download-icon.png"
-              title="Download data"
-              alt="Download data"
-            /></button
-          >
-        {/if}
-        <button class="btn btn-major" type="button" on:click={createNewQuery}
-          >{QUERY_BUTTON_LABEL}</button
+          and <a href="/locations">Locations</a> tabs to specify the optional query
+          filters.
+          <MoreLess
+            >Queries always return distinct rows, returning one row per specimen record
+            only when you include the Catalog Number in the query. Include the Result
+            Count field to see the number of records associated with each distinct row.
+            For example, to see the number of specimen records there are for each
+            location, query for just the Record Count, Locality, and County fields (some
+            localities have identical names in different counties).</MoreLess
+          ></span
         >
-      </span>
-      <span slot="work-buttons">
-        {#if $cachedResults}
-          <RowControls
-            firstRowNumber={$cachedResults.startOffset + 1}
-            {lastRowNumber}
-            totalRows={$cachedResults.totalRows}
-            config={rowControlsConfig}
-          />
-        {/if}
-      </span>
-    </TabHeader>
-  </div>
-  {#if !$cachedResults}
-    <EmptyTab message={'Click the "New Query" button to perform a query.'} />
-  {:else}
-    <div class="header_box">
-      <div id="results_header" style="grid-template-columns: {gridColumnWidths}">
-        {#each $cachedResults.query.columnSpecs as columnSpec}
-          {@const columnID = columnSpec.columnID}
-          {@const columnInfo = columnInfoMap[columnID]}
-          <div class="header" title={columnInfo.description}>
-            {columnInfo.abbrName || columnInfo.fullName}
-            <ColumnResizer
-              class="column_resizer"
-              minWidthPx={20}
-              onResize={(px) => _resizeColumn(columnID, px)}
+        <span slot="main-buttons">
+          {#if $cachedResults}
+            <button class="btn btn-minor" type="button" on:click={clearQuery}
+              >Clear</button
+            >
+            <button
+              class="btn btn-minor download_icon ps-2 pe-2"
+              type="button"
+              on:click={() => (requestDownload = true)}
+              ><img
+                src="/download-icon.png"
+                title="Download data"
+                alt="Download data"
+              /></button
+            >
+          {/if}
+          <button class="btn btn-major" type="button" on:click={createNewQuery}
+            >{QUERY_BUTTON_LABEL}</button
+          >
+        </span>
+        <span slot="work-buttons">
+          {#if $cachedResults}
+            <RowControls
+              firstRowNumber={$cachedResults.startOffset + 1}
+              {lastRowNumber}
+              totalRows={$cachedResults.totalRows}
+              config={rowControlsConfig}
             />
-          </div>
-        {/each}
-      </div>
+          {/if}
+        </span>
+      </TabHeader>
     </div>
-    <div class="grid_box">
-      <div id="scroll_area" bind:this={scrollArea}>
-        {#if $cachedResults.totalRows > 0}
-          <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
-            {#each $cachedResults.rows as row, i}
-              {#each $cachedResults.query.columnSpecs as columnSpec, j}
-                {@const columnInfo = columnInfoMap[columnSpec.columnID]}
-                <div
-                  class={columnInfo.columnClass || ''}
-                  class:even={i % 2 == 0}
-                  class:left={j == 0}
-                >
-                  {@html columnInfo.getValue(row)}
-                </div>
+
+    {#if !$cachedResults}
+      <EmptyTab message={'Click the "New Query" button to perform a query.'} />
+    {:else}
+      <div class="header_box">
+        <div id="results_header" style="grid-template-columns: {gridColumnWidths}">
+          {#each $cachedResults.query.columnSpecs as columnSpec}
+            {@const columnID = columnSpec.columnID}
+            {@const columnInfo = columnInfoMap[columnID]}
+            <div class="header" title={columnInfo.description}>
+              {columnInfo.abbrName || columnInfo.fullName}
+              <ColumnResizer
+                class="column_resizer"
+                minWidthPx={20}
+                onResize={(px) => _resizeColumn(columnID, px)}
+              />
+            </div>
+          {/each}
+        </div>
+      </div>
+      <div class="grid_box">
+        <div id="scroll_area" bind:this={scrollArea}>
+          {#if $cachedResults.totalRows > 0}
+            <div id="results_grid" style="grid-template-columns: {gridColumnWidths}">
+              {#each $cachedResults.rows as row, i}
+                {#each $cachedResults.query.columnSpecs as columnSpec, j}
+                  {@const columnInfo = columnInfoMap[columnSpec.columnID]}
+                  <div
+                    class={columnInfo.columnClass || ''}
+                    class:even={i % 2 == 0}
+                    class:left={j == 0}
+                  >
+                    {@html columnInfo.getValue(row)}
+                  </div>
+                {/each}
               {/each}
-            {/each}
-          </div>
-        {:else}
-          <div class="no_results">No results found.</div>
-        {/if}
+            </div>
+          {:else}
+            <div class="no_results">No results found.</div>
+          {/if}
+        </div>
       </div>
-    </div>
-  {/if}
+    {/if}
+  </svelte:fragment>
 </DataTabRoute>
 
 {#if templateQuery !== null}
