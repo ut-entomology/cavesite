@@ -19,4 +19,8 @@
     font-weight: bold;
     color: #bbb;
   }
+  .image img {
+    max-width: 100%;
+    height: auto;
+  }
 </style>
