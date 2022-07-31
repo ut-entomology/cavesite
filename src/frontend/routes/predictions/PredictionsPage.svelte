@@ -422,27 +422,26 @@
 
         <div class="row mt-3 ms-4 me-4 justify-content-center">
           <div class="col-sm col-md-12 col-lg-10 accuracy_stats">
-            <div class="row pt-3">
+            <div class="row pt-3 justify-content-center">
               <div class="col-md-4">
-                <div class="row">
+                <div class="row mt-2">
                   <div class="col text-center accuracy_header">Overall Accuracy</div>
                 </div>
                 <div class="row mt-2">
                   <div class="col stat">
-                    <span>{summaryStats.cavesWithPredictions}</span> caves
+                    <span>{Math.round(summaryStats.generalCaves)}</span> % +spp. (<span
+                      >{summaryStats.cavesWithSpeciesPredictions}</span
+                    > caves)
                   </div>
                 </div>
                 <div class="row">
                   <div class="col stat">
-                    <span>{Math.round(summaryStats.generalCaves)}</span> % +spp.
+                    <span>{Math.round(summaryStats.generalTaxa)}</span> % +taxa (<span
+                      >{summaryStats.cavesWithTaxaPredictions}</span
+                    > caves)
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col stat">
-                    <span>{Math.round(summaryStats.generalTaxa)}</span> % +taxa
-                  </div>
-                </div>
-                <div class="row mt-2 mb-3 text-center">
+                <div class="row mt-3 mb-3 text-center">
                   <div
                     class="col link_text"
                     on:click={() => (showingAboutAccuracy = true)}
