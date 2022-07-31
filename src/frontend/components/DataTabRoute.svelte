@@ -45,7 +45,7 @@
 
   {#if $$slots['how-to'] && embedHowTo && !$showingHowTo}
     <div class="how_to_box">
-      <div class="how_to_title">How to use the {activeTab} tab</div>
+      <h2>How to use the {activeTab} tab</h2>
       <HowToUse>
         <slot name="how-to" />
       </HowToUse>
@@ -61,16 +61,9 @@
     border-radius: $border-radius;
     max-width: 800px;
     margin: 0 auto 2rem auto;
-    padding: 0.5rem 0 1rem 0;
+    padding: 1.5rem 0 1rem 0;
 
     -webkit-box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.45);
     box-shadow: 0px 0px 30px 10px rgba(0, 0, 0, 0.45);
-  }
-
-  .how_to_title {
-    margin: 1rem auto;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1rem;
   }
 </style>

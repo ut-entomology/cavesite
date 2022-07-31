@@ -1,11 +1,14 @@
 <script lang="ts">
   export let src: string;
   export let alt: string;
+  export let header = 'EXAMPLE';
   export let padding: number = 0; // em
 </script>
 
 <div class="image">
-  <div style="margin-bottom: {padding}em">EXAMPLE</div>
+  {#if header != ''}
+    <div style="margin-bottom: {padding}em">{header}</div>
+  {/if}
   <img {src} {alt} />
 </div>
 

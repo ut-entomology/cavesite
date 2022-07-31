@@ -2,6 +2,8 @@
 
 export const MIN_LOOKUP_CHAR_LENGTH = 2;
 
+export const MAX_LOOKUP_MATCHES = 120;
+
 export interface ModelSpec {
   unique: string;
   hasChildren: boolean | null;

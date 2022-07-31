@@ -3,9 +3,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import { getDB } from '../integrations/postgres';
 import { Taxon } from '../model/taxon';
-import { TaxonSpec, MIN_LOOKUP_CHAR_LENGTH } from '../../shared/model';
-
-const MAX_LOOKUP_MATCHES = 120;
+import {
+  TaxonSpec,
+  MIN_LOOKUP_CHAR_LENGTH,
+  MAX_LOOKUP_MATCHES
+} from '../../shared/model';
 
 export const router = Router();
 

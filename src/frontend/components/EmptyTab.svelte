@@ -11,7 +11,7 @@
     font-size: 1.1rem;
   }
 
-  :global(.no-selection-paren) {
+  :global(.empty-tab-parens) {
     margin-top: 0.2rem;
     font-size: 90%;
   }

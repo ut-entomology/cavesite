@@ -240,9 +240,7 @@
       </div>
 
       {#if !rootNode}
-        <EmptyTab
-          message="No taxa selected<div class='no-selection-paren'>(equivalent to selecting all taxa)</div>"
-        />
+        <EmptyTab message="No taxa selected" />
       {:else}
         <div class="tree_area">
           <div class="container-fluid gx-1">

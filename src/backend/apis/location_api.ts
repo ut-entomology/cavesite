@@ -10,10 +10,9 @@ import {
   type RawLocationEffort,
   ComparedFauna,
   checkComparedFauna,
-  MIN_LOOKUP_CHAR_LENGTH
+  MIN_LOOKUP_CHAR_LENGTH,
+  MAX_LOOKUP_MATCHES
 } from '../../shared/model';
-
-const MAX_LOOKUP_MATCHES = 120;
 
 export const router = Router();
 

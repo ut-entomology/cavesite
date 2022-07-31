@@ -267,9 +267,7 @@
       </div>
 
       {#if !rootNode}
-        <EmptyTab
-          message="No locations selected<div class='no-selection-paren'>(equivalent to selecting all locations)</div>"
-        />
+        <EmptyTab message="No locations selected" />
       {:else}
         <div class="tree_area">
           <div class="container-fluid gx-1">
