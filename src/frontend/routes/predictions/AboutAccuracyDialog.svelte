@@ -233,24 +233,22 @@
     lower to N accuracy greater than 3 is used instead, if there is any.
   </p>
   <p>
-    The overall accuracy number of caves is the number of caves for which predictions of
-    expected number of additional species could be made, based on the provided
-    clustering criteria.
-  </p>
-  <p>
     The overall accuracy of predicted numbers of additional species ("+spp.") is a
     function of a number computed for the Top 10 and Top 20 visit summary accuracies and
     a number computed for the Top 10 and Top 20 person-visit summary accuracies. For
     each pair of summary accuracies, if the Top 20 accuracy is zero, the number is the
     Top 10 accuracy. Otherwise, the number is the average of the Top 10 and Top 20
     accuracies. The overall accuracy of predicted numbers of additional species is the
-    greater of these two numbers.
+    greater of these two numbers. The associated number of caves is the number of caves
+    having sufficient numbers of visis to contriburte to this accuracy measure.
   </p>
   <p>
     The overall accuracy of predicted remaining taxa ("+taxa") is a function of the Top
     3 and Top 6 summary accuracies for predicted remaining taxa. If the Top 6 accuracy
     is zero, the overall accuracy is the Top 3 accuracy. Otherwise, the overall accuracy
-    is the average of the Top 3 and Top 6 accuracies.
+    is the average of the Top 3 and Top 6 accuracies. The associated number of caves is
+    the number of caves having at least two visits, allowing at least one historical
+    prediction to contribute to this accuracy measure.
   </p>
 
   <h3>Caveat</h3>
