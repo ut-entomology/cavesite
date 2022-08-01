@@ -46,11 +46,9 @@
 <h3>The Taxa Selections Tree</h3>
 
 <p>
-  Each taxon you add by clicking a checkbox gets added to a tree that displays taxa
-  hierarchically by rank. Each added taxon appears in the tree under its higher taxa.
-  For example, the following tree shows the taxon selections after adding both <i
-    >Latrodectus</i
-  >
+  Each taxon you add by clicking a checkbox appears in a tree that displays taxa
+  hierarchically by rank, shown in the tree under its higher taxa. For example, the
+  following tree depicts the taxon selections after adding both <i>Latrodectus</i>
   and <i>Cicurina bandera</i>:
 </p>
 
@@ -62,9 +60,9 @@
 
 <p>
   Notice that there are both checkmarks ({@html checkmarkIcon}) and pluses (+) in the
-  tree. A checkmark indicates a selected taxon, and a plus indicates a taxon that can be
-  selected. Selected taxa are also in <b>bold</b>. Clicking on a checkmark deselects the
-  taxon, and clicking on a plus selects the taxon.
+  tree. A checkmark indicates a selected taxon, and a plus indicates an unselected taxon
+  that can be selected. Selected taxa are also in <b>bold</b>. Clicking on a checkmark
+  deselects the taxon, and clicking on a plus selects the taxon.
 </p>
 <p>
   Also notice that all of the taxa are links except <i>Cicurina bandera</i>. If you
@@ -72,6 +70,11 @@
   collection at the rank immediately below the taxon you clicked. The species
   <i>Cicurina bandera</i> has no subspecies, so there are no taxa to show below it and it
   does not appear as a link.
+</p>
+<p>
+  The triangles to the left of each taxon are buttons that allow you to expand or
+  contract the tree at that taxon. They are useful for reducing the size of a large
+  selection tree to help you explore the tree.
 </p>
 <p>
   When other tabs use your taxa selections, they pull in all records whose
@@ -104,7 +107,7 @@
 <p>
   If you don't select any taxa, other tabs will provide default taxa selections, such as
   restricting taxa to just those of cave obligates or not restricting taxa at all,
-  effectively selecting all taxa.
+  equivalent to selecting all taxa.
 </p>
 
 <h3>The Taxon Browser</h3>
@@ -115,14 +118,14 @@
   tree of selected taxa. Clicking on the "Browse Taxa" button browses taxa from the
   highest taxonomic rank, starting at kingdom Animalia. Clicking on the loupe browses
   the taxa at the taxonomic rank immediately below the indicated taxon, unless the taxon
-  you typed contains no lower ranks, in which case the taxon browser opens at the taxon
-  that immediately contains the taxon. Clicking on a taxon link in the selections tree
-  browses the taxa immediately below the taxon.
+  you typed contains no lower ranks, in which case the taxon browser opens at the
+  immediately containing taxon. Clicking on a taxon link in the selections tree browses
+  the taxa at and below the taxon.
 </p>
 
 <p>
   For example, if you open the taxon browser at Theridiidae or browse to Theridiidae
-  from the "Browse Taxa" button, you'll get the following popup:
+  from the "Browse Taxa" button, you'll see the following popup:
 </p>
 
 <ExampleImage
@@ -133,8 +136,8 @@
 
 <p>
   The taxon browser works similarly to the taxon selections tree, allowing you to add
-  taxa to your selections by click the plus icon and remove taxa from your selections by
-  clicking the checkmark icon. You can also navigate among the taxa by clicking taxon
+  taxa to your selections by clicking the plus icon and remove taxa from your selections
+  by clicking the checkmark icon. You can also navigate among the taxa by clicking taxon
   links.
 </p>
 
@@ -143,19 +146,20 @@
   are also selected. You are free to deselect any of these taxa. Mind you, if you
   deselect a taxon below a taxon that you have selected, that higher taxon no longer
   includes all of the taxa it contains and therefore ceases to be selected. However, all
-  other taxa that were previously selected remain selected. This allows you to select
-  all taxa in a group except for a few particular taxa. For example, to select all
-  Araneae but <i>Latrodectus</i>, first add Araneae to your selections, then navigate to
+  other taxa that were previously selected below this higher taxon remain selected. This
+  allows you to select all taxa in a group except for a few particular taxa. For
+  example, to select all Araneae but <i>Latrodectus</i>, first add Araneae to your
+  selections, then navigate to
   <i>Latrodectus</i> and remove it from your selections.
 </p>
 
 <p>
-  The <b>Select All</b> button selects all of the child taxa shown in the browser, and
-  the <b>Deselect All</b> button deselects all of the child taxa shown in the browser.
-  These buttons prevent you from having to tediously go through all of the taxa
-  selecting them. For example, if you want all records determined to species within
+  The <b>Select All</b> button selects all of the lower taxa shown in the browser, and
+  the <b>Deselect All</b> button deselects all of the lower taxa shown in the browser.
+  These buttons prevent you from having to tediously select many taxa. For example, if
+  you want all records determined to species within
   <i>Latrodectus</i>
   but not any determined to just <i>Latrodectus</i>, you can navigate to
   <i>Latrodectus</i>, make sure the genus itself is not selected, and then click "Select
-  All" to add the taxa it contains.
+  All" to add the lower taxa it contains.
 </p>
