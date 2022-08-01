@@ -266,10 +266,12 @@
 
   function _escapeCsvColumn(column: string): string {
     // Excel compatible
-    return `"${column
+    const escaped = column
       .replaceAll('<i>', '')
       .replaceAll('</i>', '')
-      .replaceAll('"', '""')}"`;
+      .replaceAll('"', '""');
+    const hasCommas = escaped.includes(',');
+    return escaped != column || hasCommas ? `"${escaped}"` : column;
   }
 
   function _initColumnWidths() {
