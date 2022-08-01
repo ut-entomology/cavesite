@@ -189,7 +189,32 @@
   cave and their estimated accuracies.
 </p>
 <ExampleImage src="/predictions/cluster-controls.png" alt="The cluster controls" />
-<p>The remainder of the page characterizes a single cluster</p>
+<p>
+  The remainder of the page characterizes a single cluster, and the above controls are
+  specific to this cluster. The left-most control selects the cluster and provides both
+  the cluster number and its color. The center controls select between the per-visit and
+  per-person-visit analysises, which can yield different graphs of data and different
+  predictions of the number of additional species expected to be found next. Use the
+  analysis that you find more meaningful or the one that produces the best predictions.
+  The "Show Avg. Model" button on the right replaces the graph (below) with an
+  interactive graph for experimenting with curves that estimate the rate at which
+  additional species are found across the cluster as a whole. You'll find an explanation
+  of this interactive graph further below.
+</p>
+<ExampleImage
+  src="/predictions/full-cluster-graph.png"
+  alt="An example graph of all the points in a cluster"
+/>
+<p>
+  This is a graph of all the visits (or person-visits) occuring among all the caves of
+  the cluster, showing the cumulative number of species ever found in the cave by the
+  completion of that visit (or person-visit). As explained below, this is a measure of
+  the minimum possible number of species, regardless of the taxonomic ranks to which
+  determinations are made. If you hover the cursor over a point, all of the points of
+  the cave to which the point belongs will be highlighted. You may also find bulleted
+  footnotes below the graph. These enumerate the kinds of incomplete data found in the
+  cluster and should be self-explanatory.
+</p>
 
 <h3>How Predictions Work</h3>
 
