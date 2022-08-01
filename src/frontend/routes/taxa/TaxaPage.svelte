@@ -10,7 +10,6 @@
   import SelectableTaxon from './SelectableTaxon.svelte';
   import BrowseTreeDialog from '../../dialogs/BrowseTreeDialog.svelte';
   import LocalitiesForTaxa from './LocalitiesForTaxa.svelte';
-  import HowToUseTab from '../../components/HowToUse.svelte';
   import TaxaHowTo from './TaxaHowTo.svelte';
   import { plusIcon, checkmarkIcon } from '../../components/SelectionButton.svelte';
   import { TaxonSelectionsTree } from '../../../frontend-core/selections/taxon_selections_tree';

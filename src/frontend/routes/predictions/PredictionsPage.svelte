@@ -48,6 +48,7 @@
   import TaxonBarGraph from './TaxonBarGraph.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
+  import PredictionsHowTo from './PredictionsHowTo.svelte';
   import ConfirmationRequest from '../../common/ConfirmationRequest.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import {
@@ -351,7 +352,8 @@
   afterUpdate(() => _setClusterSelectorColor(clusterIndex));
 </script>
 
-<DataTabRoute activeTab={tabName}>
+<DataTabRoute activeTab={tabName} embedHowTo={!$clusterStore}>
+  <svelte:fragment slot="how-to"><PredictionsHowTo /></svelte:fragment>
   <svelte:fragment slot="body">
     <div class="container-fluid mb-3">
       <TabHeader {tabName} title={$pageName}>
@@ -385,6 +387,7 @@
             >{$clusterStore ? 'Change' : 'Load'} Clusters</button
           >
         </span>
+        <div slot="how-to"><PredictionsHowTo /></div>
       </TabHeader>
 
       {#if $clusterStore}
