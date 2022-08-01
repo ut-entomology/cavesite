@@ -80,7 +80,7 @@ function recordToSpecimenSource(record: CsvSpecimen): SpecimenSource {
 
 function toDetRemarks(record: CsvSpecimen): string {
   const species = record.species;
-  if (species.includes('sp.') && !record.determinationRemarks.includes('sp.')) {
+  if (species.includes('sp.')) {
     if (record.determinationRemarks == '') return species;
     return record.determinationRemarks + '; ' + species;
   }
