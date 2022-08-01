@@ -13,6 +13,7 @@
   import TaxaPage from './routes/taxa/TaxaPage.svelte';
   import LocationsPage from './routes/locations/LocationsPage.svelte';
   import QueriesPage from './routes/queries/QueriesPage.svelte';
+  import MapPage from './routes/map/MapPage.svelte';
   import TimePage from './routes/time/TimePage.svelte';
   import PredictionsPage from './routes/predictions/PredictionsPage.svelte';
   import UsersPage from './routes/admin/users/UsersPage.svelte';
@@ -31,6 +32,7 @@
     '/': WelcomePage,
     '/taxa': TaxaPage,
     '/locations': LocationsPage,
+    '/map': MapPage,
     '/time': TimePage,
     '/predictions': PredictionsPage,
     '/queries': QueriesPage,

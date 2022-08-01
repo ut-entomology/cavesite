@@ -21,6 +21,10 @@
       route: '/locations'
     },
     {
+      label: 'Map',
+      route: '/map'
+    },
+    {
       label: 'Time',
       route: '/time'
     },
