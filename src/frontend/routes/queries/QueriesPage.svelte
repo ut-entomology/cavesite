@@ -270,7 +270,8 @@
     column = column.replace('<i>', '').replace('</i>', '');
     const escaped = column.replaceAll('"', '""');
     const hasCommas = column.includes(',');
-    return escaped != column || hasCommas ? `"${escaped}"` : column;
+    const hasApos = column.includes("'");
+    return escaped != column || hasCommas || hasApos ? `"${escaped}"` : column;
   }
 
   function _initColumnWidths() {
