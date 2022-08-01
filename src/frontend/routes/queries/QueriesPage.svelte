@@ -269,9 +269,8 @@
     if (column == '') return '';
     column = column.replace('<i>', '').replace('</i>', '');
     const escaped = column.replaceAll('"', '""');
-    const hasCommas = column.includes(',');
-    const hasApos = column.includes("'");
-    return escaped != column || hasCommas || hasApos ? `"${escaped}"` : column;
+    const hasSpecialChar = column.includes(',') || column.includes("'");
+    return escaped != column || hasSpecialChar ? `"${escaped}"` : column;
   }
 
   function _initColumnWidths() {
