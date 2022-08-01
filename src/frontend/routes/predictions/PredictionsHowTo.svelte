@@ -1,5 +1,6 @@
 <script lang="ts">
   import ExampleImage from '../../components/ExampleImage.svelte';
+  import { MAX_LOOKUP_MATCHES } from '../../../shared/model';
 </script>
 
 <p>
@@ -44,9 +45,7 @@
   src="/predictions/default-predictions-config.png"
   alt="Default predictions configuration"
 />
-
 <p>The parameters are as follows:</p>
-
 <ul>
   <li>
     <b>Maximum clusters</b> into which to group the caves &mdash; This is the number of clusters
@@ -93,7 +92,6 @@
     seems to improve the accuracy of predicting taxa.
   </li>
 </ul>
-
 <p>
   Once you've selected your configuration, click the "Submit" button. The page will
   display information describing the clusters generated and their predictions. However,
@@ -107,8 +105,94 @@
 
 <h3>Overview of the Presentation</h3>
 
-<p>foo</p>
+<p>
+  Upon generating a set of clusters, the page provides a variety of tools for examining
+  the clusters and associated predictions. Let's sequentially go down the page looking
+  at each tool to get an overview of the tool's purpose and meaning.
+</p>
+<ExampleImage
+  src="/predictions/clustering-title-summary.png"
+  alt="Example title and summary of the clustering"
+/>
+<p>
+  A description akin to the above appears at the top of the page. The title line
+  indicates the number of caves having the requested fauna and the number of clusters of
+  these caves the clustering was able to generate. Below the title line is a summary of
+  your chosen clustering configuration.
+</p>
+<ExampleImage
+  src="/predictions/accuracy-summary.png"
+  alt="Example accuracy summary of a clustering"
+/>
+<p>
+  The above information describes the general accuracy of the clustering. It helps you
+  assess whether you've produced a clustering that is accurate enough for your needs.
+  Click on the "about accuracy" link (but not in the above example image) to learn how
+  prediction accuracy is assessed and the exact meanings of each of the provided summary
+  measures.
+</p>
+<ExampleImage
+  src="/predictions/radar-graph.png"
+  alt="Example radar graph of a clustering"
+/>
+<p>
+  This radar graph shows you the percentage overlap in taxa among the clusters. Notice
+  that each cluster has its own color and number, the latter of which is preceded by a
+  pound sign (#). Each radial line represents a cluster containing the indicated number
+  of taxonomic determinations across all of its caves. The ten concentric circles
+  represent percent overlap in increments of 10%. The intersection of a color of one
+  cluster on the radial line of another cluster indicates the percentage of taxa
+  (actually taxonomic determinations) of the second cluster that are also found in the
+  first cluster. In case that's confusing, you can hover the cursor over any of the
+  circled points of intersection to see a clear explanation of the meaning of the point.
+</p>
+<p>
+  This graph helps you understand how successfully the clustering was able to partition
+  caves into clusters using the requested configuration. The less overlap among the
+  clusters, the more successful the partitioning, and the more likely each clustering
+  represents a distinct cave habitat with distinct fauna. Clusterings with less overlap
+  look more star-like, with longer and sharper points. The more overlap there is, the
+  more amorphous and circular the graph appears. Take note of any clusters that are
+  particularly distinct from the others, as you can investigate these clusters with
+  tools further down on the page to see which taxa are unique to which caves.
+</p>
+<ExampleImage
+  src="/predictions/pie-chart.png"
+  alt="Example pie chart of caves per cluster"
+/>
+<p>
+  The pie chart illustrates the relative number of caves found in each cluster. The
+  color assigned to each cluster is constant throughout the page, so the color of a
+  slice of this pie chart identifies its associated cluster. You can hover the cursor
+  over a slice to see the cluster number and the number of caves in the cluster.
+</p>
+<ExampleImage
+  src="/predictions/cave-name-lookup-empty.png"
+  alt="Empty cave name lookup tool"
+/>
+<ExampleImage
+  src="/predictions/cave-name-lookup-list.png"
+  alt="Cave name lookup tool with dropdown"
+/>
+<ExampleImage
+  src="/predictions/cave-name-lookup-selection.png"
+  alt="Cave name lookup tool with selection"
+/>
+<p>
+  The above set of images shows a series of interactions with the cave lookup box. The
+  first image is what you see before you type anything into the box. You can type any
+  portion of a cave name, and it will show up to {MAX_LOOKUP_MATCHES} caves whose names contain
+  the text you typed. This is what you see in the second image. When you click on one of
+  the caves in the list, the list disappears and you get the third image. Notice that a loupe
+  icon appears to the right of the box. Clicking on this loupe pops up a dialog box that
+  provides particulars about the cave, including the taxa next predicted to be found in the
+  cave and their estimated accuracies.
+</p>
+<ExampleImage src="/predictions/cluster-controls.png" alt="The cluster controls" />
+<p>The remainder of the page characterizes a single cluster</p>
 
 <h3>How Predictions Work</h3>
 
 <h3>Exploring Average Models</h3>
+
+<h3>Examining a Particular Cave</h3>

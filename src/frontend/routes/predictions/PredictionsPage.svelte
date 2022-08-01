@@ -528,6 +528,7 @@
           </div>
         </div>
 
+        <hr />
         <div class="row justify-content-between mt-4 ms-4 me-4">
           <div class="col-auto d-flex align-items-center">
             <div class="form-group">
