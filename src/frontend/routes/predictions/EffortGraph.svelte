@@ -24,6 +24,7 @@
   let pointCount: number;
   let pointSets: Point[][];
   let titleSuffix: string;
+  let maxY: number;
 
   $: xAxisLabel = graphSpec.xAxisLabel;
   $: models = model === null ? [] : [model];
@@ -52,6 +53,10 @@
       titleSuffix = ` (${totalCaves} caves)`;
     } else {
       titleSuffix = ` (${graphDataSet.length} of ${totalCaves} caves)`;
+    }
+
+    if (graphDataSet.length == 1 && graphDataSet[0].perVisitPoints.length == 1) {
+      maxY = graphDataSet[0].perVisitPoints[0].y * 2;
     }
   }
 
@@ -108,7 +113,8 @@
           text: 'cumulative species (y)',
           font: { size: 16 }
         },
-        beginAtZero: true
+        beginAtZero: true,
+        max: maxY
       }
     },
     hover: {

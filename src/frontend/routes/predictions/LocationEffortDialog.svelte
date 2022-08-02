@@ -1,6 +1,7 @@
 <script lang="ts">
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import EffortGraph from './EffortGraph.svelte';
+  import SingleEffortGraph from './SingleEffortGraph.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
   import LocationFootnotes from './LocationFootnotes.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
@@ -93,14 +94,22 @@
 
     <div class="row mt-3 mb-4">
       <div class="col" style="height: 350px">
-        <EffortGraph
-          title={graphSpec.graphTitle}
-          graphDataSet={[locationGraphData]}
-          totalCaves={1}
-          {graphSpec}
-          dataPointColor="black"
-          dataPointWidth={2}
-        />
+        {#if hasPrediction}
+          <SingleEffortGraph
+            title={graphSpec.graphTitle}
+            graphData={locationGraphData}
+            {graphSpec}
+          />
+        {:else}
+          <EffortGraph
+            title={graphSpec.graphTitle}
+            graphDataSet={[locationGraphData]}
+            totalCaves={1}
+            {graphSpec}
+            dataPointColor="black"
+            dataPointWidth={2}
+          />
+        {/if}
       </div>
     </div>
     <LocationFootnotes flags={locationGraphData.flags} singleCave={true} />
