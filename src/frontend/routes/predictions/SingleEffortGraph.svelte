@@ -55,7 +55,8 @@
       }
       recentPoints = points;
       predictedPoint = modelPoints[modelPoints.length - 1];
-      predictedPoint.x = Math.round(predictedPoint.x);
+      predictedPoint.x = lastX;
+      predictedPoint.y = fittedY(lastX);
     }
   }
 </script>
