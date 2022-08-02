@@ -6,6 +6,7 @@
     EffortFlags
   } from '../../../shared/model';
 
+  export let initialNotes: string[] = [];
   export let flags: EffortFlags;
   export let singleCave = false;
 
@@ -15,6 +16,9 @@
 </script>
 
 <SectionFootnotes>
+  {#each initialNotes as initialNote}
+    <li>{initialNote}</li>
+  {/each}
   {#if flags & EffortFlags.missingDayOfMonth}
     <li>
       {opening} indicate the year and month collected but not the day of the month. These

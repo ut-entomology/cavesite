@@ -92,7 +92,7 @@
       </div>
     </div>
 
-    <div class="row mt-3 mb-4">
+    <div class="row mt-3 mb-2">
       <div class="col" style="height: 350px">
         {#if hasPrediction}
           <SingleEffortGraph
@@ -112,7 +112,13 @@
         {/if}
       </div>
     </div>
-    <LocationFootnotes flags={locationGraphData.flags} singleCave={true} />
+    <LocationFootnotes
+      flags={locationGraphData.flags}
+      singleCave={true}
+      initialNotes={[
+        'The fitted curve may rise at higher than the actual rate if visits were made to the cave without collecting specimens. We do not have records of these visits.'
+      ]}
+    />
 
     <hr />
     <TaxonBarGraph
