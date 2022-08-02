@@ -55,7 +55,7 @@ export class PowerFitModel {
     const modelPoints: Point[] = [];
     const deltaX = (this.highestX - this.lowestX) / pointCount;
     let x = this.lowestX;
-    while (x <= this.highestX) {
+    while (x <= this.highestX + 0.1) {
       const y = this.regression.fittedY(x);
       // Don't plot model points for y < 0.
       if (y >= 0) modelPoints.push({ x, y });

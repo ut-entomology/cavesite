@@ -43,11 +43,11 @@
       }
 
       const firstX = points[0].x;
-      const lastX = points[points.length - 1].x;
+      const lastX = points[points.length - 1].x + 1;
       modelPoints = [];
       const deltaX = (lastX - firstX) / POINTS_IN_MODEL_PLOT;
       let x = firstX;
-      while (x <= lastX + 1) {
+      while (x <= lastX + 0.1) {
         const y = fittedY(x);
         // Don't plot model points for y < 0.
         if (y >= 0) modelPoints.push({ x, y });
@@ -55,6 +55,7 @@
       }
       recentPoints = points;
       predictedPoint = modelPoints[modelPoints.length - 1];
+      predictedPoint.x = Math.round(predictedPoint.x);
     }
   }
 </script>
