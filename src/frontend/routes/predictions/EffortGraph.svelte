@@ -9,7 +9,7 @@
   } from '../../../frontend-core/clusters/effort_graph_spec';
   import type { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
 
-  const POINTS_IN_MODEL_PLOT = 200;
+  const POINTS_IN_MODEL_PLOT = 30;
 
   export let color = '';
   export let graphDataSet: LocationGraphData[];
@@ -92,7 +92,11 @@
           showLine: true,
           label: 'weighted average of models power-fit to each location',
           data: model.getModelPoints(POINTS_IN_MODEL_PLOT),
-          backgroundColor: color
+          borderWidth: 5,
+          borderColor: color,
+          backgroundColor: color, // fills in label box
+          tension: 0.5,
+          pointRadius: 0
         };
       })
     ]

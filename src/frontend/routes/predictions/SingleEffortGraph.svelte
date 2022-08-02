@@ -9,7 +9,7 @@
   } from '../../../frontend-core/clusters/effort_graph_spec';
   import { PowerFitModel } from '../../../frontend-core/clusters/power_fit_model';
 
-  const POINTS_IN_MODEL_PLOT = 200;
+  const POINTS_IN_MODEL_PLOT = 30;
 
   export let graphData: LocationGraphData;
   export let graphSpec: EffortGraphSpec;
@@ -81,7 +81,7 @@
       {
         label: recentPoints.length + ' fitted recent points',
         data: recentPoints,
-        backgroundColor: 'pink',
+        backgroundColor: 'rgb(255, 169, 248)',
         borderWidth: 2,
         pointRadius: 8
       },
@@ -89,8 +89,11 @@
         showLine: true,
         label: 'fitted ' + curveType,
         data: modelPoints,
-        backgroundColor: 'cyan',
-        pointRadius: 3.5
+        borderWidth: 7,
+        borderColor: 'cyan',
+        backgroundColor: 'cyan', // fills in label box
+        tension: 0.5,
+        pointRadius: 0
       }
     ]
   }}
@@ -100,21 +103,18 @@
       x: {
         title: {
           display: true,
-          text: xAxisLabel + ' (x)',
+          text: xAxisLabel,
           font: { size: 16 }
         }
       },
       y: {
         title: {
           display: true,
-          text: 'cumulative species (y)',
+          text: 'cumulative species',
           font: { size: 16 }
         },
         beginAtZero: true
       }
-    },
-    hover: {
-      mode: 'dataset'
     },
     plugins: {
       title: {
