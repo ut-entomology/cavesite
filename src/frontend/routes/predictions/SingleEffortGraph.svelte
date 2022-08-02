@@ -55,6 +55,8 @@
       }
       recentPoints = points;
       predictedPoint = modelPoints[modelPoints.length - 1];
+
+      // Compute point directly to avoid cumulative addition errors
       predictedPoint.x = lastX;
       predictedPoint.y = fittedY(lastX);
     }
