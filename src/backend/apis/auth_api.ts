@@ -146,7 +146,8 @@ function getAppInfo() {
     appInfo = {
       appTitle: process.env.CAVESITE_TITLE!,
       appSubtitle: process.env.CAVESITE_SUBTITLE!,
-      hiddenRoutes
+      hiddenRoutes,
+      mapToken: process.env.MAPBOX_ACCESS_TOKEN!
     };
   }
   return appInfo;

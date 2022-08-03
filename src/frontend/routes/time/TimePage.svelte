@@ -160,7 +160,7 @@
     $cachedData = null;
   }
 
-  function loadData() {
+  function requestLoadData() {
     if ($cachedData) {
       const query = $cachedData.query;
       queryRequest = {
@@ -183,13 +183,13 @@
     // Construct a general query for the provided specifications, and construct
     // a general query based on the specified query but including all taxa.
 
-    const allTaxaTimeQuery = {
+    const allTaxaTimeQuery: TimeGraphQuery = {
       fromDateMillis: request.fromDateMillis,
       throughDateMillis: request.throughDateMillis,
       locationFilter: request.filterLocations ? await getLocationFilter() : null,
       taxonFilter: null
     };
-    const specedTimeQuery = Object.assign({}, allTaxaTimeQuery, {
+    const specedTimeQuery: TimeGraphQuery = Object.assign({}, allTaxaTimeQuery, {
       taxonFilter: request.filterTaxa ? await getTaxonFilter() : null
     });
     queryRequest = null; // hide query request dialog
@@ -485,7 +485,7 @@
               >Clear</button
             >
           {/if}
-          <button class="btn btn-major" type="button" on:click={loadData}
+          <button class="btn btn-major" type="button" on:click={requestLoadData}
             >{$cachedData ? 'Change' : 'Load'} Data</button
           >
         </span>

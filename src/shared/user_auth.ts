@@ -31,6 +31,7 @@ export interface AppInfo {
   appTitle: string;
   appSubtitle: string;
   hiddenRoutes: string[];
+  mapToken: string;
 }
 
 export interface LoginInfo extends AppInfo {

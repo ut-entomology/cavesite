@@ -349,7 +349,7 @@
           filters.
           <MoreLess
             >Queries always return distinct rows, returning one row per specimen record
-            only when you include the Catalog Number in the query. Include the Result
+            only when you include the Catalog Number in the query. Include the Record
             Count field to see the number of records associated with each distinct row.
             For example, to see the number of specimen records there are for each
             location, query for just the Record Count, Locality, and County fields (some

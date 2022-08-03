@@ -58,6 +58,10 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
     errors.push('SENDGRID_API_KEY - missing');
   }
 
+  if (!process.env.MAPBOX_ACCESS_TOKEN) {
+    errors.push('MAPBOX_ACCESS_TOKEN - missing');
+  }
+
   // Check environment variables that the server and tools require.
 
   if (!process.env.CAVESITE_DB_HOST) {
@@ -102,6 +106,7 @@ CAVESITE_SENDER_NAME* - Name of person emails appear to come from.
 CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
+MAPBOX_ACCESS_TOKEN* - Token supplied by https://www.mapbox.com/ for maps.
 
 CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
 
