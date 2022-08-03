@@ -8,14 +8,14 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { afterUpdate } from 'svelte';
   import * as mapboxgl from 'mapbox-gl';
 
   import { appInfo } from '../stores/app_info';
 
   export let markerSpecs: MapMarkerSpec[];
 
-  onMount(() => {
+  afterUpdate(() => {
     const map = new mapboxgl.Map({
       accessToken: $appInfo.mapToken,
       container: 'map',
