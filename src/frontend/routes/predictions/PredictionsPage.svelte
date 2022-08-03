@@ -36,7 +36,7 @@
   import TabHeader from '../../components/TabHeader.svelte';
   import BusyMessage from '../../common/BusyMessage.svelte';
   import ConfigClustersDialog from './ConfigClustersDialog.svelte';
-  import AboutAccuracyDialog from './AboutAccuracyDialog.svelte';
+  import AboutAccuracyDialog from './AboutAccuracy.svelte';
   import ClusterPieChart from './ClusterPieChart.svelte';
   import ClusterRadarChart from './ClusterRadarChart.svelte';
   import PredictionLookup from './PredictionLookup.svelte';

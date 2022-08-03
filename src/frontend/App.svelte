@@ -326,4 +326,8 @@
     color: #6a547f;
     font-size: 0.95em;
   }
+
+  .eq {
+    font-family: 'Courier New', Courier, monospace;
+  }
 </style>
