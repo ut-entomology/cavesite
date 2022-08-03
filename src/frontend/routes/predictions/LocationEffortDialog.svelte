@@ -36,6 +36,11 @@
   const predictedPerPersonVisitDiff = locationGraphData.predictedPerPersonVisitDiff;
   const hasPrediction =
     predictedPerVisitDiff !== null || predictedPerPersonVisitDiff !== null;
+  const initialNotes = hasPrediction
+    ? [
+        'The fitted curve may rise at higher than the actual rate if visits were made to the cave without collecting specimens. We do not have records of these visits.'
+      ]
+    : [];
 
   $: graphSpec = getGraphSpec(config, datasetType, false);
 </script>
@@ -115,9 +120,7 @@
     <LocationFootnotes
       flags={locationGraphData.flags}
       singleCave={true}
-      initialNotes={[
-        'The fitted curve may rise at higher than the actual rate if visits were made to the cave without collecting specimens. We do not have records of these visits.'
-      ]}
+      {initialNotes}
     />
 
     <hr />
