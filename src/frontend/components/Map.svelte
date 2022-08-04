@@ -66,7 +66,7 @@
       center: [-99.1, 31.5], // longitude, latitude
       zoom: 5
     });
-    map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
 
     for (const spec of markerSpecs) {
       const popup = new mapboxgl.Popup({ closeButton: false });
