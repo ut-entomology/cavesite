@@ -151,6 +151,11 @@
       for (const row of rows) {
         let label = row.localityName!;
         if (row.countyName) label += ', ' + row.countyName;
+        if (row.recordCount == 1) {
+          label += ` (1 record)`;
+        } else {
+          label += ` (${row.recordCount} records)`;
+        }
         markerSpecs.push({
           label,
           latitude: row.latitude!,
