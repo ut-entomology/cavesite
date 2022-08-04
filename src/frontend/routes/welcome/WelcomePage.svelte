@@ -28,6 +28,7 @@
       <p>The following features are under development:</p>
       <ul>
         <li>Map display of data</li>
+        <li>How-to guides for the various tabs</li>
         <li>Needed admin pages</li>
       </ul>
       <p>
