@@ -2,9 +2,7 @@
   <slot />
 </div>
 
-<style lang="scss">
-  @import '../variables.scss';
-
+<style>
   .how_to_body {
     margin: 0 2.5rem 1rem 2.5rem;
     font-size: 0.95rem;
