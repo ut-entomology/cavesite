@@ -1,8 +1,15 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
+  import SimpleTOC from '../../components/SimpleTOC.svelte';
   import { PREDICTION_HISTORY_SAMPLE_DEPTH } from '../../../shared/model';
 
   export let close: () => void;
+
+  let updateTOC: () => void;
+
+  onMount(() => updateTOC());
 </script>
 
 <InfoDialog title="About Prediction Accuracy" maxWidth="800px" onClose={close}>
@@ -21,7 +28,11 @@
     tab's how-to guide that describes how predictions are made.
   </p>
 
-  <h3>Accuracy of predicting numbers of additional species (+spp.)</h3>
+  <SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
+
+  <h3 id="species_accuracy">
+    Accuracy of predicting numbers of additional species (+spp.)
+  </h3>
 
   <p>
     The tab makes predictions about the number of additional species researchers will
@@ -87,7 +98,7 @@
     correctly placed among the top N, according to historical data.
   </p>
 
-  <h3>Accuracy of predicting next expected taxa (+taxa)</h3>
+  <h3 id="taxa_accuracy">Accuracy of predicting next expected taxa (+taxa)</h3>
 
   <p>
     This tab also makes predictions about which taxa remain to be found in a cave that
@@ -147,7 +158,7 @@
     predictions of number of additional species for determining how many taxa remain.
   </p>
 
-  <h3>Accuracy Summary and Overall Accuracy</h3>
+  <h3 id="overall_accuracy">Accuracy Summary and Overall Accuracy</h3>
 
   <p>
     The accuracy summary and overall accuracy percentages provide measures of the
@@ -196,7 +207,7 @@
     one historical prediction to contribute to this accuracy measure.
   </p>
 
-  <h3>Caveat</h3>
+  <h3 id="caveat">Caveat on predictions and prediction accuracy</h3>
 
   <p>
     This tab makes predictions of numbers of additional species based on data that does
