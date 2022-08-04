@@ -150,7 +150,7 @@
       if (results.startOffset < 0) {
         results.startOffset = 0;
       }
-      results.rows = await _loadRows(0, BIG_STEP_ROWS);
+      results.rows = await _loadRows(results.startOffset, BIG_STEP_ROWS);
       cachedResults.set(results);
       scrollArea.scrollTop = 0;
     }
