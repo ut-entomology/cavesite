@@ -436,15 +436,15 @@
 
 <p>
   Caves are sorted into clusters by the similarity of their fauna under the assumption
-  that the more similar the fauna has been in the past, the more similar it will be in
-  the future. The additional fauna expected to be found in a cave is merely the fauna
-  found elsewhere in the cluster to which the cave belongs but not yet found in the
-  cave. For each cave, these remaining fauna are sorted by the number of visits to other
-  caves of the cluster in which their taxa have been found. The greater the number of
-  visits a taxon has, the higher the taxon appears in the sort, and presumably the more
-  likely the taxon will appear in future visits to the cave. The taxonomic predictions
-  therefore use the historical prevalence of taxa within a cluster to predict the taxa
-  most likely to be encountered next in any cave.
+  that if fauna has been similar in the past, it will also be similar in the future. The
+  additional fauna expected to be found in a cave is merely the fauna found elsewhere in
+  the cluster to which the cave belongs but not yet found in the cave. For each cave,
+  these remaining fauna are sorted by the number of visits to other caves of the cluster
+  in which their taxa have been found. The greater the number of visits a taxon has, the
+  higher the taxon appears in the sort, and presumably the more likely the taxon will
+  appear in future visits to the cave. The taxonomic predictions therefore use the
+  historical prevalence of taxa within a cluster to predict the taxa most likely to be
+  encountered next in any cave.
 </p>
 <p>
   Predictions are not necessarily available for each taxonomic rank. They instead
