@@ -187,7 +187,7 @@
     });
     columnSpecs.push({
       columnID: QueryColumnID.Locality,
-      ascending: null,
+      ascending: true,
       optionText: null
     });
     columnSpecs.push({
