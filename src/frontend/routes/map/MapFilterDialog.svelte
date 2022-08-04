@@ -22,7 +22,7 @@
   let throughDate = new Date(initialQueryRequest.throughDateMillis);
   let filterTaxa = initialQueryRequest.filterTaxa;
   let filterLocations = initialQueryRequest.filterLocations;
-  let onlyCaveObligates = false;
+  let onlyCaveObligates = initialQueryRequest.onlyCaveObligates;
 
   function submit() {
     onSubmit({

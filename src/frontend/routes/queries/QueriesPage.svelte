@@ -340,7 +340,7 @@
   <svelte:fragment slot="body">
     <div id="em_sample" />
     <div class="container-fluid">
-      <TabHeader {tabName} title={$pageName} center={false} expandable={true}>
+      <TabHeader {tabName} title={$pageName} center={false} onResize={() => {}}>
         <span slot="instructions"
           >Query the data according to your custom criteria. Use the <a href="/taxa"
             >Taxa</a

@@ -11,7 +11,7 @@
   export let tabName: string;
   export let title: string;
   export let center = true;
-  export let expandable = false;
+  export let onResize: (() => void) | null = null;
 
   let expanded = false;
 
@@ -23,6 +23,7 @@
       mainList[0].classList.add('full_screen_tab');
     }
     expanded = !expanded;
+    if (onResize) onResize();
   }
 </script>
 
@@ -34,7 +35,7 @@
         <div>?</div>
       </div>
     {/if}
-    {#if expandable}
+    {#if onResize}
       <div class="expander">
         <button
           class="btn btn-minor"

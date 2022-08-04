@@ -94,6 +94,7 @@
     // Generate the title.
 
     let locationFilterName = 'All locations';
+    let dateQualifier = 'having';
     if (generalQuery.locationFilter) {
       locationFilterName = 'Selected locations';
       const locationSpecs = Object.values($selectedLocations!);
@@ -103,38 +104,41 @@
         if (locationSpec.rank == LocationRank.Locality) {
           const parentNames = locationSpec.parentNamePath.split('|');
           locationFilterName += ', ' + parentNames[parentNames.length - 1];
+          dateQualifier = ' for';
+        } else {
+          locationFilterName += ' locations';
         }
       }
     }
 
-    let taxonFilterName = specedMapQuery.onlyCaveObligates
-      ? ' containing cave obligates'
-      : '';
+    let taxonFilterName = specedMapQuery.onlyCaveObligates ? 'cave obligates' : '';
     if (generalQuery.taxonFilter) {
-      taxonFilterName = ' containing selected taxa';
-      if (specedMapQuery.onlyCaveObligates) {
-        taxonFilterName += ' that are cave obligates';
-      } else {
-        const taxonSpecs = Object.values($selectedTaxa!);
-        if (taxonSpecs.length == 1) {
-          const taxonFilter = generalQuery.taxonFilter;
-          taxonFilterName = ' containing ' + taxonSpecs[0].unique;
-          if (
-            taxonFilter.subspeciesIDs ||
-            taxonFilter.speciesIDs ||
-            taxonFilter.genusIDs
-          ) {
-            taxonFilterName = ` containing <i>${taxonFilterName}</i>`;
-          }
+      taxonFilterName = 'selected taxa';
+      const taxonSpecs = Object.values($selectedTaxa!);
+      if (taxonSpecs.length == 1) {
+        const taxonFilter = generalQuery.taxonFilter;
+        taxonFilterName = taxonSpecs[0].unique;
+        if (
+          taxonFilter.subspeciesIDs ||
+          taxonFilter.speciesIDs ||
+          taxonFilter.genusIDs
+        ) {
+          taxonFilterName = `<i>${taxonFilterName}</i>`;
         }
       }
+      if (specedMapQuery.onlyCaveObligates) {
+        taxonFilterName += ' that are cave obligates';
+      }
+    }
+    if (taxonFilterName != '') {
+      taxonFilterName = ' containing ' + taxonFilterName;
     }
 
     const fromDate = new Date(generalQuery.dateFilter!.fromDateMillis!);
     const thruDate = new Date(generalQuery.dateFilter!.throughDateMillis!);
     let description =
       `${locationFilterName}${taxonFilterName}<br/>` +
-      `having records dated ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
+      `${dateQualifier} records dated ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
 
     // Load the data
 
@@ -241,13 +245,20 @@
   };
 
   const cancelClear = () => (requestClearConfirmation = false);
+
+  const resized = () => {
+    $cachedData = $cachedData; // force redraw
+  };
 </script>
 
 <DataTabRoute activeTab={tabName}>
   <svelte:fragment slot="body">
     <div class="container-fluid mb-3">
-      <TabHeader {tabName} title={$pageName}>
-        <span slot="instructions">TBD</span>
+      <TabHeader {tabName} title={$pageName} onResize={resized}>
+        <span slot="instructions"
+          >Use the <a href="/taxa">Taxa</a> and <a href="/locations">Locations</a> tabs to
+          specify the optional filters to use when loading maps.</span
+        >
         <span slot="main-buttons">
           {#if $cachedData}
             <button class="btn btn-minor" type="button" on:click={clearSelections}
