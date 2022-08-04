@@ -7,19 +7,34 @@
 
 <InfoDialog title="About Prediction Accuracy" maxWidth="800px" onClose={close}>
   <p>
-    This page makes predictions about the number of additional species researchers will
-    find on their next visit or person-visit to a cave and predictions about the taxa of
-    those additional species. The page also determines the accuracy of the predictive
-    technique by applying the technique to recent historical data and measuring the
-    degree to which it correctly predicted subsequent historical data. While the
-    predictions are specific to each cave, prediction accuracy is measured on a
-    per-cluster basis.
+    In addition to providing predictions, this tab reports estimates of the accuracy of
+    its predictions. Accuracy is determined by applying the predictive technique to
+    historical data and measuring the degree to which the predictions agree with
+    subsequent historical data. While the predictions are specific to each cave,
+    prediction accuracy is measured separately for each cluster. Accuracy measurements
+    always apply to the cluster as a whole and not to individual caves or taxa. For your
+    convenience, the tab also provides estimates of the overall accuracy of the
+    clustering, spanning all clusters.
+  </p>
+  <p>
+    The following explanation will make more sense after you've read the portion of the
+    tab's how-to guide that describes how predictions are made.
   </p>
 
-  <p>Be sure to have already read about how predictions are made.</p>
+  <h3>Accuracy of predicting numbers of additional species (+spp.)</h3>
 
-  <h3>Predicting numbers of additional species (+spp.)</h3>
-
+  <p>
+    The tab makes predictions about the number of additional species researchers will
+    find on their next visit or person-visit to a cave. Recall that it does this by
+    fitting a power curve to the points associated with a selected range of recent
+    visits to the cave and extending the curve to the next visit or person-visit. Given
+    that the data only has records of visits for which specimens were collected, it's
+    clear that this technique will often be unreliable. Accuracy measurements of this
+    technique can help you decide the degree to which to trust these predictions, or
+    perhaps the degree to which you can treat these predictions as measures of the
+    numbers of additional species that remain in the caves, independently of whether
+    they'd be found on the next visit or person-visit.
+  </p>
   <p>
     The accuracy of these predictions is determined separately for each cluster. Within
     a cluster, caves are sorted by the number of additional species expected on the next
@@ -72,8 +87,18 @@
     correctly placed among the top N, according to historical data.
   </p>
 
-  <h3>Predicting next expected taxa (+taxa)</h3>
+  <h3>Accuracy of predicting next expected taxa (+taxa)</h3>
 
+  <p>
+    This tab also makes predictions about which taxa remain to be found in a cave that
+    have not already been found in the cave. Recall that the expected remaining are the
+    taxa of the cluster to which the cave belongs that have not yet been found in the
+    cave. More specifically, the predictions are for taxonomic determinations made in
+    the cluster than have not yet been made for the cave, regardless of the taxonomic
+    rank of the determinations. These remaining taxa are sorted by the number of visits
+    on which they've been found in the other caves of the cluster, highest count first,
+    ordering them by their assumed likelihood of being found in the cave.
+  </p>
   <p>
     The accuracy of taxonomic predictions is measured similarly to the accuracy for the
     number of additional species expected. The process starts by first docking the {PREDICTION_HISTORY_SAMPLE_DEPTH}
@@ -160,21 +185,21 @@
     Top 10 accuracy. Otherwise, the number is the average of the Top 10 and Top 20
     accuracies. The overall accuracy of predicted numbers of additional species is the
     greater of these two numbers. The associated number of caves is the number of caves
-    having sufficient numbers of visis to contriburte to this accuracy measure.
+    having sufficient numbers of visis to contribute to this accuracy measure.
   </p>
   <p>
     The overall accuracy of predicted remaining taxa ("+taxa") is a function of the Top
     3 and Top 6 summary accuracies for predicted remaining taxa. If the Top 6 accuracy
     is zero, the overall accuracy is the Top 3 accuracy. Otherwise, the overall accuracy
     is the average of the Top 3 and Top 6 accuracies. The associated number of caves is
-    the number of caves having at least two visits, allowing at least one historical
-    prediction to contribute to this accuracy measure.
+    the number of caves having at least two visits, which allows a cave to have at least
+    one historical prediction to contribute to this accuracy measure.
   </p>
 
   <h3>Caveat</h3>
 
   <p>
-    This page makes predictions of numbers of additional species based on data that does
+    This tab makes predictions of numbers of additional species based on data that does
     not reflect all visits made to the caves. The algorithms are only aware of visits
     for which at least one specimen was collected and deposited in the UT Austin
     collection. Cave researcher James Reddell explains that there are many visits for
