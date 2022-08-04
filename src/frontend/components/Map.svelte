@@ -17,6 +17,7 @@
 
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>> = {};
   let htmlByLongByLat: Record<number, Record<number, string>> = {};
+  let stickyLabels: Record<string, boolean> = {};
 
   for (const spec of markerSpecs) {
     let specsByLong = specsByLongByLat[spec.latitude];
@@ -43,14 +44,17 @@
         htmlByLong = {};
         htmlByLongByLat[latitude] = htmlByLong;
       }
-      htmlByLong[longitude] = specs
-        .map(
-          (spec) =>
-            `<div class="marker_line">` +
-            `<span style="color:${spec.color}">&#x25cf;</span> ${spec.label}` +
-            `</div>`
-        )
-        .join('\n');
+      htmlByLong[longitude] =
+        "<div class='sticky'>STICKY</div>" +
+        specs
+          .map(
+            (spec) =>
+              `<div class="marker_line">` +
+              `<span style="color:${spec.color}">&#x25cf;</span> ${spec.label}` +
+              `</div>`
+          )
+          .join('\n') +
+        '</div>';
     }
   }
 
@@ -65,17 +69,31 @@
     map.addControl(new mapboxgl.NavigationControl());
 
     for (const spec of markerSpecs) {
-      const popup = new mapboxgl.Popup().setHTML(
-        htmlByLongByLat[spec.latitude][spec.longitude]
-      );
+      const popup = new mapboxgl.Popup({ closeButton: false });
+      popup.setHTML(htmlByLongByLat[spec.latitude][spec.longitude]);
+      popup.on('close', () => {
+        if (stickyLabels[spec.label]) popup.addTo(map);
+      });
+
       const marker = new mapboxgl.Marker({ color: spec.color }).setLngLat([
         spec.longitude,
         spec.latitude
       ]);
-      const element = marker.getElement();
-      element.addEventListener('mouseenter', () => popup.addTo(map));
-      element.addEventListener('mouseleave', () => popup.remove());
-      element.classList.add('location_marker');
+      const markerElem = marker.getElement();
+      markerElem.addEventListener('mouseenter', () => popup.addTo(map));
+      markerElem.addEventListener('click', () => {
+        if (stickyLabels[spec.label]) {
+          stickyLabels[spec.label] = false;
+          popup.removeClassName('stick');
+        } else {
+          stickyLabels[spec.label] = true;
+          popup.addClassName('stick');
+        }
+      });
+      markerElem.addEventListener('mouseleave', () => {
+        if (!stickyLabels[spec.label]) popup.remove();
+      });
+      markerElem.classList.add('location_marker');
       marker.setPopup(popup);
       marker.addTo(map);
     }
@@ -112,5 +130,15 @@
   }
   :global(.marker_line span) {
     font-size: 1.25em;
+  }
+  :global(.sticky) {
+    display: none;
+    font-size: 0.9em;
+    text-align: center;
+    color: chocolate;
+    margin-bottom: 0.4em;
+  }
+  :global(.stick .sticky) {
+    display: block;
   }
 </style>
