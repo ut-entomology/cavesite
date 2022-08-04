@@ -1,7 +1,14 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   import ExampleImage from '../../components/ExampleImage.svelte';
+  import SimpleTOC from '../../components/SimpleTOC.svelte';
   import { checkmarkIcon } from '../../components/SelectionButton.svelte';
   import { MAX_LOOKUP_MATCHES } from '../../../shared/model';
+
+  let updateTOC: () => void;
+
+  onMount(() => updateTOC());
 </script>
 
 <p>
@@ -12,7 +19,9 @@
   you the option of restricting its output to just the taxa you selected.
 </p>
 
-<h3>The Taxon Autocompletion Box</h3>
+<SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
+
+<h3 id="autocompletion">The Taxon Autocompletion Box</h3>
 
 <p>
   To locate a taxon, either type the taxon into the lookup field or click the "Browse
@@ -43,7 +52,7 @@
   selected taxa. Clicking on the loupe will open the taxon browser at this taxon.
 </p>
 
-<h3>The Taxa Selections Tree</h3>
+<h3 id="selections_tree">The Taxa Selections Tree</h3>
 
 <p>
   Each taxon you add by clicking a checkbox appears in a tree that displays taxa
@@ -110,7 +119,7 @@
   equivalent to selecting all taxa.
 </p>
 
-<h3>The Taxon Browser</h3>
+<h3 id="taxon_browser">The Taxon Browser</h3>
 
 <p>
   You can open the taxon browser by clicking on the "Browse Taxa" button, by clicking on

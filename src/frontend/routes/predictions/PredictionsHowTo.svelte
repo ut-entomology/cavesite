@@ -1,11 +1,17 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   import ExampleImage from '../../components/ExampleImage.svelte';
   import AboutAccuracyDialog from './AboutAccuracy.svelte';
   import AboutAvgModel from './AboutAvgModel.svelte';
+  import SimpleTOC from '../../components/SimpleTOC.svelte';
   import { MAX_LOOKUP_MATCHES } from '../../../shared/model';
 
   let showingAboutAccuracy = false;
   let showingAboutAvgModel = false;
+  let updateTOC: () => void;
+
+  onMount(() => updateTOC());
 </script>
 
 <p>
@@ -26,7 +32,9 @@
   analysis. This includes, for example, names including the word "cavern".
 </p>
 
-<h3>Generating Clusters</h3>
+<SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
+
+<h3 id="generating">Generating Clusters</h3>
 
 <p>
   To produce predictions, we must first partition the set of caves into clusters in a
@@ -108,7 +116,7 @@
   you or perhaps just to understand the effects of the configuration.
 </p>
 
-<h3>Overview of the Presentation</h3>
+<h3 id="presentation">Overview of the Presentation</h3>
 
 <p>
   Upon generating a set of clusters, the page provides a variety of tools for examining
@@ -306,7 +314,7 @@
   found.
 </p>
 
-<h3>Examining a Particular Cave</h3>
+<h3 id="single_cave">Examining a Particular Cave</h3>
 
 <p>
   The page provides two bar charts that list caves, and each cave in these charts is a
@@ -367,7 +375,7 @@
   were encountered in the cave.
 </p>
 
-<h3>Predicting Numbers of Additional Species</h3>
+<h3 id="predicting_species">Predicting Numbers of Additional Species</h3>
 
 <p>
   Predictions of the number of additional species expected to be found are made
@@ -417,7 +425,7 @@
   at the cave.
 </p>
 
-<h3>Predicting Next Expected Taxa</h3>
+<h3 id="predicting_taxa">Predicting Next Expected Taxa</h3>
 
 <p>
   Caves are sorted into clusters by the similarity of their fauna under the assumption
