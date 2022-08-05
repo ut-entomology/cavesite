@@ -53,8 +53,7 @@
               `<span style="color:${spec.color}">&#x25cf;</span> ${spec.label}` +
               `</div>`
           )
-          .join('\n') +
-        '</div>';
+          .join('\n');
     }
   }
 
