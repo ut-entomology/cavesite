@@ -15,9 +15,12 @@
 
   export let markerSpecs: MapMarkerSpec[];
 
+  const TEMP_KFR_LAYER = 'Temporary KFRs';
+
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>> = {};
   let htmlByLongByLat: Record<number, Record<number, string>> = {};
   let stickyLabels: Record<string, boolean> = {};
+  let completedLayers = false;
 
   for (const spec of markerSpecs) {
     let specsByLong = specsByLongByLat[spec.latitude];
@@ -66,6 +69,51 @@
       zoom: 5
     });
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+    map.on('load', () => {
+      map.addSource('TravisWilliamsonKFRs', {
+        url: 'mapbox://jtlapput.2k6h4ej0',
+        type: 'vector'
+      });
+      map.addLayer({
+        id: TEMP_KFR_LAYER,
+        source: 'TravisWilliamsonKFRs',
+        'source-layer': 'Trav_Will_KFRs_2021-6fuhl2',
+        type: 'fill'
+      });
+
+      map.on('idle', () => {
+        // Don't add layers again upon going idle for the second time.
+        if (!completedLayers) {
+          // Extract the KFRs currently visible in the temporary KFR layer.
+
+          // @ts-ignore error in type definition
+          const features = map.queryRenderedFeatures({ layers: [TEMP_KFR_LAYER] });
+          const kfrs = features.map((feature) => (feature as any).properties.KFR);
+          const fillColors: any[] = ['match', ['get', 'KFR']];
+          for (let i = 0; i < kfrs.length; ++i) {
+            fillColors.push(kfrs[i]);
+            fillColors.push(`hsl(${i * (360 / kfrs.length)}, 50%, 50%)`);
+          }
+          fillColors.push('gray'); // default color
+
+          // Render the KFRs for real this time.
+
+          map.removeLayer(TEMP_KFR_LAYER);
+          map.addLayer({
+            id: 'KFRs',
+            source: 'TravisWilliamsonKFRs',
+            'source-layer': 'Trav_Will_KFRs_2021-6fuhl2',
+            type: 'fill',
+            paint: {
+              'fill-color': fillColors as any,
+              'fill-opacity': 0.35,
+              'fill-outline-color': '#000'
+            }
+          });
+          completedLayers = true;
+        }
+      });
+    });
 
     for (const spec of markerSpecs) {
       const popup = new mapboxgl.Popup({ closeButton: false });
