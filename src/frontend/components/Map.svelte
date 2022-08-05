@@ -120,7 +120,7 @@
   }
 
   :global(.mapboxgl-popup) {
-    max-width: 200px;
+    max-width: 220px;
   }
 
   :global(.marker_line) {
