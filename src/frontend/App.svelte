@@ -331,4 +331,8 @@
   .eq {
     font-family: 'Courier New', Courier, monospace;
   }
+
+  .hidden {
+    display: none;
+  }
 </style>

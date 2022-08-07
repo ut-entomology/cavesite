@@ -1,4 +1,11 @@
 <script lang="ts" context="module">
+  /*
+    How to replace a shapefile:
+    
+    - Login to your account at https://studio.mapbox.com/tilesets/
+    - Click the "..." next to the name of the shapefile.
+    - Click "Replace" to replace the shapefile.
+  */
   export interface MapMarkerSpec {
     label: string;
     latitude: number;
@@ -19,7 +26,7 @@
 
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>> = {};
   let htmlByLongByLat: Record<number, Record<number, string>> = {};
-  let stickyLabels: Record<string, boolean> = {};
+  let pinnedLabels: Record<string, boolean> = {};
   let completedLayers = false;
 
   for (const spec of markerSpecs) {
@@ -48,7 +55,7 @@
         htmlByLongByLat[latitude] = htmlByLong;
       }
       htmlByLong[longitude] =
-        "<div class='sticky'>STICKY</div>" +
+        "<div class='pinned'>PINNED</div>" +
         specs
           .map(
             (spec) =>
@@ -71,13 +78,13 @@
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
     map.on('load', () => {
       map.addSource('TravisWilliamsonKFRs', {
-        url: 'mapbox://jtlapput.2k6h4ej0',
+        url: 'mapbox://jtlapput.3idlwl9a',
         type: 'vector'
       });
       map.addLayer({
         id: TEMP_KFR_LAYER,
         source: 'TravisWilliamsonKFRs',
-        'source-layer': 'Trav_Will_KFRs_2021-6fuhl2',
+        'source-layer': 'Trav_Will_KFRs-356oa0',
         type: 'fill'
       });
 
@@ -102,7 +109,7 @@
           map.addLayer({
             id: 'KFRs',
             source: 'TravisWilliamsonKFRs',
-            'source-layer': 'Trav_Will_KFRs_2021-6fuhl2',
+            'source-layer': 'Trav_Will_KFRs-356oa0',
             type: 'fill',
             paint: {
               'fill-color': fillColors as any,
@@ -114,12 +121,24 @@
         }
       });
     });
+    map.on('mousemove', (e) => {
+      const featureElem = document.getElementById('feature_name');
+      const features = map.queryRenderedFeatures(e.point);
+      let kfrName =
+        (features.length == 0 ? '' : (features[0].properties as any).KFR) || '';
+      if (kfrName == '') {
+        featureElem!.classList.add('hidden');
+      } else {
+        featureElem!.classList.remove('hidden');
+      }
+      featureElem!.innerText = 'KFR: ' + kfrName;
+    });
 
     for (const spec of markerSpecs) {
       const popup = new mapboxgl.Popup({ closeButton: false });
       popup.setHTML(htmlByLongByLat[spec.latitude][spec.longitude]);
       popup.on('close', () => {
-        if (stickyLabels[spec.label]) popup.addTo(map);
+        if (pinnedLabels[spec.label]) popup.addTo(map);
       });
 
       const marker = new mapboxgl.Marker({ color: spec.color }).setLngLat([
@@ -129,16 +148,16 @@
       const markerElem = marker.getElement();
       markerElem.addEventListener('mouseenter', () => popup.addTo(map));
       markerElem.addEventListener('click', () => {
-        if (stickyLabels[spec.label]) {
-          stickyLabels[spec.label] = false;
-          popup.removeClassName('stick');
+        if (pinnedLabels[spec.label]) {
+          pinnedLabels[spec.label] = false;
+          popup.removeClassName('pin');
         } else {
-          stickyLabels[spec.label] = true;
-          popup.addClassName('stick');
+          pinnedLabels[spec.label] = true;
+          popup.addClassName('pin');
         }
       });
       markerElem.addEventListener('mouseleave', () => {
-        if (!stickyLabels[spec.label]) popup.remove();
+        if (!pinnedLabels[spec.label]) popup.remove();
       });
       markerElem.classList.add('location_marker');
       marker.setPopup(popup);
@@ -154,12 +173,32 @@
   />
 </svelte:head>
 
-<div id="map" />
+<div id="map_area">
+  <div id="map" />
+  <div id="feature_name" class="hidden" />
+</div>
 
-<style>
-  #map {
+<style lang="scss">
+  #map_area {
     width: 100%;
     height: 600px;
+    position: relative;
+  }
+  #map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  #feature_name {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.75);
+    padding: 0.1rem 0.5rem;
+    font-size: 0.95rem;
   }
 
   :global(.location_marker) {
@@ -178,14 +217,14 @@
   :global(.marker_line span) {
     font-size: 1.25em;
   }
-  :global(.sticky) {
+  :global(.pinned) {
     display: none;
     font-size: 0.9em;
     text-align: center;
     color: chocolate;
     margin-bottom: 0.4em;
   }
-  :global(.stick .sticky) {
+  :global(.pin .pinned) {
     display: block;
   }
 </style>
