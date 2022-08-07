@@ -172,15 +172,14 @@
   />
 </svelte:head>
 
-<div id="map_area">
+<div id="map_box">
   <div id="map" />
   <div id="feature_name" class="hidden" />
 </div>
 
 <style lang="scss">
-  #map_area {
-    width: 100%;
-    height: 600px;
+  #map_box {
+    flex-grow: 1;
     position: relative;
   }
   #map {

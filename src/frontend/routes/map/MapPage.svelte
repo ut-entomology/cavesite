@@ -275,18 +275,16 @@
           >
         </span>
       </TabHeader>
-
-      {#if !$cachedData}
-        <EmptyTab message="No map loaded" />
-      {:else}
-        <div class="row mt-3 mb-3 justify-content-center description">
-          <div class="col-10">{@html $cachedData.description}</div>
-        </div>
-        <div class="container-fluid gx-1">
-          <Map markerSpecs={$cachedData.markerSpecs} />
-        </div>
-      {/if}
     </div>
+
+    {#if !$cachedData}
+      <EmptyTab message="No map loaded" />
+    {:else}
+      <div class="map_area">
+        <div class="description">{@html $cachedData.description}</div>
+        <Map markerSpecs={$cachedData.markerSpecs} />
+      </div>
+    {/if}
   </svelte:fragment>
 </DataTabRoute>
 
@@ -313,7 +311,14 @@
 {/if}
 
 <style>
+  .map_area {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    flex-grow: 1;
+  }
   .description {
+    margin-bottom: 1rem;
     text-align: center;
     font-weight: bold;
     font-size: 1.1rem;
