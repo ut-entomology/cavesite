@@ -342,7 +342,7 @@ create table all_taxa_for_effort (
     total_person_visits integer not null,
     total_species integer not null,
     kingdom_names text, -- |-delimited taxon uniques ever found
-    kingdom_visits text,
+    kingdom_visits text, -- ,-delimited counts of visits on which taxa were found
     phylum_names text,
     phylum_visits text,
     class_names text,
@@ -381,7 +381,7 @@ create table cave_genera_for_effort (
     total_person_visits integer not null,
     total_species integer not null,
     kingdom_names text, -- |-delimited taxon uniques ever found
-    kingdom_visits text,
+    kingdom_visits text, -- ,-delimited counts of visits on which taxa were found
     phylum_names text,
     phylum_visits text,
     class_names text,
@@ -420,7 +420,7 @@ create table cave_obligates_for_effort (
     total_person_visits integer not null,
     total_species integer not null,
     kingdom_names text, -- |-delimited taxon uniques ever found
-    kingdom_visits text,
+    kingdom_visits text, -- ,-delimited counts of visits on which taxa were found
     phylum_names text,
     phylum_visits text,
     class_names text,
