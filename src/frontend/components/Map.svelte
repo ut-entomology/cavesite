@@ -87,39 +87,38 @@
         'source-layer': 'Trav_Will_KFRs-356oa0',
         type: 'fill'
       });
+    });
+    map.on('idle', () => {
+      // Don't add layers again upon going idle for the second time.
+      if (!completedLayers) {
+        // Extract the KFRs currently visible in the temporary KFR layer.
 
-      map.on('idle', () => {
-        // Don't add layers again upon going idle for the second time.
-        if (!completedLayers) {
-          // Extract the KFRs currently visible in the temporary KFR layer.
-
-          // @ts-ignore error in type definition
-          const features = map.queryRenderedFeatures({ layers: [TEMP_KFR_LAYER] });
-          const kfrs = features.map((feature) => (feature as any).properties.KFR);
-          const fillColors: any[] = ['match', ['get', 'KFR']];
-          for (let i = 0; i < kfrs.length; ++i) {
-            fillColors.push(kfrs[i]);
-            fillColors.push(`hsl(${i * (360 / kfrs.length)}, 50%, 50%)`);
-          }
-          fillColors.push('gray'); // default color
-
-          // Render the KFRs for real this time.
-
-          map.removeLayer(TEMP_KFR_LAYER);
-          map.addLayer({
-            id: 'KFRs',
-            source: 'TravisWilliamsonKFRs',
-            'source-layer': 'Trav_Will_KFRs-356oa0',
-            type: 'fill',
-            paint: {
-              'fill-color': fillColors as any,
-              'fill-opacity': 0.35,
-              'fill-outline-color': '#000'
-            }
-          });
-          completedLayers = true;
+        // @ts-ignore error in type definition
+        const features = map.queryRenderedFeatures({ layers: [TEMP_KFR_LAYER] });
+        const kfrs = features.map((feature) => (feature as any).properties.KFR);
+        const fillColors: any[] = ['match', ['get', 'KFR']];
+        for (let i = 0; i < kfrs.length; ++i) {
+          fillColors.push(kfrs[i]);
+          fillColors.push(`hsl(${i * (360 / kfrs.length)}, 50%, 50%)`);
         }
-      });
+        fillColors.push('gray'); // default color
+
+        // Render the KFRs for real this time.
+
+        map.removeLayer(TEMP_KFR_LAYER);
+        map.addLayer({
+          id: 'KFRs',
+          source: 'TravisWilliamsonKFRs',
+          'source-layer': 'Trav_Will_KFRs-356oa0',
+          type: 'fill',
+          paint: {
+            'fill-color': fillColors as any,
+            'fill-opacity': 0.35,
+            'fill-outline-color': '#000'
+          }
+        });
+        completedLayers = true;
+      }
     });
     map.on('mousemove', (e) => {
       const featureElem = document.getElementById('feature_name');
