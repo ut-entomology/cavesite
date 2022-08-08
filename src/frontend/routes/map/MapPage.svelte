@@ -255,7 +255,7 @@
     const fromDate = new Date(generalQuery.dateFilter!.fromDateMillis!);
     const thruDate = new Date(generalQuery.dateFilter!.throughDateMillis!);
     let description =
-      `${locationFilterName}${taxonFilterName}<br/>` +
+      `${locationFilterName}${taxonFilterName} ` +
       `${dateQualifier} records dated ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
 
     // Load the data
@@ -486,7 +486,7 @@
             </div>
           </div>
         </div>
-        <div class="row">
+        <div class="row mt-3 mb-3 justify-content-center">
           <div class="col">
             <div class="description">{@html $cachedData.description}</div>
           </div>
@@ -567,7 +567,6 @@
     flex-grow: 1;
   }
   .description {
-    margin-bottom: 1rem;
     text-align: center;
     font-weight: bold;
     font-size: 1.1rem;
