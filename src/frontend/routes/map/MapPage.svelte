@@ -480,7 +480,7 @@
                 <div
                   style="width: calc({100 /
                     scaleDivisions.length}% - 1px); background-color: {scaleColors[i]}"
-                  title={scaleDivision}
+                  data-text={scaleDivision}
                 />
               {/each}
             </div>
@@ -527,9 +527,38 @@
     height: 1.5rem;
   }
   .color_scale div {
+    position: relative;
     display: inline-block;
     height: 100%;
     margin-left: 1px;
+  }
+  .color_scale div:before {
+    content: attr(data-text);
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    bottom: 100%;
+    width: 8rem;
+    margin-bottom: 6px;
+    text-align: center;
+    display: none;
+    font-size: 0.8rem;
+  }
+  .color_scale div:after {
+    content: '';
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    bottom: 100%;
+    margin-bottom: -4px;
+    border: 6px solid #000;
+    border-color: black transparent transparent transparent;
+    display: none;
+  }
+  .color_scale div:hover:before,
+  .color_scale div:hover:after {
+    display: block;
+    z-index: 100;
   }
   .map_area {
     display: flex;
