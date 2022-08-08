@@ -6,8 +6,6 @@ import { LocationVisit } from './location_visit';
 import { ComparedFauna } from '../../shared/model';
 import { toDaysEpoch } from '../../shared/time_query';
 
-const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
-
 type PartialSpecimenSource = Pick<
   SpecimenSource,
   | 'locality'
