@@ -49,9 +49,9 @@
 <p>
   There does not appear to be an ideal way to cluster caves by the similarity of their
   fauna. You'll instead explore various clustering configurations to find one that meets
-  your criteria. When you click the "Load Clusters" button (or the "Change Clusters"
-  button if clusters are already loaded), you'll be given the following dialog box of
-  the most helpful clustering parameters:
+  your criteria. To generate clusters, click the "Load Clusters" button (or the "Change
+  Clusters" button if clusters are already loaded), and you'll be given the following
+  dialog box providing the most helpful clustering parameters:
 </p>
 
 <ExampleImage
@@ -124,7 +124,7 @@
 <p>
   Upon generating a set of clusters, the page provides a variety of tools for examining
   the clusters and associated predictions. Let's sequentially go down the page looking
-  at each tool to get an overview of the tool's purpose and meaning.
+  at each element to get an overview of the element's purpose and meaning.
 </p>
 <ExampleImage
   src="/predictions/clustering-title-summary.jpg"
@@ -225,7 +225,7 @@
 />
 <p>
   Above is a graph of all the visits (or person-visits, depending on your selection)
-  occuring among all the caves of the cluster, showing the cumulative number of species
+  occurring among all the caves of the cluster, showing the cumulative number of species
   ever found in the cave by the completion of that visit (or person-visit). As explained
   below, this is a measure of the minimum possible number of species, regardless of the
   taxonomic ranks to which determinations are made. Hovering the cursor over a point
@@ -249,8 +249,8 @@
   Below the graph of the average model, you'll find a plot of the residuals of the curve
   relative to the recent points used in the predictions. Because the curve is an average
   of curves rather than a fit to all these points, the residuals need not minimize the
-  RMSE. For this reason, you may want to play with the parameters used for generated the
-  average model, which appear to the right of the residuals plot. You can learn the
+  RMSE. It may not make sense to minimize the RMSE of all points because the plot does
+  not provide points for all caves over the full domain of x values. You can learn the
   details of how the average model is generated and the meanings of its controlling
   parameters by clicking on the <span
     class="col link_text"
@@ -273,7 +273,7 @@
   either increasing or decreasing order of predicted number of additional species.
 </p>
 <p>
-  Any superscripts you see the end of a cave name refer to notes presented under the
+  Any superscripts you see at the end of a cave name refer to notes presented under the
   graph of all visits (or person-visits) to the cave, not shown here.
 </p>
 <p>
@@ -335,8 +335,8 @@
   At the top of the popup, you'll find the name of the cave and the county in which it
   is located. You'll also find the cluster number to which the cave was assigned and the
   predicted number of additional species to be found on the next visit and person-visit
-  to the cave. All of this information is also available in the display for the cluster
-  on the page with the radar and pie charts.
+  to the cave. All this information is also available in the display for the cluster on
+  the page with the radar and pie charts.
 </p>
 <ExampleImage
   src="/predictions/per-cave-graph-with-curve.jpg"
@@ -347,7 +347,7 @@
   will see a simple graph of all the visits (or person-visits) made to the cave. If such
   predictions could be made, you will see the same graph with additional features
   explaining the predictions, similar to the graph above. The switch button at the top
-  of graph allows you to select between the graphs of visits and person-visits, with
+  of the graph allows you to select between the graphs of visits and person-visits, with
   each graph depicting its associated prediction. The labels above the graph define the
   features. The graph highlights the recent visits that were used to fit a curve, and it
   shows you the curve that was fit to these points. The curve extends one visit (or
@@ -375,7 +375,7 @@
   alt="Example chart of the taxa found in a cave"
 />
 <p>
-  This last chart lists all of the taxonomic determinations made for specimens collected
+  This last chart lists all the taxonomic determinations made for specimens collected
   from the cave, sorted by the number of visits on which specimens of that determination
   were found in the cave. It provides an estimate of the frequency at which taxa were
   encountered in the cave.
@@ -461,7 +461,7 @@
 <p>
   The <span class="col link_text" on:click={() => (showingAboutAccuracy = true)}
     >about accuracy</span
-  > link in the accuracy summary at the top of the pageexplains how accuracies are determined
+  > link in the accuracy summary at the top of the page explains how accuracies are determined
   per cave and taxon. This link also explains how the summary and overview accuracies are
   determined for the clustering as a whole.
 </p>

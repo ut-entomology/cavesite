@@ -114,7 +114,7 @@
     in the cave. More specifically, the predictions are for taxonomic determinations
     made in the cluster than have not yet been made for the cave, regardless of the
     taxonomic rank of the determinations. These remaining taxa are sorted by the number
-    of visits on which they've been found in the other caves of the cluster, highest
+    of visits in which they've been found in the other caves of the cluster, highest
     count first, thereby ordering them by their assumed likelihood of being found in the
     cave.
   </p>
@@ -126,7 +126,7 @@
     yet in this cave, and it sorts these taxa by the number of visits in which they occurred
     in other caves, highest count first. This is the "predicted sort". The "actual sort"
     consists of the actual taxa known to have been added to the cave during the {PREDICTION_HISTORY_SAMPLE_DEPTH}
-    visits that were docked. It is sorted first by the visit on which the taxa were first
+    visits that were docked. It is sorted first by the visit in which the taxa were first
     encountered, oldest visit first, and second by taxonomic rank, highest rank first. Determinations
     of higher rank are more likely than those of lower rank, given that they encompass more
     species, making a rank sort within a visit more likely to order the taxa found within
@@ -161,7 +161,7 @@
     historical data. The page reports these fractions as percentages. For example, a top
     5 accuracy of 25% would mean that 25% of the taxa shown in the top N group can be
     expected to be among the next N taxa found in the cave. However, due to the fact
-    that predictions of no additioal taxa having zero weight in fraction averaging, this
+    that predictions of no additional taxa have zero weight in fraction averaging, this
     technique only assesses which taxa can be found when there are additional taxa to be
     found; you should instead look at predictions of number of additional species for
     determining how many taxa remain to be found in a cave.
@@ -183,7 +183,7 @@
     person-visit"). The Top 10 summary accuracy is the average top 10 accuracy
     associated with the clusters, weighted by the number of caves in each cluster. If a
     cluster does not have enough predictions for a top 10 accuracy, the nearest lower
-    top N accuracy is used instead. The Top 20 sumary accuracy is the average top 20
+    top N accuracy is used instead. The Top 20 summary accuracy is the average top 20
     accuracy associated with the clusters, also weighted by the number of caves in each
     cluster. If a cluster does not have enough predictions for a top 20 accuracy, the
     accuracy of the nearest lower top N greater than 10 is used instead, if there is
@@ -194,7 +194,7 @@
     ("+taxa per cave"). The Top 3 summary accuracy is the average top 3 accuracy
     associated with the clusters, weighted by the number of caves in each cluster. If a
     cluster does not have enough predictions for a top 3 accuracy, the nearest lower top
-    N accuracy is used instead. The Top 6 sumary accuracy is the average top 6 accuracy
+    N accuracy is used instead. The Top 6 summary accuracy is the average top 6 accuracy
     associated with the clusters, also weighted by the number of caves in each cluster.
     If a cluster does not have enough predictions for a top 6 accuracy, the accuracy of
     the nearest lower top N greater than 3 is used instead, if there is any.
