@@ -361,7 +361,7 @@
 
 <DataTabRoute activeTab={tabName}>
   <svelte:fragment slot="body">
-    <div class="container-fluid mb-3">
+    <div class="container-fluid mb-2">
       <TabHeader {tabName} title={$pageName} onResize={resized}>
         <span slot="instructions"
           >Use the <a href="/taxa">Taxa</a> and <a href="/locations">Locations</a> tabs to
@@ -384,8 +384,56 @@
     {#if !$cachedData}
       <EmptyTab message="No map loaded" />
     {:else}
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-auto">
+            <div class="btn-group" role="group" aria-label="Switch datasets">
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={colorMeaning}
+                name="color_meaning"
+                id={ColorMeaning.records}
+                value={ColorMeaning.records}
+              />
+              <label class="btn btn-outline-primary" for={ColorMeaning.records}
+                >Records</label
+              >
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={colorMeaning}
+                name="color_meaning"
+                id={ColorMeaning.visits}
+                value={ColorMeaning.visits}
+              />
+              <label class="btn btn-outline-primary" for={ColorMeaning.visits}
+                >Visits</label
+              >
+              <input
+                type="radio"
+                class="btn-check"
+                bind:group={colorMeaning}
+                name="color_meaning"
+                id={ColorMeaning.lastVisit}
+                value={ColorMeaning.lastVisit}
+              />
+              <label class="btn btn-outline-primary" for={ColorMeaning.lastVisit}
+                >Last Visit</label
+              >
+            </div>
+          </div>
+          <div class="col d-flex align-items-center">
+            <div class="color_scale" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="description">{@html $cachedData.description}</div>
+          </div>
+        </div>
+      </div>
       <div class="map_area">
-        <div class="description">{@html $cachedData.description}</div>
         <KarstMap {markerSpecs} />
       </div>
     {/if}
@@ -415,6 +463,11 @@
 {/if}
 
 <style>
+  .color_scale {
+    width: 100%;
+    background-color: #888888;
+    height: 1.5rem;
+  }
   .map_area {
     display: flex;
     position: relative;
