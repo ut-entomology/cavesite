@@ -67,6 +67,7 @@
   const RECORD_COUNT_COLOR = [255, 0, 0]; // red
   const VISIT_COUNT_COLOR = [160, 0, 255]; // violet
   const LAST_VISIT_COLOR = [0, 255, 0]; // lime
+  const MAX_SCALE_DIVISIONS = 20;
 
   enum ColorMeaning {
     records = 'records',
@@ -75,18 +76,13 @@
   }
   const currentDaysEpoch = toDaysEpoch(new Date());
   const toColorByColorMeaning = {
-    records: (spec: FeatureSpec) =>
-      _toScaleColor(spec.recordCount / maxRecordCount, RECORD_COUNT_COLOR),
+    records: (spec: FeatureSpec) => _toScaleColor(spec.recordCount / maxRecordCount),
     visits: (spec: FeatureSpec) =>
-      _toScaleColor(
-        Math.log(spec.visitCount) / Math.log(maxVisitCount),
-        VISIT_COUNT_COLOR
-      ),
+      _toScaleColor(Math.log(spec.visitCount) / Math.log(maxVisitCount)),
     last_visit: (spec: FeatureSpec) =>
       _toScaleColor(
         (spec.lastDaysEpoch - oldestDaysEpoch + 1) /
-          (currentDaysEpoch - oldestDaysEpoch + 1),
-        LAST_VISIT_COLOR
+          (currentDaysEpoch - oldestDaysEpoch + 1)
       ) // add 1 to prevent divide by 0
   };
 
@@ -97,6 +93,8 @@
   let maxVisitCount: number;
   let oldestDaysEpoch: number;
   let colorMeaning = ColorMeaning.visits;
+  let rightRGB: number[];
+  let scaleDivisions: string[];
   let markerSpecs: MapMarkerSpec[];
 
   $: if ($cachedData) {
@@ -114,6 +112,44 @@
       if (featureSpec.lastDaysEpoch < oldestDaysEpoch) {
         oldestDaysEpoch = featureSpec.lastDaysEpoch;
       }
+    }
+
+    scaleDivisions = [];
+    let scaleDivisionCount: number;
+    let delta: number;
+    switch (colorMeaning) {
+      case ColorMeaning.records:
+        scaleDivisionCount =
+          maxRecordCount >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : maxRecordCount;
+        delta = maxRecordCount / scaleDivisionCount;
+        for (let v = maxRecordCount; v >= 1; v -= delta) {
+          const rounded = Math.round(v);
+          scaleDivisions.push(rounded == 1 ? '1 record' : rounded + ' records');
+        }
+        scaleDivisions.reverse();
+        rightRGB = RECORD_COUNT_COLOR;
+        break;
+      case ColorMeaning.visits:
+        scaleDivisionCount =
+          maxVisitCount >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : maxVisitCount;
+        delta = maxVisitCount / scaleDivisionCount;
+        for (let v = maxVisitCount; v >= 1; v -= delta) {
+          const rounded = Math.round(v);
+          scaleDivisions.push(rounded == 1 ? '1 visit' : rounded + ' visits');
+        }
+        scaleDivisions.reverse();
+        rightRGB = VISIT_COUNT_COLOR;
+        break;
+      case ColorMeaning.lastVisit:
+        const lastVisitDays = currentDaysEpoch - oldestDaysEpoch + 1;
+        scaleDivisionCount =
+          lastVisitDays >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : lastVisitDays;
+        delta = maxVisitCount / scaleDivisionCount;
+        for (let v = oldestDaysEpoch; Math.round(v) <= currentDaysEpoch; v += delta) {
+          scaleDivisions.push(fromDaysEpoch(Math.round(v)).toLocaleDateString());
+        }
+        rightRGB = LAST_VISIT_COLOR;
+        break;
     }
   }
 
@@ -338,7 +374,7 @@
     }
   }
 
-  function _toScaleColor(fraction: number, rightRGB: number[]): string {
+  function _toScaleColor(fraction: number): string {
     const r = ZERO_COLOR[0] + fraction * (rightRGB[0] - ZERO_COLOR[0]);
     const g = ZERO_COLOR[1] + fraction * (rightRGB[1] - ZERO_COLOR[1]);
     const b = ZERO_COLOR[2] + fraction * (rightRGB[2] - ZERO_COLOR[2]);
@@ -424,7 +460,17 @@
             </div>
           </div>
           <div class="col d-flex align-items-center">
-            <div class="color_scale" />
+            <div class="color_scale">
+              {#each scaleDivisions as scaleDivision, i}
+                <div
+                  style="width: calc({100 /
+                    scaleDivisions.length}% - 1px); background-color: {_toScaleColor(
+                    (i + 1) / scaleDivisions.length
+                  )}"
+                  title={scaleDivision}
+                />
+              {/each}
+            </div>
           </div>
         </div>
         <div class="row">
@@ -465,8 +511,12 @@
 <style>
   .color_scale {
     width: 100%;
-    background-color: #888888;
     height: 1.5rem;
+  }
+  .color_scale div {
+    display: inline-block;
+    height: 100%;
+    margin-left: 1px;
   }
   .map_area {
     display: flex;
