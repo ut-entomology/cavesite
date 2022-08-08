@@ -22,7 +22,24 @@
 
   export let markerSpecs: MapMarkerSpec[];
 
-  const TEMP_KFR_LAYER = 'Temporary KFRs';
+  interface MapRegionSource {
+    propertyName: string;
+    layerName: string;
+    mapboxCode: string;
+  }
+
+  const regionSources: MapRegionSource[] = [
+    {
+      propertyName: 'Name',
+      layerName: 'Bexar_KFRs-2lu38z',
+      mapboxCode: 'jtlapput.3rmne8o7'
+    },
+    {
+      propertyName: 'KFR',
+      layerName: 'Trav_Will_KFRs-356oa0',
+      mapboxCode: 'jtlapput.3idlwl9a'
+    }
+  ];
 
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>> = {};
   let htmlByLongByLat: Record<number, Record<number, string>> = {};
@@ -77,54 +94,89 @@
     });
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
     map.on('load', () => {
-      map.addSource('TravisWilliamsonKFRs', {
-        url: 'mapbox://jtlapput.3idlwl9a',
-        type: 'vector'
-      });
-      map.addLayer({
-        id: TEMP_KFR_LAYER,
-        source: 'TravisWilliamsonKFRs',
-        'source-layer': 'Trav_Will_KFRs-356oa0',
-        type: 'fill'
-      });
+      for (const regionSource of regionSources) {
+        const sourceID = _toLayerSourceID(regionSource.layerName);
+        map.addSource(sourceID, {
+          url: 'mapbox://' + regionSource.mapboxCode,
+          type: 'vector'
+        });
+        map.addLayer({
+          id: sourceID,
+          source: sourceID,
+          'source-layer': regionSource.layerName,
+          type: 'fill'
+        });
+      }
     });
     map.on('idle', () => {
       // Don't add layers again upon going idle for the second time.
       if (!completedLayers) {
-        // Extract the KFRs currently visible in the temporary KFR layer.
+        // Extract the names of the currently visible KFRs.
 
-        // @ts-ignore error in type definition
-        const features = map.queryRenderedFeatures({ layers: [TEMP_KFR_LAYER] });
-        const kfrs = features.map((feature) => (feature as any).properties.KFR);
-        const fillColors: any[] = ['match', ['get', 'KFR']];
-        for (let i = 0; i < kfrs.length; ++i) {
-          fillColors.push(kfrs[i]);
-          fillColors.push(`hsl(${i * (360 / kfrs.length)}, 50%, 50%)`);
-        }
-        fillColors.push('gray'); // default color
-
-        // Render the KFRs for real this time.
-
-        map.removeLayer(TEMP_KFR_LAYER);
-        map.addLayer({
-          id: 'KFRs',
-          source: 'TravisWilliamsonKFRs',
-          'source-layer': 'Trav_Will_KFRs-356oa0',
-          type: 'fill',
-          paint: {
-            'fill-color': fillColors as any,
-            'fill-opacity': 0.35,
-            'fill-outline-color': '#000'
-          }
+        const features = map.queryRenderedFeatures({
+          // @ts-ignore error in type definition
+          layers: regionSources.map((src) => _toLayerSourceID(src.layerName))
         });
+        const kfrNamesPerSource: any[][] = [];
+        let kfrCount = 0;
+        for (const regionSource of regionSources) {
+          const kfrNames: string[] = [];
+          for (const feature of features) {
+            const kfrName = (feature as any).properties[regionSource.propertyName];
+            if (kfrName !== undefined && !kfrNames.includes(kfrName)) {
+              kfrNames.push(kfrName);
+              ++kfrCount;
+            }
+          }
+          kfrNamesPerSource.push(kfrNames);
+        }
+        const fillColors: string[] = [];
+        for (let i = 0; i < kfrCount; ++i) {
+          fillColors.push(`hsl(${i * (360 / kfrCount)}, 50%, 50%)`);
+        }
+
+        // Render the KFRs each in a unique color.
+
+        let fillColorIndex = 0;
+        for (const regionSource of regionSources) {
+          const kfrNames = kfrNamesPerSource.shift()!;
+          const fillColorField: any[] = ['match', ['get', regionSource.propertyName]];
+          for (const kfrName of kfrNames) {
+            fillColorField.push(kfrName);
+            fillColorField.push(fillColors[fillColorIndex++]);
+          }
+          fillColorField.push('gray'); // default color
+
+          const sourceID = _toLayerSourceID(regionSource.layerName);
+          map.removeLayer(sourceID);
+          map.addLayer({
+            id: sourceID,
+            source: sourceID,
+            'source-layer': regionSource.layerName,
+            type: 'fill',
+            paint: {
+              'fill-color': fillColorField as any,
+              'fill-opacity': 0.35,
+              'fill-outline-color': '#000'
+            }
+          });
+        }
         completedLayers = true;
       }
     });
     map.on('mousemove', (e) => {
       const featureElem = document.getElementById('feature_name');
       const features = map.queryRenderedFeatures(e.point);
-      let kfrName =
-        (features.length == 0 ? '' : (features[0].properties as any).KFR) || '';
+      let kfrName = '';
+      if (features.length > 0) {
+        for (const regionSource of regionSources) {
+          const testName = (features[0].properties as any)[regionSource.propertyName];
+          if (testName) {
+            kfrName = testName;
+            break;
+          }
+        }
+      }
       if (kfrName == '') {
         featureElem!.classList.add('hidden');
       } else {
@@ -163,6 +215,10 @@
       marker.addTo(map);
     }
   });
+
+  function _toLayerSourceID(layerName: string) {
+    return layerName.replaceAll(' ', '-');
+  }
 </script>
 
 <svelte:head>
