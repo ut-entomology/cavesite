@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
   import MapFilterDialog, { type MapQueryRequest } from './MapFilterDialog.svelte';
-  import Map, { MapMarkerSpec } from '../../components/Map.svelte';
+  import KarstMap, { MapMarkerSpec } from '../../components/KarstMap.svelte';
   import {
     EARLIEST_RECORD_DATE,
     type GeneralQuery,
@@ -282,7 +282,7 @@
     {:else}
       <div class="map_area">
         <div class="description">{@html $cachedData.description}</div>
-        <Map markerSpecs={$cachedData.markerSpecs} />
+        <KarstMap markerSpecs={$cachedData.markerSpecs} />
       </div>
     {/if}
   </svelte:fragment>
