@@ -11,6 +11,7 @@ import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
 import { type TaxonPathSpec, locationRanks } from '../../shared/model';
+import { toDaysEpoch } from '../../shared/time_query';
 import { getCaveObligatesMap } from '../effort/cave_obligates';
 import {
   QueryColumnID,
@@ -350,7 +351,7 @@ export class Specimen implements TaxonPathSpec {
           endDate &&
           (!partialStartDate || partialStartDate.includes('-')) &&
           (!partialEndDate || partialEndDate.includes('-')) &&
-          _toEpochDay(endDate) - _toEpochDay(startDate) >
+          toDaysEpoch(endDate) - toDaysEpoch(startDate) >
             MAX_PITFALL_TRAP_COLLECTION_DAYS
         ) {
           problemList.push(
@@ -808,8 +809,4 @@ function _parseEndDate(match: RegExpMatchArray): [Date, string | null] {
     const day = parseInt(match[4]);
     return [new Date(year, month, day), null];
   }
-}
-
-function _toEpochDay(date: Date): number {
-  return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }

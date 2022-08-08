@@ -20,14 +20,23 @@
     onlyCaveObligates: boolean;
   }
 
+  interface FeatureSpec {
+    label: string;
+    latitude: number;
+    longitude: number;
+    recordCount: number;
+    visitCount: number;
+    lastDaysEpoch: number;
+  }
+
   interface MapData {
     version: number;
     description: string;
     query: MapQuery;
-    markerSpecs: MapMarkerSpec[];
+    featureSpecs: FeatureSpec[];
   }
 
-  const CACHED_DATA_VERSION = 1;
+  const CACHED_DATA_VERSION = 2;
   const MAP_QUERY_BATCH_SIZE = 400;
 
   export const cachedData = createSessionStore<MapData | null>('map_data', null);
@@ -45,18 +54,80 @@
   import { selectedTaxa } from '../../stores/selectedTaxa';
   import { selectedLocations } from '../../stores/selectedLocations';
   import { LocationRank } from '../../../shared/model';
+  import { toDaysEpoch, fromDaysEpoch } from '../../../shared/time_query';
   import { showNotice } from '../../common/VariableNotice.svelte';
 
   $pageName = 'Map View';
   const tabName = 'Map';
-
   $: if ($cachedData && $cachedData.version != CACHED_DATA_VERSION) {
     $cachedData = null;
   }
 
+  const ZERO_COLOR = [200, 200, 200];
+  const RECORD_COUNT_COLOR = [255, 0, 0]; // red
+  const VISIT_COUNT_COLOR = [160, 0, 255]; // violet
+  const LAST_VISIT_COLOR = [0, 255, 0]; // lime
+
+  enum ColorMeaning {
+    records = 'records',
+    visits = 'visits',
+    lastVisit = 'last_visit'
+  }
+  const currentDaysEpoch = toDaysEpoch(new Date());
+  const toColorByColorMeaning = {
+    records: (spec: FeatureSpec) =>
+      _toScaleColor(spec.recordCount / maxRecordCount, RECORD_COUNT_COLOR),
+    visits: (spec: FeatureSpec) =>
+      _toScaleColor(
+        Math.log(spec.visitCount) / Math.log(maxVisitCount),
+        VISIT_COUNT_COLOR
+      ),
+    last_visit: (spec: FeatureSpec) =>
+      _toScaleColor(
+        (spec.lastDaysEpoch - oldestDaysEpoch + 1) /
+          (currentDaysEpoch - oldestDaysEpoch + 1),
+        LAST_VISIT_COLOR
+      ) // add 1 to prevent divide by 0
+  };
+
   let loading = false;
   let queryRequest: MapQueryRequest | null = null;
   let requestClearConfirmation = false;
+  let maxRecordCount: number;
+  let maxVisitCount: number;
+  let oldestDaysEpoch: number;
+  let colorMeaning = ColorMeaning.visits;
+  let markerSpecs: MapMarkerSpec[];
+
+  $: if ($cachedData) {
+    maxRecordCount = 0;
+    maxVisitCount = 0;
+    oldestDaysEpoch = Infinity;
+
+    for (const featureSpec of $cachedData.featureSpecs) {
+      if (featureSpec.recordCount > maxRecordCount) {
+        maxRecordCount = featureSpec.recordCount;
+      }
+      if (featureSpec.visitCount > maxVisitCount) {
+        maxVisitCount = featureSpec.visitCount;
+      }
+      if (featureSpec.lastDaysEpoch < oldestDaysEpoch) {
+        oldestDaysEpoch = featureSpec.lastDaysEpoch;
+      }
+    }
+  }
+
+  $: if ($cachedData) {
+    markerSpecs = [];
+    for (const featureSpec of $cachedData.featureSpecs) {
+      markerSpecs.push({
+        label: featureSpec.label,
+        latitude: featureSpec.latitude,
+        longitude: featureSpec.longitude,
+        color: toColorByColorMeaning[colorMeaning](featureSpec)
+      });
+    }
+  }
 
   function requestLoadData() {
     if ($cachedData) {
@@ -143,7 +214,8 @@
     // Load the data
 
     loading = true;
-    const markerSpecs: MapMarkerSpec[] = [];
+    const featureSpecs: FeatureSpec[] = [];
+    let nextFeatureSpec: FeatureSpec | null = null;
     let offset = 0;
     let done = false;
     while (!done) {
@@ -151,17 +223,36 @@
       for (const row of rows) {
         let label = row.localityName!;
         if (row.countyName) label += ', ' + row.countyName;
-        if (row.recordCount == 1) {
-          label += ` (1 record)`;
-        } else {
-          label += ` (${row.recordCount} records)`;
+        if (nextFeatureSpec && label != nextFeatureSpec.label) {
+          let labelSuffix =
+            nextFeatureSpec.recordCount == 1
+              ? '1 record, '
+              : nextFeatureSpec.recordCount + ' records, ';
+          labelSuffix +=
+            nextFeatureSpec.visitCount == 1
+              ? '1 visit, '
+              : nextFeatureSpec.visitCount + ' visits, ';
+          labelSuffix +=
+            'last on ' +
+            fromDaysEpoch(nextFeatureSpec.lastDaysEpoch).toLocaleDateString();
+          nextFeatureSpec.label += ` (${labelSuffix})`;
+          featureSpecs.push(nextFeatureSpec);
+          nextFeatureSpec = null;
         }
-        markerSpecs.push({
-          label,
-          latitude: row.latitude!,
-          longitude: row.longitude!,
-          color: 'orange'
-        });
+        if (nextFeatureSpec === null) {
+          nextFeatureSpec = {
+            label,
+            latitude: row.latitude!,
+            longitude: row.longitude!,
+            recordCount: row.recordCount!,
+            visitCount: 1,
+            lastDaysEpoch: toDaysEpoch(new Date(row.collectionEndDate!))
+          };
+        } else {
+          nextFeatureSpec.recordCount += row.recordCount!;
+          ++nextFeatureSpec.visitCount;
+          nextFeatureSpec.recordCount = toDaysEpoch(new Date(row.collectionEndDate!));
+        }
       }
       offset += MAP_QUERY_BATCH_SIZE;
       done = rows.length == 0;
@@ -174,7 +265,7 @@
       version: CACHED_DATA_VERSION,
       description,
       query: specedMapQuery,
-      markerSpecs
+      featureSpecs
     });
   }
 
@@ -186,14 +277,19 @@
       optionText: null
     });
     columnSpecs.push({
+      columnID: QueryColumnID.County,
+      ascending: true,
+      optionText: null
+    });
+    columnSpecs.push({
       columnID: QueryColumnID.Locality,
       ascending: true,
       optionText: null
     });
     columnSpecs.push({
-      columnID: QueryColumnID.County,
-      ascending: null,
-      optionText: null
+      columnID: QueryColumnID.CollectionEndDate,
+      ascending: true,
+      optionText: 'Non-blank'
     });
     columnSpecs.push({
       columnID: QueryColumnID.Latitude,
@@ -242,6 +338,13 @@
     }
   }
 
+  function _toScaleColor(fraction: number, rightRGB: number[]): string {
+    const r = ZERO_COLOR[0] + fraction * (rightRGB[0] - ZERO_COLOR[0]);
+    const g = ZERO_COLOR[1] + fraction * (rightRGB[1] - ZERO_COLOR[1]);
+    const b = ZERO_COLOR[2] + fraction * (rightRGB[2] - ZERO_COLOR[2]);
+    return `rgb(${r},${g},${b})`;
+  }
+
   const clearSelections = () => (requestClearConfirmation = true);
 
   const confirmClear = () => {
@@ -283,7 +386,7 @@
     {:else}
       <div class="map_area">
         <div class="description">{@html $cachedData.description}</div>
-        <KarstMap markerSpecs={$cachedData.markerSpecs} />
+        <KarstMap {markerSpecs} />
       </div>
     {/if}
   </svelte:fragment>

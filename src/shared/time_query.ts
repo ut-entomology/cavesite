@@ -259,8 +259,8 @@ export class TimeChartTallier {
       }
     } else if (row.collectionEndDate) {
       const endDate = new Date(row.collectionEndDate);
-      const startDaysEpoch = _toDaysEpoch(startDate);
-      const endDaysEpoch = _toDaysEpoch(endDate);
+      const startDaysEpoch = toDaysEpoch(startDate);
+      const endDaysEpoch = toDaysEpoch(endDate);
       if (endDaysEpoch != startDaysEpoch) {
         deltaDays = endDaysEpoch - startDaysEpoch;
         const daysInRange = deltaDays + 1;
@@ -508,6 +508,14 @@ export function partialDateHasMonth(partialDate: string): boolean {
   return partialDate.indexOf('-') > 0;
 }
 
+export function fromDaysEpoch(daysEpoch: number): Date {
+  return new Date(daysEpoch * MILLIS_PER_DAY);
+}
+
+export function toDaysEpoch(date: Date): number {
+  return Math.floor(date.getTime() / MILLIS_PER_DAY);
+}
+
 //// PRIVATE /////////////////////////////////////////////////////////////////
 
 interface _DateInfo {
@@ -525,7 +533,7 @@ function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
   const year = date.getFullYear();
   let seasonYear = year;
   const month = date.getMonth() + 1; // 1-based
-  const daysEpoch = _toDaysEpoch(date);
+  const daysEpoch = toDaysEpoch(date);
 
   if (partialDate) {
     const haveMonth = partialDateHasMonth(partialDate);
@@ -544,15 +552,15 @@ function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
   // in order to hasten computation.
   let yearStartDaysEpoch = _daysEpochByYear[year];
   if (yearStartDaysEpoch === undefined) {
-    yearStartDaysEpoch = _toDaysEpoch(new Date(year, 0 /*Jan*/, 1));
+    yearStartDaysEpoch = toDaysEpoch(new Date(year, 0 /*Jan*/, 1));
     _daysEpochByYear[year] = yearStartDaysEpoch;
 
     const daysEpochBySeason: number[] = [];
     const leap = year % 4 == 0 && (year % 400 == 0 || year % 100 != 0) ? 1 : 0;
-    daysEpochBySeason[0] = _toDaysEpoch(new Date(year, 2, 20 + leap));
-    daysEpochBySeason[1] = _toDaysEpoch(new Date(year, 5, 21 + leap));
-    daysEpochBySeason[2] = _toDaysEpoch(new Date(year, 8, 22 + leap));
-    daysEpochBySeason[3] = _toDaysEpoch(new Date(year, 11, 21 + leap));
+    daysEpochBySeason[0] = toDaysEpoch(new Date(year, 2, 20 + leap));
+    daysEpochBySeason[1] = toDaysEpoch(new Date(year, 5, 21 + leap));
+    daysEpochBySeason[2] = toDaysEpoch(new Date(year, 8, 22 + leap));
+    daysEpochBySeason[3] = toDaysEpoch(new Date(year, 11, 21 + leap));
     _daysEpochByYearAndSeason[year] = daysEpochBySeason;
   }
 
@@ -585,11 +593,6 @@ function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
 function _getSpeciesCount(counter: TaxonCounter | null): number {
   if (counter === null) return 0;
   return counter.getSpeciesCount();
-}
-
-// TODO: use this globally
-function _toDaysEpoch(date: Date): number {
-  return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }
 
 function _roundTotals(totals: number[]): number[] {

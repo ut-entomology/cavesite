@@ -4,6 +4,7 @@ import { DatabaseMutex } from '../util/test_util';
 import { Specimen, SpecimenSource } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { ComparedFauna } from '../../shared/model';
+import { toDaysEpoch } from '../../shared/time_query';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -872,7 +873,7 @@ async function _getVisitFor(specimen: Specimen): Promise<LocationVisit> {
 
 function _toDaysEpoch(date: Date | string): number {
   if (typeof date == 'string') date = new Date(date);
-  return Math.floor(date.getTime() / MILLIS_PER_DAY);
+  return toDaysEpoch(date);
 }
 
 function _toISODate(dateString: string): string {

@@ -9,9 +9,8 @@ import { Specimen } from '../model/specimen';
 import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
 import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligates';
-import { partialDateHasMonth } from '../../shared/time_query';
+import { partialDateHasMonth, toDaysEpoch } from '../../shared/time_query';
 
-const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const NO_DATE_EPOCH_DAY = -Math.pow(1, 9); // very negative to make first in sort
 
 type LocationVisitData = DataOf<LocationVisit>;
@@ -161,9 +160,9 @@ export class LocationVisit extends TaxonCounter {
     let endEpochDay = NO_DATE_EPOCH_DAY;
 
     if (specimen.collectionStartDate) {
-      startEpochDay = _toEpochDay(specimen.collectionStartDate);
+      startEpochDay = toDaysEpoch(specimen.collectionStartDate);
       endDate = specimen.collectionEndDate || specimen.collectionStartDate;
-      endEpochDay = _toEpochDay(endDate);
+      endEpochDay = toDaysEpoch(endDate);
       if (specimen.partialStartDate) {
         endDate = specimen.collectionStartDate;
         endEpochDay = startEpochDay;
@@ -256,8 +255,4 @@ export class LocationVisit extends TaxonCounter {
       ? new LocationVisit(toCamelRow(result.rows[0]))
       : null;
   }
-}
-
-function _toEpochDay(date: Date): number {
-  return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }
