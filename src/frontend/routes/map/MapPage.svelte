@@ -76,13 +76,12 @@
   }
   const currentDaysEpoch = toDaysEpoch(new Date());
   const toColorByColorMeaning = {
-    records: (spec: FeatureSpec) => _toScaleColor(spec.recordCount / maxRecordCount),
-    visits: (spec: FeatureSpec) =>
-      _toScaleColor(Math.log(spec.visitCount) / Math.log(maxVisitCount)),
+    records: (spec: FeatureSpec) => _toScaleColor(spec.recordCount, maxRecordCount),
+    visits: (spec: FeatureSpec) => _toScaleColor(spec.visitCount, maxVisitCount),
     last_visit: (spec: FeatureSpec) =>
       _toScaleColor(
-        (spec.lastDaysEpoch - oldestDaysEpoch + 1) /
-          (currentDaysEpoch - oldestDaysEpoch + 1)
+        spec.lastDaysEpoch - oldestDaysEpoch + 1,
+        currentDaysEpoch - oldestDaysEpoch + 1
       ) // add 1 to prevent divide by 0
   };
 
@@ -95,6 +94,7 @@
   let colorMeaning = ColorMeaning.visits;
   let rightRGB: number[];
   let scaleDivisions: string[];
+  let scaleColors: string[];
   let markerSpecs: MapMarkerSpec[];
 
   $: if ($cachedData) {
@@ -115,40 +115,51 @@
     }
 
     scaleDivisions = [];
+    scaleColors = [];
     let scaleDivisionCount: number;
     let delta: number;
     switch (colorMeaning) {
       case ColorMeaning.records:
+        rightRGB = RECORD_COUNT_COLOR;
         scaleDivisionCount =
           maxRecordCount >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : maxRecordCount;
-        delta = maxRecordCount / scaleDivisionCount;
+        delta =
+          scaleDivisionCount == 1 ? 1 : (maxRecordCount - 1) / (scaleDivisionCount - 1);
         for (let v = maxRecordCount; v >= 1; v -= delta) {
           const rounded = Math.round(v);
           scaleDivisions.push(rounded == 1 ? '1 record' : rounded + ' records');
+          scaleColors.push(_toScaleColor(maxRecordCount + 1 - v, maxRecordCount));
         }
         scaleDivisions.reverse();
-        rightRGB = RECORD_COUNT_COLOR;
         break;
       case ColorMeaning.visits:
+        rightRGB = VISIT_COUNT_COLOR;
         scaleDivisionCount =
           maxVisitCount >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : maxVisitCount;
-        delta = maxVisitCount / scaleDivisionCount;
+        delta =
+          scaleDivisionCount == 1 ? 1 : (maxVisitCount - 1) / (scaleDivisionCount - 1);
         for (let v = maxVisitCount; v >= 1; v -= delta) {
           const rounded = Math.round(v);
           scaleDivisions.push(rounded == 1 ? '1 visit' : rounded + ' visits');
+          scaleColors.push(_toScaleColor(maxVisitCount + 1 - v, maxVisitCount));
         }
         scaleDivisions.reverse();
-        rightRGB = VISIT_COUNT_COLOR;
         break;
       case ColorMeaning.lastVisit:
-        const lastVisitDays = currentDaysEpoch - oldestDaysEpoch + 1;
+        rightRGB = LAST_VISIT_COLOR;
+        const spanOfDays = currentDaysEpoch - oldestDaysEpoch + 1;
         scaleDivisionCount =
-          lastVisitDays >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : lastVisitDays;
-        delta = maxVisitCount / scaleDivisionCount;
+          spanOfDays >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : spanOfDays;
+        delta = scaleDivisionCount == 1 ? 1 : spanOfDays / (scaleDivisionCount - 1);
         for (let v = oldestDaysEpoch; Math.round(v) <= currentDaysEpoch; v += delta) {
           scaleDivisions.push(fromDaysEpoch(Math.round(v)).toLocaleDateString());
+          scaleColors.push(
+            _toScaleColor(
+              v - oldestDaysEpoch + 1,
+              currentDaysEpoch - oldestDaysEpoch + 1
+            ) // add 1 to prevent divide by 0
+          );
         }
-        rightRGB = LAST_VISIT_COLOR;
         break;
     }
   }
@@ -374,7 +385,11 @@
     }
   }
 
-  function _toScaleColor(fraction: number): string {
+  function _toScaleColor(numerator: number, denominator: number): string {
+    let fraction = numerator / denominator;
+    if (colorMeaning == ColorMeaning.visits) {
+      fraction = Math.log(numerator) / Math.log(denominator);
+    }
     const r = ZERO_COLOR[0] + fraction * (rightRGB[0] - ZERO_COLOR[0]);
     const g = ZERO_COLOR[1] + fraction * (rightRGB[1] - ZERO_COLOR[1]);
     const b = ZERO_COLOR[2] + fraction * (rightRGB[2] - ZERO_COLOR[2]);
@@ -464,9 +479,7 @@
               {#each scaleDivisions as scaleDivision, i}
                 <div
                   style="width: calc({100 /
-                    scaleDivisions.length}% - 1px); background-color: {_toScaleColor(
-                    (i + 1) / scaleDivisions.length
-                  )}"
+                    scaleDivisions.length}% - 1px); background-color: {scaleColors[i]}"
                   title={scaleDivision}
                 />
               {/each}
