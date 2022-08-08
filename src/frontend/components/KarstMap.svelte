@@ -255,6 +255,10 @@
     font-size: 0.95rem;
   }
 
+  :global(.mapboxgl-canvas) {
+    width: 100% !important;
+  }
+
   :global(.location_marker) {
     cursor: pointer;
   }
