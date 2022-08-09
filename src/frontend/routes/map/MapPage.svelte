@@ -502,7 +502,7 @@
         </div>
       </div>
       <div class="map_area">
-        <KarstMap {markerSpecs} baseColor="rgb({rightRGB.join(',')})" {featureColors} />
+        <KarstMap {markerSpecs} baseRGB={rightRGB} {featureColors} />
       </div>
     {/if}
   </svelte:fragment>

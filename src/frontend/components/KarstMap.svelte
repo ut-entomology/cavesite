@@ -19,7 +19,7 @@
 
   import { appInfo } from '../stores/app_info';
 
-  export let baseColor: string;
+  export let baseRGB: number[];
   export let markerSpecs: MapMarkerSpec[];
   export let featureColors: string[];
 
@@ -32,6 +32,8 @@
   const MARKER_RADIUS = 18;
   const MARKER_DIAMETER = MARKER_RADIUS * 2;
   const INNER_RADIUS = 8;
+  const STROKE_COLOR_FACTOR = 0.85;
+
   const regionSources: MapRegionSource[] = [
     {
       propertyName: 'Name',
@@ -53,6 +55,8 @@
   let popups: mapboxgl.Popup[];
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>>;
   let colorsByLabel: Record<string, string>;
+  let baseColor: string;
+  let strokeColor: string;
   let pinnedLabels: Record<string, boolean>;
   let completedLayers: boolean;
 
@@ -81,6 +85,15 @@
     for (let i = 0; i < markerSpecs.length; ++i) {
       colorsByLabel[markerSpecs[i].label] = featureColors[i];
     }
+  }
+
+  $: {
+    baseColor = `rgb(${baseRGB.join(',')})`;
+    const strokeRGB = baseRGB.slice();
+    for (let i = 0; i < strokeRGB.length; ++i) {
+      strokeRGB[i] *= STROKE_COLOR_FACTOR;
+    }
+    strokeColor = `rgb(${strokeRGB.join(',')})`;
   }
 
   afterUpdate(() => {
@@ -266,7 +279,7 @@
       if (segments[i] == 'ARC') {
         segments[i] = colorsByLabel[specs[specIndex++].label];
       } else if (segments[i] == 'STROKE') {
-        segments[i] = baseColor;
+        segments[i] = strokeColor;
       }
     }
     const el = document.createElement('div');
