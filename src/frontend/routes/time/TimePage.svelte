@@ -43,7 +43,33 @@
     recordsMissingDayOfMonth: number;
   }
 
+  enum CountUnits {
+    species = 'species',
+    specimens = 'specimens'
+  }
+
+  enum SeasonalityXUnits {
+    weekly = 'weekly',
+    biweekly = 'biweekly',
+    monthly = 'monthly',
+    seasonally = 'seasonally'
+  }
+
+  enum HistoryXUnits {
+    monthly = 'monthly',
+    seasonally = 'seasonally',
+    yearly = 'yearly'
+  }
+
+  interface SavedView {
+    seasonalityYUnits: CountUnits;
+    seasonalityXUnits: SeasonalityXUnits;
+    historyYUnits: CountUnits;
+    historyXUnits: HistoryXUnits;
+  }
+
   export const cachedData = createSessionStore<TimeGraphData | null>('time_data', null);
+  export const savedView = createSessionStore<SavedView | null>('time_view', null);
 </script>
 
 <script lang="ts">
@@ -73,31 +99,14 @@
 
   const CACHED_DATA_VERSION = 5;
 
-  enum CountUnits {
-    species = 'species',
-    specimens = 'specimens'
-  }
-  let seasonalityYUnits = CountUnits.species;
-  let historyYUnits = CountUnits.species;
-
-  enum SeasonalityXUnits {
-    weekly = 'weekly',
-    biweekly = 'biweekly',
-    monthly = 'monthly',
-    seasonally = 'seasonally'
-  }
-
-  enum HistoryXUnits {
-    monthly = 'monthly',
-    seasonally = 'seasonally',
-    yearly = 'yearly'
-  }
+  let seasonalityYUnits = $savedView?.seasonalityYUnits || CountUnits.species;
+  let historyYUnits = $savedView?.historyYUnits || CountUnits.species;
 
   const TIME_QUERY_BATCH_SIZE = 500;
 
   let loading = false;
-  let seasonalityXUnits = SeasonalityXUnits.monthly;
-  let historyXUnits = HistoryXUnits.yearly;
+  let seasonalityXUnits = $savedView?.seasonalityXUnits || SeasonalityXUnits.monthly;
+  let historyXUnits = $savedView?.historyXUnits || HistoryXUnits.yearly;
   let queryRequest: TimeGraphQueryRequest | null = null;
   let historyGraphSpec: TimeGraphSpec;
   let seasonalityGraphSpec: TimeGraphSpec;
@@ -155,6 +164,13 @@
 
     allTaxaHistoryGraphSpec = _getAllTaxaHistoryGraphSpec(historyXUnits, historyYUnits);
   }
+
+  $: savedView.set({
+    seasonalityYUnits,
+    seasonalityXUnits,
+    historyYUnits,
+    historyXUnits
+  });
 
   function clearData() {
     $cachedData = null;
