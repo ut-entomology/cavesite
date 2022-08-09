@@ -91,7 +91,7 @@
     baseColor = `rgb(${baseRGB.join(',')})`;
     const strokeRGB = baseRGB.slice();
     for (let i = 0; i < strokeRGB.length; ++i) {
-      strokeRGB[i] *= STROKE_COLOR_FACTOR;
+      strokeRGB[i] = Math.round(STROKE_COLOR_FACTOR * strokeRGB[i]);
     }
     strokeColor = `rgb(${strokeRGB.join(',')})`;
   }
@@ -219,7 +219,9 @@
               .map(
                 (spec, i) =>
                   `<div class="marker_line">` +
-                  `<span style="color:${featureColors[i]}">&#x25cf;</span> ${spec.label}` +
+                  `<span style="color:${
+                    colorsByLabel[specs[i].label]
+                  }">&#x25cf;</span> ${spec.label}` +
                   `</div>`
               )
               .join('\n')
@@ -354,23 +356,27 @@
   }
 
   :global(.mapboxgl-popup) {
-    max-width: 220px;
+    max-width: 260px !important;
+  }
+  :global(.mapboxgl-popup-content) {
+    padding-bottom: 10px !important;
   }
 
   :global(.marker_line) {
-    margin: 0.2em 0 0 1.4em;
-    text-indent: -1.4em;
+    margin: 0.2em 0 0 1.6em;
+    text-indent: -1.6em;
     line-height: 1.3em;
   }
   :global(.marker_line span) {
-    font-size: 1.25em;
+    font-size: 2.2em;
+    vertical-align: text-bottom;
   }
   :global(.pinned) {
     display: none;
     font-size: 0.9em;
     text-align: center;
     color: chocolate;
-    margin-bottom: 0.4em;
+    margin-bottom: 0.2em;
   }
   :global(.pin .pinned) {
     display: block;

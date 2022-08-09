@@ -286,6 +286,7 @@
       for (const row of rows) {
         let label = row.localityName!;
         if (row.countyName) label += ', ' + row.countyName;
+        label = `<b>${label}</b>`;
         if (nextFeatureSpec && label != nextFeatureSpec.label) {
           let labelSuffix =
             nextFeatureSpec.recordCount == 1
@@ -296,8 +297,7 @@
               ? '1 visit, '
               : nextFeatureSpec.visitCount + ' visits, ';
           labelSuffix +=
-            'last on ' +
-            fromDaysEpoch(nextFeatureSpec.lastDaysEpoch).toLocaleDateString();
+            'last ' + fromDaysEpoch(nextFeatureSpec.lastDaysEpoch).toLocaleDateString();
           nextFeatureSpec.label += ` (${labelSuffix})`;
           featureSpecs.push(nextFeatureSpec);
           nextFeatureSpec = null;
@@ -409,7 +409,7 @@
     const r = ZERO_COLOR[0] + fraction * (rightRGB[0] - ZERO_COLOR[0]);
     const g = ZERO_COLOR[1] + fraction * (rightRGB[1] - ZERO_COLOR[1]);
     const b = ZERO_COLOR[2] + fraction * (rightRGB[2] - ZERO_COLOR[2]);
-    return `rgb(${r},${g},${b})`;
+    return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
   }
 
   const clearSelections = () => (requestClearConfirmation = true);
