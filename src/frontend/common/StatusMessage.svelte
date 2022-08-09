@@ -27,12 +27,11 @@
     filter: brightness(135%) saturate(20%);
   }
 
-  :global {
-    .status-toast {
-      text-align: left;
-      font-size: 110%;
-      font-weight: bold;
-      padding: 1em;
-    }
+  :global(.status-toast) {
+    text-align: left;
+    font-size: 110%;
+    font-weight: bold;
+    padding: 1em;
+    background-color: rgb(255, 255, 255, 0.9);
   }
 </style>
