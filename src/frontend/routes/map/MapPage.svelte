@@ -125,7 +125,9 @@
         scaleDivisionCount =
           maxRecordCount >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : maxRecordCount;
         delta =
-          scaleDivisionCount == 1 ? 1 : (maxRecordCount - 1) / (scaleDivisionCount - 1);
+          maxRecordCount == 1 || scaleDivisionCount == 1
+            ? 1
+            : (maxRecordCount - 1) / (scaleDivisionCount - 1);
         for (let v = maxRecordCount; v >= 1; v -= delta) {
           const rounded = Math.round(v);
           scaleDivisions.push(rounded == 1 ? '1 record' : rounded + ' records');
@@ -138,7 +140,9 @@
         scaleDivisionCount =
           maxVisitCount >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : maxVisitCount;
         delta =
-          scaleDivisionCount == 1 ? 1 : (maxVisitCount - 1) / (scaleDivisionCount - 1);
+          maxVisitCount == 1 || scaleDivisionCount == 1
+            ? 1
+            : (maxVisitCount - 1) / (scaleDivisionCount - 1);
         for (let v = maxVisitCount; v >= 1; v -= delta) {
           const rounded = Math.round(v);
           scaleDivisions.push(rounded == 1 ? '1 visit' : rounded + ' visits');
@@ -151,7 +155,10 @@
         const spanOfDays = currentDaysEpoch - oldestDaysEpoch + 1;
         scaleDivisionCount =
           spanOfDays >= MAX_SCALE_DIVISIONS ? MAX_SCALE_DIVISIONS : spanOfDays;
-        delta = scaleDivisionCount == 1 ? 1 : spanOfDays / (scaleDivisionCount - 1);
+        delta =
+          spanOfDays == 1 || scaleDivisionCount == 1
+            ? 1
+            : (spanOfDays - 1) / (scaleDivisionCount - 1);
         for (let v = oldestDaysEpoch; Math.round(v) <= currentDaysEpoch; v += delta) {
           scaleDivisions.push(fromDaysEpoch(Math.round(v)).toLocaleDateString());
           scaleColors.push(
