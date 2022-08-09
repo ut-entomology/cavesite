@@ -101,7 +101,7 @@
   let maxRecordCount: number;
   let maxVisitCount: number;
   let oldestDaysEpoch: number;
-  let colorMeaning = ColorMeaning.visits;
+  let colorMeaning = $savedView?.colorMeaning || ColorMeaning.visits;
   let rightRGB: number[];
   let scaleDivisions: string[];
   let scaleColors: string[];
