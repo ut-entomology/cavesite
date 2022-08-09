@@ -20,6 +20,7 @@
 
   import { appInfo } from '../stores/app_info';
 
+  export let color: string;
   export let markerSpecs: MapMarkerSpec[];
 
   interface MapRegionSource {
@@ -28,7 +29,7 @@
     mapboxCode: string;
   }
 
-  const MARKER_RADIUS = 16;
+  const MARKER_RADIUS = 18;
   const INNER_RADIUS = 8;
   const regionSources: MapRegionSource[] = [
     {
@@ -43,46 +44,29 @@
     }
   ];
 
-  let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>> = {};
-  let htmlByLongByLat: Record<number, Record<number, string>> = {};
-  let pinnedLabels: Record<string, boolean> = {};
-  let completedLayers = false;
+  let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>>;
+  let pinnedLabels: Record<string, boolean>;
+  let completedLayers: boolean;
+  let markerTemplatesBySize: string[];
 
-  for (const spec of markerSpecs) {
-    let specsByLong = specsByLongByLat[spec.latitude];
-    if (!specsByLong) {
-      specsByLong = {};
-      specsByLongByLat[spec.latitude] = specsByLong;
-    }
-    let specs = specsByLong[spec.longitude];
-    if (!specs) {
-      specs = [];
-      specsByLong[spec.longitude] = specs;
-    }
-    specs.push(spec);
-  }
-  for (const latitudeStr of Object.keys(specsByLongByLat)) {
-    const latitude = parseFloat(latitudeStr);
-    const specsByLong = specsByLongByLat[latitude];
-    for (const longitudeStr of Object.keys(specsByLong)) {
-      const longitude = parseFloat(longitudeStr);
-      const specs = specsByLong[longitude];
-      specs.sort((a, b) => (a.label < b.label ? -1 : 1));
-      let htmlByLong = htmlByLongByLat[latitude];
-      if (!htmlByLong) {
-        htmlByLong = {};
-        htmlByLongByLat[latitude] = htmlByLong;
+  $: {
+    specsByLongByLat = {};
+    pinnedLabels = {};
+    completedLayers = false;
+    markerTemplatesBySize = [];
+
+    for (const spec of markerSpecs) {
+      let specsByLong = specsByLongByLat[spec.latitude];
+      if (!specsByLong) {
+        specsByLong = {};
+        specsByLongByLat[spec.latitude] = specsByLong;
       }
-      htmlByLong[longitude] =
-        "<div class='pinned'>PINNED</div>" +
-        specs
-          .map(
-            (spec) =>
-              `<div class="marker_line">` +
-              `<span style="color:${spec.color}">&#x25cf;</span> ${spec.label}` +
-              `</div>`
-          )
-          .join('\n');
+      let specs = specsByLong[spec.longitude];
+      if (!specs) {
+        specs = [];
+        specsByLong[spec.longitude] = specs;
+      }
+      specs.push(spec);
     }
   }
 
@@ -187,35 +171,53 @@
       featureElem!.innerText = 'KFR: ' + kfrName;
     });
 
-    for (const spec of markerSpecs) {
-      const popup = new mapboxgl.Popup({ closeButton: false });
-      popup.setHTML(htmlByLongByLat[spec.latitude][spec.longitude]);
-      popup.on('close', () => {
-        if (pinnedLabels[spec.label]) popup.addTo(map);
-      });
+    for (const latitudeStr of Object.keys(specsByLongByLat)) {
+      const latitude = parseFloat(latitudeStr);
+      const specsByLong = specsByLongByLat[latitude];
+      for (const longitudeStr of Object.keys(specsByLong)) {
+        const longitude = parseFloat(longitudeStr);
+        const specs = specsByLong[longitude];
+        specs.sort((a, b) => (a.label < b.label ? -1 : 1));
 
-      // @ts-ignore incorrect mapbox type def
-      const marker = new mapboxgl.Marker({
-        element: createDonutChart(markerSpecs)
-      }).setLngLat([spec.longitude, spec.latitude]);
+        const popup = new mapboxgl.Popup({ closeButton: false });
+        popup.setHTML(
+          "<div class='pinned'>PINNED</div>" +
+            specs
+              .map(
+                (spec) =>
+                  `<div class="marker_line">` +
+                  `<span style="color:${spec.color}">&#x25cf;</span> ${spec.label}` +
+                  `</div>`
+              )
+              .join('\n')
+        );
+        popup.on('close', () => {
+          if (pinnedLabels[specs[0].label]) popup.addTo(map);
+        });
 
-      const markerElem = marker.getElement();
-      markerElem.addEventListener('mouseenter', () => popup.addTo(map));
-      markerElem.addEventListener('click', () => {
-        if (pinnedLabels[spec.label]) {
-          pinnedLabels[spec.label] = false;
-          popup.removeClassName('pin');
-        } else {
-          pinnedLabels[spec.label] = true;
-          popup.addClassName('pin');
-        }
-      });
-      markerElem.addEventListener('mouseleave', () => {
-        if (!pinnedLabels[spec.label]) popup.remove();
-      });
-      markerElem.classList.add('location_marker');
-      marker.setPopup(popup);
-      marker.addTo(map);
+        // @ts-ignore incorrect mapbox type def
+        const marker = new mapboxgl.Marker({
+          element: createDonutElement(specs)
+        }).setLngLat([longitude, latitude]);
+
+        const markerElem = marker.getElement();
+        markerElem.addEventListener('mouseenter', () => popup.addTo(map));
+        markerElem.addEventListener('click', () => {
+          if (pinnedLabels[specs[0].label]) {
+            pinnedLabels[specs[0].label] = false;
+            popup.removeClassName('pin');
+          } else {
+            pinnedLabels[specs[0].label] = true;
+            popup.addClassName('pin');
+          }
+        });
+        markerElem.addEventListener('mouseleave', () => {
+          if (!pinnedLabels[specs[0].label]) popup.remove();
+        });
+        markerElem.classList.add('location_marker');
+        marker.setPopup(popup);
+        marker.addTo(map);
+      }
     }
   });
 
@@ -223,27 +225,35 @@
     return layerName.replaceAll(' ', '-');
   }
 
-  function createDonutChart(specs: MapMarkerSpec[]) {
-    const r = MARKER_RADIUS;
-    const r0 = INNER_RADIUS;
-    const w = MARKER_RADIUS * 2;
+  function createDonutElement(specs: MapMarkerSpec[]): ChildNode {
+    let template = markerTemplatesBySize[specs.length];
+    if (!template) {
+      const r = MARKER_RADIUS;
+      const r0 = INNER_RADIUS;
+      const w = MARKER_RADIUS * 2;
 
-    let html = `<div>
-<svg width="${w}" height="${w}" viewbox="0 0 ${w} ${w}" text-anchor="middle" style="display: block">`;
-
-    for (let i = 0; i < specs.length; i++) {
-      html += donutSegment(i / specs.length, (i + 1) / specs.length, specs[i].color);
+      let html = `<div><svg width="${w}" height="${w}" viewbox="0 0 ${w} ${w}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block">`;
+      for (let i = 0; i < specs.length; i++) {
+        html += donutSegment(i / specs.length, (i + 1) / specs.length, `|ARC|`);
+      }
+      template =
+        html +
+        `<circle cx="${r}" cy="${r}" r="${r0}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${r}, ${r})">${specs.length}</text></svg></div>`;
+      markerTemplatesBySize[specs.length] = template;
     }
-    html += `<circle cx="${r}" cy="${r}" r="${r0}" fill="white" />
-<text dominant-baseline="central" transform="translate(${r}, ${r})">
-${specs.length}
-</text>
-</svg>
-</div>`;
 
+    const segments = template.split('|');
+    let specIndex = 0;
+    for (let i = 0; i < segments.length; ++i) {
+      if (segments[i] == 'ARC') {
+        segments[i] = specs[specIndex++].color;
+      } else if (segments[i] == 'STROKE') {
+        segments[i] = color;
+      }
+    }
     const el = document.createElement('div');
-    el.innerHTML = html;
-    return el.firstChild;
+    el.innerHTML = segments.join('');
+    return el.firstChild!;
   }
 
   function donutSegment(startFraction: number, endFraction: number, color: string) {

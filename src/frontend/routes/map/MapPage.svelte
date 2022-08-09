@@ -64,9 +64,9 @@
   }
 
   const ZERO_COLOR = [200, 200, 200];
-  const RECORD_COUNT_COLOR = [255, 0, 0]; // red
+  const RECORD_COUNT_COLOR = [220, 0, 0]; // red
   const VISIT_COUNT_COLOR = [160, 0, 255]; // violet
-  const LAST_VISIT_COLOR = [0, 255, 0]; // lime
+  const LAST_VISIT_COLOR = [0, 200, 0]; // lime
   const MAX_SCALE_DIVISIONS = 20;
 
   enum ColorMeaning {
@@ -387,9 +387,9 @@
 
   function _toScaleColor(numerator: number, denominator: number): string {
     let fraction = numerator / denominator;
-    if (colorMeaning == ColorMeaning.visits) {
-      fraction = Math.log(numerator) / Math.log(denominator);
-    }
+    // if (colorMeaning == ColorMeaning.visits) {
+    //   fraction = Math.log(numerator) / Math.log(denominator);
+    // }
     const r = ZERO_COLOR[0] + fraction * (rightRGB[0] - ZERO_COLOR[0]);
     const g = ZERO_COLOR[1] + fraction * (rightRGB[1] - ZERO_COLOR[1]);
     const b = ZERO_COLOR[2] + fraction * (rightRGB[2] - ZERO_COLOR[2]);
@@ -493,7 +493,7 @@
         </div>
       </div>
       <div class="map_area">
-        <KarstMap {markerSpecs} />
+        <KarstMap {markerSpecs} color="rgb({rightRGB.join(',')})" />
       </div>
     {/if}
   </svelte:fragment>
