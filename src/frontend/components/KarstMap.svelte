@@ -6,10 +6,17 @@
     - Click the "..." next to the name of the shapefile.
     - Click "Replace" to replace the shapefile.
   */
+
   export interface MapMarkerSpec {
     label: string;
     latitude: number;
     longitude: number;
+  }
+
+  export interface MapState {
+    longitude: number;
+    latitude: number;
+    zoom: number;
   }
 </script>
 
@@ -19,9 +26,11 @@
 
   import { appInfo } from '../stores/app_info';
 
+  export let initialState: MapState | null = null;
   export let baseRGB: number[];
   export let markerSpecs: MapMarkerSpec[];
   export let featureColors: string[];
+  export let stateChanged: ((state: MapState) => void) | null = null;
 
   interface MapRegionSource {
     propertyName: string;
@@ -197,7 +206,14 @@
           }
           completedLayers = true;
         }
+        if (initialState) {
+          map.setZoom(initialState.zoom);
+          map.setCenter([initialState.longitude, initialState.latitude]);
+          initialState = null;
+        }
       });
+      map.on('moveend', _stateChanged);
+      map.on('zoomend', _stateChanged);
     }
 
     markers = [];
@@ -255,6 +271,17 @@
       }
     }
   });
+
+  function _stateChanged() {
+    if (stateChanged !== null) {
+      const { lng, lat } = map.getCenter();
+      stateChanged({
+        latitude: lat,
+        longitude: lng,
+        zoom: map.getZoom()
+      });
+    }
+  }
 
   function _toLayerSourceID(layerName: string) {
     return layerName.replaceAll(' ', '-');

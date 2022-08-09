@@ -1,6 +1,9 @@
 <script lang="ts" context="module">
   import MapFilterDialog, { type MapQueryRequest } from './MapFilterDialog.svelte';
-  import KarstMap, { MapMarkerSpec } from '../../components/KarstMap.svelte';
+  import KarstMap, {
+    type MapMarkerSpec,
+    type MapState
+  } from '../../components/KarstMap.svelte';
   import {
     EARLIEST_RECORD_DATE,
     type GeneralQuery,
@@ -11,6 +14,12 @@
     QueryColumnID
   } from '../../../shared/general_query';
   import { createSessionStore } from '../../util/session_store';
+
+  enum ColorMeaning {
+    records = 'records',
+    visits = 'visits',
+    lastVisit = 'last_visit'
+  }
 
   export interface MapQuery {
     fromDateMillis: number;
@@ -36,10 +45,16 @@
     featureSpecs: FeatureSpec[];
   }
 
+  interface MapView {
+    colorMeaning: ColorMeaning;
+    mapState: MapState | null;
+  }
+
   const CACHED_DATA_VERSION = 2;
   const MAP_QUERY_BATCH_SIZE = 400;
 
   export const cachedData = createSessionStore<MapData | null>('map_data', null);
+  export const savedView = createSessionStore<MapView | null>('map_view', null);
 </script>
 
 <script lang="ts">
@@ -69,11 +84,6 @@
   const LAST_VISIT_COLOR = [0, 200, 0]; // lime
   const MAX_SCALE_DIVISIONS = 20;
 
-  enum ColorMeaning {
-    records = 'records',
-    visits = 'visits',
-    lastVisit = 'last_visit'
-  }
   const currentDaysEpoch = toDaysEpoch(new Date());
   const toColorByColorMeaning = {
     records: (spec: FeatureSpec) => _toScaleColor(spec.recordCount, maxRecordCount),
@@ -97,8 +107,12 @@
   let scaleColors: string[];
   let markerSpecs: MapMarkerSpec[];
   let featureColors: string[];
+  let initialMapState = $savedView?.mapState;
+  let mapState: MapState | null = null;
 
   $: if ($cachedData) {
+    // Reruns on changes to cached data or colorMeaning.
+
     maxRecordCount = 0;
     maxVisitCount = 0;
     oldestDaysEpoch = Infinity;
@@ -170,6 +184,11 @@
         }
         break;
     }
+
+    featureColors = [];
+    for (const featureSpec of $cachedData.featureSpecs) {
+      featureColors.push(toColorByColorMeaning[colorMeaning](featureSpec));
+    }
   }
 
   $: if ($cachedData) {
@@ -184,13 +203,7 @@
     }
   }
 
-  $: if ($cachedData) {
-    // Reruns on changes to cachedData and changes to colorMeaning.
-    featureColors = [];
-    for (const featureSpec of $cachedData.featureSpecs) {
-      featureColors.push(toColorByColorMeaning[colorMeaning](featureSpec));
-    }
-  }
+  $: savedView.set({ colorMeaning, mapState });
 
   function requestLoadData() {
     if ($cachedData) {
@@ -330,6 +343,11 @@
       query: specedMapQuery,
       featureSpecs
     });
+
+    // Reset the map view.
+
+    mapState = null;
+    initialMapState = null;
   }
 
   function convertMapQuery(mapQuery: MapQuery): GeneralQuery {
@@ -411,6 +429,8 @@
     const b = ZERO_COLOR[2] + fraction * (rightRGB[2] - ZERO_COLOR[2]);
     return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
   }
+
+  const stateChanged = (state: MapState) => (mapState = state);
 
   const clearSelections = () => (requestClearConfirmation = true);
 
@@ -519,7 +539,13 @@
       </div>
       <div class="map_area">
         {#key $cachedData}
-          <KarstMap {markerSpecs} baseRGB={rightRGB} {featureColors} />
+          <KarstMap
+            initialState={initialMapState}
+            {markerSpecs}
+            baseRGB={rightRGB}
+            {featureColors}
+            {stateChanged}
+          />
         {/key}
       </div>
     {/if}
