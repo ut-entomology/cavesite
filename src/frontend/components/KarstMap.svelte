@@ -357,11 +357,11 @@
     max-width: 260px !important;
   }
   :global(.mapboxgl-popup-content) {
-    padding-bottom: 10px !important;
+    padding-bottom: 12px !important;
   }
 
   :global(.marker_line) {
-    margin: 0.2em 0 0 1.6em;
+    margin: 0.3em 0 0 1.6em;
     text-indent: -1.6em;
     line-height: 1.3em;
   }
