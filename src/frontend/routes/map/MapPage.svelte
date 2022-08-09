@@ -95,7 +95,13 @@
       ) // add 1 to prevent divide by 0
   };
 
-  let loading = false;
+  enum TabState {
+    idle,
+    loadingData,
+    generatingMap
+  }
+
+  let tabState = TabState.idle;
   let queryRequest: MapQueryRequest | null = null;
   let requestClearConfirmation = false;
   let maxRecordCount: number;
@@ -113,6 +119,7 @@
   $: if ($cachedData) {
     // Reruns on changes to cached data or colorMeaning.
 
+    tabState = TabState.generatingMap;
     maxRecordCount = 0;
     maxVisitCount = 0;
     oldestDaysEpoch = Infinity;
@@ -193,6 +200,7 @@
 
   $: if ($cachedData) {
     // Reruns on changes to cached data.
+
     markerSpecs = [];
     for (const featureSpec of $cachedData.featureSpecs) {
       markerSpecs.push({
@@ -289,7 +297,7 @@
 
     // Load the data
 
-    loading = true;
+    tabState = TabState.loadingData;
     const featureSpecs: FeatureSpec[] = [];
     let nextFeatureSpec: FeatureSpec | null = null;
     let offset = 0;
@@ -333,7 +341,6 @@
       offset += MAP_QUERY_BATCH_SIZE;
       done = rows.length == 0;
     }
-    loading = false;
 
     // Cache the data.
 
@@ -343,6 +350,7 @@
       query: specedMapQuery,
       featureSpecs
     });
+    tabState = TabState.idle;
 
     // Reset the map view.
 
@@ -431,6 +439,8 @@
   }
 
   const stateChanged = (state: MapState) => (mapState = state);
+
+  const mapReady = () => (tabState = TabState.idle);
 
   const clearSelections = () => (requestClearConfirmation = true);
 
@@ -545,6 +555,7 @@
             baseRGB={rightRGB}
             {featureColors}
             {stateChanged}
+            {mapReady}
           />
         {/key}
       </div>
@@ -552,8 +563,10 @@
   </svelte:fragment>
 </DataTabRoute>
 
-{#if loading}
+{#if tabState == TabState.loadingData}
   <BusyMessage message="Loading data..." />
+{:else if tabState == TabState.generatingMap}
+  <BusyMessage message="Generating map..." />
 {/if}
 
 {#if queryRequest !== null}

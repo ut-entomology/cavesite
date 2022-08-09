@@ -31,6 +31,7 @@
   export let markerSpecs: MapMarkerSpec[];
   export let featureColors: string[];
   export let stateChanged: ((state: MapState) => void) | null = null;
+  export let mapReady = () => {};
 
   interface MapRegionSource {
     propertyName: string;
@@ -214,6 +215,7 @@
           map.setCenter([initialState.longitude, initialState.latitude]);
           initialState = null;
         }
+        mapReady();
       });
       map.on('moveend', _stateChanged);
       map.on('zoomend', _stateChanged);
@@ -273,6 +275,7 @@
         marker.addTo(map);
       }
     }
+    if (completedLayers) mapReady();
   });
 
   function _stateChanged() {
