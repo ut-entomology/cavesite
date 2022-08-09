@@ -148,12 +148,10 @@ export interface HistoryStageTallies {
 }
 
 export interface SeasonalityStageTallies {
-  weeklySpeciesTotals: number[];
   biweeklySpeciesTotals: number[];
   monthlySpeciesTotals: number[];
   seasonalSpeciesTotals: number[];
 
-  weeklySpecimenTotals: number[];
   biweeklySpecimenTotals: number[];
   monthlySpecimenTotals: number[];
   seasonalSpecimenTotals: number[];
@@ -172,12 +170,10 @@ interface _HistoryStageTallies {
 
 interface _SeasonalityStageTallies {
   // indexed first by unit time, then by species ID
-  weeklySpeciesTallies: (TaxonCounter | null)[];
   biweeklySpeciesTallies: (TaxonCounter | null)[];
   monthlySpeciesTallies: (TaxonCounter | null)[];
   seasonalSpeciesTallies: (TaxonCounter | null)[];
 
-  weeklySpecimenTotals: number[];
   biweeklySpecimenTotals: number[];
   monthlySpecimenTotals: number[];
   seasonalSpecimenTotals: number[];
@@ -201,11 +197,9 @@ export class TimeChartTallier {
         yearlySpecimenTotals: []
       });
       this._seasonalityStageTallies.push({
-        weeklySpeciesTallies: [],
         biweeklySpeciesTallies: [],
         monthlySpeciesTallies: [],
         seasonalSpeciesTallies: [],
-        weeklySpecimenTotals: [],
         biweeklySpecimenTotals: [],
         monthlySpecimenTotals: [],
         seasonalSpecimenTotals: []
@@ -345,9 +339,6 @@ export class TimeChartTallier {
     const finalStageTallies: SeasonalityStageTallies[] = [];
     for (const stageTallies of this._seasonalityStageTallies) {
       finalStageTallies.push({
-        weeklySpeciesTotals: stageTallies.weeklySpeciesTallies.map((counter) =>
-          _getSpeciesCount(counter)
-        ),
         biweeklySpeciesTotals: stageTallies.biweeklySpeciesTallies.map((counter) =>
           _getSpeciesCount(counter)
         ),
@@ -357,7 +348,6 @@ export class TimeChartTallier {
         seasonalSpeciesTotals: stageTallies.seasonalSpeciesTallies.map((counter) =>
           _getSpeciesCount(counter)
         ),
-        weeklySpecimenTotals: _roundTotals(stageTallies.weeklySpecimenTotals),
         biweeklySpecimenTotals: _roundTotals(stageTallies.biweeklySpecimenTotals),
         monthlySpecimenTotals: _roundTotals(stageTallies.monthlySpecimenTotals),
         seasonalSpecimenTotals: _roundTotals(stageTallies.seasonalSpecimenTotals)
@@ -412,13 +402,6 @@ export class TimeChartTallier {
 
     const seasonality = this._seasonalityStageTallies[lifeStage];
     this._addTaxonTally(
-      seasonality.weeklySpeciesTallies,
-      dateInfo.week,
-      pathSpec,
-      species,
-      subspecies
-    );
-    this._addTaxonTally(
       seasonality.biweeklySpeciesTallies,
       dateInfo.fortnight,
       pathSpec,
@@ -463,10 +446,6 @@ export class TimeChartTallier {
     // Update the seasonality tallies.
 
     const seasonality = this._seasonalityStageTallies[lifeStage];
-    if (dateInfo.week !== null) {
-      seasonality.weeklySpecimenTotals[dateInfo.week] =
-        (seasonality.weeklySpecimenTotals[dateInfo.week] || 0) + specimenCount;
-    }
     if (dateInfo.fortnight !== null) {
       seasonality.biweeklySpecimenTotals[dateInfo.fortnight] =
         (seasonality.biweeklySpecimenTotals[dateInfo.fortnight] || 0) + specimenCount;

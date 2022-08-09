@@ -113,13 +113,6 @@ export function createSeasonalityGraphSpec(
   for (let i = 0; i <= LifeStage.All; ++i) {
     switch (totalsProperty) {
       // @ts-ignore
-      case 'weeklySpeciesTotals':
-        yAxisLabel = TOTAL_SPECIES_LABEL;
-      case 'weeklySpecimenTotals':
-        xAxisLabel = 'week of year';
-        barPoints = _createWeeklySeasonalityPoints(stageTallySet[i], totalsProperty);
-        break;
-      // @ts-ignore
       case 'biweeklySpeciesTotals':
         yAxisLabel = TOTAL_SPECIES_LABEL;
       case 'biweeklySpecimenTotals':
@@ -236,20 +229,6 @@ function _createYearlyHistoryPoints(
     const total = totalsByYear[year];
     points.push({ y: total || 0, xLabel: year });
     ++year;
-  }
-  return points;
-}
-
-function _createWeeklySeasonalityPoints(
-  tallies: SeasonalityStageTallies,
-  totalsProperty: keyof Pick<
-    SeasonalityStageTallies,
-    'weeklySpeciesTotals' | 'weeklySpecimenTotals'
-  >
-): BarPoint[] {
-  const points: BarPoint[] = [];
-  for (let i = 0; i < 52; ++i) {
-    points.push({ y: tallies[totalsProperty][i + 1] || 0, xLabel: weeklyLabels[i] });
   }
   return points;
 }

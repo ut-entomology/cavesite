@@ -25,7 +25,6 @@
   }
 
   interface SeasonalityGraphSpecs {
-    weeklySpecs: TimeGraphSpecPair;
     biweeklySpecs: TimeGraphSpecPair;
     monthlySpecs: TimeGraphSpecPair;
     seasonalSpecs: TimeGraphSpecPair;
@@ -49,7 +48,6 @@
   }
 
   enum SeasonalityXUnits {
-    weekly = 'weekly',
     biweekly = 'biweekly',
     monthly = 'monthly',
     seasonally = 'seasonally'
@@ -332,16 +330,6 @@
         }
       },
       seasonalityGraphSpecs: {
-        weeklySpecs: {
-          species: createSeasonalityGraphSpec(
-            seasonalityStageTallies,
-            'weeklySpeciesTotals'
-          ),
-          specimens: createSeasonalityGraphSpec(
-            seasonalityStageTallies,
-            'weeklySpecimenTotals'
-          )
-        },
         biweeklySpecs: {
           species: createSeasonalityGraphSpec(
             seasonalityStageTallies,
@@ -459,8 +447,6 @@
         : (specPair: TimeGraphSpecPair) => specPair.specimens;
 
     switch (xUnits) {
-      case SeasonalityXUnits.weekly:
-        return getYData(seasonalityGraphSpecs.weeklySpecs);
       case SeasonalityXUnits.biweekly:
         return getYData(seasonalityGraphSpecs.biweeklySpecs);
       case SeasonalityXUnits.monthly:
@@ -577,17 +563,6 @@
               />
               <label class="btn btn-outline-primary" for="seasonalityBiweekly"
                 >Biweekly</label
-              >
-              <input
-                type="radio"
-                class="btn-check"
-                bind:group={seasonalityXUnits}
-                name="seasonalityXUnits"
-                id="seasonalityWeekly"
-                value={SeasonalityXUnits.weekly}
-              />
-              <label class="btn btn-outline-primary" for="seasonalityWeekly"
-                >Weekly</label
               >
             </div>
           </div>
@@ -708,8 +683,8 @@
           the count.
         </li>
         <li>
-          In weekly and biweekly charts, the one or two days of the 53rd week are
-          stacked onto the 52nd week.
+          In the biweekly chart, the one or two days of the 53rd week are stacked onto
+          the 52nd week.
         </li>
         <li>
           In graphs showing species history for selected locations, the grayed backround

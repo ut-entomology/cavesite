@@ -547,7 +547,6 @@ function checkSeasonalitySpecies(
   pairsByTimeUnit: number[][][]
 ): void {
   const stageTallies = talliesByStage[lifeStage];
-  checkSeasonalityTimeUnit(stageTallies, 'weeklySpeciesTotals', pairsByTimeUnit[0]);
   checkSeasonalityTimeUnit(stageTallies, 'biweeklySpeciesTotals', pairsByTimeUnit[1]);
   checkSeasonalityTimeUnit(stageTallies, 'monthlySpeciesTotals', pairsByTimeUnit[2]);
   checkSeasonalityTimeUnit(stageTallies, 'seasonalSpeciesTotals', pairsByTimeUnit[3]);
@@ -559,7 +558,6 @@ function checkSeasonalitySpecimens(
   pairsByTimeUnit: number[][][]
 ): void {
   const stageTallies = talliesByStage[lifeStage];
-  checkSeasonalityTimeUnit(stageTallies, 'weeklySpecimenTotals', pairsByTimeUnit[0]);
   checkSeasonalityTimeUnit(stageTallies, 'biweeklySpecimenTotals', pairsByTimeUnit[1]);
   checkSeasonalityTimeUnit(stageTallies, 'monthlySpecimenTotals', pairsByTimeUnit[2]);
   checkSeasonalityTimeUnit(stageTallies, 'seasonalSpecimenTotals', pairsByTimeUnit[3]);
