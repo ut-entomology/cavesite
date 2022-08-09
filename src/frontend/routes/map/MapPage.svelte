@@ -96,6 +96,7 @@
   let scaleDivisions: string[];
   let scaleColors: string[];
   let markerSpecs: MapMarkerSpec[];
+  let featureColors: string[];
 
   $: if ($cachedData) {
     maxRecordCount = 0;
@@ -165,14 +166,22 @@
   }
 
   $: if ($cachedData) {
+    // Reruns on changes to cached data.
     markerSpecs = [];
     for (const featureSpec of $cachedData.featureSpecs) {
       markerSpecs.push({
         label: featureSpec.label,
         latitude: featureSpec.latitude,
-        longitude: featureSpec.longitude,
-        color: toColorByColorMeaning[colorMeaning](featureSpec)
+        longitude: featureSpec.longitude
       });
+    }
+  }
+
+  $: if ($cachedData) {
+    // Reruns on changes to cachedData and changes to colorMeaning.
+    featureColors = [];
+    for (const featureSpec of $cachedData.featureSpecs) {
+      featureColors.push(toColorByColorMeaning[colorMeaning](featureSpec));
     }
   }
 
@@ -493,7 +502,7 @@
         </div>
       </div>
       <div class="map_area">
-        <KarstMap {markerSpecs} baseColor="rgb({rightRGB.join(',')})" />
+        <KarstMap {markerSpecs} baseColor="rgb({rightRGB.join(',')})" {featureColors} />
       </div>
     {/if}
   </svelte:fragment>

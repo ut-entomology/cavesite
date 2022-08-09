@@ -10,7 +10,6 @@
     label: string;
     latitude: number;
     longitude: number;
-    color: string;
   }
 </script>
 
@@ -22,6 +21,7 @@
 
   export let baseColor: string;
   export let markerSpecs: MapMarkerSpec[];
+  export let featureColors: string[];
 
   interface MapRegionSource {
     propertyName: string;
@@ -48,7 +48,11 @@
   const markerTemplatesBySize: string[] = [];
   markerTemplatesBySize[1] = `<div><svg width="${MARKER_DIAMETER}" height="${MARKER_DIAMETER}" viewbox="0 0 ${MARKER_DIAMETER} ${MARKER_DIAMETER}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block"><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${MARKER_RADIUS}" fill="|ARC|" /><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${INNER_RADIUS}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${MARKER_RADIUS}, ${MARKER_RADIUS})">1</text></svg></div>`;
 
+  let map: mapboxgl.Map;
+  let markers: mapboxgl.Marker[];
+  let popups: mapboxgl.Popup[];
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>>;
+  let colorsByLabel: Record<string, string>;
   let pinnedLabels: Record<string, boolean>;
   let completedLayers: boolean;
 
@@ -72,107 +76,121 @@
     }
   }
 
+  $: {
+    colorsByLabel = {};
+    for (let i = 0; i < markerSpecs.length; ++i) {
+      colorsByLabel[markerSpecs[i].label] = featureColors[i];
+    }
+  }
+
   afterUpdate(() => {
-    const map = new mapboxgl.Map({
-      accessToken: $appInfo.mapToken,
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [-99.1, 31.5], // longitude, latitude
-      zoom: 5
-    });
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
-    map.on('load', () => {
-      for (const regionSource of regionSources) {
-        const sourceID = _toLayerSourceID(regionSource.layerName);
-        map.addSource(sourceID, {
-          url: 'mapbox://' + regionSource.mapboxCode,
-          type: 'vector'
-        });
-        map.addLayer({
-          id: sourceID,
-          source: sourceID,
-          'source-layer': regionSource.layerName,
-          type: 'fill'
-        });
-      }
-    });
-    map.on('idle', () => {
-      // Don't add layers again upon going idle for the second time.
-      if (!completedLayers) {
-        // Extract the names of the currently visible KFRs.
-
-        const features = map.queryRenderedFeatures({
-          // @ts-ignore error in type definition
-          layers: regionSources.map((src) => _toLayerSourceID(src.layerName))
-        });
-        const kfrNamesPerSource: any[][] = [];
-        let kfrCount = 0;
+    if (map) {
+      for (const marker of markers) marker.remove();
+      for (const popup of popups) popup.remove();
+    } else {
+      map = new mapboxgl.Map({
+        accessToken: $appInfo.mapToken,
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [-99.1, 31.5], // longitude, latitude
+        zoom: 5
+      });
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+      map.on('load', () => {
         for (const regionSource of regionSources) {
-          const kfrNames: string[] = [];
-          for (const feature of features) {
-            const kfrName = (feature as any).properties[regionSource.propertyName];
-            if (kfrName !== undefined && !kfrNames.includes(kfrName)) {
-              kfrNames.push(kfrName);
-              ++kfrCount;
-            }
-          }
-          kfrNamesPerSource.push(kfrNames);
-        }
-        const fillColors: string[] = [];
-        for (let i = 0; i < kfrCount; ++i) {
-          fillColors.push(`hsl(${i * (360 / kfrCount)}, 50%, 50%)`);
-        }
-
-        // Render the KFRs each in a unique color.
-
-        let fillColorIndex = 0;
-        for (const regionSource of regionSources) {
-          const kfrNames = kfrNamesPerSource.shift()!;
-          const fillColorField: any[] = ['match', ['get', regionSource.propertyName]];
-          for (const kfrName of kfrNames) {
-            fillColorField.push(kfrName);
-            fillColorField.push(fillColors[fillColorIndex++]);
-          }
-          fillColorField.push('gray'); // default color
-
           const sourceID = _toLayerSourceID(regionSource.layerName);
-          map.removeLayer(sourceID);
+          map.addSource(sourceID, {
+            url: 'mapbox://' + regionSource.mapboxCode,
+            type: 'vector'
+          });
           map.addLayer({
             id: sourceID,
             source: sourceID,
             'source-layer': regionSource.layerName,
-            type: 'fill',
-            paint: {
-              'fill-color': fillColorField as any,
-              'fill-opacity': 0.35,
-              'fill-outline-color': '#000'
-            }
+            type: 'fill'
           });
         }
-        completedLayers = true;
-      }
-    });
-    map.on('mousemove', (e) => {
-      const featureElem = document.getElementById('feature_name');
-      const features = map.queryRenderedFeatures(e.point);
-      let kfrName = '';
-      if (features.length > 0) {
-        for (const regionSource of regionSources) {
-          const testName = (features[0].properties as any)[regionSource.propertyName];
-          if (testName) {
-            kfrName = testName;
-            break;
+      });
+      map.on('mousemove', (e) => {
+        const featureElem = document.getElementById('feature_name');
+        const features = map.queryRenderedFeatures(e.point);
+        let kfrName = '';
+        if (features.length > 0) {
+          for (const regionSource of regionSources) {
+            const testName = (features[0].properties as any)[regionSource.propertyName];
+            if (testName) {
+              kfrName = testName;
+              break;
+            }
           }
         }
-      }
-      if (kfrName == '') {
-        featureElem!.classList.add('hidden');
-      } else {
-        featureElem!.classList.remove('hidden');
-      }
-      featureElem!.innerText = 'KFR: ' + kfrName;
-    });
+        if (kfrName == '') {
+          featureElem!.classList.add('hidden');
+        } else {
+          featureElem!.classList.remove('hidden');
+        }
+        featureElem!.innerText = 'KFR: ' + kfrName;
+      });
+      map.on('idle', () => {
+        // Don't add layers again upon going idle for the second time.
+        if (!completedLayers) {
+          // Extract the names of the currently visible KFRs.
 
+          const features = map.queryRenderedFeatures({
+            // @ts-ignore error in type definition
+            layers: regionSources.map((src) => _toLayerSourceID(src.layerName))
+          });
+          const kfrNamesPerSource: any[][] = [];
+          let kfrCount = 0;
+          for (const regionSource of regionSources) {
+            const kfrNames: string[] = [];
+            for (const feature of features) {
+              const kfrName = (feature as any).properties[regionSource.propertyName];
+              if (kfrName !== undefined && !kfrNames.includes(kfrName)) {
+                kfrNames.push(kfrName);
+                ++kfrCount;
+              }
+            }
+            kfrNamesPerSource.push(kfrNames);
+          }
+          const fillColors: string[] = [];
+          for (let i = 0; i < kfrCount; ++i) {
+            fillColors.push(`hsl(${i * (360 / kfrCount)}, 50%, 50%)`);
+          }
+
+          // Render the KFRs each in a unique color.
+
+          let fillColorIndex = 0;
+          for (const regionSource of regionSources) {
+            const kfrNames = kfrNamesPerSource.shift()!;
+            const fillColorField: any[] = ['match', ['get', regionSource.propertyName]];
+            for (const kfrName of kfrNames) {
+              fillColorField.push(kfrName);
+              fillColorField.push(fillColors[fillColorIndex++]);
+            }
+            fillColorField.push('gray'); // default color
+
+            const sourceID = _toLayerSourceID(regionSource.layerName);
+            map.removeLayer(sourceID);
+            map.addLayer({
+              id: sourceID,
+              source: sourceID,
+              'source-layer': regionSource.layerName,
+              type: 'fill',
+              paint: {
+                'fill-color': fillColorField as any,
+                'fill-opacity': 0.35,
+                'fill-outline-color': '#000'
+              }
+            });
+          }
+          completedLayers = true;
+        }
+      });
+    }
+
+    markers = [];
+    popups = [];
     for (const latitudeStr of Object.keys(specsByLongByLat)) {
       const latitude = parseFloat(latitudeStr);
       const specsByLong = specsByLongByLat[latitude];
@@ -186,9 +204,9 @@
           "<div class='pinned'>PINNED</div>" +
             specs
               .map(
-                (spec) =>
+                (spec, i) =>
                   `<div class="marker_line">` +
-                  `<span style="color:${spec.color}">&#x25cf;</span> ${spec.label}` +
+                  `<span style="color:${featureColors[i]}">&#x25cf;</span> ${spec.label}` +
                   `</div>`
               )
               .join('\n')
@@ -196,11 +214,13 @@
         popup.on('close', () => {
           if (pinnedLabels[specs[0].label]) popup.addTo(map);
         });
+        popups.push(popup);
 
         // @ts-ignore incorrect mapbox type def
         const marker = new mapboxgl.Marker({
           element: createDonutElement(specs)
         }).setLngLat([longitude, latitude]);
+        markers.push(marker);
 
         const markerElem = marker.getElement();
         markerElem.addEventListener('mouseenter', () => popup.addTo(map));
@@ -244,7 +264,7 @@
     let specIndex = 0;
     for (let i = 0; i < segments.length; ++i) {
       if (segments[i] == 'ARC') {
-        segments[i] = specs[specIndex++].color;
+        segments[i] = colorsByLabel[specs[specIndex++].label];
       } else if (segments[i] == 'STROKE') {
         segments[i] = baseColor;
       }
