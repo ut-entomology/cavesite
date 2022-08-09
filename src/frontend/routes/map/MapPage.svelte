@@ -149,7 +149,7 @@
           maxRecordCount == 1 || scaleDivisionCount == 1
             ? 1
             : (maxRecordCount - 1) / (scaleDivisionCount - 1);
-        for (let v = maxRecordCount; v >= 1; v -= delta) {
+        for (let v = maxRecordCount; Math.round(v) >= 1; v -= delta) {
           const rounded = Math.round(v);
           scaleDivisions.push(rounded == 1 ? '1 record' : rounded + ' records');
           scaleColors.push(_toScaleColor(maxRecordCount + 1 - v, maxRecordCount));
@@ -164,7 +164,7 @@
           maxVisitCount == 1 || scaleDivisionCount == 1
             ? 1
             : (maxVisitCount - 1) / (scaleDivisionCount - 1);
-        for (let v = maxVisitCount; v >= 1; v -= delta) {
+        for (let v = maxVisitCount; Math.round(v) >= 1; v -= delta) {
           const rounded = Math.round(v);
           scaleDivisions.push(rounded == 1 ? '1 visit' : rounded + ' visits');
           scaleColors.push(_toScaleColor(maxVisitCount + 1 - v, maxVisitCount));
