@@ -488,7 +488,8 @@ export function partialDateHasMonth(partialDate: string): boolean {
 }
 
 export function fromDaysEpoch(daysEpoch: number): Date {
-  return new Date(daysEpoch * MILLIS_PER_DAY);
+  // +1 is needed because toDaysEpoch calls Math.floor()
+  return new Date((daysEpoch + 1) * MILLIS_PER_DAY);
 }
 
 export function toDaysEpoch(date: Date): number {

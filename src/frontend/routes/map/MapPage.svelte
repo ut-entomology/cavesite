@@ -50,7 +50,7 @@
     mapState: MapState | null;
   }
 
-  const CACHED_DATA_VERSION = 2;
+  const CACHED_DATA_VERSION = 3;
   const MAP_QUERY_BATCH_SIZE = 400;
 
   export const cachedData = createSessionStore<MapData | null>('map_data', null);
@@ -335,7 +335,7 @@
         } else {
           nextFeatureSpec.recordCount += row.recordCount!;
           ++nextFeatureSpec.visitCount;
-          nextFeatureSpec.recordCount = toDaysEpoch(new Date(row.collectionEndDate!));
+          nextFeatureSpec.lastDaysEpoch = toDaysEpoch(new Date(row.collectionEndDate!));
         }
       }
       offset += MAP_QUERY_BATCH_SIZE;
