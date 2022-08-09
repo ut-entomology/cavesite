@@ -152,6 +152,9 @@
         featureElem!.innerText = 'KFR: ' + kfrName;
       });
       map.on('idle', () => {
+        const mapHiderElement = document.getElementById('map_hider');
+        mapHiderElement?.classList.add('hidden');
+
         // Don't add layers again upon going idle for the second time.
         if (!completedLayers) {
           // Extract the names of the currently visible KFRs.
@@ -348,6 +351,7 @@
 <div id="map_box">
   <div id="map" />
   <div id="feature_name" class="hidden" />
+  <div id="map_hider" />
 </div>
 
 <style lang="scss">
@@ -370,6 +374,14 @@
     background-color: rgba(255, 255, 255, 0.75);
     padding: 0.1rem 0.5rem;
     font-size: 0.95rem;
+  }
+  #map_hider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
   }
 
   :global(.mapboxgl-canvas) {
