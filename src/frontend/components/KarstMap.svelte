@@ -20,7 +20,7 @@
 
   import { appInfo } from '../stores/app_info';
 
-  export let color: string;
+  export let baseColor: string;
   export let markerSpecs: MapMarkerSpec[];
 
   interface MapRegionSource {
@@ -30,6 +30,7 @@
   }
 
   const MARKER_RADIUS = 18;
+  const MARKER_DIAMETER = MARKER_RADIUS * 2;
   const INNER_RADIUS = 8;
   const regionSources: MapRegionSource[] = [
     {
@@ -44,16 +45,17 @@
     }
   ];
 
+  const markerTemplatesBySize: string[] = [];
+  markerTemplatesBySize[1] = `<div><svg width="${MARKER_DIAMETER}" height="${MARKER_DIAMETER}" viewbox="0 0 ${MARKER_DIAMETER} ${MARKER_DIAMETER}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block"><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${MARKER_RADIUS}" fill="|ARC|" /><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${INNER_RADIUS}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${MARKER_RADIUS}, ${MARKER_RADIUS})">1</text></svg></div>`;
+
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>>;
   let pinnedLabels: Record<string, boolean>;
   let completedLayers: boolean;
-  let markerTemplatesBySize: string[];
 
   $: {
     specsByLongByLat = {};
     pinnedLabels = {};
     completedLayers = false;
-    markerTemplatesBySize = [];
 
     for (const spec of markerSpecs) {
       let specsByLong = specsByLongByLat[spec.latitude];
@@ -228,17 +230,13 @@
   function createDonutElement(specs: MapMarkerSpec[]): ChildNode {
     let template = markerTemplatesBySize[specs.length];
     if (!template) {
-      const r = MARKER_RADIUS;
-      const r0 = INNER_RADIUS;
-      const w = MARKER_RADIUS * 2;
-
-      let html = `<div><svg width="${w}" height="${w}" viewbox="0 0 ${w} ${w}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block">`;
+      let html = `<div><svg width="${MARKER_DIAMETER}" height="${MARKER_DIAMETER}" viewbox="0 0 ${MARKER_DIAMETER} ${MARKER_DIAMETER}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block">`;
       for (let i = 0; i < specs.length; i++) {
-        html += donutSegment(i / specs.length, (i + 1) / specs.length, `|ARC|`);
+        html += createDonutArcHtml(i / specs.length, (i + 1) / specs.length, `|ARC|`);
       }
       template =
         html +
-        `<circle cx="${r}" cy="${r}" r="${r0}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${r}, ${r})">${specs.length}</text></svg></div>`;
+        `<circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${INNER_RADIUS}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${MARKER_RADIUS}, ${MARKER_RADIUS})">${specs.length}</text></svg></div>`;
       markerTemplatesBySize[specs.length] = template;
     }
 
@@ -248,7 +246,7 @@
       if (segments[i] == 'ARC') {
         segments[i] = specs[specIndex++].color;
       } else if (segments[i] == 'STROKE') {
-        segments[i] = color;
+        segments[i] = baseColor;
       }
     }
     const el = document.createElement('div');
@@ -256,19 +254,22 @@
     return el.firstChild!;
   }
 
-  function donutSegment(startFraction: number, endFraction: number, color: string) {
+  function createDonutArcHtml(
+    startFraction: number,
+    endFraction: number,
+    color: string
+  ) {
     const r = MARKER_RADIUS;
     const r0 = INNER_RADIUS;
     if (endFraction - startFraction === 1) endFraction -= 0.00001;
     const a0 = 2 * Math.PI * (startFraction - 0.25);
     const a1 = 2 * Math.PI * (endFraction - 0.25);
-    const x0 = Math.cos(a0),
-      y0 = Math.sin(a0);
-    const x1 = Math.cos(a1),
-      y1 = Math.sin(a1);
+    const x0 = Math.cos(a0);
+    const y0 = Math.sin(a0);
+    const x1 = Math.cos(a1);
+    const y1 = Math.sin(a1);
     const largeArc = endFraction - startFraction > 0.5 ? 1 : 0;
 
-    // draw an SVG path
     return `<path d="M ${r + r0 * x0} ${r + r0 * y0} L ${r + r * x0} ${
       r + r * y0
     } A ${r} ${r} 0 ${largeArc} 1 ${r + r * x1} ${r + r * y1} L ${r + r0 * x1} ${
