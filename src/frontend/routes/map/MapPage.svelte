@@ -492,13 +492,22 @@
           </div>
           <div class="col d-flex align-items-center">
             <div class="color_scale">
-              {#each scaleDivisions as scaleDivision, i}
+              {#if scaleDivisions.length > 0}
+                {#each scaleDivisions as scaleDivision, i}
+                  <div
+                    style="width: calc({100 /
+                      scaleDivisions.length}% - 1px); background-color: {scaleColors[
+                      i
+                    ]}"
+                    data-text={scaleDivision}
+                  />
+                {/each}
+              {:else}
                 <div
-                  style="width: calc({100 /
-                    scaleDivisions.length}% - 1px); background-color: {scaleColors[i]}"
-                  data-text={scaleDivision}
+                  style="width: 100%; background-color: #ddd"
+                  data-text="no results"
                 />
-              {/each}
+              {/if}
             </div>
           </div>
         </div>
@@ -509,7 +518,9 @@
         </div>
       </div>
       <div class="map_area">
-        <KarstMap {markerSpecs} baseRGB={rightRGB} {featureColors} />
+        {#key $cachedData}
+          <KarstMap {markerSpecs} baseRGB={rightRGB} {featureColors} />
+        {/key}
       </div>
     {/if}
   </svelte:fragment>

@@ -55,7 +55,6 @@
   let popups: mapboxgl.Popup[];
   let specsByLongByLat: Record<number, Record<number, MapMarkerSpec[]>>;
   let colorsByLabel: Record<string, string>;
-  let baseColor: string;
   let strokeColor: string;
   let pinnedLabels: Record<string, boolean>;
   let completedLayers: boolean;
@@ -88,7 +87,6 @@
   }
 
   $: {
-    baseColor = `rgb(${baseRGB.join(',')})`;
     const strokeRGB = baseRGB.slice();
     for (let i = 0; i < strokeRGB.length; ++i) {
       strokeRGB[i] = Math.round(STROKE_COLOR_FACTOR * strokeRGB[i]);
