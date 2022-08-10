@@ -167,7 +167,7 @@ function toSpeciesOrSubspecies(name: string): string {
 
   process.stdout.write('\nImporting records...');
   let visitCount = 0;
-  const failures = await loadDB(getNextSpecimenSource, (committing) => {
+  const errors = await loadDB(getNextSpecimenSource, (committing) => {
     if (!committing) {
       if (visitCount == 0) {
         process.stdout.write('\nCalculating effort...');
@@ -181,11 +181,11 @@ function toSpeciesOrSubspecies(name: string): string {
   });
   process.stdout.write('\n');
 
-  if (failures.length > 0) {
-    console.log('\nImport failures:');
-    for (const failure of failures) {
+  if (errors.length > 0) {
+    console.log();
+    for (const failure of errors) {
       console.log('-', failure);
     }
-    console.log(`Failed to import ${failures.length} records\n`);
+    console.log(errors.length + ' errors\n');
   }
 })();

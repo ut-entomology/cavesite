@@ -79,5 +79,4 @@ async function _loadSpecimens(
 
 function _logImportFailure(failures: string[], message: string): void {
   failures.push(message);
-  process.stdout.write('F');
 }
