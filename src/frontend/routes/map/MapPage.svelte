@@ -631,7 +631,7 @@
     position: relative;
     flex-direction: column;
     flex-grow: 1;
-    border-top: 1px solid #bbb;
+    border-top: 1px solid #ccc;
   }
   .description {
     text-align: center;
