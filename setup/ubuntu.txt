@@ -41,12 +41,18 @@ upstream app_yourdomain {
     }
     location /static {
         root /var/www/html;
+        expires 1d;
+        add_header Cache-Control "public, no-transform";
     }
     location /build {
         root /var/www/html;
+        expires 1h;
+        add_header Cache-Control "public, no-transform";
     }
     location / {
-        try_files /index.html;
+        expires 1d;
+        add_header Cache-Control "public, no-transform";
+        try_files /index.html /dev/null =404;
     }
     
 (5) Run "sudo nginx -t" to check the syntax of caves.conf and correct any errors.
