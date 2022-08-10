@@ -232,6 +232,11 @@
     margin-bottom: 1.5rem;
   }
 
+  h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
   .text {
     font-family: 'Times New Roman', Times, serif;
   }
