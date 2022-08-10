@@ -166,11 +166,10 @@ function toSpeciesOrSubspecies(name: string): string {
   await loadCSV();
 
   process.stdout.write('\nImporting records...');
-  let committed = false;
   let visitCount = 0;
   const failures = await loadDB(getNextSpecimenSource, (committing) => {
     if (!committing) {
-      if (visitCount == 0 || committed) {
+      if (visitCount == 0) {
         process.stdout.write('\nCalculating effort...');
       }
       if (++visitCount % VISITS_PER_TICK == 0) {
@@ -179,7 +178,6 @@ function toSpeciesOrSubspecies(name: string): string {
     } else {
       process.stdout.write('\nCommitting data... (working)');
     }
-    committed = committing;
   });
   process.stdout.write('\n');
 

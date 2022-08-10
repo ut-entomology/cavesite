@@ -32,10 +32,10 @@ export async function loadDB(
   for (const compare of comparedFauna) {
     await LocationEffort.tallyEffort(db, compare, addedVisit.bind(null, false));
     // Commit data as the process proceeds.
-    addedVisit(true);
     await LocationVisit.commit(db, compare);
     await LocationEffort.commit(db, compare);
   }
+  addedVisit(true);
 
   // Commit the new specimen records.
 
