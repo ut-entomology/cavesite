@@ -31,7 +31,7 @@
 </p>
 
 <ExampleImage
-  src="/taxa/taxon-lookup.png"
+  src="/static/taxa/taxon-lookup.png"
   alt="Example of typing into the lookup field"
 />
 
@@ -43,7 +43,7 @@
 </p>
 
 <ExampleImage
-  src="/taxa/taxon-lookup-selection.png"
+  src="/static/taxa/taxon-lookup-selection.png"
   alt="Example of selecting a taxon after typing into the lookup field"
 />
 
@@ -62,7 +62,7 @@
 </p>
 
 <ExampleImage
-  src="/taxa/taxa-selections.png"
+  src="/static/taxa/taxa-selections.png"
   alt="Example of a tree of selected taxa"
   padding={0.2}
 />
@@ -95,7 +95,7 @@
 </p>
 
 <ExampleImage
-  src="/taxa/taxa-collapsed-selections.png"
+  src="/static/taxa/taxa-collapsed-selections.png"
   alt="Example of tree collapsed to just Araneae"
   padding={0.2}
 />
@@ -107,7 +107,7 @@
 </p>
 
 <ExampleImage
-  src="/taxa/taxa-no-selections.png"
+  src="/static/taxa/taxa-no-selections.png"
   header=""
   alt="No selected taxa"
   padding={0.2}
@@ -138,7 +138,7 @@
 </p>
 
 <ExampleImage
-  src="/taxa/taxon-browser.png"
+  src="/static/taxa/taxon-browser.png"
   alt="Example view of the taxon browser"
   padding={0.2}
 />

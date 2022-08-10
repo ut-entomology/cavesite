@@ -216,7 +216,7 @@
           <div class="col-auto">
             <img
               class="non_skid_icon"
-              src="/non-skid-icon-3x3.png"
+              src="/static/non-skid-icon-3x3.png"
               title={DRAG_ICON_TEXT}
               alt={DRAG_ICON_TEXT}
             />
@@ -282,7 +282,7 @@
             <div class="col-auto">
               <img
                 class="non_skid_icon"
-                src="/non-skid-icon-3x3.png"
+                src="/static/non-skid-icon-3x3.png"
                 title={DRAG_ICON_TEXT}
                 alt={DRAG_ICON_TEXT}
               />

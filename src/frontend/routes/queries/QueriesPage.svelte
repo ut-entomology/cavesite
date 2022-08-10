@@ -366,7 +366,7 @@
               type="button"
               on:click={() => (requestDownload = true)}
               ><img
-                src="/download-icon.png"
+                src="/static/download-icon.png"
                 title="Download data"
                 alt="Download data"
               /></button

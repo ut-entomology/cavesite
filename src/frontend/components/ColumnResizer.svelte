@@ -46,7 +46,7 @@
 <svelte:window on:mousemove={_onMouseMove} on:mouseup={_onMouseUp} />
 
 <div bind:this={element} class={classes} on:mousedown={_onMouseDown}>
-  <img src="/non-skid-icon-2x3.png" title={text} alt={text} draggable="false" />
+  <img src="/static/non-skid-icon-2x3.png" title={text} alt={text} draggable="false" />
 </div>
 
 <style>

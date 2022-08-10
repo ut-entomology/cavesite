@@ -55,7 +55,7 @@
 </p>
 
 <ExampleImage
-  src="/predictions/default-predictions-config.jpg"
+  src="/static/predictions/default-predictions-config.jpg"
   alt="Default predictions configuration"
 />
 <p>The clustering parameters are as follows:</p>
@@ -127,7 +127,7 @@
   at each element to get an overview of the element's purpose and meaning.
 </p>
 <ExampleImage
-  src="/predictions/clustering-title-summary.jpg"
+  src="/static/predictions/clustering-title-summary.jpg"
   alt="Example title and summary of the clustering"
 />
 <p>
@@ -137,7 +137,7 @@
   clustering configuration.
 </p>
 <ExampleImage
-  src="/predictions/accuracy-summary.jpg"
+  src="/static/predictions/accuracy-summary.jpg"
   alt="Example accuracy summary of a clustering"
 />
 <p>
@@ -150,7 +150,7 @@
   and the exact meanings of each of the provided summary measures.
 </p>
 <ExampleImage
-  src="/predictions/radar-graph.jpg"
+  src="/static/predictions/radar-graph.jpg"
   alt="Example radar graph of a clustering"
 />
 <p>
@@ -175,7 +175,7 @@
   tools further down on the page to see which taxa are unique to which caves.
 </p>
 <ExampleImage
-  src="/predictions/pie-chart.jpg"
+  src="/static/predictions/pie-chart.jpg"
   alt="Example pie chart of caves per cluster"
 />
 <p>
@@ -185,15 +185,15 @@
   over a slice to see the cluster number and the number of caves in the cluster.
 </p>
 <ExampleImage
-  src="/predictions/cave-name-lookup-empty.jpg"
+  src="/static/predictions/cave-name-lookup-empty.jpg"
   alt="Empty cave name lookup tool"
 />
 <ExampleImage
-  src="/predictions/cave-name-lookup-list.jpg"
+  src="/static/predictions/cave-name-lookup-list.jpg"
   alt="Cave name lookup tool with dropdown"
 />
 <ExampleImage
-  src="/predictions/cave-name-lookup-selection.jpg"
+  src="/static/predictions/cave-name-lookup-selection.jpg"
   alt="Cave name lookup tool with selection"
 />
 <p>
@@ -206,7 +206,10 @@
   that provides particulars about the cave, including the taxa next predicted to be found
   in the cave and their estimated accuracies.
 </p>
-<ExampleImage src="/predictions/cluster-controls.jpg" alt="The cluster controls" />
+<ExampleImage
+  src="/static/predictions/cluster-controls.jpg"
+  alt="The cluster controls"
+/>
 <p>
   The remainder of the page characterizes a single cluster, and the above controls are
   specific to this cluster. The left-most control selects the cluster and provides both
@@ -220,7 +223,7 @@
   of this interactive graph further below.
 </p>
 <ExampleImage
-  src="/predictions/full-cluster-graph.jpg"
+  src="/static/predictions/full-cluster-graph.jpg"
   alt="An example graph of all the points in a cluster"
 />
 <p>
@@ -234,7 +237,7 @@
   in the cluster and should be self-explanatory.
 </p>
 <ExampleImage
-  src="/predictions/average-cluster-model.jpg"
+  src="/static/predictions/average-cluster-model.jpg"
   alt="An example average model for all caves of the cluster"
 />
 <p>
@@ -258,7 +261,7 @@
   > link (though not in the above example image).
 </p>
 <ExampleImage
-  src="/predictions/predicted-additional-species.jpg"
+  src="/static/predictions/predicted-additional-species.jpg"
   alt="Example bar chart showing predicted additional species"
 />
 <p>
@@ -295,7 +298,7 @@
   more about how predictions work below.
 </p>
 <ExampleImage
-  src="/predictions/caves-without-predictions.jpg"
+  src="/static/predictions/caves-without-predictions.jpg"
   alt="Example bar chart showing caves not having predictions"
 />
 <p>
@@ -305,7 +308,7 @@
   either increasing or decreasing order.
 </p>
 <ExampleImage
-  src="/predictions/taxa-in-cluster.jpg"
+  src="/static/predictions/taxa-in-cluster.jpg"
   alt="Example bar chart showing the taxa of the cluster by frequency of occurrence"
 />
 <p>
@@ -328,7 +331,7 @@
   this cave-specific popup.
 </p>
 <ExampleImage
-  src="/predictions/per-cave-header.jpg"
+  src="/static/predictions/per-cave-header.jpg"
   alt="Example header of a cave-specific popup"
 />
 <p>
@@ -339,7 +342,7 @@
   the page with the radar and pie charts.
 </p>
 <ExampleImage
-  src="/predictions/per-cave-graph-with-curve.jpg"
+  src="/static/predictions/per-cave-graph-with-curve.jpg"
   alt="Example of a cave-specific graph showing the prediction curve"
 />
 <p>
@@ -356,7 +359,7 @@
   the difference between this value and the last recorded cumulative number of species.
 </p>
 <ExampleImage
-  src="/predictions/per-cave-predicted-taxa.jpg"
+  src="/static/predictions/per-cave-predicted-taxa.jpg"
   alt="Example chart of the taxa predictions for a cave"
 />
 <p>
@@ -371,7 +374,7 @@
   the cave. Read on for a fuller explanation of these predictions and their accuracies.
 </p>
 <ExampleImage
-  src="/predictions/per-cave-taxa.jpg"
+  src="/static/predictions/per-cave-taxa.jpg"
   alt="Example chart of the taxa found in a cave"
 />
 <p>
