@@ -8,8 +8,9 @@ import { LocationEffort } from '../backend/effort/location_effort';
 import { comparedFauna } from '../shared/model';
 
 export async function loadDB(
-  getNextSpecimenSource: () => Promise<SpecimenSource | null>
-) {
+  getNextSpecimenSource: () => Promise<SpecimenSource | null>,
+  addedVisit: (committing: boolean) => void
+): Promise<string[]> {
   // Connect to the database.
 
   loadAndCheckEnvVars(false);
@@ -24,13 +25,14 @@ export async function loadDB(
 
   // Populate the database, including location visit data.
 
-  await _loadSpecimens(db, getNextSpecimenSource);
+  const failures = await _loadSpecimens(db, getNextSpecimenSource);
 
   // Tally and commit location effort data.
 
   for (const compare of comparedFauna) {
-    await LocationEffort.tallyEffort(db, compare);
+    await LocationEffort.tallyEffort(db, compare, addedVisit.bind(null, false));
     // Commit data as the process proceeds.
+    addedVisit(true);
     await LocationVisit.commit(db, compare);
     await LocationEffort.commit(db, compare);
   }
@@ -42,13 +44,14 @@ export async function loadDB(
   await Taxon.commit(db);
 
   await disconnectDB();
+  return failures;
 }
 
 async function _loadSpecimens(
   db: DB,
   getNextSpecimenSource: () => Promise<SpecimenSource | null>
-) {
-  let importFailureCount = 0;
+): Promise<string[]> {
+  const failures: string[] = [];
   let specimenSource = await getNextSpecimenSource();
   while (specimenSource !== null) {
     try {
@@ -58,16 +61,23 @@ async function _loadSpecimens(
           await LocationVisit.addSpecimen(db, compare, specimen);
         }
       } else {
-        ++importFailureCount;
-        console.log(
+        _logImportFailure(
+          failures,
           `Cat# ${specimenSource.catalogNumber || 'UNSPECIFIED'}: logged import failure`
         );
       }
     } catch (err: any) {
-      ++importFailureCount;
-      console.log(`Cat# ${specimenSource.catalogNumber}:`, err.message);
+      _logImportFailure(
+        failures,
+        `Cat# ${specimenSource.catalogNumber}: ${err.message}`
+      );
     }
     specimenSource = await getNextSpecimenSource();
   }
-  console.log(`\n${importFailureCount} import failures\n`);
+  return failures;
+}
+
+function _logImportFailure(failures: string[], message: string): void {
+  failures.push(message);
+  process.stdout.write('F');
 }

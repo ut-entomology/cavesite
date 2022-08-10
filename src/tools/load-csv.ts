@@ -7,6 +7,9 @@ import type { SpecimenSource } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 
+const RECORDS_PER_TICK = 500;
+const VISITS_PER_TICK = 200;
+
 if (process.argv.length != 3) {
   console.log('Please provide the path to the uploadable CSV');
   process.exit(1);
@@ -31,7 +34,7 @@ async function loadCSV() {
       })
       .on('end', () => resolve())
       .on('error', (err) => {
-        console.log('streaming error:', err);
+        console.log('\nstreaming error:', err);
         reject(err);
       });
   });
@@ -39,6 +42,9 @@ async function loadCSV() {
 
 async function getNextSpecimenSource(): Promise<SpecimenSource | null> {
   if (recordIndex == records.length) return null;
+  if ((recordIndex + 1) % RECORDS_PER_TICK == 0) {
+    process.stdout.write('.');
+  }
   return recordToSpecimenSource(records[recordIndex++]);
 }
 
@@ -156,6 +162,32 @@ function toSpeciesOrSubspecies(name: string): string {
 }
 
 (async () => {
+  process.stdout.write('\nLoading CSV...');
   await loadCSV();
-  await loadDB(getNextSpecimenSource);
+
+  process.stdout.write('\nImporting records...');
+  let committed = false;
+  let visitCount = 0;
+  const failures = await loadDB(getNextSpecimenSource, (committing) => {
+    if (!committing) {
+      if (visitCount == 0 || committed) {
+        process.stdout.write('\nCalculating effort...');
+      }
+      if (++visitCount % VISITS_PER_TICK == 0) {
+        process.stdout.write('.');
+      }
+    } else {
+      process.stdout.write('\nCommitting data... (working)');
+    }
+    committed = committing;
+  });
+  process.stdout.write('\n');
+
+  if (failures.length > 0) {
+    console.log('\nImport failures:');
+    for (const failure of failures) {
+      console.log('-', failure);
+    }
+    console.log(`Failed to import ${failures.length} records\n`);
+  }
 })();
