@@ -21,7 +21,7 @@
       <ul>
         <li>Browse the taxa found in the collection</li>
         <li>Browse the locations where specimens were collected</li>
-        <li>Map views of data</li>
+        <li>View color-coded maps of the data</li>
         <li>View seasonality and history graphs</li>
         <li>Predict which taxa might be found on future visits to caves</li>
         <li>Query for specimen data based on custom criteria</li>
