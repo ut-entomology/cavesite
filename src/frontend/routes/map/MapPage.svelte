@@ -481,8 +481,13 @@
     {#if !$cachedData}
       <EmptyTab message="No map loaded" />
     {:else}
-      <div class="container-fluid">
-        <div class="row">
+      <div class="container-fluid" style="margin-top:-0.5rem">
+        <div class="row mb-3 justify-content-center">
+          <div class="col">
+            <div class="description">{@html $cachedData.description}</div>
+          </div>
+        </div>
+        <div class="row mb-2">
           <div class="col-auto">
             <div class="btn-group" role="group" aria-label="Switch datasets">
               <input
@@ -539,11 +544,6 @@
                 />
               {/if}
             </div>
-          </div>
-        </div>
-        <div class="row mt-3 mb-3 justify-content-center">
-          <div class="col">
-            <div class="description">{@html $cachedData.description}</div>
           </div>
         </div>
       </div>
@@ -605,10 +605,10 @@
     left: 50%;
     bottom: 100%;
     width: 8rem;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     text-align: center;
     display: none;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
   .color_scale div:after {
     content: '';
@@ -617,7 +617,7 @@
     left: 50%;
     bottom: 100%;
     margin-bottom: -4px;
-    border: 6px solid #000;
+    border: 5px solid #000;
     border-color: black transparent transparent transparent;
     display: none;
   }
@@ -631,6 +631,7 @@
     position: relative;
     flex-direction: column;
     flex-grow: 1;
+    border-top: 1px solid #bbb;
   }
   .description {
     text-align: center;
