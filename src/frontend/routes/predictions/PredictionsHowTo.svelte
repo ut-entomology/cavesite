@@ -104,7 +104,7 @@
     always improving prediction results, using proximity can greatly randomize results. Consider
     that some of the karst faunal zones track fault lines adjacent to other faunal zones.
     Using proximity for conflict resolution usually greatly worsens prediction accuracy,
-    only occasionally improving accuracy when few caves and few taxa under analysis.
+    only occasionally improving accuracy when few caves and few taxa are under analysis.
   </li>
 </ul>
 <p>
