@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { parse as parseCSV } from '@fast-csv/parse';
 
-import { loadDB } from './load-gbif';
+import { loadDB } from './import-gbif';
 import type { SpecimenSource } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
