@@ -1178,7 +1178,7 @@ async function _getEffort(locationID: number): Promise<LocationEffort> {
 
 async function _retally(): Promise<void> {
   await LocationEffort.dropAll(db, ComparedFauna.all);
-  await LocationEffort.tallyEffort(db, ComparedFauna.all, () => {});
+  await LocationEffort.tallyEffort(db, ComparedFauna.all);
 }
 
 function _toISODate(dateString: string): string {

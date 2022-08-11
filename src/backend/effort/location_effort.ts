@@ -242,11 +242,7 @@ export class LocationEffort {
     return result.rows.map((row) => new LocationEffort(toCamelRow(row)));
   }
 
-  static async tallyEffort(
-    db: DB,
-    comparedFauna: ComparedFauna,
-    addedVisit: () => void
-  ): Promise<void> {
+  static async tallyEffort(db: DB, comparedFauna: ComparedFauna): Promise<void> {
     let priorLocationID = 0;
     let startDate: Date | null = null;
     let effortFlags: EffortFlags;
@@ -347,7 +343,6 @@ export class LocationEffort {
           }
           effortFlags! |= EffortFlags.trap;
         }
-        addedVisit();
       }
 
       skipCount += visits.length;

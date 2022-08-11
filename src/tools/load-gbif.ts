@@ -9,7 +9,8 @@ import { comparedFauna } from '../shared/model';
 
 export async function loadDB(
   getNextSpecimenSource: () => Promise<SpecimenSource | null>,
-  addedVisit: (committing: boolean) => void
+  calculatingEffort: () => void,
+  committingData: () => void
 ): Promise<string[]> {
   // Connect to the database.
 
@@ -29,16 +30,17 @@ export async function loadDB(
 
   // Tally and commit location effort data.
 
+  calculatingEffort();
   for (const compare of comparedFauna) {
-    await LocationEffort.tallyEffort(db, compare, addedVisit.bind(null, false));
+    await LocationEffort.tallyEffort(db, compare);
     // Commit data as the process proceeds.
     await LocationVisit.commit(db, compare);
     await LocationEffort.commit(db, compare);
   }
-  addedVisit(true);
 
   // Commit the new specimen records.
 
+  committingData();
   await Specimen.commit(db);
   await Location.commit(db);
   await Taxon.commit(db);

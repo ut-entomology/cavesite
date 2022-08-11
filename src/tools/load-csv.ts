@@ -8,7 +8,6 @@ import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 
 const RECORDS_PER_TICK = 500;
-const VISITS_PER_TICK = 200;
 
 if (process.argv.length != 3) {
   console.log('Please provide the path to the uploadable CSV');
@@ -166,19 +165,11 @@ function toSpeciesOrSubspecies(name: string): string {
   await loadCSV();
 
   process.stdout.write('\nImporting records...');
-  let visitCount = 0;
-  const errors = await loadDB(getNextSpecimenSource, (committing) => {
-    if (!committing) {
-      if (visitCount == 0) {
-        process.stdout.write('\nCalculating effort...');
-      }
-      if (++visitCount % VISITS_PER_TICK == 0) {
-        process.stdout.write('.');
-      }
-    } else {
-      process.stdout.write('\nCommitting data... (working)');
-    }
-  });
+  const errors = await loadDB(
+    getNextSpecimenSource,
+    () => process.stdout.write('\nCalculating effort...'),
+    () => process.stdout.write('\nCommitting data... (working)')
+  );
   process.stdout.write('\n');
 
   if (errors.length > 0) {
