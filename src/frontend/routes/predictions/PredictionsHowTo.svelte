@@ -64,8 +64,8 @@
     <b>Maximum clusters</b> into which to group the caves &mdash; This is the number of clusters
     you want to attempt to produce. Depending on other parameters of the clustering, the
     algorithm may not succeed in producing the requested number of clusters. Generally, the
-    more clusters you have, the more accurate the predictions, until you exceed the natural
-    number of clusters available.
+    more clusters you have, the more accurate the predictions, but the fewer caves in each
+    cluster, so the less meaningful accuracy reporting is for each cluster.
   </li>
   <li>
     <b>Fauna to compare</b> when clustering caves by common taxa &mdash; This selects the
@@ -93,9 +93,8 @@
     the maximum number of recent visits given. Caves having fewer than the minimum number
     of visits are left out of the analysis. This also determines the visits used to generate
     the average model for each cluster (explained below). Early visits to a cluster are generally
-    productive and tend to skew predictions high, so accuracy tends to degrade as the maximum
-    increases; but the fewer the number of points, the lower the accuracy too, suggesting
-    that neither the minimum nor the maximum should be too low.
+    productive and may skew predictions high, but the fewer the number of points, the lower
+    the accuracy too, suggesting that neither the minimum nor the maximum should be too low.
   </li>
   <li>
     <b>Use proximity</b> to place caves among equally similar clusters &mdash; This indicates
