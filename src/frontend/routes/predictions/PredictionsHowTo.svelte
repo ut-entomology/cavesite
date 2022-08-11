@@ -104,8 +104,8 @@
     fauna need not be proximal, and caves of different fauna can be proximal, so rather than
     always improving prediction results, using proximity can greatly randomize results. Consider
     that some of the karst faunal zones track fault lines adjacent to other faunal zones.
-    However, the fewer caves and the fewer taxa under analysis, the more using proximity
-    seems to improve the accuracy of predicting taxa.
+    Using proximity for conflict resolution usually greatly worsens prediction accuracy,
+    only occasionally improving accuracy when few caves and few taxa under analysis.
   </li>
 </ul>
 <p>
