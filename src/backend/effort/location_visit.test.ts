@@ -1,13 +1,13 @@
 import type { DB } from '../integrations/postgres';
 import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
-import { Specimen, SpecimenSource } from '../model/specimen';
+import { Specimen, GbifRecord } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { ComparedFauna } from '../../shared/model';
 import { toDaysEpoch } from '../../shared/time_query';
 
-type PartialSpecimenSource = Pick<
-  SpecimenSource,
+type PartialGbifRecord = Pick<
+  GbifRecord,
   | 'locality'
   | 'eventDate'
   | 'recordedBy'
@@ -775,7 +775,7 @@ afterAll(async () => {
   await mutex.unlock();
 });
 
-async function _addSpecimen(data: PartialSpecimenSource): Promise<Specimen> {
+async function _addSpecimen(data: PartialGbifRecord): Promise<Specimen> {
   let scientificName =
     data.genus ||
     data.family ||

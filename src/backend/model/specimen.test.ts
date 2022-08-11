@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
-import { type SpecimenSource, Specimen } from './specimen';
+import { type GbifRecord, Specimen } from './specimen';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -1726,7 +1726,7 @@ async function containsLog(
 
 async function _createSpecimen1(db: DB): Promise<Specimen | null> {
   const endDate1ISO = endDate1.toISOString();
-  const source: SpecimenSource = Object.assign({}, baseSource);
+  const source: GbifRecord = Object.assign({}, baseSource);
   source.catalogNumber = 'Q1';
   source.occurrenceID = 'GQ1';
   source.eventDate = startDate1.toISOString();

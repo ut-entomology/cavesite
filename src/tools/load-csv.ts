@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { parse as parseCSV } from '@fast-csv/parse';
 
 import { loadDB } from './import-gbif';
-import type { SpecimenSource } from '../backend/model/specimen';
+import type { GbifRecord } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 
@@ -39,15 +39,15 @@ async function loadCSV() {
   });
 }
 
-async function getNextSpecimenSource(): Promise<SpecimenSource | null> {
+async function getNextGbifRecord(): Promise<GbifRecord | null> {
   if (recordIndex == records.length) return null;
   if ((recordIndex + 1) % RECORDS_PER_TICK == 0) {
     process.stdout.write('.');
   }
-  return recordToSpecimenSource(records[recordIndex++]);
+  return recordToGbifRecord(records[recordIndex++]);
 }
 
-function recordToSpecimenSource(record: CsvSpecimen): SpecimenSource {
+function recordToGbifRecord(record: CsvSpecimen): GbifRecord {
   return {
     catalogNumber: record.catalogNumber,
     occurrenceID: 'GBIF:' + record.catalogNumber,
@@ -166,7 +166,7 @@ function toSpeciesOrSubspecies(name: string): string {
 
   process.stdout.write('\nImporting records...');
   const errors = await loadDB(
-    getNextSpecimenSource,
+    getNextGbifRecord,
     () => process.stdout.write('\nCalculating effort...'),
     () => process.stdout.write('\nCommitting data... (working)')
   );

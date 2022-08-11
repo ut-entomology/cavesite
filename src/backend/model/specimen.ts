@@ -33,7 +33,7 @@ const SUBGENUS_REGEX = /subgenus[:= ]+([A-Za-z]+)/i;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
 
-export interface SpecimenSource {
+export interface GbifRecord {
   // DarwinCore / GBIF field names
 
   catalogNumber: string;
@@ -180,7 +180,7 @@ export class Specimen implements TaxonPathSpec {
     await db.query('update specimens set committed=true');
   }
 
-  static async create(db: DB, source: SpecimenSource): Promise<Specimen | null> {
+  static async create(db: DB, source: GbifRecord): Promise<Specimen | null> {
     const problemList: string[] = [];
     let taxon: Taxon;
     let taxonNames: string[] = [];
@@ -751,7 +751,7 @@ function getRankedName(
 
 async function logImportProblem(
   db: DB,
-  source: SpecimenSource,
+  source: GbifRecord,
   line: string,
   failed: boolean
 ) {
