@@ -3,11 +3,14 @@ import * as fs from 'fs';
 import { parse as parseCSV } from '@fast-csv/parse';
 
 import { connectDatabase, loadDatabase } from './lib/load_database';
+import { disconnectDB } from '../backend/integrations/postgres';
 import type { GbifRecord } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
+import { LogType, Logs } from '../backend/model/logs';
 
 const RECORDS_PER_TICK = 500;
+const description = 'import from CSV via command line';
 
 if (process.argv.length != 3) {
   console.log('Please provide the path to the uploadable CSV');
@@ -164,15 +167,20 @@ function toSpeciesOrSubspecies(name: string): string {
   process.stdout.write('\nLoading CSV...');
   await loadCSV();
 
+  const db = await connectDatabase();
+  await Logs.post(db, LogType.Import, null, 'Began ' + description);
+
   process.stdout.write('\nImporting records...');
   const errors = await loadDatabase(
-    await connectDatabase(),
+    db,
     getNextGbifRecord,
     () => process.stdout.write('\nCalculating effort...'),
     () => process.stdout.write('\nCommitting data... (working)')
   );
-  process.stdout.write('\n');
+  await Logs.post(db, LogType.Import, null, 'Completed ' + description);
+  await disconnectDB();
 
+  process.stdout.write('\n');
   if (errors.length > 0) {
     console.log();
     for (const failure of errors) {

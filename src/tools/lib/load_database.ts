@@ -1,10 +1,5 @@
 import { loadAndCheckEnvVars } from '../../backend/lib/env_vars';
-import {
-  DB,
-  connectDB,
-  disconnectDB,
-  getDB
-} from '../../backend/integrations/postgres';
+import { DB, connectDB, getDB } from '../../backend/integrations/postgres';
 import { Taxon } from '../../backend/model/taxon';
 import { Location } from '../../backend/model/location';
 import { type GbifRecord, Specimen } from '../../backend/model/specimen';
@@ -51,7 +46,6 @@ export async function loadDatabase(
   await Location.commit(db);
   await Taxon.commit(db);
 
-  await disconnectDB();
   return failures;
 }
 

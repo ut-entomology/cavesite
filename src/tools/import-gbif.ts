@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { getReasonPhrase } from 'http-status-codes';
 
 import { type GbifRecord } from '../backend/model/specimen';
-import type { DB } from '../backend/integrations/postgres';
+import { type DB, disconnectDB } from '../backend/integrations/postgres';
 import { connectDatabase, loadDatabase } from './lib/load_database';
 import { Permission } from '../shared/user_auth';
 import { KeyData } from '../backend/model/key_data';
@@ -24,6 +24,7 @@ interface GbifResponse {
 }
 
 abstract class GbifImporter {
+  description: string;
   client: AxiosInstance;
   db: DB | null = null;
   recordCount = 0;
@@ -31,7 +32,8 @@ abstract class GbifImporter {
   hasMoreRecords = true;
   batch: GbifRecord[] = [];
 
-  constructor() {
+  constructor(description: string) {
+    this.description = description;
     this.client = axios.create({
       baseURL: process.env.CAVESITE_BASE_URL,
       timeout: 8000, // 8 seconds
@@ -47,12 +49,25 @@ abstract class GbifImporter {
   }
 
   async load(): Promise<void> {
+    await Logs.post(
+      await this.getDB(),
+      LogType.Import,
+      null,
+      'Began ' + this.description
+    );
     this.importFailures = await loadDatabase(
       await this.getDB(),
       this._loadNextGbifRecord,
       this._calculatingEffort,
       this._committingData
     );
+    await Logs.post(
+      await this.getDB(),
+      LogType.Import,
+      null,
+      'Completed ' + this.description
+    );
+    await disconnectDB();
   }
 
   _calculatingEffort(): void {}
@@ -86,6 +101,10 @@ abstract class GbifImporter {
 
 class ForcedGbifImporter extends GbifImporter {
   errors: string[] = [];
+
+  constructor() {
+    super('import from GBIF via command line');
+  }
 
   async run(): Promise<void> {
     try {
@@ -133,6 +152,10 @@ class ForcedGbifImporter extends GbifImporter {
 }
 
 class CheckedGbifImporter extends GbifImporter {
+  constructor() {
+    super('scheduled import from GBIF');
+  }
+
   async run(): Promise<void> {
     try {
       if (await this._isScheduled()) {
