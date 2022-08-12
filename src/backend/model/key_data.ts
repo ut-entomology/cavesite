@@ -45,26 +45,33 @@ export class KeyData {
   static async read(
     db: DB,
     userID: number | null,
-    userPermissions: Permission | null
-  ): Promise<Record<string, string> | null> {
-    const valuesByKey: Record<string, string> = {};
+    userPermissions: Permission | null,
+    dataKey: string
+  ): Promise<string | null> {
     if (userID === null) {
-      const result = await db.query(`select * from key_data where user_id is null`);
-      for (const row of result.rows) {
+      const result = await db.query(
+        `select * from key_data where user_id is null and data_key=$1`,
+        [dataKey]
+      );
+      if (result.rows.length > 0) {
+        const row = result.rows[0];
         if (
           row.permission_required == 0 ||
           (userPermissions !== null &&
             (row.permission_required & userPermissions) !== 0)
         ) {
-          valuesByKey[row.data_key] = row.data_value;
+          return row.data_value;
         }
       }
     } else {
-      const result = await db.query(`select * from key_data where user_id=$1`, [
-        userID
-      ]);
-      result.rows.forEach((row) => (valuesByKey[row.data_key] = row.data_value));
+      const result = await db.query(
+        `select * from key_data where user_id=$1 and data_key=$2`,
+        [userID, dataKey]
+      );
+      if (result.rows.length > 0) {
+        return result.rows[0].data_value;
+      }
     }
-    return Object.keys(valuesByKey).length == 0 ? null : valuesByKey;
+    return null;
   }
 }

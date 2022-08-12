@@ -9,8 +9,8 @@ const PASSWORD = 'woahwhatchadoingwiththatkeyboard';
 const mutex = new DatabaseMutex();
 let db: DB;
 let editUser: User;
-let coordsUser: User;
-let editCoordsUser: User;
+let adminUser: User;
+let editAdminUser: User;
 let otherUser: User;
 
 beforeAll(async () => {
@@ -26,24 +26,24 @@ beforeAll(async () => {
     Permission.Edit,
     null
   );
-  coordsUser = await User.create(
+  adminUser = await User.create(
     db,
     'User2',
     'Two',
     'user2@x.yz',
     null,
     PASSWORD,
-    Permission.Coords,
+    Permission.Admin,
     null
   );
-  editCoordsUser = await User.create(
+  editAdminUser = await User.create(
     db,
     'User3',
     'Three',
     'user3@x.yz',
     null,
     PASSWORD,
-    Permission.Edit | Permission.Coords,
+    Permission.Edit | Permission.Admin,
     null
   );
   otherUser = await User.create(
@@ -53,82 +53,72 @@ beforeAll(async () => {
     'user4@x.yz',
     null,
     PASSWORD,
-    Permission.Coords,
+    Permission.Edit,
     null
   );
 
   await KeyData.write(db, null, 'xyz1', 0, 'data0_xyz1');
   await KeyData.write(db, null, 'xyz2', 0, 'data0_xyz2');
-  await KeyData.write(db, null, 'pdq', Permission.Coords, 'data0_pdq');
+  await KeyData.write(db, null, 'pdq', Permission.Admin, 'data0_pdq');
   await KeyData.write(db, editUser.userID, 'abc', 0, 'data1_abc');
   await KeyData.write(db, editUser.userID, 'def', 0, 'data1_def');
-  await KeyData.write(db, coordsUser.userID, 'abc', 0, 'data2_abc');
-  await KeyData.write(db, editCoordsUser.userID, 'def', 0, 'data3_def');
+  await KeyData.write(db, adminUser.userID, 'abc', 0, 'data2_abc');
+  await KeyData.write(db, editAdminUser.userID, 'def', 0, 'data3_def');
 });
 
 test('reading non-null user_id key data', async () => {
-  let data = await KeyData.read(db, editUser.userID, editUser.permissions);
-  expect(data).not.toBeNull();
-  expect(data!['abc']).toEqual('data1_abc');
-  expect(data!['def']).toEqual('data1_def');
-  expect(Object.keys(data!).length).toEqual(2);
+  let data = await KeyData.read(db, editUser.userID, editUser.permissions, 'abc');
+  expect(data).toEqual('data1_abc');
+  data = await KeyData.read(db, editUser.userID, editUser.permissions, 'def');
+  expect(data).toEqual('data1_def');
 
-  data = await KeyData.read(db, coordsUser.userID, editUser.permissions);
-  expect(data).not.toBeNull();
-  expect(data!['abc']).toEqual('data2_abc');
-  expect(Object.keys(data!).length).toEqual(1);
+  data = await KeyData.read(db, adminUser.userID, editUser.permissions, 'abc');
+  expect(data).toEqual('data2_abc');
 
-  data = await KeyData.read(db, editCoordsUser.userID, 0);
-  expect(data).not.toBeNull();
-  expect(data!['def']).toEqual('data3_def');
-  expect(Object.keys(data!).length).toEqual(1);
+  data = await KeyData.read(db, editAdminUser.userID, 0, 'def');
+  expect(data).toEqual('data3_def');
 
-  data = await KeyData.read(db, otherUser.userID, 0);
+  data = await KeyData.read(db, otherUser.userID, 0, 'any');
   expect(data).toBeNull();
 });
 
 test('reading null user_id key data, no permissin required', async () => {
-  let data = await KeyData.read(db, null, 0);
-  expect(data).not.toBeNull();
-  expect(data!['xyz1']).toEqual('data0_xyz1');
-  expect(data!['xyz2']).toEqual('data0_xyz2');
-  expect(Object.keys(data!).length).toEqual(2);
+  let data = await KeyData.read(db, null, 0, 'xyz1');
+  expect(data).toEqual('data0_xyz1');
+  data = await KeyData.read(db, null, 0, 'xyz2');
+  expect(data).toEqual('data0_xyz2');
 
-  data = await KeyData.read(db, null, Permission.Edit);
-  expect(data).not.toBeNull();
-  expect(data!['xyz1']).toEqual('data0_xyz1');
-  expect(data!['xyz2']).toEqual('data0_xyz2');
-  expect(Object.keys(data!).length).toEqual(2);
+  data = await KeyData.read(db, null, Permission.Edit, 'xyz1');
+  expect(data).toEqual('data0_xyz1');
+  data = await KeyData.read(db, null, Permission.Edit, 'xyz2');
+  expect(data).toEqual('data0_xyz2');
+});
 
-  data = await KeyData.read(db, null, Permission.Coords);
-  expect(data).not.toBeNull();
-  expect(data!['xyz1']).toEqual('data0_xyz1');
-  expect(data!['xyz2']).toEqual('data0_xyz2');
-  expect(data!['pdq']).toEqual('data0_pdq');
-  expect(Object.keys(data!).length).toEqual(3);
+test('reading null user_id key data, permission required', async () => {
+  let data = await KeyData.read(db, null, editUser.permissions, 'pdq');
+  expect(data).toBeNull();
+  data = await KeyData.read(db, null, adminUser.permissions, 'pdq');
+  expect(data).toEqual('data0_pdq');
 });
 
 test('replacing a null user_id value', async () => {
   await KeyData.write(db, null, 'xyz1', Permission.Edit, 'data0_xyz1_B');
-  let data = await KeyData.read(db, null, 0);
+  let data = await KeyData.read(db, null, 0, 'xyz2');
   expect(data).not.toBeNull();
-  expect(data!['xyz2']).toEqual('data0_xyz2');
-  expect(Object.keys(data!).length).toEqual(1);
+  expect(data).toEqual('data0_xyz2');
 
-  data = await KeyData.read(db, null, Permission.Edit);
-  expect(data).not.toBeNull();
-  expect(data!['xyz1']).toEqual('data0_xyz1_B');
-  expect(data!['xyz2']).toEqual('data0_xyz2');
-  expect(Object.keys(data!).length).toEqual(2);
+  data = await KeyData.read(db, null, Permission.Edit, 'xyz1');
+  expect(data).toEqual('data0_xyz1_B');
+  data = await KeyData.read(db, null, Permission.Edit, 'xyz2');
+  expect(data).toEqual('data0_xyz2');
 });
 
 test('replacing a non-null user_id value', async () => {
   await KeyData.write(db, editUser.userID, 'abc', Permission.Edit, 'data1_abc_B');
-  let data = await KeyData.read(db, editUser.userID, 0);
-  expect(data).not.toBeNull();
-  expect(data!['abc']).toEqual('data1_abc_B');
-  expect(data!['def']).toEqual('data1_def');
-  expect(Object.keys(data!).length).toEqual(2);
+  let data = await KeyData.read(db, editUser.userID, 0, 'abc');
+  expect(data).toEqual('data1_abc_B');
+  data = await KeyData.read(db, editUser.userID, 0, 'def');
+  expect(data).toEqual('data1_def');
 });
 
 afterAll(async () => {
