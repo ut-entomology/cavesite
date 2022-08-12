@@ -32,7 +32,7 @@ beforeAll(async () => {
     'user1@x.yz',
     null,
     PASSWORD,
-    Permission.Coords,
+    Permission.Edit,
     null
   );
   user2 = await User.create(
@@ -42,7 +42,7 @@ beforeAll(async () => {
     'user2@x.yz',
     null,
     PASSWORD,
-    Permission.Coords,
+    Permission.Edit,
     null
   );
   user3 = await User.create(
@@ -52,7 +52,7 @@ beforeAll(async () => {
     'user3@x.yz',
     null,
     PASSWORD,
-    Permission.Coords,
+    Permission.Edit,
     null
   );
 });

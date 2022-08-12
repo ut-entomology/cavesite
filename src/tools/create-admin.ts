@@ -50,7 +50,7 @@ async function createAdmin() {
       email,
       affiliation != '' ? affiliation : null,
       password!,
-      Permission.Admin | Permission.Edit | Permission.Coords,
+      Permission.Admin | Permission.Edit,
       null
     );
   } catch (err: any) {
