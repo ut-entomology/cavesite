@@ -5,7 +5,7 @@
 
   let selection = window.location.pathname.includes('/admin/') ? 'admin' : 'data';
 
-  const onChange = () => page(selection == 'admin' ? '/admin/users' : '/taxa');
+  const onChange = () => page(selection == 'admin' ? '/admin/schedule' : '/taxa');
 </script>
 
 <div class="btn-group" role="group" aria-label="Switch between data and admin tabs">

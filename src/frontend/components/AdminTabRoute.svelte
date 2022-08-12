@@ -5,12 +5,16 @@
 
   const tabs: Tab[] = [
     {
-      label: 'Users',
-      route: '/admin/users'
-    },
-    {
       label: 'Schedule',
       route: '/admin/schedule'
+    },
+    {
+      label: 'Files',
+      route: '/admin/files'
+    },
+    {
+      label: 'Users',
+      route: '/admin/users'
     },
     {
       label: 'Logs',

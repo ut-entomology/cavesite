@@ -17,6 +17,7 @@
   import TimePage from './routes/time/TimePage.svelte';
   import PredictionsPage from './routes/predictions/PredictionsPage.svelte';
   import UsersPage from './routes/admin/users/UsersPage.svelte';
+  import FilesPage from './routes/admin/files/FilesPage.svelte';
   import LogsPage from './routes/admin/logs/LogsPage.svelte';
   import SchedulePage from './routes/admin/schedule/SchedulePage.svelte';
   import NotFound from './routes/NotFound.svelte';
@@ -38,6 +39,7 @@
     '/queries': QueriesPage,
 
     '/admin/users': UsersPage,
+    '/admin/files': FilesPage,
     '/admin/logs': LogsPage,
     '/admin/schedule': SchedulePage,
 
