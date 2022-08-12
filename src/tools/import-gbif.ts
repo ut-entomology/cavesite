@@ -6,7 +6,7 @@ import type { DB } from '../backend/integrations/postgres';
 import { connectDatabase, loadDatabase } from './lib/load_database';
 import { Permission } from '../shared/user_auth';
 import { KeyData } from '../backend/model/key_data';
-import { ADMIN_CONFIG_KEY, type AdminConfig } from '../backend/lib/admin_config';
+import { ADMIN_CONFIG_KEY, type AdminConfig } from '../backend/lib/data_keys';
 import { LogType, Logs } from '../backend/model/logs';
 
 const runningAsScript = require.main === module; // rather than imported by load-csv
@@ -155,7 +155,7 @@ class CheckedGbifImporter extends GbifImporter {
     const now = new Date();
     return (
       config.importDaysOfWeek.includes(now.getDay()) &&
-      now.getHours() == config.importHour
+      now.getHours() == config.importHourOfDay
     );
   }
 

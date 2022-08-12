@@ -2,6 +2,7 @@ export const CSRF_TOKEN_HEADER = 'X-XSRF-TOKEN';
 
 export enum Permission {
   // values are bit flags and therefore powers of 2
+  None = 0,
   Admin = 1, // add/remove users, reset passwords, schedule uploads; implies Edit
   Edit = 2, // modify server-side data
   Coords = 4 // placeholder permission, needed for testing functioning of permission

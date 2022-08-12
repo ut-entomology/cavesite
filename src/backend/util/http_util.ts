@@ -1,6 +1,7 @@
 import { type Request } from 'express';
 
 import { Permission } from '../../shared/user_auth';
+import { Session } from '../model/session';
 
 /**
  * Used for validating received lists of integers.
@@ -21,6 +22,18 @@ export function requirePermissions(permissions: Permission) {
     }
     next();
   };
+}
+
+/**
+ * Checks the provided session for the provided requried permissions, all
+ * of which must be present. Returns true iff they are.
+ */
+export function checkPermissions(
+  session: Session | undefined,
+  requiredPermissions: Permission
+): boolean {
+  if (!session) return false;
+  return (session.userInfo.permissions & requiredPermissions) == requiredPermissions;
 }
 
 /**

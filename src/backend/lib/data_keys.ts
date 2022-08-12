@@ -12,5 +12,5 @@ export const daysOfWeek = [
 
 export interface AdminConfig {
   importDaysOfWeek: number[];
-  importHour: number;
+  importHourOfDay: number;
 }
