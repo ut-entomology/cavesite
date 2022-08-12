@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { parse as parseCSV } from '@fast-csv/parse';
 
-import { loadDB } from './import-gbif';
+import { connectDatabase, loadDatabase } from './lib/load_database';
 import type { GbifRecord } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
@@ -165,7 +165,8 @@ function toSpeciesOrSubspecies(name: string): string {
   await loadCSV();
 
   process.stdout.write('\nImporting records...');
-  const errors = await loadDB(
+  const errors = await loadDatabase(
+    await connectDatabase(),
     getNextGbifRecord,
     () => process.stdout.write('\nCalculating effort...'),
     () => process.stdout.write('\nCommitting data... (working)')
