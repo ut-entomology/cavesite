@@ -105,5 +105,8 @@ app.listen(port, async () => {
     expirationCheckMillis: EXPIRATION_CHECK_MILLIS
   });
   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+  if (process.env.CAVESITE_LOG_SERVER_RESTART == 'on') {
+    await Logs.post(getDB(), LogType.Server, 'startup', 'Server started or restarted');
+  }
   console.log(`Server listening on port ${port}`);
 });

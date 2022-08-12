@@ -70,6 +70,7 @@ CAVESITE_PORT=3000
 CAVESITE_SENDER_NAME=Alex Wild
 CAVESITE_SENDER_EMAIL=alex.wild@utexas.edu
 CAVESITE_HIDDEN_TABS=comma-delimited-names-of-tabs-you-want-to-hide
+CAVESITE_LOG_SERVER_RESTART=on
 
 CAVESITE_LOG_DIR=/var/www/logs
 CAVESITE_DB_HOST=localhost

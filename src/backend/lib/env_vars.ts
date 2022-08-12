@@ -60,6 +60,11 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
     if (!process.env.MAPBOX_ACCESS_TOKEN) {
       errors.push('MAPBOX_ACCESS_TOKEN - missing');
     }
+
+    const logRestart = process.env.CAVESITE_LOG_SERVER_RESTART;
+    if (logRestart && !['on', 'off'].includes(logRestart)) {
+      errors.push("CAVESITE_LOG_SERVER_RESTART - must be 'on' or 'off'");
+    }
   }
 
   // Check environment variables that the server and tools require.
@@ -109,6 +114,7 @@ SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 MAPBOX_ACCESS_TOKEN* - Token supplied by https://www.mapbox.com/ for maps.
 
 CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
+CAVESITE_LOG_SERVER_RESTART - Set to 'on' to log server restarts.
 
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.
 CAVESITE_LOG_DIR* - Directory for the website access log files.`);
