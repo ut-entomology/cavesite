@@ -1,4 +1,4 @@
-import { loadAndCheckEnvVars } from '../../backend/util/env_util';
+import { loadAndCheckEnvVars } from '../../backend/lib/env_vars';
 import {
   DB,
   connectDB,

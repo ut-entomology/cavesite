@@ -4,6 +4,9 @@ import { getReasonPhrase } from 'http-status-codes';
 import { type GbifRecord } from '../backend/model/specimen';
 import type { DB } from '../backend/integrations/postgres';
 import { connectDatabase, loadDatabase } from './lib/load_database';
+import { Permission } from '../shared/user_auth';
+import { KeyData } from '../backend/model/key_data';
+import { ADMIN_CONFIG_KEY, type AdminConfig } from '../backend/lib/admin_config';
 
 const runningAsScript = require.main === module; // rather than imported by load-csv
 const INSTITUTION_CODE = 'UTIC';
@@ -112,6 +115,38 @@ class ForcedGbifImporter extends GbifImporter {
   }
 }
 
+class CheckedGbifImporter extends GbifImporter {
+  async run(): Promise<void> {
+    try {
+      if (await this._isScheduled()) {
+        await this.load();
+      }
+    } catch (err: any) {
+      // TODO: write fatal error to DB log
+    }
+    console.log();
+    if (this.errors.length > 0) {
+      // TODO: write errors to DB log
+    }
+  }
+
+  async _isScheduled(): Promise<boolean> {
+    const keyData = await KeyData.read(
+      await this.getDB(),
+      null,
+      Permission.Admin,
+      ADMIN_CONFIG_KEY
+    );
+    if (!keyData) return false;
+    const config: AdminConfig = JSON.parse(keyData);
+    const now = new Date();
+    return (
+      config.importDaysOfWeek.includes(now.getDay()) &&
+      now.getHours() == config.importHour
+    );
+  }
+}
+
 function _errorReason(res: AxiosResponse): string {
   return res.data?.message || getReasonPhrase(res.status);
 }
@@ -127,7 +162,7 @@ if (runningAsScript) {
         break;
       case '--check':
         showHelp = false;
-        //_checkImport();
+        new CheckedGbifImporter().run();
         break;
     }
   }

@@ -11,7 +11,7 @@ import cookieParser from 'cookie-parser';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import sgMail from '@sendgrid/mail';
 
-import { loadAndCheckEnvVars } from './util/env_util';
+import { loadAndCheckEnvVars } from './lib/env_vars';
 import { checkAllEmails } from './util/email_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
 import { sessionware } from '../backend/integrations/sessionware';

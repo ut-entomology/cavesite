@@ -1,6 +1,6 @@
 import * as readlineSync from 'readline-sync';
 
-import { loadAndCheckEnvVars } from '../backend/util/env_util';
+import { loadAndCheckEnvVars } from '../backend/lib/env_vars';
 import { getDB, connectDB, disconnectDB } from '../backend/integrations/postgres';
 import { User } from '../backend/model/user';
 import { Permission } from '../shared/user_auth';
