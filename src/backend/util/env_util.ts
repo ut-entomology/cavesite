@@ -26,12 +26,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
   } else {
     errors.push('CAVESITE_BASE_URL - missing');
   }
-  if (!process.env.CAVESITE_SENDER_NAME) {
-    errors.push('CAVESITE_SENDER_NAME - missing');
-  }
-  if (!process.env.CAVESITE_SENDER_EMAIL) {
-    errors.push('CAVESITE_SENDER_EMAIL - missing');
-  }
 
   if (forServer) {
     if (process.env.CAVESITE_PORT) {
@@ -52,14 +46,20 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
         );
       }
     }
-  }
 
-  if (!process.env.SENDGRID_API_KEY) {
-    errors.push('SENDGRID_API_KEY - missing');
-  }
+    if (!process.env.CAVESITE_SENDER_NAME) {
+      errors.push('CAVESITE_SENDER_NAME - missing');
+    }
+    if (!process.env.CAVESITE_SENDER_EMAIL) {
+      errors.push('CAVESITE_SENDER_EMAIL - missing');
+    }
+    if (!process.env.SENDGRID_API_KEY) {
+      errors.push('SENDGRID_API_KEY - missing');
+    }
 
-  if (!process.env.MAPBOX_ACCESS_TOKEN) {
-    errors.push('MAPBOX_ACCESS_TOKEN - missing');
+    if (!process.env.MAPBOX_ACCESS_TOKEN) {
+      errors.push('MAPBOX_ACCESS_TOKEN - missing');
+    }
   }
 
   // Check environment variables that the server and tools require.
