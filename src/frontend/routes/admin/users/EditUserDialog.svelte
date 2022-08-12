@@ -150,9 +150,6 @@
       </div>
       <div class="col-sm-7">
         <Select id="accessLevel" name="accessLevel" class="form-select">
-          <option value="none">None (account disabled)</option>
-          <option value="coords">See Precise Coordinates</option>
-          <option value="edit">Edit Precise Coordinates</option>
           <option value="admin">Admin (all permissions)</option>
         </Select>
       </div>
