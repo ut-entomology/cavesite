@@ -1,32 +1,32 @@
 <script lang="ts">
   import page from 'page';
 
-  // import CircleIconButton from './CircleIconButton.svelte';
-  // import { Permission } from '../../shared/user_auth';
-  // import { DialogSpec } from '../common/VariableDialog.svelte';
-  // import { flashMessage } from '../common/VariableFlash.svelte';
-  // import TabSetSelector from '../components/TabSetSelector.svelte';
-  // import { globalDialog } from '../stores/globalDialog.svelte';
-  // import { userInfo } from '../stores/user_info';
-  // import { logoutUser } from '../util/user_util';
+  import CircleIconButton from './CircleIconButton.svelte';
+  import { Permission } from '../../shared/user_auth';
+  import { DialogSpec } from '../common/VariableDialog.svelte';
+  import { flashMessage } from '../common/VariableFlash.svelte';
+  import TabSetSelector from '../components/TabSetSelector.svelte';
+  import { globalDialog } from '../stores/globalDialog.svelte';
+  import { userInfo } from '../stores/user_info';
+  import { logoutUser } from '../util/user_util';
   import { appInfo } from '../stores/app_info';
 
-  // function login() {
-  //   globalDialog.set(new DialogSpec('LoginDialog'));
-  // }
+  function login() {
+    globalDialog.set(new DialogSpec('LoginDialog'));
+  }
 
-  // async function logout() {
-  //   try {
-  //     await logoutUser(true);
-  //     page('/');
-  //   } catch (err: any) {
-  //     await flashMessage(`Error ${err.response.status} logging out`);
-  //   }
-  // }
+  async function logout() {
+    try {
+      await logoutUser(true);
+      page('/');
+    } catch (err: any) {
+      await flashMessage(`Error ${err.response.status} logging out`);
+    }
+  }
 
-  // function showLoginInfo() {
-  //   globalDialog.set(new DialogSpec('LoginInfoDialog'));
-  // }
+  function showLoginInfo() {
+    globalDialog.set(new DialogSpec('LoginInfoDialog'));
+  }
 </script>
 
 <header>
@@ -35,7 +35,7 @@
       <div class="app_title">{$appInfo.appTitle}</div>
       <div class="user_menu">
         <div>
-          <!-- {#if $userInfo}
+          {#if $userInfo}
             {#if $userInfo.permissions & Permission.Admin}
               <TabSetSelector />
             {/if}
@@ -47,10 +47,10 @@
             >
               i
             </CircleIconButton>
-            <button class="btn btn-major" on:click={logout}>Logout</button>
+            <button class="btn btn-major compact" on:click={logout}>Logout</button>
           {:else}
-            <button class="btn btn-major" on:click={login}>Login</button>
-          {/if} -->
+            <button class="btn btn-minor compact" on:click={login}>Admin Login</button>
+          {/if}
         </div>
       </div>
     </div>

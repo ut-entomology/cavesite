@@ -12,7 +12,7 @@
   import { DialogSpec } from '../common/VariableDialog.svelte';
   //import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
-  const title = 'Login Form';
+  const title = 'Login Form for Admins';
 
   let errorMessage = '';
 
@@ -55,7 +55,7 @@
         <label for="email" class="col-form-label">Email</label>
       </div>
       <div class="col-sm-7">
-        <Input id="email" name="email" />
+        <Input id="email" name="email" autocomplete="username" />
       </div>
     </div>
     <div class="row mb-3 justify-content-center">
@@ -63,7 +63,12 @@
         <label for="password" class="col-form-label">Password</label>
       </div>
       <div class="col-sm-7">
-        <Input id="password" name="password" type="password" />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+        />
       </div>
     </div>
     <div class="info-row">
