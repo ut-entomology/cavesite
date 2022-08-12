@@ -60,6 +60,8 @@ beforeAll(async () => {
   await KeyData.write(db, null, 'xyz1', 0, 'data0_xyz1');
   await KeyData.write(db, null, 'xyz2', 0, 'data0_xyz2');
   await KeyData.write(db, null, 'pdq', Permission.Admin, 'data0_pdq');
+  await KeyData.write(db, null, 'empty', 0, '');
+  await KeyData.write(db, editUser.userID, 'empty', 0, '');
   await KeyData.write(db, editUser.userID, 'abc', 0, 'data1_abc');
   await KeyData.write(db, editUser.userID, 'def', 0, 'data1_def');
   await KeyData.write(db, adminUser.userID, 'abc', 0, 'data2_abc');
@@ -80,9 +82,12 @@ test('reading non-null user_id key data', async () => {
 
   data = await KeyData.read(db, otherUser.userID, 0, 'any');
   expect(data).toBeNull();
+
+  data = await KeyData.read(db, editUser.userID, 0, 'empty');
+  expect(data).toBeNull();
 });
 
-test('reading null user_id key data, no permissin required', async () => {
+test('reading null user_id key data, no permission required', async () => {
   let data = await KeyData.read(db, null, 0, 'xyz1');
   expect(data).toEqual('data0_xyz1');
   data = await KeyData.read(db, null, 0, 'xyz2');
@@ -92,6 +97,9 @@ test('reading null user_id key data, no permissin required', async () => {
   expect(data).toEqual('data0_xyz1');
   data = await KeyData.read(db, null, Permission.Edit, 'xyz2');
   expect(data).toEqual('data0_xyz2');
+
+  data = await KeyData.read(db, null, 0, 'empty');
+  expect(data).toBeNull();
 });
 
 test('reading null user_id key data, permission required', async () => {

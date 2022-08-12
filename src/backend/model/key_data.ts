@@ -48,6 +48,8 @@ export class KeyData {
     userPermissions: Permission | null,
     dataKey: string
   ): Promise<string | null> {
+    let data: string | null = null;
+
     if (userID === null) {
       const result = await db.query(
         `select * from key_data where user_id is null and data_key=$1`,
@@ -60,7 +62,7 @@ export class KeyData {
           (userPermissions !== null &&
             (row.permission_required & userPermissions) !== 0)
         ) {
-          return row.data_value;
+          data = row.data_value;
         }
       }
     } else {
@@ -69,9 +71,9 @@ export class KeyData {
         [userID, dataKey]
       );
       if (result.rows.length > 0) {
-        return result.rows[0].data_value;
+        data = result.rows[0].data_value;
       }
     }
-    return null;
+    return data && data != '' ? data : null;
   }
 }
