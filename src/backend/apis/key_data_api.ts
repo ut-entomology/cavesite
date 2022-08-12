@@ -11,7 +11,7 @@ import {
   checkPermissions
 } from '../util/http_util';
 import { Permission } from '../../shared/user_auth';
-import { ADMIN_CONFIG_KEY, type AdminConfig } from '../../shared/data_keys';
+import { IMPORT_SCHEDULE_KEY, type ImportSchedule } from '../../shared/data_keys';
 
 export const router = Router();
 
@@ -36,30 +36,30 @@ router.post('/pull_data', async (req: Request, res) => {
   return res.status(StatusCodes.OK).send({ data });
 });
 
-router.post('/set_config', async (req: Request, res) => {
+router.post('/set_schedule', async (req: Request, res) => {
   if (!checkPermissions(req.session, Permission.Admin)) {
     return res.status(StatusCodes.FORBIDDEN).send();
   }
 
-  const adminConfig: AdminConfig | null = req.body.config;
+  const schedule: ImportSchedule | null = req.body.schedule;
   let data = '';
-  if (adminConfig) {
+  if (schedule) {
     if (
-      !checkIntegerList(adminConfig.importDaysOfWeek, false) ||
-      !checkInteger(adminConfig.importHourOfDay, false) ||
-      adminConfig.importHourOfDay < 0 ||
-      adminConfig.importHourOfDay > 23
+      !checkIntegerList(schedule.importDaysOfWeek, false) ||
+      !checkInteger(schedule.importHourOfDay, false) ||
+      schedule.importHourOfDay < 0 ||
+      schedule.importHourOfDay > 23
     ) {
       return res.status(StatusCodes.BAD_REQUEST).send();
     }
-    for (const dayOfWeek of adminConfig.importDaysOfWeek) {
+    for (const dayOfWeek of schedule.importDaysOfWeek) {
       if (dayOfWeek < 0 || dayOfWeek > 6) {
         return res.status(StatusCodes.BAD_REQUEST).send();
       }
     }
-    data = JSON.stringify(adminConfig);
+    data = JSON.stringify(schedule);
   }
 
-  await KeyData.write(getDB(), null, ADMIN_CONFIG_KEY, Permission.Admin, data);
+  await KeyData.write(getDB(), null, IMPORT_SCHEDULE_KEY, Permission.Admin, data);
   return res.status(StatusCodes.OK).send();
 });

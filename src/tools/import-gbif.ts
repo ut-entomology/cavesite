@@ -6,7 +6,7 @@ import { type DB, disconnectDB } from '../backend/integrations/postgres';
 import { connectDatabase, loadDatabase } from './lib/load_database';
 import { Permission } from '../shared/user_auth';
 import { KeyData } from '../backend/model/key_data';
-import { ADMIN_CONFIG_KEY, type AdminConfig } from '../backend/lib/data_keys';
+import { IMPORT_SCHEDULE_KEY, type ImportSchedule } from '../shared/data_keys';
 import { LogType, Logs } from '../backend/model/logs';
 
 const runningAsScript = require.main === module; // rather than imported by load-csv
@@ -171,14 +171,14 @@ class CheckedGbifImporter extends GbifImporter {
       await this.getDB(),
       null,
       Permission.Admin,
-      ADMIN_CONFIG_KEY
+      IMPORT_SCHEDULE_KEY
     );
     if (!keyData) return false;
-    const config: AdminConfig = JSON.parse(keyData);
+    const schedule: ImportSchedule = JSON.parse(keyData);
     const now = new Date();
     return (
-      config.importDaysOfWeek.includes(now.getDay()) &&
-      now.getHours() == config.importHourOfDay
+      schedule.importDaysOfWeek.includes(now.getDay()) &&
+      now.getHours() == schedule.importHourOfDay
     );
   }
 

@@ -1,4 +1,4 @@
-export const ADMIN_CONFIG_KEY = 'admin_config';
+export const IMPORT_SCHEDULE_KEY = 'import_schedule';
 
 export const daysOfWeek = [
   'Sunday',
@@ -10,7 +10,7 @@ export const daysOfWeek = [
   'Saturday'
 ];
 
-export interface AdminConfig {
+export interface ImportSchedule {
   importDaysOfWeek: number[];
   importHourOfDay: number;
 }
