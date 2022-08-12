@@ -20,6 +20,6 @@
       value={tabSet}
       on:change={onChange}
     />
-    <label class="btn btn-outline-primary" for={tabSet}>{tabSetLabel}</label>
+    <label class="btn btn-outline-primary compact" for={tabSet}>{tabSetLabel}</label>
   {/each}
 </div>

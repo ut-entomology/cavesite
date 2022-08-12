@@ -90,12 +90,12 @@
   }
 
   :global(.login_info_button) {
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 1.6rem;
+    height: 1.6rem;
     margin-right: 0.4rem;
     font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter',
       monospace;
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
   }
 </style>
