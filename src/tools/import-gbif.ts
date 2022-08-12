@@ -7,6 +7,7 @@ import { connectDatabase, loadDatabase } from './lib/load_database';
 import { Permission } from '../shared/user_auth';
 import { KeyData } from '../backend/model/key_data';
 import { ADMIN_CONFIG_KEY, type AdminConfig } from '../backend/lib/admin_config';
+import { LogType, Logs } from '../backend/model/logs';
 
 const runningAsScript = require.main === module; // rather than imported by load-csv
 const INSTITUTION_CODE = 'UTIC';
@@ -26,7 +27,7 @@ abstract class GbifImporter {
   client: AxiosInstance;
   db: DB | null = null;
   recordCount = 0;
-  errors: string[] = [];
+  importFailures: string[] = [];
   hasMoreRecords = true;
   batch: GbifRecord[] = [];
 
@@ -46,7 +47,7 @@ abstract class GbifImporter {
   }
 
   async load(): Promise<void> {
-    this.errors = await loadDatabase(
+    this.importFailures = await loadDatabase(
       await this.getDB(),
       this._loadNextGbifRecord,
       this._calculatingEffort,
@@ -71,7 +72,7 @@ abstract class GbifImporter {
         this.hasMoreRecords = !data.endOfRecords;
         nextRecord = this.batch.pop();
       } catch (err: any) {
-        this.errors.push('FATAL ERROR: ' + _errorReason(err.response));
+        this._handleError(_errorReason(err.response));
       }
     }
     if (nextRecord) {
@@ -79,17 +80,29 @@ abstract class GbifImporter {
     }
     return nextRecord || null;
   }
+
+  abstract _handleError(message: string): Promise<void>;
 }
 
 class ForcedGbifImporter extends GbifImporter {
+  errors: string[] = [];
+
   async run(): Promise<void> {
     try {
       await this.load();
     } catch (err: any) {
-      this.errors.push('FATAL ERROR: ' + err.message);
+      this.errors.push('Error: ' + err.message);
     }
+
     console.log();
+    if (this.importFailures.length > 0) {
+      for (const failure of this.importFailures) {
+        console.log('-', failure);
+      }
+      console.log(this.importFailures.length, 'import failures');
+    }
     if (this.errors.length > 0) {
+      console.log();
       for (const error of this.errors) {
         console.log('-', error);
       }
@@ -113,6 +126,10 @@ class ForcedGbifImporter extends GbifImporter {
     }
     return record;
   }
+
+  async _handleError(message: string): Promise<void> {
+    this.errors.push('Error: ' + message);
+  }
 }
 
 class CheckedGbifImporter extends GbifImporter {
@@ -122,11 +139,7 @@ class CheckedGbifImporter extends GbifImporter {
         await this.load();
       }
     } catch (err: any) {
-      // TODO: write fatal error to DB log
-    }
-    console.log();
-    if (this.errors.length > 0) {
-      // TODO: write errors to DB log
+      this._handleError(err.message);
     }
   }
 
@@ -144,6 +157,10 @@ class CheckedGbifImporter extends GbifImporter {
       config.importDaysOfWeek.includes(now.getDay()) &&
       now.getHours() == config.importHour
     );
+  }
+
+  async _handleError(message: string): Promise<void> {
+    await Logs.post(await this.getDB(), LogType.Import, null, 'Error: ' + message);
   }
 }
 

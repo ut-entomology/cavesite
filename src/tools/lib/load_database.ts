@@ -74,7 +74,7 @@ async function _loadSpecimens(
         );
       }
     } catch (err: any) {
-      failures.push(`Cat# ${specimenSource.catalogNumber}: ${err.message}`);
+      failures.push(`Error: Cat# ${specimenSource.catalogNumber}: ${err.message}`);
     }
     specimenSource = await getNextGbifRecord();
   }

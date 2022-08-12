@@ -178,6 +178,6 @@ function toSpeciesOrSubspecies(name: string): string {
     for (const failure of errors) {
       console.log('-', failure);
     }
-    console.log(errors.length + ' errors\n');
+    console.log(errors.length + ' import failures\n');
   }
 })();
