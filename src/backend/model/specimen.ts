@@ -10,7 +10,7 @@ import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs, LogType } from './logs';
 import { type TaxonPathSpec, locationRanks } from '../../shared/model';
-import { toDaysEpoch } from '../../shared/time_query';
+import { toDaysEpoch } from '../../shared/date_tools';
 import { getCaveObligatesMap } from '../effort/cave_obligates';
 import {
   QueryColumnID,

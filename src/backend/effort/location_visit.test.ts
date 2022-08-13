@@ -4,7 +4,7 @@ import { DatabaseMutex } from '../util/test_util';
 import { Specimen, GbifRecord } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { ComparedFauna } from '../../shared/model';
-import { toDaysEpoch } from '../../shared/time_query';
+import { toDaysEpoch } from '../../shared/date_tools';
 
 type PartialGbifRecord = Pick<
   GbifRecord,

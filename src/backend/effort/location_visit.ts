@@ -9,7 +9,7 @@ import { Specimen } from '../model/specimen';
 import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
 import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligates';
-import { partialDateHasMonth, toDaysEpoch } from '../../shared/time_query';
+import { partialDateHasMonth, toDaysEpoch } from '../../shared/date_tools';
 
 const NO_DATE_EPOCH_DAY = -Math.pow(1, 9); // very negative to make first in sort
 

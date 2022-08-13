@@ -3,10 +3,10 @@
 
   import {
     type TimeGraphQuery,
-    convertTimeQuery,
+    LifeStage,
     TimeChartTallier,
-    LifeStage
-  } from '../../../shared/time_query';
+    convertTimeQuery
+  } from '../../../frontend-core/time/time_query';
   import {
     type TimeGraphSpec,
     createHistoryGraphSpec,

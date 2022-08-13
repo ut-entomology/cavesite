@@ -1,4 +1,13 @@
-import { ROOT_TAXON_UNIQUE, type TaxonPathSpec, toSpeciesAndSubspecies } from './model';
+import {
+  ROOT_TAXON_UNIQUE,
+  type TaxonPathSpec,
+  toSpeciesAndSubspecies
+} from '../../shared/model';
+import {
+  MILLIS_PER_DAY,
+  partialDateHasMonth,
+  toDaysEpoch
+} from '../../shared/date_tools';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -6,10 +15,8 @@ import {
   type QueryTaxonFilter,
   type GeneralQuery,
   type QueryRow
-} from './general_query';
-import { TaxonCounter } from './taxon_counter';
-
-export const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+} from '../../shared/general_query';
+import { TaxonCounter } from '../../shared/taxon_counter';
 
 const ADULTS_REGEX = /(\d+) *(adult|male|female|worker|alate|queen)/gi;
 const IMMATURES_REGEX = /(\d+) *(im\.|imm|juv|pupa|larva)/gi;
@@ -481,19 +488,6 @@ export class TimeChartTallier {
       }
     }
   }
-}
-
-export function partialDateHasMonth(partialDate: string): boolean {
-  return partialDate.indexOf('-') > 0;
-}
-
-export function fromDaysEpoch(daysEpoch: number): Date {
-  // +1 is needed because toDaysEpoch calls Math.floor()
-  return new Date((daysEpoch + 1) * MILLIS_PER_DAY);
-}
-
-export function toDaysEpoch(date: Date): number {
-  return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }
 
 //// PRIVATE /////////////////////////////////////////////////////////////////

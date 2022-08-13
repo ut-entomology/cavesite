@@ -1,7 +1,6 @@
 # Although the DB tests use locks, tests may timeout, so test one by one.
 
 npx jest src/shared/validation.test.ts
-npx jest src/shared/time_query.test.ts
 npx jest src/shared/taxon_counter.test.ts
 
 npx jest src/backend/model/user.test.ts
@@ -18,4 +17,5 @@ npx jest src/backend/effort/location_effort.test.ts
 npx jest src/backend/effort/taxa_clusterer.test.ts
 
 npx jest src/frontend-core/selections/selections_tree.test.ts
+npx jest src/frontend-core/time/time_query.test.ts
 npx jest src/frontend-core/clusters/cluster_data.test.ts

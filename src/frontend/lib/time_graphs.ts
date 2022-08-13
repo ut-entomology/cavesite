@@ -2,12 +2,12 @@
  * Library for generated the data used in seasonality and history graphs.
  */
 
+import { MILLIS_PER_DAY } from '../../shared/date_tools';
 import {
-  MILLIS_PER_DAY,
   LifeStage,
   type HistoryStageTallies,
   type SeasonalityStageTallies
-} from '../../shared/time_query';
+} from '../../frontend-core/time/time_query';
 
 const FILL_OPACITY = 0.2;
 const TOTAL_SPECIES_LABEL = 'min. species';

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Bar from 'svelte-chartjs/src/Bar.svelte';
 
-  import { LifeStage } from '../../../shared/time_query';
+  import { LifeStage } from '../../../frontend-core/time/time_query';
   import type { TimeGraphSpec } from '../../lib/time_graphs';
 
   const BACKGROUND_DATA_FILL_COLOR = '#e8e8e8';

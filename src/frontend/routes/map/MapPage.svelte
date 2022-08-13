@@ -69,7 +69,7 @@
   import { selectedTaxa } from '../../stores/selectedTaxa';
   import { selectedLocations } from '../../stores/selectedLocations';
   import { LocationRank } from '../../../shared/model';
-  import { toDaysEpoch, fromDaysEpoch } from '../../../shared/time_query';
+  import { toDaysEpoch, fromDaysEpoch } from '../../../shared/date_tools';
   import { showNotice } from '../../common/VariableNotice.svelte';
 
   $pageName = 'Map View';
