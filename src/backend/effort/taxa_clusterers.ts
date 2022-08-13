@@ -1,3 +1,8 @@
+/**
+ * This module provides a variety of implemenations of clustering
+ * based on the similaity of taxa.
+ */
+
 import { type DB } from '../integrations/postgres';
 import { type TaxonTallyMap, TaxaClusterer } from './taxa_clusterer';
 import { ClusterSpec } from '../../shared/model';

@@ -1,3 +1,7 @@
+/**
+ * LocationGraphData captures summary information about a particular location.
+ */
+
 import { type Point, pairsToPoints } from '../../shared/point';
 import type { EffortFlags, RawLocationEffort } from '../../shared/model';
 

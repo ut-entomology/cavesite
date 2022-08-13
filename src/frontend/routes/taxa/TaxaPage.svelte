@@ -1,4 +1,7 @@
 <script lang="ts">
+  // TODO: Revisit robustness of caching taxa and location IDs on the client,
+  // given that these IDs change with each import from GBIF.
+
   import type { SvelteComponent } from 'svelte';
 
   import ConfirmationRequest from '../../common/ConfirmationRequest.svelte';

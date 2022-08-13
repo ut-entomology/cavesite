@@ -1,3 +1,7 @@
+/**
+ * This module creates a clusterer specific to the configured clustering.
+ */
+
 import { type DB } from '../integrations/postgres';
 import { Clusterer } from './clusterer';
 import { ClusterSpec, DissimilarityBasis } from '../../shared/model';

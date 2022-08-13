@@ -1,3 +1,7 @@
+/**
+ * This module provides the web API for clustering caves.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

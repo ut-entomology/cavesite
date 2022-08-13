@@ -1,3 +1,7 @@
+/**
+ * This module provides the base class for clustering implementations.
+ */
+
 import { type DB } from '../integrations/postgres';
 import {
   type ClusterSpec,

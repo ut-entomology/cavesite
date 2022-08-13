@@ -1,3 +1,8 @@
+/**
+ * Abstract library used for assessing the accuracies of sorts. Sorts are
+ * separately assessed for each top N elements (each "tier").
+ */
+
 export interface PredictionTierStat {
   fractionCorrect: number;
   contributionCount: number;

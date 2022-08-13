@@ -1,3 +1,8 @@
+/**
+ * This module provides a list of all currently known cave obligates. The
+ * information needs to be moved to keyed data so the admin can maintain it.
+ */
+
 export type TaxonPathsByUniqueMap = Record<string, string[]>;
 
 const caveObligateTaxa = [

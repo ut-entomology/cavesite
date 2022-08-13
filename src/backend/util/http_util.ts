@@ -1,3 +1,7 @@
+/**
+ * Generally useful utilities for managing HTTP on the server.
+ */
+
 import { type Request } from 'express';
 
 import { Permission } from '../../shared/user_auth';

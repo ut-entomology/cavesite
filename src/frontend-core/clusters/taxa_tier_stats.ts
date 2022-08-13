@@ -1,3 +1,7 @@
+/**
+ * Classes for producing the accuracies of sorts of taxa.
+ */
+
 import {
   PredictionTierStat,
   PredictionStatsGenerator,

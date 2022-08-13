@@ -1,8 +1,6 @@
 /**
- * Support for conveying general queries and query results between client and server
+ * Support for conveying general queries and query results between client and server.
  */
-
-// TODO: revisit need to return taxon/location IDs in general query
 
 export const EARLIEST_RECORD_DATE = new Date('1/1/1930');
 

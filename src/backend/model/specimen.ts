@@ -1,8 +1,7 @@
 /**
- * Class representing a vial of specimens all of the same taxon.
+ * Class representing a vial of specimens all of the same taxon, also corresponding
+ * to an occurrence record in GBIF and a row in James Reddell's spreadsheet.
  */
-
-// TODO: Revisit use of GUIDs and location uniques for specimens and private coords.
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow, toPostgresDate } from '../integrations/postgres';

@@ -1,3 +1,8 @@
+/**
+ * ClusterData characterizes a single cluster and includes processing
+ * that can be cached to hasten rendering clusters on returning to the tab.
+ */
+
 import type { Point } from '../../shared/point';
 import { PredictionTierStat, PredictionStatsGenerator } from './prediction_stats';
 import type { ClusteringConfig } from './clustering_config';

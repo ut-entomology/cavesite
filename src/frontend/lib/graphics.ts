@@ -1,3 +1,7 @@
+/**
+ * Utilities for graphical rendering.
+ */
+
 export function hslStringToRGBA(hslStr: string, alpha: number): string {
   const regex = /\d+/g;
 

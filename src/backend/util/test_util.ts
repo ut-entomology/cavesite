@@ -1,3 +1,7 @@
+/**
+ * Generally useful utilities for managing database-based unit tests.
+ */
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as lockfile from 'proper-lockfile';

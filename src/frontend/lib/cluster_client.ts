@@ -1,3 +1,7 @@
+/**
+ * Client-side library of functions for generating clusters of caves.
+ */
+
 import type { AxiosInstance } from 'axios';
 
 import type {

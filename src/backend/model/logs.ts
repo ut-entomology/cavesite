@@ -1,5 +1,6 @@
 /**
- * Class representing a table of log entries.
+ * Class representing a table of log entries, where the server can
+ * log a variety of events that may be important to the admin.
  */
 
 import type { DB } from '../integrations/postgres';

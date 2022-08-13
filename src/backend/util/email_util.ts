@@ -1,3 +1,7 @@
+/**
+ * Generally useful utilities for sending templated emails.
+ */
+
 import * as path from 'path';
 import * as fsp from 'fs/promises';
 

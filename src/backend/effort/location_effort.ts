@@ -1,6 +1,5 @@
 /**
- * Class LocationEffort represents the findings across all
- * available data for any given location.
+ * Class LocationEffort represents a summary of data for a given location.
  */
 
 import type { DataOf } from '../../shared/data_of';

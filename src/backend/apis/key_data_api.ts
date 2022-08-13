@@ -1,3 +1,7 @@
+/**
+ * This module provides the web API for storing and retrieving named datasets.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

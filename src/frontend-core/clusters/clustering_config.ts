@@ -1,3 +1,7 @@
+/**
+ * Configuration for the clustering operation.
+ */
+
 import type { TaxonRank, ComparedFauna } from '../../shared/model';
 
 export interface ClusteringConfig {

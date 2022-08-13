@@ -1,4 +1,6 @@
 <script lang="ts">
+  // A form element for use with svelte-forms-lib.
+
   import { setContext } from 'svelte';
   import { formContextKey, type FormContext } from './form_context';
 

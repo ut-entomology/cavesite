@@ -1,3 +1,7 @@
+/**
+ * Library of general conversion functions.
+ */
+
 import dayjs from 'dayjs';
 
 const INPUT_DATE_FORMAT = 'YYYY-MM-DD';

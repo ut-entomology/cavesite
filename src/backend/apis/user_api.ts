@@ -1,3 +1,7 @@
+/**
+ * This module provides the web API for managing user login accounts.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

@@ -1,3 +1,7 @@
+/**
+ * Class User represents a user who can login to the site.
+ */
+
 import * as crypto from 'crypto';
 import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import zxcvbnCommonPackage from '@zxcvbn-ts/language-common';

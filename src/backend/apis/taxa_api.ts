@@ -1,3 +1,8 @@
+/**
+ * This module provides the web API for retrieving information about taxa
+ * stored in the database.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

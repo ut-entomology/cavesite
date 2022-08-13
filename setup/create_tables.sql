@@ -3,7 +3,7 @@
 -- The taxa, locations, and specimens tables are all imported read-only data, so
 -- the schema optimizes them for search at the expense of not being modifiable.
 
--- TODO: We need to provide the following Specify-to-GBIF field mappings:
+-- Requiers the following changes to Specify-to-GBIF field mappings:
 -- * Change map of collectionobject.Remarks => occurrenceRemarks to
 --    collectionobject.(CollectionObjectAttributeID).Remarks => occurrenceRemarks;
 --    Alex is not using the former field, only the latter

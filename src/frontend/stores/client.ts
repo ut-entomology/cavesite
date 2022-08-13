@@ -1,3 +1,7 @@
+/**
+ * Svelte store providing a shared mechanism for communicating with the server.
+ */
+
 import { writable } from 'svelte/store';
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { getReasonPhrase } from 'http-status-codes';

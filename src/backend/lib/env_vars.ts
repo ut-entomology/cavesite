@@ -1,3 +1,8 @@
+/**
+ * Provides the service of loading and checking the environment variables
+ * that configure the server for operation.
+ */
+
 import * as path from 'path';
 import dotenv from 'dotenv';
 

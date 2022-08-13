@@ -1,3 +1,7 @@
+/**
+ * Utility for creating a svelte store that uses session storage.
+ */
+
 import { Writable, writable } from 'svelte/store';
 
 export function createSessionStore<T, S = T>(

@@ -1,3 +1,8 @@
+/**
+ * Class TaxonVisitCounter is a tool for counting the minimum number of
+ * taxa found across visits to a cave.
+ */
+
 import type { DataOf } from '../../shared/data_of';
 import { MAX_VISITS_DOCKED } from '../../shared/model';
 import {

@@ -1,3 +1,8 @@
+/**
+ * ModelAverager fits caves to the power expression and then averages
+ * the resulting models together according to a provided weighting.
+ */
+
 import { PowerFitModel, type FittedModelFactory } from './power_fit_model';
 import type { FittedY } from './regression';
 import type { Point } from '../../shared/point';

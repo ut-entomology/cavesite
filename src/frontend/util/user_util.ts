@@ -1,3 +1,7 @@
+/**
+ * User utilities shared across multiple pages.
+ */
+
 import type { AxiosInstance } from 'axios';
 
 import { client } from '../stores/client';

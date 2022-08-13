@@ -1,3 +1,8 @@
+/**
+ * This module provides the web API for retrieving locations from the
+ * database, as well as for retrieving per-location effort summary data.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

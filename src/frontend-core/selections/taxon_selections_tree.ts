@@ -1,3 +1,7 @@
+/**
+ * TaxonSelectionsTree represents a tree of selected taxa.
+ */
+
 import { SelectionsTree } from './selections_tree';
 import { TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
 

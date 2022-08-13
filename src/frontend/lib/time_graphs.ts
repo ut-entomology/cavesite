@@ -1,3 +1,7 @@
+/**
+ * Library for generated the data used in seasonality and history graphs.
+ */
+
 import {
   MILLIS_PER_DAY,
   LifeStage,

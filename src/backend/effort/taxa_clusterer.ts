@@ -1,3 +1,8 @@
+/**
+ * TaxaClusterer is the base class for implementations of clustering
+ * that cluster based on the similarity of taxa.
+ */
+
 import { Clusterer } from './clusterer';
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';

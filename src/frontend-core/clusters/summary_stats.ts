@@ -1,3 +1,8 @@
+/**
+ * Tools for producing the the overall accuracies and accuracy summaries
+ * across all clusters.
+ */
+
 import type { ClusterData } from './cluster_data';
 import type { PredictionTierStat } from './prediction_stats';
 

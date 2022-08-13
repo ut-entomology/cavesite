@@ -1,3 +1,8 @@
+/**
+ * Characterizations of the data models that are generally shared between
+ * client and server.
+ */
+
 //// General /////////////////////////////////////////////////////////////////
 
 export const MIN_LOOKUP_CHAR_LENGTH = 2;

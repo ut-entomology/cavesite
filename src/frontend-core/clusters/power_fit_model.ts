@@ -1,3 +1,8 @@
+/**
+ * PowerFitModel fits data to the expression y = Ax**P + B by peforming a
+ * binary search for P accross linear regressions yielding A and B.
+ */
+
 import type { Point } from '../../shared/point';
 import { Regression, shortenValue } from './regression';
 
@@ -158,6 +163,5 @@ function _findBestRMSEScalar_nAry(
     nestedConfig.upperBoundScalar = scalars[lowestRMSEIndex + 1];
   }
   regressions = []; // clear memory
-  // TODO: improve performance by passing in boundary regressions
   return _findBestRMSEScalar_binary(nestedConfig, dataPoints, regressionFactory);
 }

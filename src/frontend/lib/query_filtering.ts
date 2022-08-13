@@ -1,3 +1,8 @@
+/**
+ * Library that retrieves selected taxa and locations and guards against
+ * interim imports from GBIF that might have changed IDs.
+ */
+
 import { TaxonRank, LocationRank } from '../../shared/model';
 import type { QueryLocationFilter, QueryTaxonFilter } from '../../shared/general_query';
 import {

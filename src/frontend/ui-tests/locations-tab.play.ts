@@ -638,7 +638,6 @@ test('navigating to ancestors and selecting via the taxon browser', async ({
   // Traverse into 'Blanco County'.
 
   await page.click(toChildRowNameID('Blanco County'));
-  // TODO: Next line hangs.
   await expect(page.locator(toChildRowSelectorID('Trash Cave'))).toBeVisible();
 
   // Add 'Blanco Coounty' to the selected locations via the ancestor selector.

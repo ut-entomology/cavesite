@@ -1,3 +1,8 @@
+/**
+ * This module provides the web API for initially connecting to the server,
+ * for logging users in and out, and for resetting passwords.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

@@ -1,3 +1,8 @@
+/**
+ * This module provides the web API for retrieving information about
+ * specimens from the database, including querying for specimens.
+ */
+
 import { Router, type Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 

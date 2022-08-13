@@ -1,3 +1,7 @@
+/**
+ * Library of tools for producing linear regressions and formatting the results.
+ */
+
 import * as jstat from 'jstat';
 
 import type { Point } from '../../shared/point';

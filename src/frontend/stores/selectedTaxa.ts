@@ -1,3 +1,7 @@
+/**
+ * Svelte store tracking the taxa that the user has selected.
+ */
+
 import type { AxiosInstance } from 'axios';
 
 import { createSessionStore } from '../util/session_store';

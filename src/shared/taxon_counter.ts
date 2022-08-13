@@ -1,3 +1,9 @@
+/**
+ * TaxonCounter is a tool for counting the minimum number of species
+ * represented across a collection of specimens, according to their
+ * determinations.
+ */
+
 import type { DataOf } from './data_of';
 import type { TaxonPathSpec } from './model';
 
