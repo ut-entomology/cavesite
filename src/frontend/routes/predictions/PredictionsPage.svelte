@@ -613,66 +613,72 @@
 
         {#if predictionLocationDataset.length > 0}
           <hr />
-          <LocationBarGraph
-            title="Predicted additional species on next {visitUnitName}"
-            tierStats={predictionTierStats}
-            getItems={_getMultiVisitLocationSubset}
-            greatestValue={greatestMultiVisitLocationValue}
-            getValue={getLocationValue}
-            getPoints={getLocationPoints}
-            items={predictionLocationDataset}
-            {visitUnitName}
-            {openLocation}
-            >This chart shows the number of additional species predicted to be found at
-            a cave on the next {visitUnitName} to the cave, according to a power curve (total
-            species <span class="eq">y</span> <span class="eq">=</span>
-            <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
-            <span class="eq">x</span>) fit to the points of the most recent {#if minRecentPredictionPoints != maxRecentPredictionPoints}{minRecentPredictionPoints}
-              to{/if}
-            {maxRecentPredictionPoints}
-            visits to the cave, as requested. {#if minRecentPredictionPoints == 2}For
-              caves with only 2 visits, the predicted additional species is given by the
-              slope of the line through their points.{/if} To measure accuracy, <MoreLess
-              >the technique was applied to historical data to predict the additional
-              species of each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
-              most recent visits to each cave. The chart reports the average percentage of
-              caves that it correctly predicted would occur within each top group of N caves
-              according to a sort of the number of species predicted.
-              <i
-                >For example, a top 5 accuracy of 25% would mean that the technique
-                correctly predicted which caves would be among the top 5 yielding the
-                most species 25% of the time.</i
-              ></MoreLess
-            ></LocationBarGraph
-          >
+          <div id="predicted_additional_species">
+            <LocationBarGraph
+              title="Predicted additional species on next {visitUnitName}"
+              tierStats={predictionTierStats}
+              getItems={_getMultiVisitLocationSubset}
+              greatestValue={greatestMultiVisitLocationValue}
+              getValue={getLocationValue}
+              getPoints={getLocationPoints}
+              items={predictionLocationDataset}
+              {visitUnitName}
+              {openLocation}
+              >This chart shows the number of additional species predicted to be found
+              at a cave on the next {visitUnitName} to the cave, according to a power curve
+              (total species <span class="eq">y</span> <span class="eq">=</span>
+              <span class="eq">Ax<sup>P</sup>+B</span> for {visitUnitName}s
+              <span class="eq">x</span>) fit to the points of the most recent {#if minRecentPredictionPoints != maxRecentPredictionPoints}{minRecentPredictionPoints}
+                to{/if}
+              {maxRecentPredictionPoints}
+              visits to the cave, as requested. {#if minRecentPredictionPoints == 2}For
+                caves with only 2 visits, the predicted additional species is given by
+                the slope of the line through their points.{/if} To measure accuracy, <MoreLess
+                >the technique was applied to historical data to predict the additional
+                species of each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
+                most recent visits to each cave. The chart reports the average percentage
+                of caves that it correctly predicted would occur within each top group of
+                N caves according to a sort of the number of species predicted.
+                <i
+                  >For example, a top 5 accuracy of 25% would mean that the technique
+                  correctly predicted which caves would be among the top 5 yielding the
+                  most species 25% of the time.</i
+                ></MoreLess
+              ></LocationBarGraph
+            >
+          </div>
         {/if}
         {#if nonPredictionLocationDataset.length > 0}
           <hr />
-          <LocationBarGraph
-            title="Caves with too few visits for predictions"
-            getItems={_getSingleVisitLocationSubset}
-            greatestValue={greatestSingleVisitLocationValue}
-            getValue={getLastDeltaSpecies}
-            getPoints={getLocationPoints}
-            items={nonPredictionLocationDataset}
-            {visitUnitName}
-            {openLocation}
-            >This chart lists the caves having fewer than the requested minimum {minRecentPredictionPoints}
-            visits for making predictions. It sorts the caves by the number of species found
-            on the most recent visit.</LocationBarGraph
-          >
+          <div id="no_prediction_caves">
+            <LocationBarGraph
+              title="Caves with too few visits for predictions"
+              getItems={_getSingleVisitLocationSubset}
+              greatestValue={greatestSingleVisitLocationValue}
+              getValue={getLastDeltaSpecies}
+              getPoints={getLocationPoints}
+              items={nonPredictionLocationDataset}
+              {visitUnitName}
+              {openLocation}
+              >This chart lists the caves having fewer than the requested minimum {minRecentPredictionPoints}
+              visits for making predictions. It sorts the caves by the number of species
+              found on the most recent visit.</LocationBarGraph
+            >
+          </div>
         {/if}
         <hr />
-        <TaxonBarGraph
-          title="Frequency of taxa found in this cluster"
-          visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
-          locationGraphDataSet={clusterData.locationGraphDataSet}
-          >This chart shows all the taxa found in the caves of this cluster, sorted by
-          the number of visits in which they were found. It illustrates the frequency of
-          occurrence of taxa in this cluster rather than the frequency of occurrence of
-          specimens. Each bar depicts the fraction of the total number of visits in
-          which a taxon was found.</TaxonBarGraph
-        >
+        <div id="taxa_in_cluster">
+          <TaxonBarGraph
+            title="Frequency of taxa found in this cluster"
+            visitsByTaxonUnique={clusterData.visitsByTaxonUnique}
+            locationGraphDataSet={clusterData.locationGraphDataSet}
+            >This chart shows all the taxa found in the caves of this cluster, sorted by
+            the number of visits in which they were found. It illustrates the frequency
+            of occurrence of taxa in this cluster rather than the frequency of
+            occurrence of specimens. Each bar depicts the fraction of the total number
+            of visits in which a taxon was found.</TaxonBarGraph
+          >
+        </div>
       {:else}
         <EmptyTab
           message={'Click the "Load Clusters" button to generate predictions.'}
