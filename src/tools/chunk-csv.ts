@@ -1,3 +1,8 @@
+/**
+ * Command line tool for chunking a CSV into files
+ * having a maximum number of lines.
+ */
+
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -1,3 +1,8 @@
+/**
+ * Command line tool for importing records from GBIF. Can be run to force
+ * an immediate import or to only import if currently scheduled to do so.
+ */
+
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { getReasonPhrase } from 'http-status-codes';
 

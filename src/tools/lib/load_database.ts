@@ -1,3 +1,7 @@
+/**
+ * Support for loading the database from GBIF records.
+ */
+
 import { loadAndCheckEnvVars } from '../../backend/lib/env_vars';
 import { DB, connectDB, getDB } from '../../backend/integrations/postgres';
 import { Taxon } from '../../backend/model/taxon';

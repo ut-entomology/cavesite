@@ -1,3 +1,7 @@
+/**
+ * Library for generating data for the time charts.
+ */
+
 import {
   ROOT_TAXON_UNIQUE,
   type TaxonPathSpec,

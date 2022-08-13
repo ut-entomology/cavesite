@@ -1,3 +1,7 @@
+/**
+ * CsvSpecimen represents a record in James Reddell's spreadsheet.
+ */
+
 export const HEADER_REGEX = /^([^\d]+)(\d+)?$/;
 
 export interface PersonName {

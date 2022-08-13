@@ -1,3 +1,7 @@
+/**
+ * Loads the database from a CSV file formatted for uploading to Specify 6.
+ */
+
 import * as path from 'path';
 import * as fs from 'fs';
 import { parse as parseCSV } from '@fast-csv/parse';

@@ -1,3 +1,7 @@
+/**
+ * Tool for parsing the cave obligates out of the raw file that James provided.
+ */
+
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -1,3 +1,7 @@
+/**
+ * Types and structures for managing user authentication.
+ */
+
 export const CSRF_TOKEN_HEADER = 'X-XSRF-TOKEN';
 
 export enum Permission {

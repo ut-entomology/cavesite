@@ -1,3 +1,7 @@
+/**
+ * Command line tool for creating an admin user.
+ */
+
 import * as readlineSync from 'readline-sync';
 
 import { loadAndCheckEnvVars } from '../backend/lib/env_vars';
