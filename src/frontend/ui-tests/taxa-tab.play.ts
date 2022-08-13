@@ -421,7 +421,8 @@ test('removing phyla from taxon tree removes taxon tree', async ({ page }) => {
   await page.locator(toTreeRowSelectorID('Arthropoda')).click();
   await page.locator(toTreeRowSelectorID('Mollusca')).click();
 
-  await expect(main).not.toContainText('Animalia');
+  // Can't look for 'Animalia' in main, because it does appear in the how-to.
+  await expect(page.locator(toTreeRowNameID('Animalia'))).not.toBeVisible();
   await expect(main).not.toContainText('phylum: Arthropoda');
   await expect(main).not.toContainText('phylum: Mollusca');
   await expect(main).toContainText(NO_TAXA_SELECTED);
