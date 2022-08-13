@@ -8,7 +8,6 @@ npx jest src/backend/model/user.test.ts
 npx jest src/backend/model/session.test.ts
 npx jest src/backend/model/taxon.test.ts
 npx jest src/backend/model/location.test.ts
-npx jest src/backend/model/private_coords.test.ts
 npx jest src/backend/model/specimen.test.ts
 npx jest src/backend/model/key_data.test.ts
 npx jest src/backend/model/logs.test.ts
