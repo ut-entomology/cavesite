@@ -53,10 +53,10 @@
       cluster, caves are sorted by the number of additional species predicted for the
       next visit or person-visit, highest count first. The prediction of the top cave in
       this sort is referred to as the "Top 1" prediction. The predictions of the top two
-      caves in this sort are together the "Top 2" predictions, and so on. We can refer
-      to the "Top N" predictions as the predictions of the top N caves of this sort.
-      Accuracy is measured for each top N group within a cluster, rather than for each
-      cave.
+      caves in this sort, irrespective of order, are together the "Top 2" predictions,
+      and so on. We can refer to the "Top N" predictions as the predictions of the top N
+      caves of this sort, ignoring their order. Accuracy is measured for each top N
+      group within a cluster, rather than for each cave.
     </p>
     <p>
       To produce a measure of accuracy for each top N group, the most recent {PREDICTION_HISTORY_SAMPLE_DEPTH}
@@ -68,8 +68,8 @@
       first. Let's call this the "predicted sort". The "actual sort" is a sort of the caves
       according to the number of additional species actually found on the next visit or person-visit.
       Since we started {PREDICTION_HISTORY_SAMPLE_DEPTH}
-      visits back, we have this 'actual' data, found at {PREDICTION_HISTORY_SAMPLE_DEPTH -
-        1} visits back.
+      visits back, we have this 'actual' data at {PREDICTION_HISTORY_SAMPLE_DEPTH - 1} visits
+      back.
     </p>
     <p>
       For each value of N, the caves common to both the top N of the predicted sort and
@@ -85,11 +85,11 @@
       After producing fractions and weights for each top N group from a dock of the most
       recent {PREDICTION_HISTORY_SAMPLE_DEPTH} visits, the process repeats, docking one fewer
       number of recent visits each time, until each of the {PREDICTION_HISTORY_SAMPLE_DEPTH}
-      sets of recent visits been docked. For each top N group, the fractions collected for
-      the group are averaged together, weighted by the number of caves contributing the fractions.
-      The result is a single fraction for each top N group of the cluster indicating the
-      fraction of caves correctly predicted to occur within the top N group of caves, on
-      average, across the cluster.
+      sets of recent visits has been docked. For each top N group, the fractions collected
+      for the group are averaged together, weighted by the number of caves contributing the
+      fractions. The result is a single fraction for each top N group of the cluster indicating
+      the fraction of caves correctly predicted to occur within the top N group of caves,
+      on average, across the cluster.
     </p>
     <p>
       The fraction for a top N group of predictions indicates the fraction of caves
@@ -98,9 +98,9 @@
       data. The page reports these fractions as percentages. For example, a top 5
       accuracy of 25% would mean that 25% of the caves shown in the top N group can
       actually be expected to be among the top N best yielding caves on the next visit
-      or person-visit. Put another way, a top 5 accuracy of 25% would mean that 25% of
-      the top N predictions can be expected to have been correctly placed among the top
-      N, according to historical data.
+      or person-visit. Put still another way, a top 5 accuracy of 25% would mean that
+      25% of the top N predictions can be expected to have been correctly placed among
+      the top N, according to historical data.
     </p>
 
     <h3 id="taxa_accuracy">Accuracy of predicting next expected taxa (+taxa)</h3>
@@ -124,23 +124,24 @@
       not yet in this cave, and it sorts these taxa by the number of visits in which they
       occurred in other caves, highest count first. This is the "predicted sort". The "actual
       sort" consists of the actual taxa known to have been added to the cave during the {PREDICTION_HISTORY_SAMPLE_DEPTH}
-      visits that were docked. It is sorted first by the visit in which the taxa were first
-      encountered, oldest visit first, and second by taxonomic rank, highest rank first.
-      Determinations of higher rank are more likely than those of lower rank, given that
-      they encompass more species, making a rank sort within a visit more likely to order
-      the taxa found within the visit similarly to the ordering of taxa by frequency in the
-      predicted sort.
+      visits that were docked. This is a two-phase sort: first by the visit in which the
+      taxa were first encountered, oldest visit first, and second by taxonomic rank, highest
+      rank first. Determinations of higher rank are more likely than those of lower rank,
+      given that they encompass more species, making a rank sort within a visit more likely
+      to order the taxa found within the visit like the ordering of taxa by frequency in
+      the predicted sort.
     </p>
     <p>
       As with the predictions for number of additional species, accuracy is measured for
       each top N predicted taxa. For each value of N, the taxa common to both the top N
       of the predicted sort and the top N of the actual sort are counted, and this count
       is divided by N. This is the fraction of taxa that were correctly predicted to
-      occur within the top N taxa of the sort. However, it is possible that the
-      predicted sort has fewer taxa than the actual sort, due to the cave producing taxa
-      not found elsewhere in the cluster. For this reason, the number of taxa in each
-      top N of the predicted sort are also tracked, and this number serves as the weight
-      associated with the particular top N fraction.
+      occur within the top N taxa of the sort, ignoring their order within these N taxa.
+      However, it is possible that the predicted sort has fewer taxa than the actual
+      sort, due to the cave producing taxa not found elsewhere in the cluster. For this
+      reason, the number of taxa in each top N of the predicted sort are also tracked,
+      and this number serves as the weight associated with the particular top N
+      fraction.
     </p>
     <p>
       After producing fractions and weights for each top N group from a dock of the most
@@ -160,11 +161,11 @@
       among the top N additional taxa after further collection, at least according to
       historical data. The page reports these fractions as percentages. For example, a
       top 5 accuracy of 25% would mean that 25% of the taxa shown in the top N group can
-      be expected to be among the next N taxa found in the cave. However, due to the
-      fact that predictions of no additional taxa have zero weight in fraction
-      averaging, this technique only assesses which taxa can be found when there are
-      additional taxa to be found; you should instead look at predictions of number of
-      additional species for determining how many taxa remain to be found in a cave.
+      be expected to be among the next N taxa found in the cave. However, because
+      predictions of no additional taxa have zero weight in fraction averaging, this
+      technique only assesses which taxa can be found when there are additional taxa to
+      be found. You should instead look at predictions of numbers of additional species
+      for determining how many taxa remain to be found in a cave.
     </p>
 
     <h3 id="overall_accuracy">Accuracy Summary and Overall Accuracy</h3>
@@ -229,15 +230,15 @@
       does not reflect all visits made to the caves. The algorithms are only aware of
       visits for which at least one specimen was collected and deposited in the UT
       Austin collection. Cave researcher James Reddell explains that there are many
-      visits for which no specimens are collected, either because none were found or
-      because none of interest were found. As a result, predictions of numbers of
+      visits for which no specimens are collected, either because none at all were found
+      or because none of interest were found. As a result, predictions of numbers of
       additional species should be treated as best-case scenarios. However, predictions
       for caves that are known to be regularly sampled can be treated as potentially
       more accurate.
     </p>
     <p>
       This caveat does not apply to predictions of the taxa that remain to be found in a
-      cave, because these predictions already ignore visits for which no taxa are found.
+      cave, because these predictions already ignore visits in which no taxa were found.
     </p>
   </HowToUse>
 </InfoDialog>

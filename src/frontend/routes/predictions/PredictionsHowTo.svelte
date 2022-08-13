@@ -132,8 +132,8 @@
 <p>
   The top of the page has a description like the one above. The title line indicates the
   number of caves having the requested fauna and the number of clusters of these caves
-  the clustering was able to generate. Below the title line is a summary of your chosen
-  clustering configuration.
+  that the clustering was able to generate. Below the title line is a summary of your
+  chosen clustering configuration.
 </p>
 <ExampleImage
   src="/static/predictions/accuracy-summary.jpg"
@@ -146,7 +146,7 @@
     class="col link_text"
     on:click={() => (showingAboutAccuracy = true)}>about accuracy</span
   > link (though not in the above example image) to learn how prediction accuracy is assessed
-  and the exact meanings of each of the provided summary measures.
+  and what the summary measures mean.
 </p>
 <ExampleImage
   src="/static/predictions/radar-graph.jpg"
@@ -154,14 +154,14 @@
 />
 <p>
   This radar graph shows you the percentage overlap in taxa among the clusters. Notice
-  that each cluster has its own color and number. Cluster numbers are preceded by a
-  pound sign (#). Each radial line represents a cluster containing the indicated number
-  of taxonomic determinations across all of its caves. The ten concentric circles
-  represent percent overlap in increments of 10%. The intersection of a color of one
-  cluster on the radial line of another cluster indicates the percentage of taxa
-  (actually taxonomic determinations) of the second cluster that are also found in the
-  first cluster. In case that's confusing, you can hover the cursor over any of the
-  circled points of intersection to see a clear explanation of the meaning of the point.
+  that each cluster has its own color and number. A pound sign (#) precedes each cluster
+  number. Each radial line represents a cluster containing the indicated number of
+  taxonomic determinations across all of its caves. The ten concentric circles represent
+  percent overlap in increments of 10%. The intersection of a color of one cluster on
+  the radial line of another cluster indicates the percentage of taxa (actually
+  taxonomic determinations) of the second cluster that are also found in the first
+  cluster. In case that's confusing, you can hover the cursor over any of the circled
+  points of intersection to see a clear explanation of the meaning of the point.
 </p>
 <p>
   This graph helps you understand how successfully the clustering was able to partition
@@ -203,7 +203,7 @@
   the list, the list disappears and you get the third of the above images. Notice that a
   loupe icon appears to the right of the box. Clicking on this loupe pops up a dialog box
   that provides particulars about the cave, including the taxa next predicted to be found
-  in the cave and their estimated accuracies.
+  in the cave and their estimated prediction accuracies.
 </p>
 <ExampleImage
   src="/static/predictions/cluster-controls.jpg"
@@ -216,7 +216,7 @@
   per-person-visit analysises, which can yield different graphs of data and different
   predictions of the number of additional species expected to be found next. Use the
   analysis that you find more meaningful or the one that produces the best predictions.
-  The "Show Avg. Model" button on the right replaces the graph (below) with an
+  The "Show Avg. Model" button on the right replaces the graph shown below with an
   interactive graph for experimenting with curves that estimate the rate at which
   additional species are found across the cluster as a whole. You'll find an explanation
   of this interactive graph further below.
@@ -301,10 +301,10 @@
   alt="Example bar chart showing caves not having predictions"
 />
 <p>
-  The above chart shows the caves having too few visits to make predictions, according
-  to the requested minimum number of visits. It sorts the caves by the number of species
-  added to the cave checklist on the most recent visit. You can display the sort in
-  either increasing or decreasing order.
+  The above chart shows the caves of the cluster having too few visits to make
+  predictions, according to the requested minimum number of visits. It sorts the caves
+  by the number of species added to the cave checklist on the most recent visit. You can
+  display the sort in either increasing or decreasing order.
 </p>
 <ExampleImage
   src="/static/predictions/taxa-in-cluster.jpg"
@@ -379,8 +379,8 @@
 <p>
   This last chart lists all the taxonomic determinations made for specimens collected
   from the cave, sorted by the number of visits on which specimens of that determination
-  were found in the cave. It provides an estimate of the frequency at which taxa were
-  encountered in the cave.
+  were found. It provides an estimate of the frequency at which taxa were encountered in
+  the cave.
 </p>
 
 <h3 id="predicting_species">Predicting Numbers of Additional Species</h3>
@@ -401,7 +401,7 @@
   For example, if one specimen is only determined to the order Araneae, another to the
   family Hahniidae, another to the genus <i>Cicurina</i>, and another to the species
   <i>Cicurina bandera</i>, the species count remains at 1 because this species belongs
-  to each of these higher ranks and it's possible that all of the specimens are actually
+  to each of these higher ranks; it's possible that all of the specimens are actually
   the same species. However, the addition of a second family, a second genus, or a
   second species determination would increase the count.
 </p>
@@ -415,7 +415,7 @@
   <span class="eq">A</span>
   and <span class="eq">B</span> are constants determined by linear regression, and
   <span class="eq">P</span> is a constant determined by a binary search of linear
-  regressions that searches for that values of <span class="eq">A</span>,
+  regressions. The binary search searches for values of <span class="eq">A</span>,
   <span class="eq">B</span>, and
   <span class="eq">P</span> that minimize the RMSE. The curve is then extended to the next
   visit or person visit, and the increase in the number of species is recorded as the prediction
@@ -453,12 +453,13 @@
   estimate the most specific determinations that will be made for future specimens
   according to the most specific determinations made for past specimens. For example, if
   all past insects of a cluster have been determined to species, the cluster will
-  provide no prediction for the class Insecta, only predictions for species previously
-  determined; and if some past specimens were determined to Insecta but the cave does
-  not yet have a specimen with this incomplete determination, there will be a prediction
-  for future specimens only determined to class Insecta according to this
-  determination's prevalence elsewhere in the cluster. Over time, as past specimens
-  become further determined, the predicted taxa will become more specific too.
+  provide no prediction for the taxon Insecta, which is a class, only predictions for
+  species previously determined. On the other hand, if some past specimens were
+  determined to class Insecta and the cave does not yet have a specimen with this
+  incomplete determination, there will be a prediction for future specimens only
+  determined to class Insecta, according to this determination's prevalence elsewhere in
+  the cluster. Over time, as past specimens become further determined, the predicted
+  taxa will become more specific too.
 </p>
 <p>
   The <span class="col link_text" on:click={() => (showingAboutAccuracy = true)}
