@@ -14,28 +14,10 @@ import {
   type LocationSpec,
   type RawLocationEffort,
   ComparedFauna,
-  checkComparedFauna,
-  MIN_LOOKUP_CHAR_LENGTH,
-  MAX_LOOKUP_MATCHES
+  checkComparedFauna
 } from '../../shared/model';
 
 export const router = Router();
-
-router.post('/pull_children', async (req: Request, res) => {
-  const parentUniques = req.body.parentUniques;
-  if (!Array.isArray(parentUniques) || parentUniques.length > 10) {
-    return res.status(StatusCodes.BAD_REQUEST).send();
-  }
-  for (const parentUnique of parentUniques) {
-    if (typeof parentUnique != 'string' || parentUnique.length > 256) {
-      return res.status(StatusCodes.BAD_REQUEST).send();
-    }
-  }
-  const locations = await Location.getChildrenOf(getDB(), parentUniques);
-  return res.status(StatusCodes.OK).send({
-    locationSpecs: locations.map((locs) => locs.map((loc) => toLocationSpec(loc)))
-  });
-});
 
 router.post('/pull_effort', async (req: Request, res) => {
   const locationIDs: number[] = req.body.locationIDs;
@@ -51,37 +33,6 @@ router.post('/pull_effort', async (req: Request, res) => {
   return res
     .status(StatusCodes.OK)
     .send({ efforts: efforts.map((effort) => _toRawEffortData(effort)) });
-});
-
-router.post('/pull_list', async (req: Request, res) => {
-  const locationUniques = req.body.locationUniques;
-  if (!Array.isArray(locationUniques)) {
-    return res.status(StatusCodes.BAD_REQUEST).send();
-  }
-  for (const name of locationUniques) {
-    if (typeof name !== 'string' || name.length > 120) {
-      return res.status(StatusCodes.BAD_REQUEST).send();
-    }
-  }
-  const locations = await Location.getByUniques(getDB(), locationUniques);
-  return res
-    .status(StatusCodes.OK)
-    .send({ locationSpecs: locations.map((loc) => toLocationSpec(loc)) });
-});
-
-router.post('/match_name', async (req: Request, res) => {
-  const partialName = req.body.partialName;
-  if (
-    typeof partialName !== 'string' ||
-    partialName.length < MIN_LOOKUP_CHAR_LENGTH ||
-    partialName.length > 200
-  ) {
-    return res.status(StatusCodes.BAD_REQUEST).send();
-  }
-  const locations = await Location.matchName(getDB(), partialName, MAX_LOOKUP_MATCHES);
-  return res
-    .status(StatusCodes.OK)
-    .send({ locationSpecs: locations.map((loc) => toLocationSpec(loc)) });
 });
 
 export function toLocationSpec(location: Location): LocationSpec {

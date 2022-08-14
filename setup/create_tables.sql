@@ -20,38 +20,6 @@
 -- the values in the missing fields of StartDate and EndDate are arbitrary.
 -- Precisions: 0 = no date; 1 = full date; 2 = year + month; 3 = only year
 
-create table users (
-    -- None of these fields are in GBIF.
-    user_id serial primary key, -- locally generated, more stable than email
-    first_name text not null,
-    last_name text not null,
-    email text unique not null,
-    affiliation text,
-    password_hash text not null,
-    password_salt text not null,
-    permissions integer,
-    created_on timestamptz not null default now(),
-    created_by integer references users,
-    prior_login_date timestamptz,
-    prior_login_ip text,
-    last_login_date timestamptz,
-    last_login_ip text,
-    reset_code text,
-    reset_expiration timestamptz
-);
-create index on users(last_name, first_name);
-
-create table sessions (
-    -- None of these fields are in GBIF.
-    session_id text primary key,
-    user_id integer references users,
-    created_on timestamptz not null,
-    expires_at timestamptz not null,
-    ip_address text not null
-);
-create index on sessions(user_id);
-create index on sessions(expires_at);
-
 create table taxa (
     -- new data loads into the table prior to completely replacing old data
     committed boolean not null default false,
@@ -212,14 +180,6 @@ create index on specimens(county_id);
 create index on specimens(locality_name);
 create index on specimens(latitude);
 create index on specimens(longitude);
-
-create table key_data (
-    user_id integer references users,
-    data_key text not null,
-    permission_required integer not null, -- ignored when user_id non-null
-    data_value text not null
-);
-create index on key_data(user_id, data_key);
 
 create table logs (
     -- column names must be identical in snakecase and camelcase

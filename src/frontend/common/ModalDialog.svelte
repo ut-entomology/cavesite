@@ -1,6 +1,4 @@
 <script lang="ts">
-  // Intended for use in VariableDialog.
-
   import Modal from './Modal.svelte';
   import Dialog from './Dialog.svelte';
 

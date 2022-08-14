@@ -13,28 +13,8 @@
       route: '/'
     },
     {
-      label: 'Taxa',
-      route: '/taxa'
-    },
-    {
-      label: 'Locations',
-      route: '/locations'
-    },
-    {
-      label: 'Map',
-      route: '/map'
-    },
-    {
-      label: 'Time',
-      route: '/time'
-    },
-    {
       label: 'Predictions',
       route: '/predictions'
-    },
-    {
-      label: 'Queries',
-      route: '/queries'
     }
   ];
 

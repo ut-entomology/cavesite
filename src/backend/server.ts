@@ -9,23 +9,14 @@ import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import sgMail from '@sendgrid/mail';
 
 import { loadAndCheckEnvVars } from './lib/env_vars';
-import { checkAllEmails } from './util/email_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
-import { sessionware } from '../backend/integrations/sessionware';
 import { router as authApi } from './apis/auth_api';
 import { router as clusterApi } from './apis/cluster_api';
 import { router as locationApi } from './apis/location_api';
-import { router as specimenApi } from './apis/specimen_api';
-import { router as userApi } from './apis/user_api';
 import { router as taxaApi } from './apis/taxa_api';
-import { Session } from './model/session';
 import { LogType, Logs } from './model/logs';
-
-const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
-const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
 
 // Initialize configuration.
 
@@ -56,16 +47,13 @@ if (!devMode) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(sessionware);
 
 // Set up application routes.
 
 app.use(express.static(PUBLIC_FILE_DIR)); // not used when deployed to nginx
 app.use('/api/auth', authApi);
-app.use('/api/user', userApi);
 app.use('/api/taxa', taxaApi);
 app.use('/api/location', locationApi);
-app.use('/api/specimen', specimenApi);
 app.use('/api/cluster', clusterApi);
 app.use('/api/*', (_req, res) => {
   return res.status(StatusCodes.NOT_FOUND).send();
@@ -92,7 +80,6 @@ app.use(async (err: any, _req: any, res: any) => {
 // Launch server.
 
 app.listen(port, async () => {
-  await checkAllEmails();
   await connectDB({
     host: process.env.CAVESITE_DB_HOST,
     database: process.env.CAVESITE_DB_NAME,
@@ -100,11 +87,6 @@ app.listen(port, async () => {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
-  await Session.init(getDB(), {
-    sessionTimeoutMillis: SESSION_TIMEOUT_MILLIS,
-    expirationCheckMillis: EXPIRATION_CHECK_MILLIS
-  });
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
   if (process.env.CAVESITE_LOG_SERVER_RESTART == 'on') {
     await Logs.post(getDB(), LogType.Server, 'startup', 'Server started or restarted');
   }

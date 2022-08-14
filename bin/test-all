@@ -3,12 +3,9 @@
 npx jest src/shared/validation.test.ts
 npx jest src/shared/taxon_counter.test.ts
 
-npx jest src/backend/model/user.test.ts
-npx jest src/backend/model/session.test.ts
 npx jest src/backend/model/taxon.test.ts
 npx jest src/backend/model/location.test.ts
 npx jest src/backend/model/specimen.test.ts
-npx jest src/backend/model/key_data.test.ts
 npx jest src/backend/model/logs.test.ts
 
 npx jest src/backend/effort/taxon_visit_counter.test.ts
@@ -16,6 +13,4 @@ npx jest src/backend/effort/location_visit.test.ts
 npx jest src/backend/effort/location_effort.test.ts
 npx jest src/backend/effort/taxa_clusterer.test.ts
 
-npx jest src/frontend-core/selections/selections_tree.test.ts
-npx jest src/frontend-core/time/time_query.test.ts
 npx jest src/frontend-core/clusters/cluster_data.test.ts

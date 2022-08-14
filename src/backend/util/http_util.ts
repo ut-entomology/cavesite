@@ -2,43 +2,10 @@
  * Generally useful utilities for managing HTTP on the server.
  */
 
-import { type Request } from 'express';
-
-import { Permission } from '../../shared/user_auth';
-import { Session } from '../model/session';
-
 /**
  * Used for validating received lists of integers.
  */
 export const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
-
-/**
- * Express middleware limiting access to logged in users with all of
- * the provided permissions.
- */
-export function requirePermissions(permissions: Permission) {
-  return (req: Request<void, any, void>, res: any, next: any) => {
-    if (
-      !req.session ||
-      (req.session.userInfo.permissions & permissions) != permissions
-    ) {
-      return res.status(403).send();
-    }
-    next();
-  };
-}
-
-/**
- * Checks the provided session for the provided requried permissions, all
- * of which must be present. Returns true iff they are.
- */
-export function checkPermissions(
-  session: Session | undefined,
-  requiredPermissions: Permission
-): boolean {
-  if (!session) return false;
-  return (session.userInfo.permissions & requiredPermissions) == requiredPermissions;
-}
 
 /**
  * Translates a base64 string into a string that is safe for HTTP headers.

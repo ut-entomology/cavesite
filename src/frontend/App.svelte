@@ -1,47 +1,22 @@
 <script lang="ts">
   import router from 'page';
-  import { type SvelteComponent, onMount } from 'svelte';
+  import type { SvelteComponent } from 'svelte';
 
   import { client, errorReason } from './stores/client';
-  import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
-  import { globalDialog } from './stores/globalDialog.svelte';
-  import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
-  import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
   import WelcomePage from './routes/welcome/WelcomePage.svelte';
-  import TaxaPage from './routes/taxa/TaxaPage.svelte';
-  import LocationsPage from './routes/locations/LocationsPage.svelte';
-  import QueriesPage from './routes/queries/QueriesPage.svelte';
-  import MapPage from './routes/map/MapPage.svelte';
-  import TimePage from './routes/time/TimePage.svelte';
   import PredictionsPage from './routes/predictions/PredictionsPage.svelte';
-  import UsersPage from './routes/admin/users/UsersPage.svelte';
-  import FilesPage from './routes/admin/files/FilesPage.svelte';
-  import LogsPage from './routes/admin/logs/LogsPage.svelte';
-  import SchedulePage from './routes/admin/schedule/SchedulePage.svelte';
   import NotFound from './routes/NotFound.svelte';
   import Notice from './common/Notice.svelte';
-  import { DialogSpec } from './common/VariableDialog.svelte';
-  import { showNotice } from './common/VariableNotice.svelte';
-  import { logoutUser } from './util/user_util';
   import { pageName } from './stores/pageName';
+  import type { AppInfo } from '../shared/user_auth';
 
   // Initialize client-side routes.
 
   const routes: Record<string, typeof SvelteComponent> = {
     '/': WelcomePage,
-    '/taxa': TaxaPage,
-    '/locations': LocationsPage,
-    '/map': MapPage,
-    '/time': TimePage,
     '/predictions': PredictionsPage,
-    '/queries': QueriesPage,
-
-    '/admin/users': UsersPage,
-    '/admin/files': FilesPage,
-    '/admin/logs': LogsPage,
-    '/admin/schedule': SchedulePage,
 
     '*': NotFound
   };
@@ -71,82 +46,15 @@
 
     const res = await $client.post('/api/auth/connect');
     if (res.data) {
-      const loginInfo: LoginInfo = res.data;
+      const resAppInfo: AppInfo = res.data;
       appInfo.set({
-        appTitle: loginInfo.appTitle,
-        appSubtitle: loginInfo.appSubtitle,
-        hiddenRoutes: loginInfo.hiddenRoutes,
-        mapToken: loginInfo.mapToken
+        appTitle: resAppInfo.appTitle,
+        appSubtitle: resAppInfo.appSubtitle,
+        hiddenRoutes: resAppInfo.hiddenRoutes,
+        mapToken: resAppInfo.mapToken
       });
-      if (loginInfo.userInfo && loginInfo.expiration) {
-        $userInfo = loginInfo.userInfo;
-        setExpiration(loginInfo.expiration);
-      }
       $appInfo.hiddenRoutes.forEach((route) => delete routes[route]);
     }
-
-    // Handle a password reset request.
-
-    const resetParams = getResetParams();
-    if (resetParams && $userInfo && resetParams.email !== $userInfo.email) {
-      await logoutUser(true);
-      router('/' + toResetQueryStr(resetParams.email, resetParams.resetCode));
-    }
-
-    // Initialize session refresh.
-
-    initRefresher({
-      refreshMillis: 5 * 60 * 1000 /* 5 minutes */,
-      onRefresh: async () => {
-        try {
-          const res = await $client.post('/api/auth/refresh');
-          return res.data.expiration;
-        } catch (err: any) {
-          return 0;
-        }
-      },
-      onWarning: () => {
-        showNotice({
-          message: 'Your login session is about to expire.',
-          header: 'WARNING',
-          alert: 'warning',
-          button: 'Continue',
-          onClose: async () => {
-            try {
-              const res = await $client.post('/api/auth/refresh');
-              setExpiration(res.data.expiration);
-            } catch (err: any) {
-              // ignore
-            }
-          }
-        });
-      },
-      onExpiration: async () => {
-        logoutUser(false);
-        window.location.href = '/';
-      }
-    });
-  }
-
-  onMount(() => {
-    const resetParams = getResetParams();
-    if (resetParams) {
-      $globalDialog = new DialogSpec('ResetPasswordDialog', resetParams);
-    }
-  });
-
-  function getResetParams() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('action') != 'reset') {
-      return null;
-    }
-    const email = params.get('email');
-    const resetCode = params.get('code');
-    if (!email || !resetCode) {
-      router('/');
-      return null;
-    }
-    return { email, resetCode };
   }
 </script>
 
