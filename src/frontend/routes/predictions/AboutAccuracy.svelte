@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import InfoDialog from '../../dialogs/InfoDialog.svelte';
+  import InfoDialog from '../../components/InfoDialog.svelte';
   import HowToUse from '../../components/HowToUse.svelte';
   import SimpleTOC from '../../components/SimpleTOC.svelte';
   import { PREDICTION_HISTORY_SAMPLE_DEPTH } from '../../../shared/model';

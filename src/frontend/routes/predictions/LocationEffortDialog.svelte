@@ -1,5 +1,5 @@
 <script lang="ts">
-  import InfoDialog from '../../dialogs/InfoDialog.svelte';
+  import InfoDialog from '../../components/InfoDialog.svelte';
   import EffortGraph from './EffortGraph.svelte';
   import SingleEffortGraph from './SingleEffortGraph.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';

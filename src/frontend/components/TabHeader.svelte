@@ -1,5 +1,5 @@
 <script lang="ts">
-  import InfoDialog from '../dialogs/InfoDialog.svelte';
+  import InfoDialog from '../components/InfoDialog.svelte';
   import HowToUse from './HowToUse.svelte';
   import { showingHowTo } from '../stores/showingHowTo';
 
