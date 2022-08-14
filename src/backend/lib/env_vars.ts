@@ -15,12 +15,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
 
   // Check environment variables that the server uses.
 
-  if (!process.env.CAVESITE_TITLE) {
-    errors.push('CAVESITE_TITLE - missing');
-  }
-  if (!process.env.CAVESITE_SUBTITLE) {
-    errors.push('CAVESITE_SUBTITLE - missing');
-  }
   if (process.env.CAVESITE_BASE_URL) {
     if (
       !process.env.CAVESITE_BASE_URL.startsWith('http://') &&
@@ -50,20 +44,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
           process.env.CAVESITE_LOG_DIR
         );
       }
-    }
-
-    if (!process.env.CAVESITE_SENDER_NAME) {
-      errors.push('CAVESITE_SENDER_NAME - missing');
-    }
-    if (!process.env.CAVESITE_SENDER_EMAIL) {
-      errors.push('CAVESITE_SENDER_EMAIL - missing');
-    }
-    if (!process.env.SENDGRID_API_KEY) {
-      errors.push('SENDGRID_API_KEY - missing');
-    }
-
-    if (!process.env.MAPBOX_ACCESS_TOKEN) {
-      errors.push('MAPBOX_ACCESS_TOKEN - missing');
     }
 
     const logRestart = process.env.CAVESITE_LOG_SERVER_RESTART;
@@ -110,15 +90,7 @@ a '.env' file found in the current directory at the time the server is run:`);
       console.log(`
 NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 
-CAVESITE_TITLE* - Title to display for website.
-CAVESITE_SUBTITLE* - Subtitle to display for website.
-CAVESITE_SENDER_NAME* - Name of person emails appear to come from.
-CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
-SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
-MAPBOX_ACCESS_TOKEN* - Token supplied by https://www.mapbox.com/ for maps.
-
-CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
 CAVESITE_LOG_SERVER_RESTART - Set to 'on' to log server restarts.
 
 CAVESITE_PORT - Port on which to run the website. Defaults to 80.
