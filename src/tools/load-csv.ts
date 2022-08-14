@@ -13,17 +13,11 @@ import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE } from '../shared/model';
 import { LogType, Logs } from '../backend/model/logs';
 
+const DATA_FILE = './setup/data.csv';
 const RECORDS_PER_TICK = 500;
 const description = 'import from CSV via command line';
 
-if (process.argv.length != 3) {
-  console.log('Please provide the path to the uploadable CSV');
-  process.exit(1);
-}
-let csvFilepath = process.argv[2];
-if (!'/~'.includes(csvFilepath[0])) {
-  csvFilepath = path.join(process.cwd(), csvFilepath);
-}
+let csvFilepath = path.join(process.cwd(), DATA_FILE);
 
 const records: CsvSpecimen[] = [];
 let recordIndex = 0;

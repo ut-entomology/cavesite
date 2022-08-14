@@ -1,3 +1,3 @@
-psql -f ./setup/create_db.sql
+psql caves -f ./setup/drop_tables.sql
 psql caves -f ./setup/create_tables.sql
 psql caves -f ./setup/permissions.sql
