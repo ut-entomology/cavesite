@@ -1,5 +1,5 @@
 {
-  "name": "svelte-app",
+  "name": "joe-lapp-capstone",
   "version": "0.1.0",
   "private": true,
   "main": "build/backend/server.js",
@@ -7,7 +7,6 @@
     "build": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w",
     "start": "kill $(lsof -ti:80) 2>/dev/null; nodemon --enable-source-maps --watch ./build ./build/backend/server.js",
-    "test": "run unit-tests && run web-tests",
     "unit-tests": "./bin/test-all",
     "web-tests": "npx playwright test --project=chromium",
     "all-web-tests": "npx playwright test",
