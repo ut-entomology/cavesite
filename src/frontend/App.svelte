@@ -12,6 +12,9 @@
   import { pageName } from './stores/pageName';
   import type { AppInfo } from '../shared/app_info';
 
+  const APP_TITLE = "Joe Lapp's Computer Science Capstone";
+  const APP_SUBTITLE = 'WGU C964 Task 2';
+
   // Initialize client-side routes.
 
   const routes: Record<string, typeof SvelteComponent> = {
@@ -48,8 +51,8 @@
     if (res.data) {
       const resAppInfo: AppInfo = res.data;
       appInfo.set({
-        appTitle: resAppInfo.appTitle,
-        appSubtitle: resAppInfo.appSubtitle,
+        appTitle: APP_TITLE,
+        appSubtitle: APP_SUBTITLE,
         hiddenRoutes: resAppInfo.hiddenRoutes,
         mapToken: resAppInfo.mapToken
       });
@@ -59,7 +62,7 @@
 </script>
 
 <svelte:head>
-  <title>{title}</title>
+  <title>Joe Lapp's CS Capstone</title>
   <meta name="robots" content="noindex nofollow" />
   <html lang="en" />
 </svelte:head>

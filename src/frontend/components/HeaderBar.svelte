@@ -4,9 +4,7 @@
 
 <header>
   <div class="container-fluid">
-    <div class="title_row">
-      <div class="app_title">{$appInfo.appTitle}</div>
-    </div>
+    <div class="app_title">{$appInfo.appTitle}</div>
     <div class="app_subtitle text">{$appInfo.appSubtitle}</div>
   </div>
 </header>
@@ -15,14 +13,9 @@
   @import '../variables.scss';
 
   header {
-    flex: 0;
     color: $pageBarTextColor;
     padding: 0.5rem 0 1rem 0;
-  }
-
-  .title_row {
-    display: flex;
-    justify-content: space-between;
+    text-align: center;
   }
 
   .app_title {

@@ -12,41 +12,46 @@
     <div class="container-fluid mb-3">
       <TabHeader {tabName} title={$pageName} />
       <p>
-        Welcome to a preview of the <u><b>Texas Underground</b></u> website. This site provides
-        access to the Biospeleological Collection at the University of Texas at Austin, restricted
-        to the specimens collected in Texas. Maintained by James R. Reddell, this collection
-        is the largest in the world dedicated to cave invertebrates.
-      </p>
-      <p>This preview allows you to do the following:</p>
-      <ul>
-        <li>Browse the taxa found in the collection</li>
-        <li>Browse the locations where specimens were collected</li>
-        <li>View color-coded maps of the data</li>
-        <li>View seasonality and history graphs</li>
-        <li>Predict which taxa might be found on future visits to caves</li>
-        <li>Query for specimen data based on custom criteria</li>
-      </ul>
-      <p>The following features are under development:</p>
-      <ul>
-        <li>How-to guides for the various tabs</li>
-        <li>Needed admin pages</li>
-      </ul>
-      <p>
-        <b>EXPECT BUGS</b> (of all kinds). The site is still under development. Please report
-        any problems you have, along with your suggestions for improvement and feature requests.
-        We are also still cleaning and converting the data, so please also report anything
-        odd you notice with the data itself.
+        Welcome to my capstone project. This tool helps researchers extend the known
+        ranges of cave invertebrates in Texas. Click on the 'Predictions' tab.
       </p>
       <p>
-        For issues related to site functionality or data, please email the developer <a
-          href="mailto:joe.lapp@utexas.edu">joe.lapp@utexas.edu</a
-        >.
+        Caves are largely isolated from one another and it is difficult to assess which
+        species of any given cave should also be found in other caves. Researchers can
+        use the tool to group caves into clusters and leverage information about each
+        cluster as a whole to make inferences about the individual caves of the cluster.
+        For each cave, the tool estimates the effort required to find additional species
+        and reports the most likely species to be found. Given that there are over 1,700
+        caves in Texas and that researchers have limited resources, the tool should help
+        researchers decide which caves to prioritize for further sampling. By accurately
+        prioritizing caves for sampling, researchers can maximize both the number of
+        species for which they extend ranges and the sizes of those range extensions.
       </p>
       <p>
-        For general issues, please email the collection curator <a
-          href="alex.wild@utexas.edu">alex.wild@utexas.edu</a
-        >.
+        The project is live for use by cave researchers at <a
+          href="https://caves.tacc.utexas.edu/"
+          target="_blank">caves.tacc.utexas.edu</a
+        >. The entire cave research site is available open source under the Apache 2
+        license at
+        <a href="https://github.com/ut-entomology/cavesite" target="_blank"
+          >this github repo</a
+        >. You'll find the capstone subset of the site in the
+        <a
+          href="https://github.com/ut-entomology/cavesite/tree/capstone"
+          target="_blank">capstone branch</a
+        > of the repo.
+      </p>
+      <p class="email">
+        <a href="mailto:joe.lapp@utexas.edu">joe.lapp@utexas.edu</a>
       </p>
     </div>
   </svelte:fragment>
 </DataTabRoute>
+
+<style>
+  .email {
+    margin: 1.5rem auto;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+</style>
