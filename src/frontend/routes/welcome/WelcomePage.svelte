@@ -13,12 +13,12 @@
       <TabHeader {tabName} title={$pageName} />
       <p>
         Welcome to my capstone project. This tool helps researchers extend the known
-        ranges of cave invertebrates in Texas. Click on the 'Predictions' tab.
+        ranges of cave invertebrates in Texas. Please click on the 'Predictions' tab.
       </p>
       <p>
         Caves are largely isolated from one another and it is difficult to assess which
         species of any given cave should also be found in other caves. Researchers can
-        use the tool to group caves into clusters and leverage information about each
+        use this tool to group caves into clusters and leverage information about each
         cluster as a whole to make inferences about the individual caves of the cluster.
         For each cave, the tool estimates the effort required to find additional species
         and reports the most likely species to be found. Given that there are over 1,700
