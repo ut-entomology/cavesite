@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import type { AppInfo } from '../../shared/user_auth';
+import type { AppInfo } from '../../shared/app_info';
 
 export const router = Router();
 

@@ -6,8 +6,6 @@ import { writable } from 'svelte/store';
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { getReasonPhrase } from 'http-status-codes';
 
-import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
-
 const REST_API_TIMEOUT_MILLIS = 20000;
 
 const originalOrigin = window.location.origin;
@@ -30,7 +28,6 @@ export function setCSRF(csrfToken: string | null) {
     client.set(publicClient);
   } else {
     const config = Object.assign({}, baseAxiosConfig);
-    config[CSRF_TOKEN_HEADER] = csrfToken;
     client.set(axios.create(config));
   }
 }

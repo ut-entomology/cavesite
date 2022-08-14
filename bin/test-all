@@ -1,6 +1,5 @@
 # Although the DB tests use locks, tests may timeout, so test one by one.
 
-npx jest src/shared/validation.test.ts
 npx jest src/shared/taxon_counter.test.ts
 
 npx jest src/backend/model/taxon.test.ts

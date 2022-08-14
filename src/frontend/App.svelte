@@ -3,14 +3,14 @@
   import type { SvelteComponent } from 'svelte';
 
   import { client, errorReason } from './stores/client';
-  import { appInfo } from './stores/app_info';
+  import { appInfo } from './stores/appInfo';
   import Layout from './routes/_Layout.svelte';
   import WelcomePage from './routes/welcome/WelcomePage.svelte';
   import PredictionsPage from './routes/predictions/PredictionsPage.svelte';
   import NotFound from './routes/NotFound.svelte';
   import Notice from './common/Notice.svelte';
   import { pageName } from './stores/pageName';
-  import type { AppInfo } from '../shared/user_auth';
+  import type { AppInfo } from '../shared/app_info';
 
   // Initialize client-side routes.
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import RouteTab, { type Tab } from './RouteTab.svelte';
   import HowToUse from './HowToUse.svelte';
-  import { appInfo } from '../stores/app_info';
+  import { appInfo } from '../stores/appInfo';
   import { showingHowTo } from '../stores/showingHowTo';
 
   export let activeTab: string;

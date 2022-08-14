@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appInfo } from '../stores/app_info';
+  import { appInfo } from '../stores/appInfo';
 </script>
 
 <header>
