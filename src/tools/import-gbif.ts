@@ -81,6 +81,9 @@ abstract class GbifImporter {
 
   async _loadNextGbifRecord(): Promise<GbifRecord | null> {
     let nextRecord = this.batch.pop();
+    while (nextRecord && nextRecord.stateProvince != 'Texas') {
+      nextRecord = this.batch.pop();
+    }
     if (!nextRecord) {
       if (!this.hasMoreRecords) return null;
       try {
