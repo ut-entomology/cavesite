@@ -44,10 +44,7 @@
       Specify the days and hour for importing records from GBIF. The system
       administrator configures the exact minute of the hour at which an import begins,
       as the importer wakes up at this minute every hour to see whether you've requested
-      an import for that hour. Each import entirely replaces all of the records with
-      those found in GBIF, allowing records to be added, removed, and changed. Only
-      Texas records with accession number '002022c' are imported. GBIF reports this
-      accession number as collection code 'Biospeleology'.
+      an import for that hour.
     </div>
   </div>
 

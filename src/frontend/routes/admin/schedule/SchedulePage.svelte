@@ -41,6 +41,14 @@
   {#await _loadSchedule() then}
     <div class="container-fluid">
       <TabHeader {tabName} title={$pageName}>
+        <span slot="instructions">
+          This tab shows the days on which records will be imported from GBIF and the
+          hour of each day during which import will occur. Each import entirely replaces
+          all of the records with those found in GBIF, allowing records to be added,
+          removed, and changed. Only Texas records with accession number '002022c' are
+          imported. GBIF reports this accession number as collection code
+          'Biospeleology'.
+        </span>
         <span slot="main-buttons">
           {#if schedule}
             <button
