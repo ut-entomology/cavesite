@@ -9,7 +9,7 @@
 
   export let locationRows: QueryRow[];
   export let getLocationRows: RowItemGetter;
-  export let increasing: boolean;
+  export let ascending: boolean;
 
   function _toItemHTML(locationRow: QueryRow): string {
     let name = locationRow.localityName!;
@@ -25,20 +25,19 @@
     itemsClasses="taxa_location_rows"
     minRows={MIN_ROWS}
     rowIncrement={ROW_INCREMENT}
-    {increasing}
+    increasing={ascending}
+    sortOptions={['Ascending', 'Descending']}
     getItems={getLocationRows}
     items={locationRows}
     let:item
   >
     <div slot="description">
-      The following are all the localities having any of the above selected taxa, sorted
-      by the number of records found among the taxa.
+      The following are all the localities having any of the above selected taxa.
     </div>
     <div class="row gx-3 location_row">
-      <div class="col-3 text-center">
-        {item.recordCount} <span class="stats_deemph">records</span>
-      </div>
-      <div class="col">{@html _toItemHTML(item)}</div>
+      <div class="col-sm-4">{item.countyName || '(no county given)'}</div>
+      <div class="col-sm-6">{item.localityName}</div>
+      <div class="col-sm-2 text-end">({item.recordCount} records)</div>
     </div>
   </SortedRowGrower>
 {/key}

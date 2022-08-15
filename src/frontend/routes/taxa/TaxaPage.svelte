@@ -43,7 +43,7 @@
   let requestClearConfirmation = false;
   let clearInput: () => void;
   let locationRows: QueryRow[] = [];
-  let increasingLocationRows = false;
+  let ascendingLocationRows = true;
   let moreLocationsExist = false;
 
   const selectionsTree = new TaxonSelectionsTree(
@@ -100,7 +100,7 @@
     increasing: boolean
   ): Promise<[QueryRow[], boolean]> {
     const query = await _createLocationQuery(increasing);
-    if (locationRows.length == 0 || increasing != increasingLocationRows) {
+    if (locationRows.length == 0 || increasing != ascendingLocationRows) {
       try {
         let res = await $client.post('api/specimen/query', {
           query,
@@ -131,7 +131,7 @@
         locationRows = [];
       }
     }
-    increasingLocationRows = increasing;
+    ascendingLocationRows = increasing;
     return [locationRows, moreLocationsExist];
   }
 
@@ -167,21 +167,21 @@
     selectedTaxa.set(selectionsTree.getSelectionSpecs());
   }
 
-  async function _createLocationQuery(increasing: boolean): Promise<GeneralQuery> {
+  async function _createLocationQuery(ascending: boolean): Promise<GeneralQuery> {
     const columnSpecs: QueryColumnSpec[] = [];
     columnSpecs.push({
-      columnID: QueryColumnID.RecordCount,
-      ascending: increasing,
+      columnID: QueryColumnID.County,
+      ascending: ascending,
       optionText: null
     });
     columnSpecs.push({
       columnID: QueryColumnID.Locality,
-      ascending: true,
+      ascending: ascending,
       optionText: null
     });
     columnSpecs.push({
-      columnID: QueryColumnID.County,
-      ascending: true,
+      columnID: QueryColumnID.RecordCount,
+      ascending: null,
       optionText: null
     });
 
@@ -266,7 +266,7 @@
         <LocalitiesForTaxa
           {locationRows}
           {getLocationRows}
-          increasing={increasingLocationRows}
+          ascending={ascendingLocationRows}
         />
       {/if}
     </div>

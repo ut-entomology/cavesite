@@ -17,6 +17,7 @@
   export let minRows: number;
   export let rowIncrement: number;
   export let increasing: boolean;
+  export let sortOptions = ['Increasing', 'Decreasing'];
   export let getItems: RowItemGetter;
   // items is a dependency so updates when available items changes
   export let items: any[];
@@ -60,8 +61,8 @@
         class="form-select form-select-sm item_select"
         id="sortOrder"
       >
-        <option value={true}>Increasing</option>
-        <option value={false}>Decreasing</option>
+        <option value={true}>{sortOptions[0]}</option>
+        <option value={false}>{sortOptions[1]}</option>
       </select>
     </div>
   </div>
