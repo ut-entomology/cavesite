@@ -19,6 +19,7 @@ import { router as authApi } from './apis/auth_api';
 import { router as clusterApi } from './apis/cluster_api';
 import { router as locationApi } from './apis/location_api';
 import { router as specimenApi } from './apis/specimen_api';
+import { router as keyDataApi } from './apis/key_data_api';
 import { router as userApi } from './apis/user_api';
 import { router as taxaApi } from './apis/taxa_api';
 import { Session } from './model/session';
@@ -67,6 +68,7 @@ app.use('/api/taxa', taxaApi);
 app.use('/api/location', locationApi);
 app.use('/api/specimen', specimenApi);
 app.use('/api/cluster', clusterApi);
+app.use('/api/key_data', keyDataApi);
 app.use('/api/*', (_req, res) => {
   return res.status(StatusCodes.NOT_FOUND).send();
 });

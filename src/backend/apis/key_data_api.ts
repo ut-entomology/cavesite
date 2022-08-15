@@ -21,7 +21,7 @@ export const router = Router();
 
 // const MAX_DATA_BYTES = 8000;
 
-router.post('/pull_data', async (req: Request, res) => {
+router.post('/pull', async (req: Request, res) => {
   const loginUserID = req.session!.userID;
   const permissions = req.session ? req.session.userInfo.permissions : Permission.None;
 
@@ -31,13 +31,13 @@ router.post('/pull_data', async (req: Request, res) => {
   if (!checkBoolean(mine, false) || !checkString(key, false)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  const data = await KeyData.read(
+  const value = await KeyData.read(
     getDB(),
     mine ? loginUserID : null,
     permissions, // the function checks the permissions
     key
   );
-  return res.status(StatusCodes.OK).send({ data });
+  return res.status(StatusCodes.OK).send({ value });
 });
 
 router.post('/set_schedule', async (req: Request, res) => {
