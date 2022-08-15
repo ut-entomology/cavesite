@@ -14,7 +14,7 @@
 
 {#key locationRows}
   <SortedRowGrower
-    title="Localities having any of the above selected taxa"
+    title="Locations having any of the above selected taxa"
     itemsClasses="taxa_location_rows"
     minRows={MIN_ROWS}
     rowIncrement={ROW_INCREMENT}
