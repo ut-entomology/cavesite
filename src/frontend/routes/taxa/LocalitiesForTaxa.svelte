@@ -37,7 +37,7 @@
     <div class="row gx-3 location_row">
       <div class="col-sm-4">{item.countyName || '(no county given)'}</div>
       <div class="col-sm-6">{item.localityName}</div>
-      <div class="col-sm-2 text-end">({item.recordCount} records)</div>
+      <div class="col-sm-2 text-end">{item.recordCount} records</div>
     </div>
   </SortedRowGrower>
 {/key}
