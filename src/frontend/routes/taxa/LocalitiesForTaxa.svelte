@@ -10,13 +10,6 @@
   export let locationRows: QueryRow[];
   export let getLocationRows: RowItemGetter;
   export let ascending: boolean;
-
-  function _toItemHTML(locationRow: QueryRow): string {
-    let name = locationRow.localityName!;
-    if (locationRow.countyName)
-      name = `${name} <span class="stats_deemph">(${locationRow.countyName})</span>`;
-    return name;
-  }
 </script>
 
 {#key locationRows}
@@ -32,7 +25,8 @@
     let:item
   >
     <div slot="description">
-      The following are all the localities having any of the above selected taxa.
+      The following are all the locations having any of the above selected taxa, sorted
+      first by county and then by locality.
     </div>
     <div class="row gx-3 location_row">
       <div class="col-sm-4">{item.countyName || '(no county given)'}</div>
