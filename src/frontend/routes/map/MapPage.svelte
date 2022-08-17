@@ -466,7 +466,7 @@
           is the number of features at the marker. Hover over a marker to see a list of its
           features, and click the marker to pin or unpin this list. The KR/KFR switch selects
           between karst regions and karst faunal regions. The name of the region under the
-          cursor appears to the right of the switch.</span
+          cursor appears to the right of this switch.</span
         >
         <span slot="main-buttons">
           {#if $cachedData}
