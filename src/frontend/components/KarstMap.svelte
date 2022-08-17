@@ -385,7 +385,7 @@
         type: 'fill',
         paint: {
           'fill-color': fillColorField as any,
-          'fill-opacity': 0.35,
+          'fill-opacity': 0.3,
           'fill-outline-color': '#000'
         }
       });
