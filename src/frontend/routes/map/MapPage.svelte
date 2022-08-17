@@ -462,8 +462,11 @@
       <TabHeader {tabName} title={$pageName} onResize={resized}>
         <span slot="instructions"
           >Use the <a href="/taxa">Taxa</a> and <a href="/locations">Locations</a> tabs to
-          specify the optional filters to use when loading maps. Hover over a marker to see
-          the features at that marker. Click a marker to pin or unpin these features.</span
+          specify the optional filters to use when loading maps. The number in each marker
+          is the number of features at the marker. Hover over a marker to see a list of its
+          features, and click the marker to pin or unpin this list. The KR/KFR switch selects
+          between karst regions and karst faunal regions. The name of the region under the
+          cursor appears to the right of the switch.</span
         >
         <span slot="main-buttons">
           {#if $cachedData}
