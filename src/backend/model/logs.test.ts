@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
-import type { Log } from './logs';
-import { LogType, Logs, MAX_LOG_LENGTH } from './logs';
+import { LogType, type Log } from '../../shared/model';
+import { Logs, MAX_LOG_LENGTH } from './logs';
 
 const mutex = new DatabaseMutex();
 let db: DB;

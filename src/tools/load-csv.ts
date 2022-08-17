@@ -10,8 +10,8 @@ import { connectDatabase, loadDatabase } from './lib/load_database';
 import { disconnectDB } from '../backend/integrations/postgres';
 import type { GbifRecord } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
-import { ROOT_TAXON_UNIQUE } from '../shared/model';
-import { LogType, Logs } from '../backend/model/logs';
+import { ROOT_TAXON_UNIQUE, LogType } from '../shared/model';
+import { Logs } from '../backend/model/logs';
 
 const RECORDS_PER_TICK = 500;
 const description = 'import from CSV via command line';

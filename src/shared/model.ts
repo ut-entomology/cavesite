@@ -313,3 +313,19 @@ export interface TaxaCluster {
 export function checkComparedFauna(comparedFauna: ComparedFauna | undefined): boolean {
   return comparedFauna === undefined || comparedFauna.includes(comparedFauna);
 }
+
+//// Logs ////////////////////////////////////////////////////////////////////
+
+export enum LogType {
+  User = 'user',
+  Import = 'import',
+  Server = 'server'
+}
+
+export interface Log {
+  id: number;
+  timestamp: Date;
+  type: LogType;
+  tag: string | null;
+  line: string;
+}

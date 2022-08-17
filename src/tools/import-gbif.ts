@@ -12,7 +12,8 @@ import { connectDatabase, loadDatabase } from './lib/load_database';
 import { Permission } from '../shared/user_auth';
 import { KeyData } from '../backend/model/key_data';
 import { IMPORT_SCHEDULE_KEY, type ImportSchedule } from '../shared/data_keys';
-import { LogType, Logs } from '../backend/model/logs';
+import { LogType } from '../shared/model';
+import { Logs } from '../backend/model/logs';
 
 const runningAsScript = require.main === module; // rather than imported by load-csv
 const INSTITUTION_CODE = 'UTIC';

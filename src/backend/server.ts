@@ -22,8 +22,10 @@ import { router as specimenApi } from './apis/specimen_api';
 import { router as keyDataApi } from './apis/key_data_api';
 import { router as userApi } from './apis/user_api';
 import { router as taxaApi } from './apis/taxa_api';
+import { router as logsApi } from './apis/logs_api';
 import { Session } from './model/session';
-import { LogType, Logs } from './model/logs';
+import { LogType } from '../shared/model';
+import { Logs } from './model/logs';
 
 const SESSION_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000; // logs out after 2 hours unused
 const EXPIRATION_CHECK_MILLIS = 5 * 60 * 1000; // check for expiration every 5 mins
@@ -69,6 +71,7 @@ app.use('/api/location', locationApi);
 app.use('/api/specimen', specimenApi);
 app.use('/api/cluster', clusterApi);
 app.use('/api/key_data', keyDataApi);
+app.use('/api/logs', logsApi);
 app.use('/api/*', (_req, res) => {
   return res.status(StatusCodes.NOT_FOUND).send();
 });

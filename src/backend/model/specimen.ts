@@ -8,8 +8,8 @@ import { type DB, toCamelRow, toPostgresDate } from '../integrations/postgres';
 import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
-import { Logs, LogType } from './logs';
-import { type TaxonPathSpec, locationRanks } from '../../shared/model';
+import { Logs } from './logs';
+import { type TaxonPathSpec, locationRanks, LogType } from '../../shared/model';
 import { toDaysEpoch } from '../../shared/date_tools';
 import { getCaveObligatesMap } from '../effort/cave_obligates';
 import {

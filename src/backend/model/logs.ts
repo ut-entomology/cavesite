@@ -3,24 +3,10 @@
  * log a variety of events that may be important to the admin.
  */
 
-import type { DB } from '../integrations/postgres';
+import { DB, toCamelRow } from '../integrations/postgres';
+import { LogType, type Log } from '../../shared/model';
 
 export const MAX_LOG_LENGTH = 2048; // VARCHAR (2048)
-
-export enum LogType {
-  User = 'user',
-  Import = 'import',
-  Server = 'server'
-}
-
-export interface Log {
-  // identical to column names; no snakecase or camelcase
-  id: number;
-  timestamp: Date;
-  type: LogType;
-  tag: string | null;
-  line: string;
-}
 
 export class Logs {
   static async post(
@@ -61,9 +47,22 @@ export class Logs {
     return result.rows.reverse();
   }
 
-  static async clear(db: DB, beforeTime: Date): Promise<void> {
+  static async getLogs(db: DB, skip: number, limit: number): Promise<Log[]> {
+    const result = await db.query(
+      `select * from logs order by timestamp offset $1 limit $2`,
+      [skip, limit]
+    );
+    return result.rows.map((row) => toCamelRow(row));
+  }
+
+  static async getTotalLogs(db: DB): Promise<number> {
+    const result = await db.query(`select count(*) from logs`);
+    return parseInt(result.rows[0].count);
+  }
+
+  static async clear(db: DB, throughDate: Date): Promise<void> {
     await db.query(`delete from logs where timestamp <= $1`, [
-      beforeTime.toISOString()
+      throughDate.toISOString()
     ]);
   }
 }

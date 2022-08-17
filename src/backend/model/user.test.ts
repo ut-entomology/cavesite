@@ -2,7 +2,8 @@ import type { DB } from '../integrations/postgres';
 import { DatabaseMutex, expectRecentTime, sleep } from '../util/test_util';
 import { User } from './user';
 import { Permission } from '../../shared/user_auth';
-import { Logs, LogType } from './logs';
+import { Logs } from './logs';
+import { LogType } from '../../shared/model';
 import {
   MIN_PASSWORD_STRENGTH,
   UserError,

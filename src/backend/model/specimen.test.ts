@@ -11,7 +11,8 @@ import {
 } from '../../shared/general_query';
 import { Location } from './location';
 import { Taxon } from './taxon';
-import { Logs, LogType } from './logs';
+import { LogType } from '../../shared/model';
+import { Logs } from './logs';
 
 const startDate = toLocalDate(new Date('2020-01-01'));
 const endDate = toLocalDate(new Date('2020-01-04'));

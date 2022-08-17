@@ -9,7 +9,8 @@ import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, PostgresError, toCamelRow } from '../integrations/postgres';
-import { Logs, LogType } from './logs';
+import { LogType } from '../../shared/model';
+import { Logs } from './logs';
 import {
   VALID_EMAIL_REGEX,
   MIN_PASSWORD_STRENGTH,
