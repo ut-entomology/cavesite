@@ -58,7 +58,7 @@ abstract class GbifImporter {
     await Logs.post(
       await this.getDB(),
       LogType.Import,
-      null,
+      'STARTED',
       'Began ' + this.description
     );
     this.importFailures = await loadDatabase(
@@ -70,7 +70,7 @@ abstract class GbifImporter {
     await Logs.post(
       await this.getDB(),
       LogType.Import,
-      null,
+      'FINISHED',
       'Completed ' + this.description
     );
     await disconnectDB();
