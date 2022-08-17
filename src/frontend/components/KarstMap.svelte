@@ -17,6 +17,7 @@
     longitude: number;
     latitude: number;
     zoom: number;
+    showingKFRs: boolean;
   }
 </script>
 
@@ -39,12 +40,25 @@
     mapboxCode: string;
   }
 
+  interface RegionSet {
+    regionSources: MapRegionSource[];
+    regionCount: number;
+    namesPerSource: any[][];
+  }
+
   const MARKER_RADIUS = 18;
   const MARKER_DIAMETER = MARKER_RADIUS * 2;
   const INNER_RADIUS = 8;
   const STROKE_COLOR_FACTOR = 0.85;
 
-  const regionSources: MapRegionSource[] = [
+  const krSources: MapRegionSource[] = [
+    {
+      propertyName: 'Region',
+      layerName: 'Karst_Regions_TSS-4adrg1',
+      mapboxCode: 'jtlapput.d6bu8w0a'
+    }
+  ];
+  const kfrSources: MapRegionSource[] = [
     {
       propertyName: 'Name',
       layerName: 'Bexar_KFRs-2lu38z',
@@ -56,6 +70,10 @@
       mapboxCode: 'jtlapput.3idlwl9a'
     }
   ];
+  let krRegionSet: RegionSet;
+  let kfrRegionSet: RegionSet;
+  let activeRegionSet: RegionSet;
+  let regionSelection = initialState?.showingKFRs ? 'KFR' : 'KR';
 
   const markerTemplatesBySize: string[] = [];
   markerTemplatesBySize[1] = `<div><svg width="${MARKER_DIAMETER}" height="${MARKER_DIAMETER}" viewbox="0 0 ${MARKER_DIAMETER} ${MARKER_DIAMETER}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block"><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${MARKER_RADIUS}" fill="|ARC|" /><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${INNER_RADIUS}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${MARKER_RADIUS}, ${MARKER_RADIUS})">1</text></svg></div>`;
@@ -118,6 +136,7 @@
       });
       map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
       map.on('load', () => {
+        const regionSources = [...krSources, ...kfrSources];
         for (const regionSource of regionSources) {
           const sourceID = _toLayerSourceID(regionSource.layerName);
           map.addSource(sourceID, {
@@ -135,79 +154,35 @@
       map.on('mousemove', (e) => {
         const featureElem = document.getElementById('feature_name');
         const features = map.queryRenderedFeatures(e.point);
-        let kfrName = '';
+        let regionName = '';
         if (features.length > 0) {
-          for (const regionSource of regionSources) {
+          for (const regionSource of activeRegionSet.regionSources) {
             const testName = (features[0].properties as any)[regionSource.propertyName];
             if (testName) {
-              kfrName = testName;
+              regionName = testName;
               break;
             }
           }
         }
-        if (kfrName == '') {
+        if (regionName == '') {
           featureElem!.classList.add('hidden');
         } else {
           featureElem!.classList.remove('hidden');
         }
-        featureElem!.innerText = 'KFR: ' + kfrName;
+        featureElem!.innerText = regionName;
       });
       map.on('idle', () => {
         const mapHiderElement = document.getElementById('map_hider');
         mapHiderElement?.classList.add('hidden');
 
-        // Don't add layers again upon going idle for the second time.
+        // All layers have to be rendered an in view on the map for any of the layer
+        // names to be read, so we start with a view of all of Texas with all regions
+        // shown and extract the region information before choosing initial regions.
+
         if (!completedLayers) {
-          // Extract the names of the currently visible KFRs.
-
-          const features = map.queryRenderedFeatures({
-            // @ts-ignore error in type definition
-            layers: regionSources.map((src) => _toLayerSourceID(src.layerName))
-          });
-          const kfrNamesPerSource: any[][] = [];
-          let kfrCount = 0;
-          for (const regionSource of regionSources) {
-            const kfrNames: string[] = [];
-            for (const feature of features) {
-              const kfrName = (feature as any).properties[regionSource.propertyName];
-              if (kfrName !== undefined && !kfrNames.includes(kfrName)) {
-                kfrNames.push(kfrName);
-                ++kfrCount;
-              }
-            }
-            kfrNamesPerSource.push(kfrNames);
-          }
-          const fillColors: string[] = [];
-          for (let i = 0; i < kfrCount; ++i) {
-            fillColors.push(`hsl(${i * (360 / kfrCount)}, 50%, 50%)`);
-          }
-
-          // Render the KFRs each in a unique color.
-
-          let fillColorIndex = 0;
-          for (const regionSource of regionSources) {
-            const kfrNames = kfrNamesPerSource.shift()!;
-            const fillColorField: any[] = ['match', ['get', regionSource.propertyName]];
-            for (const kfrName of kfrNames) {
-              fillColorField.push(kfrName);
-              fillColorField.push(fillColors[fillColorIndex++]);
-            }
-            fillColorField.push('gray'); // default color
-
-            const sourceID = _toLayerSourceID(regionSource.layerName);
-            map.removeLayer(sourceID);
-            map.addLayer({
-              id: sourceID,
-              source: sourceID,
-              'source-layer': regionSource.layerName,
-              type: 'fill',
-              paint: {
-                'fill-color': fillColorField as any,
-                'fill-opacity': 0.35,
-                'fill-outline-color': '#000'
-              }
-            });
-          }
+          krRegionSet = extractRegionSet(krSources);
+          kfrRegionSet = extractRegionSet(kfrSources);
+          setVisibleRegions();
           completedLayers = true;
         }
         if (initialState) {
@@ -284,7 +259,8 @@
       stateChanged({
         latitude: lat,
         longitude: lng,
-        zoom: map.getZoom()
+        zoom: map.getZoom(),
+        showingKFRs: regionSelection == 'KFR'
       });
     }
   }
@@ -342,6 +318,80 @@
       r + r0 * y1
     } A ${r0} ${r0} 0 ${largeArc} 0 ${r + r0 * x0} ${r + r0 * y0}" fill="${color}" />`;
   }
+
+  function setVisibleRegions() {
+    if (regionSelection == 'KR') {
+      removeRegionSet(kfrRegionSet);
+      renderRegionSet(krRegionSet);
+    } else {
+      removeRegionSet(krRegionSet);
+      renderRegionSet(kfrRegionSet);
+    }
+  }
+
+  function extractRegionSet(regionSources: MapRegionSource[]): RegionSet {
+    const features = map.queryRenderedFeatures({
+      // @ts-ignore error in type definition
+      layers: regionSources.map((src) => _toLayerSourceID(src.layerName))
+    });
+    const namesPerSource: any[][] = [];
+    let regionCount = 0;
+    for (const regionSource of regionSources) {
+      const regionNames: string[] = [];
+      for (const feature of features) {
+        const regionName = (feature as any).properties[regionSource.propertyName];
+        if (regionName !== undefined && !regionNames.includes(regionName)) {
+          regionNames.push(regionName);
+          ++regionCount;
+        }
+      }
+      namesPerSource.push(regionNames);
+    }
+    return { regionSources, regionCount, namesPerSource };
+  }
+
+  function removeRegionSet(regionSet: RegionSet): void {
+    for (const regionSource of regionSet.regionSources) {
+      const sourceID = _toLayerSourceID(regionSource.layerName);
+      map.removeLayer(sourceID);
+    }
+  }
+
+  function renderRegionSet(regionSet: RegionSet): void {
+    const fillColors: string[] = [];
+    for (let i = 0; i < regionSet.regionCount; ++i) {
+      fillColors.push(`hsl(${i * (360 / regionSet.regionCount)}, 50%, 50%)`);
+    }
+
+    // Render the KFRs each in a unique color.
+
+    let fillColorIndex = 0;
+    for (let i = 0; i < regionSet.regionSources.length; ++i) {
+      const regionSource = regionSet.regionSources[i];
+      const regionNames = regionSet.namesPerSource[i];
+      const fillColorField: any[] = ['match', ['get', regionSource.propertyName]];
+      for (const regionName of regionNames) {
+        fillColorField.push(regionName);
+        fillColorField.push(fillColors[fillColorIndex++]);
+      }
+      fillColorField.push('gray'); // default color
+
+      const sourceID = _toLayerSourceID(regionSource.layerName);
+      if (!completedLayers) map.removeLayer(sourceID);
+      map.addLayer({
+        id: sourceID,
+        source: sourceID,
+        'source-layer': regionSource.layerName,
+        type: 'fill',
+        paint: {
+          'fill-color': fillColorField as any,
+          'fill-opacity': 0.35,
+          'fill-outline-color': '#000'
+        }
+      });
+    }
+    activeRegionSet = regionSet;
+  }
 </script>
 
 <svelte:head>
@@ -353,11 +403,37 @@
 
 <div id="map_box">
   <div id="map" />
-  <div id="feature_name" class="hidden" />
+  <div id="region_controls">
+    <div class="btn-group" role="group" aria-label="Switch between data and admin tabs">
+      <input
+        type="radio"
+        class="btn-check"
+        bind:group={regionSelection}
+        name="region_switch"
+        id="kr_selector"
+        value="KR"
+        on:change={setVisibleRegions}
+      />
+      <label class="btn btn-outline-primary compact" for="kr_selector">KR</label>
+      <input
+        type="radio"
+        class="btn-check"
+        bind:group={regionSelection}
+        name="region_switch"
+        id="kfr_selector"
+        value="KFR"
+        on:change={setVisibleRegions}
+      />
+      <label class="btn btn-outline-primary compact" for="kfr_selector">KFR</label>
+    </div>
+    <div id="feature_name" class="hidden" />
+  </div>
   <div id="map_hider" />
 </div>
 
 <style lang="scss">
+  @import '../variables.scss';
+
   #map_box {
     flex-grow: 1;
     position: relative;
@@ -369,14 +445,24 @@
     right: 0;
     bottom: 0;
   }
-  #feature_name {
+  #region_controls {
     position: absolute;
     top: 0;
     left: 0;
-    margin: 0.5rem;
+    margin: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+  }
+  #region_controls .btn-group {
+    float: left;
+    border-radius: $border-radius;
+    background-color: white;
+  }
+
+  #feature_name {
+    float: left;
+    margin-left: 0.5rem;
     background-color: rgba(255, 255, 255, 0.75);
     padding: 0.1rem 0.5rem;
-    font-size: 0.95rem;
   }
   #map_hider {
     position: absolute;
