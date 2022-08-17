@@ -460,6 +460,7 @@
 
   #feature_name {
     float: left;
+    border-radius: $border-radius;
     margin-left: 0.5rem;
     background-color: rgba(255, 255, 255, 0.75);
     padding: 0.1rem 0.5rem;
