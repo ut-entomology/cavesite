@@ -1,13 +1,14 @@
 <script lang="ts">
   import ModalDialog from '../../../common/ModalDialog.svelte';
+  import { localToInputDate, inputToLocalDate } from '../../../util/conversion';
 
   export let submit: (throughDate: Date) => void;
   export let close: () => void;
 
-  let throughStr: string;
+  let throughStr = localToInputDate(new Date());
 
   function onSubmit() {
-    submit(new Date(throughStr));
+    submit(inputToLocalDate(throughStr));
   }
 </script>
 

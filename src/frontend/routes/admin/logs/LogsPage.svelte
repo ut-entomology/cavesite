@@ -11,6 +11,7 @@
   import { showNotice } from '../../../common/VariableNotice.svelte';
   import { pageName } from '../../../stores/pageName';
   import { client, errorReason } from '../../../stores/client';
+  import { MILLIS_PER_DAY } from '../../../../shared/date_tools';
 
   $pageName = 'Website Logs';
   const tabName = 'Logs';
@@ -82,6 +83,7 @@
       );
       precedingLogs.forEach((_) => logs.pop());
       logs.unshift(...precedingLogs);
+      logs = logs; // rerender
       scrollArea.scrollTop = 0;
     }
   }
@@ -95,6 +97,7 @@
       startOffset += SMALL_STEP_ROWS;
       followingLogs.forEach((_) => logs.shift());
       logs.push(...followingLogs);
+      logs = logs; // rerender
       scrollArea.scrollTop = scrollArea.scrollHeight;
     }
   }
@@ -133,8 +136,11 @@
 
   async function _performDeletion(throughDate: Date) {
     requestDeletion = false;
-    await $client.post('api/logs/delete', { throughDateMillis: throughDate.getTime() });
+    await $client.post('api/logs/delete', {
+      throughUnixTime: throughDate.getTime() + MILLIS_PER_DAY - 1
+    });
     flashMessage('Deleted requested logs');
+    await prepareLogs();
   }
 
   function _getTagHtml(log: Log): string {
@@ -239,10 +245,12 @@
 
   .log_time {
     font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
   }
 
   .log_type {
     font-weight: bold;
+    text-transform: uppercase;
   }
   .log_type.type_import {
     color: green;
@@ -255,6 +263,6 @@
   }
 
   .log_line {
-    color: #888;
+    color: #777;
   }
 </style>
