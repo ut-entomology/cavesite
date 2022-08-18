@@ -15,7 +15,7 @@ import {
   checkPermissions
 } from '../util/http_util';
 import { Permission } from '../../shared/user_auth';
-import { IMPORT_SCHEDULE_KEY, type ImportSchedule } from '../../shared/data_keys';
+import { DataKey, type ImportSchedule } from '../../shared/data_keys';
 
 export const router = Router();
 
@@ -28,7 +28,11 @@ router.post('/pull', async (req: Request, res) => {
   const mine: boolean = req.body.mine;
   const key: string = req.body.key;
 
-  if (!checkBoolean(mine, false) || !checkString(key, false)) {
+  if (
+    !checkBoolean(mine, false) ||
+    !checkString(key, false) ||
+    !Object.values(DataKey).includes(key as any)
+  ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
   const value = await KeyData.read(
@@ -64,6 +68,6 @@ router.post('/set_schedule', async (req: Request, res) => {
     data = JSON.stringify(schedule);
   }
 
-  await KeyData.write(getDB(), null, IMPORT_SCHEDULE_KEY, Permission.Admin, data);
+  await KeyData.write(getDB(), null, DataKey.ImportSchedule, Permission.Admin, data);
   return res.status(StatusCodes.OK).send();
 });

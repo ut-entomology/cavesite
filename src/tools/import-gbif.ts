@@ -11,7 +11,7 @@ import { type DB, disconnectDB } from '../backend/integrations/postgres';
 import { connectDatabase, loadDatabase } from './lib/load_database';
 import { Permission } from '../shared/user_auth';
 import { KeyData } from '../backend/model/key_data';
-import { IMPORT_SCHEDULE_KEY, type ImportSchedule } from '../shared/data_keys';
+import { DataKey, type ImportSchedule } from '../shared/data_keys';
 import { LogType } from '../shared/model';
 import { Logs } from '../backend/model/logs';
 
@@ -180,7 +180,7 @@ class CheckedGbifImporter extends GbifImporter {
       await this.getDB(),
       null,
       Permission.Admin,
-      IMPORT_SCHEDULE_KEY
+      DataKey.ImportSchedule
     );
     if (!keyData) return false;
     const schedule: ImportSchedule = JSON.parse(keyData);

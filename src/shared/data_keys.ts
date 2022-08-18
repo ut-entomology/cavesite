@@ -2,7 +2,10 @@
  * Data keys and the structures found at them.
  */
 
-export const IMPORT_SCHEDULE_KEY = 'import_schedule';
+export enum DataKey {
+  CaveObligates = 'cave_obligates',
+  ImportSchedule = 'import_schedule'
+}
 
 export const daysOfWeek = [
   'Sunday',

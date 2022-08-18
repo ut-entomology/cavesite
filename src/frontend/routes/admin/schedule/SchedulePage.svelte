@@ -6,7 +6,7 @@
   import ScheduleDialog, { toHourString } from './ScheduleDialog.svelte';
   import { pageName } from '../../../stores/pageName';
   import {
-    IMPORT_SCHEDULE_KEY,
+    DataKey,
     daysOfWeek,
     type ImportSchedule
   } from '../../../../shared/data_keys';
@@ -27,7 +27,7 @@
   }
 
   async function _loadSchedule() {
-    schedule = JSON.parse(await loadKeyData($client, false, IMPORT_SCHEDULE_KEY));
+    schedule = JSON.parse(await loadKeyData($client, false, DataKey.ImportSchedule));
   }
 
   async function submitSchedule(newSchedule: ImportSchedule | null) {
