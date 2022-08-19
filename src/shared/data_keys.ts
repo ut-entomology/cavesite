@@ -30,16 +30,16 @@ export const dataValidatorsByKey = {
       line = line.trim();
       if (line.length == 0 || line[0] == '#') continue;
       if (line[0] != line[0].toUpperCase()) {
-        addError(errors, line, 'does not begin in uppercase');
+        addError(errors, line, 'does not begin with an uppercase letter');
       }
       if (line[1] == '.') {
-        addError(errors, line, 'genus is abbreviated');
+        addError(errors, line, 'appears to have an abbreviated genus');
       }
       if (!line.match(regex)) {
         addError(errors, line, 'contains dissallowed characters');
       }
       if (line.substring(1) != line.substring(1).toLowerCase()) {
-        addError(errors, line, 'is not lowercase after first letter');
+        addError(errors, line, 'is not entirely lowercase after first letter');
       }
     }
     return errors;

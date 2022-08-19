@@ -43,6 +43,7 @@
     $unsavedKeyData = null;
     saveDisabled = true;
     closeLabel = 'Close';
+    errors = [];
   } else {
     if (timer === null) {
       // Don't keep timer going, as it keeps going when changing pages in an SPA.
@@ -58,6 +59,9 @@
 
   async function prepare() {
     originalText = (await loadKeyData($client, false, fileSpec.dataKey)) || '';
+    if ($unsavedKeyData == null) {
+      text = originalText;
+    }
   }
 
   async function onSave() {
@@ -97,6 +101,17 @@
   </div>
 
   {#await prepare() then}
+    {#if errors.length > 0}
+      <div id="errors" class="col">
+        <div class="error_header">Please correct these errors</div>
+        <ul>
+          {#each errors as error}
+            <li>{error}</li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
+
     <div class="dialog_controls row gx-0">
       <div class="col status text-center">{status}</div>
       <div class="col text-end">
@@ -111,17 +126,6 @@
         >
       </div>
     </div>
-
-    {#if errors.length > 0}
-      <div id="errors" class="col">
-        <div class="error_header">Please correct these errors</div>
-        <ul>
-          {#each errors as error}
-            <li>{error}</li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
 
     <AutosizingTextArea bind:text />
   {/await}
@@ -161,6 +165,8 @@
     border-radius: $border-radius;
     border: 1px solid red;
     padding: 0 0.5em 0.5em 0.5em;
+    margin: 1rem 0 0.5rem 0;
+    font-size: 0.95rem;
   }
   .error_header {
     font-weight: bold;
@@ -169,5 +175,8 @@
     padding: 0 0.5em;
     background-color: white;
     color: red;
+  }
+  ul {
+    margin: 0.5rem 0;
   }
 </style>
