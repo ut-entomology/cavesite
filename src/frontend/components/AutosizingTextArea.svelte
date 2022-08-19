@@ -1,14 +1,26 @@
-<script>
+<script lang="ts">
+  import { afterUpdate } from 'svelte';
+
   // from https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/
 
   export let text = '';
+
+  let textareaElement: HTMLTextAreaElement;
+
+  afterUpdate(replicate);
+
+  function replicate() {
+    // @ts-ignore type error about dataset not being there
+    textareaElement.parentNode!.dataset.replicatedValue = text;
+  }
 </script>
 
 <div class="grow-wrap">
   <textarea
     name="autosizing_textarea"
     id="autosizing_textarea"
-    onInput="this.parentNode.dataset.replicatedValue = this.value"
+    bind:this={textareaElement}
+    on:input={replicate}
     bind:value={text}
   />
 </div>
