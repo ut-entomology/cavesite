@@ -41,7 +41,8 @@
     <TabHeader {tabName} title={$pageName}>
       <span slot="instructions">
         These data files govern the operation of the website. Click on a file to view or
-        edit it.
+        edit it. They are stored in the database rather than in the file system so that
+        they get backed up with the database.
       </span>
     </TabHeader>
     <ul class="mt-3 mb-3">
