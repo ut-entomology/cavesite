@@ -21,3 +21,31 @@ export interface ImportSchedule {
   importDaysOfWeek: number[];
   importHourOfDay: number;
 }
+
+export const dataValidatorsByKey = {
+  [DataKey.CaveObligates]: (text: string) => {
+    const regex = /^[-A-Za-z .]+$/;
+    const errors: string[] = [];
+    for (let line of text.split('\n')) {
+      line = line.trim();
+      if (line.length == 0 || line[0] == '#') continue;
+      if (line[0] != line[0].toUpperCase()) {
+        addError(errors, line, 'does not begin in uppercase');
+      }
+      if (line[1] == '.') {
+        addError(errors, line, 'genus is abbreviated');
+      }
+      if (!line.match(regex)) {
+        addError(errors, line, 'contains dissallowed characters');
+      }
+      if (line.substring(1) != line.substring(1).toLowerCase()) {
+        addError(errors, line, 'is not lowercase after first letter');
+      }
+    }
+    return errors;
+  }
+};
+
+function addError(errors: string[], line: string, message: string): void {
+  errors.push(`"${line}" ${message}`);
+}
