@@ -18,6 +18,7 @@ import { Permission } from '../../shared/user_auth';
 import {
   DataKey,
   type ImportSchedule,
+  readPermissionsByKey,
   dataValidatorsByKey
 } from '../../shared/data_keys';
 
@@ -74,7 +75,13 @@ router.post('/save', async (req: Request, res) => {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 
-  await KeyData.write(getDB(), mine ? loginUserID : null, key, Permission.Admin, data);
+  await KeyData.write(
+    getDB(),
+    mine ? loginUserID : null,
+    key,
+    readPermissionsByKey[key],
+    data
+  );
   return res.status(StatusCodes.OK).send();
 });
 

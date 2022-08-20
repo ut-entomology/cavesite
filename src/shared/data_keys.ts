@@ -1,11 +1,17 @@
 /**
  * Data keys and the structures found at them.
  */
+import { Permission } from '../shared/user_auth';
 
 export enum DataKey {
   CaveObligates = 'cave_obligates',
   ImportSchedule = 'import_schedule'
 }
+
+export const readPermissionsByKey = {
+  [DataKey.CaveObligates]: Permission.None,
+  [DataKey.ImportSchedule]: Permission.Admin
+};
 
 export const daysOfWeek = [
   'Sunday',
