@@ -10,7 +10,7 @@ import { type DB, connectDB, disconnectDB, getDB } from '../integrations/postgre
 
 const LOCK_RETRY_MILLIS = 100;
 const LOCKFILE = path.join(__dirname, '../../../db-test-mutex');
-const SETUP_SQL_DIR = path.join(__dirname, '../../../setup');
+const SETUP_SQL_DIR = path.join(__dirname, '../../../setup/sql');
 
 const TEST_DB_CONFIG = {
   host: 'localhost',

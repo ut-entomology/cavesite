@@ -19,7 +19,7 @@
       dataKey: DataKey.CaveObligates,
       title: 'Cave Obligates',
       instructions:
-        "List of all cave obligates at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments."
+        "List of all cave obligates at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
     }
   ];
 

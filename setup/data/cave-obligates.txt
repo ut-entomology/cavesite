@@ -1,10 +1,17 @@
+# Genera that are entirely cave obligate.
+
 Brackenridgia
 Speodesmus
 Speorthus
 Texamaurops
 Texoreddellia
 
+# Subenera that are entirely cave obligate. Must also list species within
+# the subgenus that are cave obligate.
+
 Cicurella
+
+# Species that are cave obligate not necessarily in cave-obligate genera.
 
 Dendroelopsis americana
 Sphalloplana mohri
