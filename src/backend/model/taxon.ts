@@ -11,7 +11,7 @@
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { TaxonRank, TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
-import { getCaveObligatesMap } from '../effort/cave_obligates';
+import { getCaveObligatesMap } from '../lib/cave_obligates';
 import { ImportFailure } from './import_failure';
 
 const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
@@ -224,6 +224,10 @@ export class Taxon {
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
   private static async _createMissingTaxa(db: DB, specs: TaxonSpec[]): Promise<Taxon> {
+    const caveObligatesMap = await getCaveObligatesMap(db);
+    const toObligateValue = (unique: string) =>
+      caveObligatesMap[unique] ? 'cave' : null;
+
     let [taxon, taxonIndex] = await Taxon._getClosestTaxon(
       db,
       specs,
@@ -241,7 +245,7 @@ export class Taxon {
         taxonName: spec.name,
         uniqueName: spec.unique,
         author: spec.author,
-        obligate: taxon?.obligate || _caveObligateValue(spec.unique) || null,
+        obligate: taxon?.obligate || toObligateValue(spec.unique) || null,
         parentID: taxon?.taxonID || null,
         hasChildren: spec.hasChildren || null
       });
@@ -335,10 +339,6 @@ export class Taxon {
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     return [taxonNames, taxonRank];
   }
-}
-
-function _caveObligateValue(taxonName: string): string | null {
-  return getCaveObligatesMap()[taxonName] ? 'cave' : null;
 }
 
 function _toTaxonData(row: any): TaxonData {

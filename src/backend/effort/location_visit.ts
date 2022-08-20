@@ -8,7 +8,7 @@ import { type DB, toCamelRow } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
 import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
-import { getCaveObligatesMap, getCaveContainingGeneraMap } from './cave_obligates';
+import { getCaveObligatesMap, getCaveContainingGeneraMap } from '../lib/cave_obligates';
 import { partialDateHasMonth, toDaysEpoch } from '../../shared/date_tools';
 
 const NO_DATE_EPOCH_DAY = -Math.pow(1, 9); // very negative to make first in sort
@@ -135,7 +135,7 @@ export class LocationVisit extends TaxonCounter {
 
     switch (comparedFauna) {
       case ComparedFauna.caveObligates:
-        const caveObligatesMap = getCaveObligatesMap();
+        const caveObligatesMap = await getCaveObligatesMap(db);
         if (
           !(
             (speciesName && caveObligatesMap[speciesName]) ||
@@ -148,7 +148,7 @@ export class LocationVisit extends TaxonCounter {
         }
         break;
       case ComparedFauna.generaHavingCaveObligates:
-        const caveContainingGeneraMap = getCaveContainingGeneraMap();
+        const caveContainingGeneraMap = await getCaveContainingGeneraMap(db);
         if (!specimen.genusName || !caveContainingGeneraMap[specimen.genusName]) {
           return; // exclude genera that don't contain cave obligates
         }

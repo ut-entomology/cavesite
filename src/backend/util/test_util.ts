@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as lockfile from 'proper-lockfile';
 
 import { type DB, connectDB, disconnectDB, getDB } from '../integrations/postgres';
+import { loadDefaultCaveObligates } from '../lib/cave_obligates';
 
 const LOCK_RETRY_MILLIS = 100;
 const LOCKFILE = path.join(__dirname, '../../../db-test-mutex');
@@ -48,6 +49,7 @@ export class DatabaseMutex {
       .toString();
     await this._db.query(dropTablesSQL);
     await this._db.query(createTablesSQL);
+    await loadDefaultCaveObligates(this._db);
 
     return this._db;
   }

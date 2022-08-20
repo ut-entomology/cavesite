@@ -11,7 +11,7 @@ import { ImportFailure } from './import_failure';
 import { Logs } from './logs';
 import { type TaxonPathSpec, locationRanks, LogType } from '../../shared/model';
 import { toDaysEpoch } from '../../shared/date_tools';
-import { getCaveObligatesMap } from '../effort/cave_obligates';
+import { getCaveObligatesMap } from '../lib/cave_obligates';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -413,8 +413,9 @@ export class Specimen implements TaxonPathSpec {
     // Determine whether is cave obligate. `taxon` will never represent a
     // subgenus, so check for that directly.
 
+    const caveObligatesMap = await getCaveObligatesMap(db);
     let obligate = taxon.obligate;
-    if (subgenus && getCaveObligatesMap()[subgenus]) obligate = 'cave';
+    if (subgenus && caveObligatesMap[subgenus]) obligate = 'cave';
 
     // Assemble the specimen instance from the data.
 

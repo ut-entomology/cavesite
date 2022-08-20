@@ -13,134 +13,54 @@ Cicurella
 
 # Species that are cave obligate not necessarily in cave-obligate genera.
 
-Dendroelopsis americana
-Sphalloplana mohri
-Brachycoelium longleyi
-Dendronucleata americana
-Rhabdochona longleyi
-Amphibiocapillaria texensis
-Balconorbis uvaldensis
-Phreatoceras taylor
-Phreatodrobia conica
-Phreatodrobia coronae
-Phreatodrobia micra
-Phreatodrobia nugax imitata
-Phreatodrobia nugax nugax
-Phreatodrobia plana
-Phreatodrobia punctata
-Phreatodrobia rotunda
-Phreatodrobia spica
-Stygopyrgus bartonensis
-Texapyrgus longleyi
-Eremidrilus n. sp. 1
-Eremidrilus n. sp. 2
-Stylodrilus n. sp. 
-Mooreobdella ?n. sp. 
-Nicrellopsis texana
-Bicornucandona fineganensis
-Comalcandona mixoni
-Comalcandona gibsoni
-Indocandona rusti
-Lacrimacondona wisei
-Namiotkocypria haysensis
-Pseudocandona lordi
-Rugosuscandona scharfi
-Schornikovdona bellensis
-Ufocandona hannaleae
-Cavernocypris reddelli
-Cavernocypris wardi
-Hobbsinella edwardensis
-Montanabathyella pecosensis
-Texanobathynella aaronswinki
-Texanobathynella bowmani
-Texanobathynella coloradoensis
-Tethysbaena texana
-Caecidotea bilineata
-Caecidotea reddelli
-Lirceolus bisetus
-Lirceolus cocytus
-Lirceolus hardeni
-Lirceolus nidulus
-Lirceolus pilus
-Lirceolus smithii
-Mexistenasellus coahuila
-Cirolanides texensis texensis
-Cirolanides wassenichae
-Speocirolana hardeni
-Texicerberus n. spp. 
-Texicerberus amistad
-Texicerberus castilloi
-Texicerberus schoetteae
-Artesia subterranea
-Artesia welbourni
-Crangonyx sp. nr. pseudogracilis
-Stygobromus alabamensis occidentalis
-Stygobromus bakeri
-Stygobromus balconis
-Stygobromus bifurcatus
-Stygobromus dejectus
-Stygobromus flagellatus
-Stygobromus hadenoecus
-Stygobromus limbus
-Stygobromus longipes
-Stygobromus pecki
-Stygobromus reddelli
-Stygobromus russelli
+Agastoschizomus n. sp.
+Agastoschizomus texanus
+Allomideopsis wichitaensis
 Allotexiweckelia hirsuta
-Holsingerius samacos
-Mexiweckelia hardeni
-Paraholsingerius smaragdinus
-Paraamexiweckelia ruffoi
-Texiweckelia texensis
-Texiweckeliopsis insolita
-Ingolfiella n. spp. 
-Parabogidiella americana
-Simplexia longicrus
-Seborgia hershleri
-Seborgia relicta
-Calathaemon holthuisi
-Palaemon antrorum
+Almuerzothyas comalensis
+Amerigoniscus gipsocolus
+Amphibiocapillaria texensis
+Anapistula n. sp.
+Aphrastochthonius n. sp. 1
+Aphrastochthonius n. sp. 2
+Aphrastochthonius n. sp. 3
+Arenobiinae n. sp.
 Arrenrus n. sp. 1
 Arrenrus n. sp. 2
+Artesia subterranea
+Artesia welbourni
 Axonopsella bakeri
-Brachydopsis n. sp. 
-Chappusides n. sp. 
-Clathroperchon n. sp. 
-Almuerzothyas comalensis
-Lethaxonella n. sp. 
-Kuwamuacarus n. sp. 
-Meramecia n. sp. 
-Protolimnesia Protolimnesia ventriplacophora
-Mideopsis n. sp. 
-Stygmomonia n. sp. 
-Allomideopsis wichitaensis 
-Uchidastygacarus n. sp. 
-Stygoparnus comalensis
-Comaldessus stygius
-Ereboporus naturaconservatis
-Haideoporus texanus
-Psychopomporus felipi
-Typhloelmis caroline
-Typhloelmis finegan
-Typhloelmis sanfelipe
-Prietella phreatophila
-Satan eurystomus
-Trogloglanis pattersoni
-Eurycea n. sp. 
-Eurycea latitans
-Eurycea neotenes
-Eurycea rathbuni
-Eurycea robusta
-Eurycea sosorum
-Eurycea tonkawae
-Eurycea troglodytes
-Eurycea waterlooensis
-Amerigoniscus gipsocolus
-Brackenridgia n. sp. 
-Brackenridgia cavernarum
-Brackenridgia reddelli
-Agastoschizomus n. sp. 
-Agastoschizomus texanus
+Balconorbis uvaldensis
+Batrisodes cryptotexanus
+Batrisodes dentifroms
+Batrisodes fanti
+Batrisodes feminiclypeus
+Batrisodes gravesi
+Batrisodes grubbsi
+Batrisodes incisipes
+Batrisodes n. sp. 1
+Batrisodes n. sp. 2
+Batrisodes n. sp. 3
+Batrisodes n. sp.
+Batrisodes pekins
+Batrisodes reyesi
+Batrisodes shadeae
+Batrisodes texanus
+Batrisodes venyivi
+Batrisodes wartoni
+Bicornucandona fineganensis
+Brachycoelium longleyi
+Brachydopsis n. sp.
+Caecidotea bilineata
+Caecidotea reddelli
+Calathaemon holthuisi
+Cambala reddelli
+Cambala speobia
+Cavernocypris reddelli
+Cavernocypris wardi
+Chappusides n. sp.
+Chinquipellobunus madlae
+Chinquipellobunus reddelli
 Cicurina bandera
 Cicurina bandida
 Cicurina baronia
@@ -159,8 +79,8 @@ Cicurina holsingeri
 Cicurina hoodensis
 Cicurina joya
 Cicurina machete
-Cicurina mckenziei
 Cicurina madla
+Cicurina mckenziei
 Cicurina medina
 Cicurina menardia
 Cicurina mirifica
@@ -192,6 +112,144 @@ Cicurina venefica
 Cicurina vespera
 Cicurina vibora
 Cicurina watersi
+Cirolanides texensis
+Cirolanides wassenichae
+Clathroperchon n. sp.
+Comalcandona gibsoni
+Comalcandona mixoni
+Comaldessus stygius
+Crangonyx sp. nr. pseudogracilis
+Dendroelopsis americana
+Dendronucleata americana
+Dichoxenus n. sp.
+Dinocheirus cavicola
+Eidmannella bullata
+Eidmannella delicata
+Eidmannella nasuta
+Eidmannella reclusa
+Eidmannella rostrata
+Eidmannella tuckeri
+Ereboporus naturaconservatis
+Eremidrilus n. sp. 1
+Eremidrilus n. sp. 2
+Erigone sp.
+Eurycea latitans
+Eurycea n. sp.
+Eurycea neotenes
+Eurycea rathbuni
+Eurycea robusta
+Eurycea sosorum
+Eurycea tonkawae
+Eurycea troglodytes
+Eurycea waterlooensis
+Haideoporus texanus
+Hobbsinella edwardensis
+Holsingerius samacos
+Indocandona rusti
+Ingolfiella n. spp.
+Islandiana unicornis
+Kuwamuacarus n. sp.
+Lacrimacondona wisei
+Larca guadalupensis
+Lethaxonella n. sp.
+Leucohya texana
+Lirceolus bisetus
+Lirceolus cocytus
+Lirceolus hardeni
+Lirceolus nidulus
+Lirceolus pilus
+Lirceolus smithii
+Lithobiinae n. sp.
+Litocampa n. sp.
+Lymantes nadinae
+Lymantes reddelli
+Meramecia n. sp.
+Mexichthonius exoticus
+Mexistenasellus coahuila
+Mexiweckelia hardeni
+Mideopsis n. sp.
+Mixojapyx reddelli
+Montanabathyella pecosensis
+Mooreobdella ?n. sp.
+Namiotkocypria haysensis
+Nicrellopsis texana
+Oncopodura fenestra
+Palaemon antrorum
+Paraamexiweckelia ruffoi
+Parabogidiella americana
+Paraholsingerius smaragdinus
+Phreatoceras taylor
+Phreatodrobia conica
+Phreatodrobia coronae
+Phreatodrobia micra
+Phreatodrobia nugax
+Phreatodrobia plana
+Phreatodrobia punctata
+Phreatodrobia rotunda
+Phreatodrobia spica
+Podocampa n. sp.
+Prietella phreatophila
+Protolimnesia ventriplacophora
+Pseudocandona lordi
+Psychopomporus felipi
+Pygmarrhopalites texensis
+Rhabdochona longleyi
+Rhadine austinica
+Rhadine bull
+Rhadine exilis
+Rhadine grubbsi
+Rhadine infernalis
+Rhadine insolita
+Rhadine ivyi
+Rhadine koepkei
+Rhadine n. sp. 1
+Rhadine n. sp. 2
+Rhadine n. sp. 3
+Rhadine n. sp. 4
+Rhadine n. sp. 5
+Rhadine noctivage
+Rhadine persephone
+Rhadine reyesi
+Rhadine russelli
+Rhadine specum
+Rhadine sprousei
+Rhadine subterranea
+Rhadine tenebrosa
+Rugosuscandona scharfi
+Satan eurystomus
+Schornikovdona bellensis
+Seborgia hershleri
+Seborgia relicta
+Simplexia longicrus
+Speocirolana hardeni
+Sphalloplana mohri
+Stygmomonia n. sp.
+Stygobromus alabamensis
+Stygobromus bakeri
+Stygobromus balconis
+Stygobromus bifurcatus
+Stygobromus dejectus
+Stygobromus flagellatus
+Stygobromus hadenoecus
+Stygobromus limbus
+Stygobromus longipes
+Stygobromus pecki
+Stygobromus reddelli
+Stygobromus russelli
+Stygoparnus comalensis
+Stygopyrgus bartonensis
+Stylodrilus n. sp.
+Tartarocreagris altimana
+Tartarocreagris amblyopa
+Tartarocreagris attenuata
+Tartarocreagris domina
+Tartarocreagris grubbsi
+Tartarocreagris hoodensis
+Tartarocreagris infernalis
+Tartarocreagris intermedia
+Tartarocreagris proserpina
+Tartarocreagris reyesi
+Tartarocreagris texana
 Tayshaneta anopica
 Tayshaneta archambaulti
 Tayshaneta bullis
@@ -204,35 +262,11 @@ Tayshaneta sandersi
 Tayshaneta sprousei
 Tayshaneta vidreo
 Tayshaneta whitei
-Erigone sp. 
-Islandiana unicornis
-Eidmannella bullata
-Eidmannella delicata
-Eidmannella nasuta
-Eidmannella reclusa
-Eidmannella rostrata
-Eidmannella tuckeri
-Anapistula n. sp. 
-Leucohya texana
-Dinocheirus cavicola
-Aphrastochthonius n. sp. 1
-Aphrastochthonius n. sp. 2
-Aphrastochthonius n. sp. 3
-Mexichthonius exoticus
-Tyrannochthonius muchmoreorum
-Tyrannochthonius troglodytes
-Larca guadalupensis
-Tartarocreagris altimana
-Tartarocreagris amblyopa
-Tartarocreagris attenuata
-Tartarocreagris domina
-Tartarocreagris grubbsi
-Tartarocreagris hoodensis
-Tartarocreagris infernalis
-Tartarocreagris intermedia
-Tartarocreagris proserpina
-Tartarocreagris reyesi
-Tartarocreagris texana
+Tethysbaena texana
+Texanobathynella aaronswinki
+Texanobathynella bowmani
+Texanobathynella coloradoensis
+Texapyrgus longleyi
 Texella cokendolperi
 Texella hardeni
 Texella hilgerensis
@@ -240,81 +274,18 @@ Texella mulaiki
 Texella reyesi
 Texella tuberculata
 Texella whitei
-Chinquipellobunus madlae
-Chinquipellobunus reddelli
-Arenobiinae n. sp. 
-Lithobiinae n. sp. 
+Texicerberus amistad
+Texicerberus castilloi
+Texicerberus n. spp.
+Texicerberus schoetteae
+Texiweckelia texensis
+Texiweckeliopsis insolita
 Theatops phanus
-Cambala reddelli
-Cambala speobia
-Speodesmus n. sp. 1
-Speodesmus n. sp. 2
-Speodesmus n. sp. 3
-Speodesmus bicornourus
-Speodesmus castellanus
-Speodesmus ehinourus
-Speodesmus falcatus
-Speodesmus ivyi
-Speodesmus reddelli
-Speorthus reyesi
-Speorthus tuganbius
-Oncopodura fenestra
-Pygmarrhopalites texensis
-Litocampa n. sp. 
-Podocampa n. sp. 
-Mixojapyx reddelli
-Texoreddellia aquilonalis
-Texoreddellia capitesquameo
-Texoreddellia coahuilensis
-Texoreddellia media
-Texoreddellia occasus
-Texoreddellia texensis
-Rhadine n. sp. 1
-Rhadine n. sp. 2
-Rhadine n. sp. 3
-Rhadine n. sp. 4
-Rhadine n. sp. 5
-Rhadine austinica
-Rhadine bull
-Rhadine exilis
-Rhadine grubbsi
-Rhadine infernalis n. subsp. 
-Rhadine infernalis ewersi
-Rhadine infernalis infernalis
-Rhadine insolita
-Rhadine ivyi
-Rhadine koepkei koepkei
-Rhadine koepkei privata
-Rhadine noctivage
-Rhadine persephone
-Rhadine reyesi
-Rhadine russelli
-Rhadine specum crinicollis
-Rhadine specum gentilis
-Rhadine specum specum
-Rhadine sprousei
-Rhadine subterranea mitchelli
-Rhadine subterranea subterranea
-Rhadine tenebrosa mckenziei
-Rhadine tenebrosa tenebrosa
-Dichoxenus n. sp. 
-Lymantes nadinae
-Lymantes reddelli
-Batrisodes n. sp.
-Batrisodes dentifroms
-Batrisodes fanti
-Batrisodes feminiclypeus
-Batrisodes gravesi
-Batrisodes incisipes
-Batrisodes pekins
-Batrisodes wartoni
-Batrisodes n. sp. 1
-Batrisodes n. sp. 2
-Batrisodes n. sp. 3
-Batrisodes cryptotexanus
-Batrisodes grubbsi
-Batrisodes reyesi
-Batrisodes shadeae
-Batrisodes texanus
-Batrisodes venyivi
-Texamaurops reddelli
+Trogloglanis pattersoni
+Typhloelmis caroline
+Typhloelmis finegan
+Typhloelmis sanfelipe
+Tyrannochthonius muchmoreorum
+Tyrannochthonius troglodytes
+Uchidastygacarus n. sp.
+Ufocandona hannaleae

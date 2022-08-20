@@ -8,11 +8,6 @@ export enum DataKey {
   ImportSchedule = 'import_schedule'
 }
 
-export const readPermissionsByKey = {
-  [DataKey.CaveObligates]: Permission.None,
-  [DataKey.ImportSchedule]: Permission.Admin
-};
-
 export const daysOfWeek = [
   'Sunday',
   'Monday',
@@ -54,4 +49,20 @@ export const dataValidatorsByKey = {
 
 function addError(errors: string[], line: string, message: string): void {
   errors.push(`"${line}" ${message}`);
+}
+
+export const readPermissionsByKey = {
+  [DataKey.CaveObligates]: Permission.None,
+  [DataKey.ImportSchedule]: Permission.Admin
+};
+
+export function parseCaveObligates(text: string): string[] {
+  const taxa: string[] = [];
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (line != '' && line[0] != '#') {
+      taxa.push(line);
+    }
+  }
+  return taxa;
 }
