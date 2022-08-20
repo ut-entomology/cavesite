@@ -5,11 +5,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-import {
-  DataKey,
-  readPermissionsByKey,
-  parseCaveObligates
-} from '../../shared/data_keys';
+import { DataKey, readPermissionsByKey, parseDataLines } from '../../shared/data_keys';
 import type { DB } from '../integrations/postgres';
 import { KeyData } from '../model/key_data';
 import { Permission } from '../../shared/user_auth';
@@ -59,7 +55,7 @@ export async function getCaveContainingGeneraMap(
 export async function getCaveObligates(db: DB): Promise<string[]> {
   if (cachedCaveObligateTaxa.length > 0) return cachedCaveObligateTaxa;
   const data = await KeyData.read(db, null, Permission.None, DataKey.CaveObligates);
-  return parseCaveObligates(data || '');
+  return parseDataLines(data || '');
 }
 
 export async function loadDefaultCaveObligates(db: DB): Promise<void> {

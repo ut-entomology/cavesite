@@ -16,6 +16,12 @@
 
   const fileSpecs: FileSpec[] = [
     {
+      dataKey: DataKey.CaveLocalities,
+      title: 'Cave Localities',
+      instructions:
+        "List of the locality names of caves not having the text 'cave' in their names. You must follow each locality name with the county name in parentheses. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+    },
+    {
       dataKey: DataKey.CaveObligates,
       title: 'Cave Obligates',
       instructions:

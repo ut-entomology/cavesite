@@ -4,6 +4,7 @@
 import { Permission } from '../shared/user_auth';
 
 export enum DataKey {
+  CaveLocalities = 'cave_localities',
   CaveObligates = 'cave_obligates',
   ImportSchedule = 'import_schedule'
 }
@@ -24,6 +25,36 @@ export interface ImportSchedule {
 }
 
 export const dataValidatorsByKey = {
+  [DataKey.CaveLocalities]: (text: string) => {
+    const errors: string[] = [];
+    for (let line of text.split('\n')) {
+      line = line.trim();
+      if (line.length == 0 || line[0] == '#') continue;
+      if (line[0] == '(') {
+        addError(errors, line, 'cannot begin cave name with parentheses');
+      }
+      const lastLeftParenIndex = line.lastIndexOf('(');
+      if (lastLeftParenIndex < 0) {
+        addError(errors, line, 'is missing parenthesized county name');
+      }
+      if (line[line.length - 1] != ')') {
+        addError(errors, line, 'is missing trailing parenthesis');
+      }
+      const locality = line.substring(0, lastLeftParenIndex).trim();
+      const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
+      if (county == '') {
+        addError(errors, line, 'has no county name');
+      }
+      if (locality.toLowerCase().includes('cave')) {
+        addError(
+          errors,
+          line,
+          "contains the text 'cave' and so need not be listed here"
+        );
+      }
+    }
+    return errors;
+  },
   [DataKey.CaveObligates]: (text: string) => {
     const regex = /^[-A-Za-z0-9 .]+$/;
     const errors: string[] = [];
@@ -52,17 +83,30 @@ function addError(errors: string[], line: string, message: string): void {
 }
 
 export const readPermissionsByKey = {
+  [DataKey.CaveLocalities]: Permission.None,
   [DataKey.CaveObligates]: Permission.None,
   [DataKey.ImportSchedule]: Permission.Admin
 };
 
-export function parseCaveObligates(text: string): string[] {
-  const taxa: string[] = [];
+export function parseDataLines(text: string): string[] {
+  const lines: string[] = [];
   for (let line of text.split('\n')) {
     line = line.trim();
     if (line != '' && line[0] != '#') {
-      taxa.push(line);
+      lines.push(line);
     }
   }
-  return taxa;
+  return lines;
+}
+
+export function parseLocalities(text: string): [string, string][] {
+  const localityCounties: [string, string][] = [];
+  const lines = parseDataLines(text);
+  for (const line of lines) {
+    const lastLeftParenIndex = line.lastIndexOf('(');
+    const locality = line.substring(0, lastLeftParenIndex).trim();
+    const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
+    localityCounties.push([locality, county]);
+  }
+  return localityCounties;
 }
