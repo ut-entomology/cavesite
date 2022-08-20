@@ -133,6 +133,7 @@ function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
 //// Location /////////////////////////////////////////////////////////////////
 
 export const ROOT_LOCATION_UNIQUE = 'north america|united states|texas';
+export const CAVE_FLAG = 0x01;
 
 export enum LocationRank {
   Continent = 'continent',

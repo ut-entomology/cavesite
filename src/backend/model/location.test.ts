@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Location } from './location';
-import { LocationRank } from '../../shared/model';
+import { LocationRank, CAVE_FLAG } from '../../shared/model';
 import { ImportFailure } from './import_failure';
 
 describe('without location location uniques', () => {
@@ -23,11 +23,13 @@ describe('without location location uniques', () => {
         locationName: 'North America',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: null,
         hasChildren: null
       };
       const expectedLocation = Object.assign({}, sourceLocation, {
         locationID: 1,
+        flags: 0,
         parentIDPath: '',
         parentNamePath: '',
         locationUnique: 'north america'
@@ -46,11 +48,13 @@ describe('without location location uniques', () => {
         locationName: 'United States',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 1,
         hasChildren: null
       };
       const expectedLocation = Object.assign({}, sourceLocation, {
         locationID: 2,
+        flags: 0,
         parentIDPath: '1',
         parentNamePath: 'North America',
         locationUnique: 'north america|united states'
@@ -82,6 +86,7 @@ describe('without location location uniques', () => {
         locationUnique: 'north america|united states|someplace in us',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -119,6 +124,7 @@ describe('without location location uniques', () => {
         locationUnique: 'north america|united states|texas',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -132,6 +138,7 @@ describe('without location location uniques', () => {
         locationUnique: 'united states|texas|someplace in texas',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -159,6 +166,7 @@ describe('without location location uniques', () => {
         locationUnique: 'united states|texas|travis county',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -172,6 +180,7 @@ describe('without location location uniques', () => {
         locationUnique: 'texas|travis county|missing cave',
         latitude: 28.12,
         longitude: -97.34,
+        flags: CAVE_FLAG,
         parentID: 6,
         parentIDPath: '1,2,4,6',
         parentNamePath: 'North America|United States|Texas|Travis County',
@@ -199,6 +208,7 @@ describe('without location location uniques', () => {
         locationUnique: 'north america|mexico',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 1,
         parentIDPath: '1',
         parentNamePath: 'North America',
@@ -211,6 +221,7 @@ describe('without location location uniques', () => {
         locationUnique: 'north america|mexico|chihuahua',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 8,
         parentIDPath: '1,8',
         parentNamePath: 'North America|Mexico',
@@ -223,6 +234,7 @@ describe('without location location uniques', () => {
         locationUnique: 'mexico|chihuahua|mun xyz',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 9,
         parentIDPath: '1,8,9',
         parentNamePath: 'North America|Mexico|Chihuahua',
@@ -236,6 +248,7 @@ describe('without location location uniques', () => {
         locationUnique: 'chihuahua|mun xyz|invisible spring',
         latitude: 21.12,
         longitude: -96.34,
+        flags: 0,
         parentID: 10,
         parentIDPath: '1,8,9,10',
         parentNamePath: 'North America|Mexico|Chihuahua|Mun. Xyz',
@@ -270,6 +283,7 @@ describe('without location location uniques', () => {
         locationUnique: 'united states|texas|bastrop county',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -283,6 +297,7 @@ describe('without location location uniques', () => {
         locationUnique: 'texas|bastrop county|fire cave',
         latitude: 28.5,
         longitude: -97.5,
+        flags: CAVE_FLAG,
         parentID: 12,
         parentIDPath: '1,2,4,12',
         parentNamePath: 'North America|United States|Texas|Bastrop County',
@@ -484,6 +499,7 @@ describe('with location location uniques', () => {
         locationUnique: 'north america',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: null,
         hasChildren: null
       };
@@ -513,6 +529,7 @@ describe('with location location uniques', () => {
         locationUnique: 'north america|united states',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 1,
         hasChildren: null
       };
@@ -554,6 +571,7 @@ describe('with location location uniques', () => {
         locationUnique: 'north america|united states|someplace in us',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -595,6 +613,7 @@ describe('with location location uniques', () => {
         locationUnique: 'north america|united states|texas',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 2,
         parentIDPath: '1,2',
         parentNamePath: 'North America|United States',
@@ -608,6 +627,7 @@ describe('with location location uniques', () => {
         locationUnique: 'united states|texas|someplace in texas',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',
@@ -639,6 +659,7 @@ describe('with location location uniques', () => {
         locationUnique: 'united states|texas|another place in texas',
         latitude: null,
         longitude: null,
+        flags: 0,
         parentID: 4,
         parentIDPath: '1,2,4',
         parentNamePath: 'North America|United States|Texas',

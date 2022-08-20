@@ -104,8 +104,11 @@ export function parseLocalities(text: string): [string, string][] {
   const lines = parseDataLines(text);
   for (const line of lines) {
     const lastLeftParenIndex = line.lastIndexOf('(');
-    const locality = line.substring(0, lastLeftParenIndex).trim();
-    const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
+    const locality = line.substring(0, lastLeftParenIndex).trim().toLowerCase();
+    const county = line
+      .substring(lastLeftParenIndex + 1, line.length - 1)
+      .trim()
+      .toLowerCase();
     localityCounties.push([locality, county]);
   }
   return localityCounties;

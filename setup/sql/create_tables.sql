@@ -94,6 +94,7 @@ create table locations (
     latitude float8,
     -- GBIF decimalLatitude
     longitude float8,
+    flags integer not null,
     parent_id integer references locations, -- locally generated
 
     -- these allow for fast non-recursive location queries/autocompletion:
@@ -177,7 +178,8 @@ create table specimens (
     county_id integer references locations,
     locality_name text not null,
     latitude float8,
-    longitude float8
+    longitude float8,
+    is_cave boolean not null
 );
 create index on specimens(catalog_number);
 create index on specimens(collection_start_date);

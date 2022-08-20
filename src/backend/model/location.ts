@@ -12,13 +12,19 @@ import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { ImportFailure } from './import_failure';
 import {
+  CAVE_FLAG,
   LocationRank,
   LocationSpec,
   createContainingLocationSpecs,
   toLocationUnique
 } from '../../shared/model';
+import { KeyData } from './key_data';
+import { DataKey, parseLocalities } from '../../shared/data_keys';
+import { Permission } from '../../shared/user_auth';
 
 const childCountSql = `(select count(*) from locations y where y.parent_id=x.location_id) as child_count`;
+
+let caveLocalitiesByLocalityCounty: Record<string, boolean> | null = null;
 
 export interface LocationSource {
   // GBIF field names
@@ -40,6 +46,7 @@ export class Location {
   locationUnique: string;
   latitude: number | null;
   longitude: number | null;
+  flags: number;
   parentID: number | null;
   parentIDPath: string;
   parentNamePath: string;
@@ -54,6 +61,7 @@ export class Location {
     this.locationUnique = data.locationUnique;
     this.latitude = data.latitude;
     this.longitude = data.longitude;
+    this.flags = data.flags;
     this.parentID = data.parentID;
     this.parentIDPath = data.parentIDPath;
     this.parentNamePath = data.parentNamePath;
@@ -67,9 +75,9 @@ export class Location {
       const result = await db.query(
         `insert into locations(
 						location_rank, location_name, location_unique,
-            latitude, longitude,
+            latitude, longitude, flags,
 						parent_id, parent_id_path, parent_name_path
-					) values ($1, $2, $3, $4, $5, $6, $7, $8)
+					) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 					returning location_id`,
         [
           this.locationRank,
@@ -77,6 +85,7 @@ export class Location {
           this.locationUnique,
           this.latitude,
           this.longitude,
+          this.flags,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath
@@ -87,15 +96,16 @@ export class Location {
       const result = await db.query(
         `update locations set 
 						location_rank=$1, location_name=$2, location_unique=$3,
-            latitude=$4, longitude=$5,
-						parent_id=$6, parent_id_path=$7, parent_name_path=$8
-					where location_id=$9`,
+            latitude=$4, longitude=$5, flags=$6,
+						parent_id=$7, parent_id_path=$8, parent_name_path=$9
+					where location_id=$10`,
         [
           this.locationRank,
           this.locationName,
           this.locationUnique,
           this.latitude,
           this.longitude,
+          this.flags,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath,
@@ -279,6 +289,7 @@ export class Location {
         locationName: spec.name,
         latitude: spec.latitude,
         longitude: spec.longitude,
+        flags: (await Location._isCave(db, spec)) ? CAVE_FLAG : 0,
         parentID: location?.locationID || null,
         hasChildren: spec.hasChildren || null
       });
@@ -349,6 +360,31 @@ export class Location {
 
     return locationNames;
   }
+
+  private static async _isCave(db: DB, spec: LocationSpec): Promise<boolean> {
+    if (spec.rank != LocationRank.Locality) return false;
+    const localityName = spec.name.toLowerCase();
+    if (localityName.includes('cave')) return true;
+
+    if (caveLocalitiesByLocalityCounty === null) {
+      const text = await KeyData.read(
+        db,
+        null,
+        Permission.None,
+        DataKey.CaveLocalities
+      );
+      if (text === null) return false;
+      caveLocalitiesByLocalityCounty = {};
+      const localityCounties = parseLocalities(text);
+      for (const localityCounty of localityCounties) {
+        caveLocalitiesByLocalityCounty[
+          _toNameKey(localityCounty[0], localityCounty[1])
+        ] = true;
+      }
+    }
+    const parentName = spec.parentNamePath.split('|').pop()!.toLowerCase();
+    return caveLocalitiesByLocalityCounty[_toNameKey(spec.name, parentName)];
+  }
 }
 
 function _toLocationData(row: any): LocationData {
@@ -357,4 +393,8 @@ function _toLocationData(row: any): LocationData {
   const data: any = toCamelRow(row);
   data.hasChildren = childCount ? childCount > 0 : null;
   return data;
+}
+
+function _toNameKey(locality: string, county: string) {
+  return `${locality} (${county})`;
 }

@@ -399,6 +399,7 @@ async function _createLocation(locationID: number) {
     locationName: 'Continent ' + locationID,
     latitude: null,
     longitude: null,
+    flags: 0,
     parentID: null,
     hasChildren: null
   };

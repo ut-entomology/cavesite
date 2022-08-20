@@ -828,7 +828,7 @@ async function _checkVisitFor(
   const expectedVisit = Object.assign(
     {
       locationID: specimen.localityID,
-      isCave: specimen.localityName.toLowerCase().includes('cave'),
+      isCave: specimen.isCave,
       startDate: new Date(specimen.collectionStartDate!),
       startEpochDay: _toDaysEpoch(specimen.collectionStartDate!),
       endDate: new Date(specimen.collectionStartDate!),

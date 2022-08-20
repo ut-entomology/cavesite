@@ -9,7 +9,12 @@ import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
 import { Logs } from './logs';
-import { type TaxonPathSpec, locationRanks, LogType } from '../../shared/model';
+import {
+  type TaxonPathSpec,
+  locationRanks,
+  LogType,
+  CAVE_FLAG
+} from '../../shared/model';
 import { toDaysEpoch } from '../../shared/date_tools';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
 import {
@@ -120,6 +125,7 @@ export class Specimen implements TaxonPathSpec {
   localityName: string;
   latitude: number | null;
   longitude: number | null;
+  isCave: boolean;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -168,6 +174,7 @@ export class Specimen implements TaxonPathSpec {
     this.localityName = data.localityName;
     this.latitude = data.latitude;
     this.longitude = data.longitude;
+    this.isCave = data.isCave;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -463,7 +470,8 @@ export class Specimen implements TaxonPathSpec {
       countyID: getRankedID(locationIDs, 3, location.locationID),
       localityName: location.locationName,
       latitude: location.latitude,
-      longitude: location.longitude
+      longitude: location.longitude,
+      isCave: !!(location.flags & CAVE_FLAG)
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -478,10 +486,10 @@ export class Specimen implements TaxonPathSpec {
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author, obligate,
-          county_name, county_id, locality_name, latitude, longitude
+          county_name, county_id, locality_name, latitude, longitude, is_cave
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
           $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-          $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44)`,
+          $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -526,7 +534,9 @@ export class Specimen implements TaxonPathSpec {
         specimen.countyID,
         specimen.localityName,
         specimen.latitude,
-        specimen.longitude
+        specimen.longitude,
+        // @ts-ignore incorrect type def
+        specimen.isCave
       ]
     );
 

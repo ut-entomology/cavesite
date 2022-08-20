@@ -148,7 +148,8 @@ describe('basic specimen methods', () => {
         countyID: 4,
         localityName: 'My backyard',
         latitude: 23.45,
-        longitude: -93.21
+        longitude: -93.21,
+        isCave: false
       });
       expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
       expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -183,7 +184,7 @@ describe('basic specimen methods', () => {
         continent: 'North America',
         country: 'United States',
         stateProvince: 'Texas',
-        locality: 'Their backyard',
+        locality: 'Some Cave',
 
         eventDate: startDate.toISOString(),
         recordedBy: 'Any Body',
@@ -232,12 +233,13 @@ describe('basic specimen methods', () => {
         obligate: null,
         countyName: null,
         countyID: null,
-        localityName: 'Their backyard',
+        localityName: 'Some Cave',
         latitude: null,
-        longitude: null
+        longitude: null,
+        isCave: true
       });
       expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
-      expect((await _getLocationByID(db, 6))?.locationName).toEqual('Their backyard');
+      expect((await _getLocationByID(db, 6))?.locationName).toEqual('Some Cave');
     }
 
     // test committing specimens
@@ -377,7 +379,8 @@ describe('basic specimen methods', () => {
       countyID: 4,
       localityName: 'My backyard',
       latitude: 23.45,
-      longitude: -93.21
+      longitude: -93.21,
+      isCave: false
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -452,7 +455,8 @@ describe('basic specimen methods', () => {
       countyID: 4,
       localityName: 'My backyard',
       latitude: 23.45,
-      longitude: -93.21
+      longitude: -93.21,
+      isCave: false
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -519,7 +523,8 @@ describe('basic specimen methods', () => {
       countyID: 4,
       localityName: 'My backyard',
       latitude: 23.45,
-      longitude: -93.21
+      longitude: -93.21,
+      isCave: false
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
