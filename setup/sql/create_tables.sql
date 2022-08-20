@@ -39,7 +39,7 @@ create table if not exists users (
     reset_code text,
     reset_expiration timestamptz
 );
-create index if not exists on users(last_name, first_name);
+create index if not exists users_last_name_first_name_idx on users(last_name, first_name);
 
 create table sessions (
     -- None of these fields are in GBIF.
@@ -219,7 +219,7 @@ create table if not exists key_data (
     permission_required integer not null, -- ignored when user_id non-null
     data_value text not null
 );
-create index if not exists on key_data(user_id, data_key);
+create index if not exists key_data_user_id_data_key_idx on key_data(user_id, data_key);
 
 create table if not exists logs (
     -- column names must be identical in snakecase and camelcase
@@ -229,7 +229,7 @@ create table if not exists logs (
     tag text,
     line text not null
 );
-create index if not exists on logs(timestamp);
+create index if not exists logs_timestamp_idx on logs(timestamp);
 
 create table all_taxa_for_visits (
     -- new data loads into the table prior to completely replacing old data

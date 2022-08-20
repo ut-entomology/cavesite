@@ -41,7 +41,7 @@ export class DatabaseMutex {
     // truncate a table having foriegn key constraints.)
 
     const dropTablesSQL = fs
-      .readFileSync(path.join(SETUP_SQL_DIR, 'drop_tables.sql'))
+      .readFileSync(path.join(SETUP_SQL_DIR, 'drop_all_tables.sql'))
       .toString();
     const createTablesSQL = fs
       .readFileSync(path.join(SETUP_SQL_DIR, 'create_tables.sql'))
