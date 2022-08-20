@@ -25,7 +25,7 @@ export interface ImportSchedule {
 
 export const dataValidatorsByKey = {
   [DataKey.CaveObligates]: (text: string) => {
-    const regex = /^[-A-Za-z .]+$/;
+    const regex = /^[-A-Za-z0-9 .]+$/;
     const errors: string[] = [];
     for (let line of text.split('\n')) {
       line = line.trim();
