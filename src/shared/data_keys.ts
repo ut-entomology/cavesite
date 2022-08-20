@@ -36,21 +36,21 @@ export const dataValidatorsByKey = {
       const lastLeftParenIndex = line.lastIndexOf('(');
       if (lastLeftParenIndex < 0) {
         addError(errors, line, 'is missing parenthesized county name');
-      }
-      if (line[line.length - 1] != ')') {
+      } else if (line[line.length - 1] != ')') {
         addError(errors, line, 'is missing trailing parenthesis');
-      }
-      const locality = line.substring(0, lastLeftParenIndex).trim();
-      const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
-      if (county == '') {
-        addError(errors, line, 'has no county name');
-      }
-      if (locality.toLowerCase().includes('cave')) {
-        addError(
-          errors,
-          line,
-          "contains the text 'cave' and so need not be listed here"
-        );
+      } else {
+        const locality = line.substring(0, lastLeftParenIndex).trim();
+        const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
+        if (county == '') {
+          addError(errors, line, 'has no county name');
+        }
+        if (locality.toLowerCase().includes('cave')) {
+          addError(
+            errors,
+            line,
+            "contains the text 'cave' and so need not be listed here"
+          );
+        }
       }
     }
     return errors;

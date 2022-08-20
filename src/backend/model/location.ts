@@ -382,8 +382,10 @@ export class Location {
         ] = true;
       }
     }
-    const parentName = spec.parentNamePath.split('|').pop()!.toLowerCase();
-    return caveLocalitiesByLocalityCounty[_toNameKey(spec.name, parentName)];
+    const parentName = spec.parentNamePath.split('|').pop()!;
+    return caveLocalitiesByLocalityCounty[
+      _toNameKey(spec.name.toLowerCase(), parentName.toLowerCase())
+    ];
   }
 }
 

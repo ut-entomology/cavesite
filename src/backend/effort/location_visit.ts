@@ -196,7 +196,7 @@ export class LocationVisit extends TaxonCounter {
         TaxonCounter.createFromPathSpec(specimen, speciesName, subspeciesName),
         {
           locationID: specimen.localityID,
-          isCave: specimen.localityName.toLowerCase().includes('cave'),
+          isCave: specimen.isCave,
           startDate: specimen.collectionStartDate,
           startEpochDay,
           endDate,
