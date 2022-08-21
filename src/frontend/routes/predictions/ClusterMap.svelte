@@ -41,7 +41,7 @@
 <InfoDialog
   title="Map of Clustered Caves"
   classes="map_dialog"
-  maxWidth="96%"
+  maxWidth="1200px"
   onClose={close}
 >
   <div class="map_area">
