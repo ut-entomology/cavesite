@@ -99,12 +99,10 @@
   <li>
     <b>Use proximity</b> to place caves among equally similar clusters &mdash; This indicates
     whether to supplant the random assignment of caves to one of equally similar clusters
-    with an assignment to the cluster whose centroid is nearest the cave. Caves of similar
-    fauna need not be proximal, and caves of different fauna can be proximal, so rather than
-    always improving prediction results, using proximity can greatly randomize results. Consider
-    that some of the karst faunal zones track fault lines adjacent to other faunal zones.
-    Using proximity for conflict resolution usually greatly worsens prediction accuracy,
-    only occasionally improving accuracy when few caves and few taxa are under analysis.
+    with an assignment to the cluster whose centroid is nearest the cave. This option seems
+    to have minimal impact on prediction accuracy. Caves of similar fauna need not be proximal,
+    and caves of different fauna can be proximal, so it's not clear whether this option should
+    be beneficial or detrimental to accuracy.
   </li>
 </ul>
 <p>
