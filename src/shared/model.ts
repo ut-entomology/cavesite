@@ -250,7 +250,7 @@ export function pointSorter(a: number[], b: number[]) {
 
 //// Cluster /////////////////////////////////////////////////////////////////
 
-export const MAX_ALLOWED_CLUSTERS = 32;
+export const MAX_ALLOWED_CLUSTERS = 50;
 export const PREDICTION_HISTORY_SAMPLE_DEPTH = 3;
 
 export enum DissimilarityBasis {

@@ -100,9 +100,11 @@
     <b>Use proximity</b> to place caves among equally similar clusters &mdash; This indicates
     whether to supplant the random assignment of caves to one of equally similar clusters
     with an assignment to the cluster whose centroid is nearest the cave. This option seems
-    to have minimal impact on prediction accuracy. Caves of similar fauna need not be proximal,
-    and caves of different fauna can be proximal, so it's not clear whether this option should
-    be beneficial or detrimental to accuracy.
+    to have minimal impact on prediction accuracy, but using the option seems to produce
+    more consistent results, while leaving all resolution random allows for both better and
+    worse predictions. Caves of similar fauna need not be proximal, and caves of different
+    fauna can be proximal, so it's not clear whether this option should be beneficial or
+    detrimental to accuracy.
   </li>
 </ul>
 <p>

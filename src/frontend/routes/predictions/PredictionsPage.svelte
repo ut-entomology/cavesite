@@ -360,9 +360,9 @@
     <div class="container-fluid mb-3">
       <TabHeader {tabName} title={$pageName}>
         <span slot="instructions"
-          >This tab allows you to make predictions about the number of additional
-          species you can expect to find on your next visit or person-visit to a cave
-          and the most likely taxa of these additional species. <MoreLess
+          >This tab clusters caves by the similarity of their fauna, and based on these
+          clusterings, makes predictions about the additional taxa you can expect to
+          find on your next visit or person-visit to each cave. <MoreLess
             >The tab also shows you the expected accuracy of the predictions according
             to the accuracy of the predictive technique on recent historical data. To
             produce these predictions, you must first partition the data into clusters
