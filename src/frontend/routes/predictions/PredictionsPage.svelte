@@ -362,17 +362,18 @@
         <span slot="instructions"
           >This tab clusters caves by the similarity of their fauna, and based on these
           clusterings, makes predictions about the additional taxa you can expect to
-          find on your next visit or person-visit to each cave. <MoreLess
-            >The tab also shows you the expected accuracy of the predictions according
-            to the accuracy of the predictive technique on recent historical data. To
-            produce these predictions, you must first partition the data into clusters
-            of caves having similar taxa. Selecting the appropriate clustering is a bit
-            of an art, so you are provided with controls for exploring clusters. There
-            is an element of randomness to each clustering, so you'll want to repeatedly
-            generate clusters with the same criteria to find the best one. You can also
-            use this tab to see graphs of visits to the caves and the frequency of
-            encountering taxa in any cave. This tab only characterizes localities having
-            the text "cave" in their names, including, for example, the word "cavern".</MoreLess
+          find on your next visit or person-visit to each cave. The tab also shows you
+          the expected accuracy of the predictions according to the accuracy of the
+          predictive technique on recent historical data. <MoreLess
+            >To produce these predictions, you must first partition the data into
+            clusters of caves having similar taxa. Selecting the appropriate clustering
+            is a bit of an art, so you are provided with controls for exploring
+            clusters. There is an element of randomness to each clustering, so you'll
+            want to repeatedly generate clusters with the same criteria to find the best
+            one. You can also use this tab to see graphs of visits to the caves and the
+            frequency of encountering taxa in any cave. This tab only characterizes
+            localities having the text "cave" in their names, including, for example,
+            the word "cavern".</MoreLess
           ></span
         >
         <span slot="main-buttons">
