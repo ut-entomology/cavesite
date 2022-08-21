@@ -361,10 +361,10 @@
       <TabHeader {tabName} title={$pageName}>
         <span slot="instructions"
           >This tab clusters caves by the similarity of their fauna, and based on these
-          clusterings, makes predictions about the additional taxa you can expect to
-          find on your next visit or person-visit to each cave. The tab also shows you
-          the expected accuracy of the predictions according to the accuracy of the
-          predictive technique on recent historical data. <MoreLess
+          clusterings, makes predictions about the additional taxa can be expected to be
+          found in the cave. The tab also shows you the expected accuracy of the
+          predictions according to the accuracy of the predictive technique on recent
+          historical data. <MoreLess
             >To produce these predictions, you must first partition the data into
             clusters of caves having similar taxa. Selecting the appropriate clustering
             is a bit of an art, so you are provided with controls for exploring
