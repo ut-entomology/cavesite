@@ -75,7 +75,7 @@
     maxClusters: 12,
     comparedFauna: ComparedFauna.generaHavingCaveObligates,
     highestComparedRank: TaxonRank.Species,
-    proximityResolution: false,
+    proximityResolution: true,
     minRecentPredictionPoints: 4,
     maxRecentPredictionPoints: 12,
     predictionHistorySampleDepth: PREDICTION_HISTORY_SAMPLE_DEPTH,
@@ -91,7 +91,7 @@
       transform: DissimilarityTransform.none,
       highestComparedRank: TaxonRank.Species, // ignored; overwritten
       weight: TaxonWeight.halfAgainWeight,
-      proximityResolution: false // ignored; overwritten
+      proximityResolution: true // ignored; overwritten
     }
   };
 
