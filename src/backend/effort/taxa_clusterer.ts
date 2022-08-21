@@ -305,7 +305,8 @@ export abstract class TaxaClusterer extends Clusterer {
             taxonTallyMapsByCluster,
             locationEffort,
             effortTaxaTallies,
-            -1 // force assignment to a cluster
+            -1, // force assignment to a cluster
+            false
           );
           clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
           _updateCentroid(centroids[nearestClusterIndex], locationEffort);
@@ -323,8 +324,10 @@ export abstract class TaxaClusterer extends Clusterer {
     // Loop reassigning the clusters of locations until none are reassigned.
 
     let firstPass = true; // first pass is required to evaluate initial assignments
-    let reassigned = false;
-    while (reassigned || firstPass) {
+    let reassigned = false; // whether any caves were reassigned on the present pass
+    let lastPass = false; // final pass uses proximity, when enabled
+
+    while (reassigned || firstPass || lastPass) {
       firstPass = false;
       reassigned = false;
       taxonTallyMapsByCluster = nextTaxonTallyMapsByCluster;
@@ -345,7 +348,8 @@ export abstract class TaxaClusterer extends Clusterer {
             taxonTallyMapsByCluster,
             locationEffort,
             effortTaxaTallies,
-            currentClusterIndex
+            currentClusterIndex,
+            lastPass
           );
           if (nearestClusterIndex != currentClusterIndex) {
             clusterByLocationID[locationEffort.locationID] = nearestClusterIndex;
@@ -361,6 +365,9 @@ export abstract class TaxaClusterer extends Clusterer {
         locationEfforts = await this._getNextBatchToCluster(skipCount);
       }
       _advanceCentroids(centroids);
+
+      if (lastPass) break;
+      if (!reassigned && this._metric.proximityResolution) lastPass = true;
     }
 
     // Convert sparse array to arrays of location IDs indexed by cluster index.
@@ -398,7 +405,8 @@ export abstract class TaxaClusterer extends Clusterer {
     taxonTallyMapsByCluster: TaxonTallyMap[],
     locationEffort: LocationEffort,
     taxonTallyMap: TaxonTallyMap,
-    currentClusterIndex: number
+    currentClusterIndex: number,
+    lastPass: boolean
   ): number {
     // Collect into indexesForMinDissimilarity the indexes of all clusters
     // having the least dissimilarity to the taxa of the provided effort,
@@ -426,11 +434,12 @@ export abstract class TaxaClusterer extends Clusterer {
       return indexesForMinDissimilarity[0];
     }
 
-    // Reduce the list of equally dissimilar clusters to those whose centroids
-    // are of equal minimal distance from the provided location effort. NOTE: I
-    // can comment out this condition to experiment with how helpful this is.
+    // On the last pass of cluster reassignments and when clustering partly by
+    // proximity, reduce the list of equally dissimilar clusters to those whose
+    // centroids are of equal minimal distance from the provided location effort.
 
     if (
+      lastPass &&
       this._metric.proximityResolution &&
       locationEffort.latitude !== null &&
       locationEffort.longitude !== null

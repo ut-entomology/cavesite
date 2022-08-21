@@ -11,6 +11,8 @@ export interface LocationGraphData {
   locationID: number;
   countyName: string | null;
   localityName: string;
+  latitude: number | null;
+  longitude: number | null;
   flags: EffortFlags;
   perVisitPoints: Point[];
   perPersonVisitPoints: Point[];
@@ -58,6 +60,8 @@ function _toLocationGraphData(rawLocationEffort: RawLocationEffort): LocationGra
     locationID: rawLocationEffort.locationID,
     countyName: rawLocationEffort.countyName,
     localityName: rawLocationEffort.localityName,
+    latitude: rawLocationEffort.latitude,
+    longitude: rawLocationEffort.longitude,
     flags: rawLocationEffort.flags,
     perVisitPoints,
     perPersonVisitPoints,

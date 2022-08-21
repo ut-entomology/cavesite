@@ -17,7 +17,7 @@
     ClusterSummaryStatsGenerator
   } from '../../../frontend-core/clusters/summary_stats';
 
-  const CLUSTER_STORE_VERSION = 9;
+  const CLUSTER_STORE_VERSION = 10;
 
   interface ClusterStore {
     version: number;
@@ -46,6 +46,7 @@
   import LocationBarGraph from './LocationBarGraph.svelte';
   import LocationFootnotes from './LocationFootnotes.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
+  import ClusterMap from './ClusterMap.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
   import PredictionsHowTo from './PredictionsHowTo.svelte';
@@ -109,6 +110,7 @@
   let datasetType = DatasetType.personVisits;
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
+  let showingClusterMap = false;
   let showingAboutAccuracy = false;
   let showingAverageModel = false;
   let getLastDeltaSpecies: (locationData: LocationGraphData) => number;
@@ -500,17 +502,24 @@
         </div>
 
         <div class="row justify-content-center">
-          <div class="col" style="max-width: 460px">
-            <ClusterRadarChart
-              dataByCluster={$clusterStore.dataByCluster}
-              {clusterColors}
-            />
-          </div>
           <div
             class="col d-flex align-items-center"
-            style="max-width: 320px; margin-top: 50px"
+            style="max-width: 320px; margin-top: 40px"
           >
-            <ClusterPieChart
+            <div class="text-center">
+              <button
+                class="btn btn-major mb-4"
+                type="button"
+                on:click={() => (showingClusterMap = true)}>Show Cluster Map</button
+              >
+              <ClusterPieChart
+                dataByCluster={$clusterStore.dataByCluster}
+                {clusterColors}
+              />
+            </div>
+          </div>
+          <div class="col" style="max-width: 460px">
+            <ClusterRadarChart
               dataByCluster={$clusterStore.dataByCluster}
               {clusterColors}
             />
@@ -688,6 +697,14 @@
 
 {#if showingAboutAccuracy}
   <AboutAccuracyDialog close={() => (showingAboutAccuracy = false)} />
+{/if}
+
+{#if showingClusterMap && $clusterStore}
+  <ClusterMap
+    {clusterColors}
+    dataByCluster={$clusterStore.dataByCluster}
+    close={() => (showingClusterMap = false)}
+  />
 {/if}
 
 {#if clusteringRequest !== null}

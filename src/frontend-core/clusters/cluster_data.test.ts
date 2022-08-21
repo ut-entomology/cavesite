@@ -362,6 +362,8 @@ function _makeGraphData(
     locationID,
     countyName: 'Dummy County',
     localityName: 'Dummy Locality',
+    latitude: 0,
+    longitude: 0,
     flags: 0,
     perVisitPoints: pairsToPoints(pairs),
     perPersonVisitPoints: pairsToPoints(pairs),

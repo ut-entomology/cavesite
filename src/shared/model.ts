@@ -232,6 +232,8 @@ export interface RawLocationEffort {
   locationID: number;
   countyName: string | null;
   localityName: string;
+  latitude: number | null;
+  longitude: number | null;
   flags: EffortFlags;
   perVisitPoints: string;
   perPersonVisitPoints: string;

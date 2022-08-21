@@ -111,6 +111,8 @@ function _toRawEffortData(effort: LocationEffort): RawLocationEffort {
     locationID: effort.locationID,
     countyName: effort.countyName,
     localityName: effort.localityName,
+    latitude: effort.latitude,
+    longitude: effort.longitude,
     flags: effort.flags,
     perVisitPoints: effort.perVisitPoints,
     perPersonVisitPoints: effort.perPersonVisitPoints,
