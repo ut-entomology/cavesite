@@ -189,7 +189,9 @@
       top 20 accuracy associated with the clusters, also weighted by the number of caves
       in each cluster. If a cluster does not have enough predictions for a top 20
       accuracy, the accuracy of the nearest lower top N greater than 10 is used instead,
-      if there is any.
+      if there is any. Note that when the ratio of caves-to-clusters drops below 20,
+      these summaries tend toward 100% because all caves of the cluster are in the top
+      20 caves.
     </p>
     <p>
       Top 3 and Top 6 summary accuracies of predicted remaining taxa are also given
