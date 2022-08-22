@@ -5,7 +5,11 @@
     - Login to your account at https://studio.mapbox.com/tilesets/
     - Click the "..." next to the name of the shapefile.
     - Click "Replace" to replace the shapefile.
+    - Update the tileset name and ID in the admin user interface.
   */
+
+  import { createSessionStore } from '../util/session_store';
+  import type { MapRegionSource } from '../../shared/data_keys';
 
   export interface MapMarkerSpec {
     label: string;
@@ -19,6 +23,11 @@
     zoom: number;
     showingKFRs: boolean;
   }
+
+  export const allRegionSources = createSessionStore<MapRegionSource[] | null>(
+    'region_sources',
+    null
+  );
 </script>
 
 <script lang="ts">
@@ -26,6 +35,9 @@
   import * as mapboxgl from 'mapbox-gl';
 
   import { appInfo } from '../stores/app_info';
+  import { DataKey, parseRegions } from '../../shared/data_keys';
+  import { loadKeyData } from '../lib/key_data_client';
+  import { client } from '../stores/client';
 
   export let initialState: MapState | null = null;
   export let baseRGB: number[];
@@ -33,12 +45,6 @@
   export let featureColors: string[];
   export let stateChanged: ((state: MapState) => void) | null = null;
   export let mapReady = () => {};
-
-  interface MapRegionSource {
-    propertyName: string;
-    layerName: string;
-    mapboxCode: string;
-  }
 
   interface RegionSet {
     regionSources: MapRegionSource[];
@@ -51,25 +57,6 @@
   const INNER_RADIUS = 8;
   const STROKE_COLOR_FACTOR = 0.85;
 
-  const krSources: MapRegionSource[] = [
-    {
-      propertyName: 'Region',
-      layerName: 'Karst_Regions_TSS-4adrg1',
-      mapboxCode: 'jtlapput.d6bu8w0a'
-    }
-  ];
-  const kfrSources: MapRegionSource[] = [
-    {
-      propertyName: 'Name',
-      layerName: 'Bexar_KFRs-2lu38z',
-      mapboxCode: 'jtlapput.3rmne8o7'
-    },
-    {
-      propertyName: 'KFR',
-      layerName: 'Trav_Will_KFRs-356oa0',
-      mapboxCode: 'jtlapput.3idlwl9a'
-    }
-  ];
   let krRegionSet: RegionSet;
   let kfrRegionSet: RegionSet;
   let activeRegionSet: RegionSet;
@@ -122,7 +109,13 @@
     strokeColor = `rgb(${strokeRGB.join(',')})`;
   }
 
-  afterUpdate(() => {
+  afterUpdate(async () => {
+    if (!$allRegionSources) {
+      // Load region sources once per browser session.
+      const data = await loadKeyData($client, false, DataKey.KarstRegions);
+      $allRegionSources = parseRegions(data);
+    }
+
     if (map) {
       for (const marker of markers) marker.remove();
       for (const popup of popups) popup.remove();
@@ -136,8 +129,7 @@
       });
       map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
       map.on('load', () => {
-        const regionSources = [...krSources, ...kfrSources];
-        for (const regionSource of regionSources) {
+        for (const regionSource of $allRegionSources!) {
           const sourceID = _toLayerSourceID(regionSource.layerName);
           map.addSource(sourceID, {
             url: 'mapbox://' + regionSource.mapboxCode,
@@ -180,8 +172,8 @@
         // shown and extract the region information before choosing initial regions.
 
         if (!completedLayers) {
-          krRegionSet = extractRegionSet(krSources);
-          kfrRegionSet = extractRegionSet(kfrSources);
+          krRegionSet = extractRegionSet(false);
+          kfrRegionSet = extractRegionSet(true);
           setVisibleRegions();
           completedLayers = true;
         }
@@ -262,6 +254,7 @@
         zoom: map.getZoom(),
         showingKFRs: regionSelection == 'KFR'
       });
+      console.log('**** showingKFRs', regionSelection == 'KFR');
     }
   }
 
@@ -327,25 +320,32 @@
       removeRegionSet(krRegionSet);
       renderRegionSet(kfrRegionSet);
     }
+    _stateChanged();
   }
 
-  function extractRegionSet(regionSources: MapRegionSource[]): RegionSet {
+  function extractRegionSet(kfrs: boolean): RegionSet {
     const features = map.queryRenderedFeatures({
       // @ts-ignore error in type definition
-      layers: regionSources.map((src) => _toLayerSourceID(src.layerName))
+      layers: $allRegionSources
+        .filter((src) => src.isKFR == kfrs)
+        .map((src) => _toLayerSourceID(src.layerName))
     });
+    const regionSources: MapRegionSource[] = [];
     const namesPerSource: any[][] = [];
     let regionCount = 0;
-    for (const regionSource of regionSources) {
-      const regionNames: string[] = [];
-      for (const feature of features) {
-        const regionName = (feature as any).properties[regionSource.propertyName];
-        if (regionName !== undefined && !regionNames.includes(regionName)) {
-          regionNames.push(regionName);
-          ++regionCount;
+    for (const regionSource of $allRegionSources!) {
+      if (regionSource.isKFR == kfrs) {
+        const regionNames: string[] = [];
+        for (const feature of features) {
+          const regionName = (feature as any).properties[regionSource.propertyName];
+          if (regionName !== undefined && !regionNames.includes(regionName)) {
+            regionNames.push(regionName);
+            ++regionCount;
+          }
         }
+        regionSources.push(regionSource);
+        namesPerSource.push(regionNames);
       }
-      namesPerSource.push(regionNames);
     }
     return { regionSources, regionCount, namesPerSource };
   }

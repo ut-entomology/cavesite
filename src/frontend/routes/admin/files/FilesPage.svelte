@@ -26,6 +26,11 @@
       title: 'Cave Obligates',
       instructions:
         "List of all cave obligates at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+    },
+    {
+      dataKey: DataKey.KarstRegions,
+      title: 'Karst Regions',
+      instructions: `List of all region shapefiles that have been uploaded to MapBox, along with their characterizations. Upload these as 'tilesets' to MapBox Studio. List each tileset here on its own line in the format "[KR|KFR]: <property-name>, <tileset-name>, <tileset-ID>" (e.g. "KR: Region, Karst_Regions_TSS-4adrg1, jtlapput.d6bu8w0a"). Use 'KR' for Texas-wide karst regions and 'KFR' for karst faunal regions. Retrieve the tileset name and tileset ID from MapBox Studio after uploading the shapefile. <property-name> is the name of the property within the shapefile that describes a region and can vary from file to file. You can have multiple KR and KFR lines, one for each shapefile tileset. The order in which you list them does not matter. Everything is case-sensitive. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on each user's next browser session. To update an existing shapefile, click the '...' next to the name of the shapefile in MapBox Studio and then click 'Replace'.`
     }
   ];
 

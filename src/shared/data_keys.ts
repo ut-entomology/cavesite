@@ -6,7 +6,8 @@ import { Permission } from '../shared/user_auth';
 export enum DataKey {
   CaveLocalities = 'cave_localities',
   CaveObligates = 'cave_obligates',
-  ImportSchedule = 'import_schedule'
+  ImportSchedule = 'import_schedule',
+  KarstRegions = 'karst_regions'
 }
 
 export const daysOfWeek = [
@@ -22,6 +23,13 @@ export const daysOfWeek = [
 export interface ImportSchedule {
   importDaysOfWeek: number[];
   importHourOfDay: number;
+}
+
+export interface MapRegionSource {
+  isKFR: boolean;
+  propertyName: string;
+  layerName: string;
+  mapboxCode: string;
 }
 
 export const dataValidatorsByKey = {
@@ -75,6 +83,38 @@ export const dataValidatorsByKey = {
       }
     }
     return errors;
+  },
+  [DataKey.KarstRegions]: (text: string) => {
+    const errors: string[] = [];
+    for (let line of text.split('\n')) {
+      line = line.trim();
+      if (line.length == 0 || line[0] == '#') continue;
+      const colonOffset = line.indexOf(':');
+      if (colonOffset <= 0) {
+        addError(errors, line, "must begin with 'KR:' or 'KFR:'");
+      }
+      const regionType = line.substring(0, colonOffset);
+      if (!['KR', 'KFR'].includes(regionType)) {
+        addError(errors, line, "must begin with 'KR:' or 'KFR:'");
+      }
+      const params = line.substring(colonOffset + 1).split(',');
+      if (params.length != 3) {
+        addError(errors, line, 'must contain 3 comma-delimited parameters');
+      }
+      for (let param of params) {
+        param = param.trim();
+        if (param.includes(' ')) {
+          addError(errors, line, `"${param}" cannot contain spaces`);
+        }
+      }
+      if (!params[1].includes('-')) {
+        addError(errors, line, `"${params[1]}" does not appear to be a tileset name`);
+      }
+      if (!params[2].includes('.')) {
+        addError(errors, line, `"${params[2]}" does not appear to be a tileset ID`);
+      }
+    }
+    return errors;
   }
 };
 
@@ -85,7 +125,8 @@ function addError(errors: string[], line: string, message: string): void {
 export const readPermissionsByKey = {
   [DataKey.CaveLocalities]: Permission.None,
   [DataKey.CaveObligates]: Permission.None,
-  [DataKey.ImportSchedule]: Permission.Admin
+  [DataKey.ImportSchedule]: Permission.Admin,
+  [DataKey.KarstRegions]: Permission.None
 };
 
 export function parseDataLines(text: string): string[] {
@@ -101,8 +142,7 @@ export function parseDataLines(text: string): string[] {
 
 export function parseLocalities(text: string): [string, string][] {
   const localityCounties: [string, string][] = [];
-  const lines = parseDataLines(text);
-  for (const line of lines) {
+  for (const line of parseDataLines(text)) {
     const lastLeftParenIndex = line.lastIndexOf('(');
     const locality = line.substring(0, lastLeftParenIndex).trim().toLowerCase();
     const county = line
@@ -112,4 +152,20 @@ export function parseLocalities(text: string): [string, string][] {
     localityCounties.push([locality, county]);
   }
   return localityCounties;
+}
+
+export function parseRegions(text: string): MapRegionSource[] {
+  const regionSources: MapRegionSource[] = [];
+  for (let line of parseDataLines(text)) {
+    line = line.trim();
+    const colonOffset = line.indexOf(':');
+    const params = line.substring(colonOffset + 1).split(',');
+    regionSources.push({
+      isKFR: line.substring(0, colonOffset) == 'KFR',
+      propertyName: params[0].trim(),
+      layerName: params[1].trim(),
+      mapboxCode: params[2].trim()
+    });
+  }
+  return regionSources;
 }
