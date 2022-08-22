@@ -392,7 +392,7 @@
     });
     if (mapQuery.onlyCaveObligates) {
       columnSpecs.push({
-        columnID: QueryColumnID.Obligate,
+        columnID: QueryColumnID.IsCaveObligate,
         ascending: null,
         optionText: 'Yes'
       });

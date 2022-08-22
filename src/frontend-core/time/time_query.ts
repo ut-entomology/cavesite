@@ -114,7 +114,7 @@ export function convertTimeQuery(
       optionText: null
     });
     columnSpecs.push({
-      columnID: QueryColumnID.Obligate,
+      columnID: QueryColumnID.IsCaveObligate,
       ascending: null,
       optionText: timeGraphQuery.taxonFilter === null && !queryAllTaxa ? 'Yes' : null
     });

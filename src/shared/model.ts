@@ -17,6 +17,7 @@ export interface ModelSpec {
 //// Taxa ////////////////////////////////////////////////////////////////////
 
 export const ROOT_TAXON_UNIQUE = 'Animalia';
+export const CAVE_OBLIGATE_FLAG = 0x01;
 
 export enum TaxonRank {
   Kingdom = 'kingdom',
@@ -62,7 +63,7 @@ export interface TaxonSpec extends ModelSpec {
   name: string;
   unique: string;
   author: string | null;
-  obligate: string | null;
+  flags: number;
   parentNamePath: string;
   hasChildren: boolean | null; // null => count unknown
 }
@@ -97,7 +98,7 @@ export function createContainingTaxonSpecs(fromSpec: TaxonSpec): TaxonSpec[] {
       name: containingName,
       unique: uniqueName,
       author: null,
-      obligate: null, // information only available server-side
+      flags: 0, // information only available server-side
       parentNamePath,
       hasChildren: true // unknown
     });

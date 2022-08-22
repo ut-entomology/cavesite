@@ -65,7 +65,7 @@ create table taxa (
     unique_name text not null,
     -- extracted from GBIF scientificName
     author text,
-    obligate text, -- 'cave', else null if not specified
+    flags integer not null,
     parent_id integer references taxa, -- locally generated
 
     -- these allow for fast non-recursive taxon queries/autocompletion:
@@ -170,7 +170,7 @@ create table specimens (
     subspecies_id integer references taxa,
     taxon_unique text not null,
     taxon_author text, -- author of taxon_unique
-    obligate text, -- 'cave', else null if not specified
+    is_cave_obligate boolean not null,
 
     -- values cached from locations table
 

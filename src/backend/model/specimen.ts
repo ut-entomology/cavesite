@@ -13,7 +13,8 @@ import {
   type TaxonPathSpec,
   locationRanks,
   LogType,
-  CAVE_FLAG
+  CAVE_FLAG,
+  CAVE_OBLIGATE_FLAG
 } from '../../shared/model';
 import { toDaysEpoch } from '../../shared/date_tools';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
@@ -116,7 +117,7 @@ export class Specimen implements TaxonPathSpec {
   subspeciesID: number | null;
   taxonUnique: string;
   taxonAuthor: string | null;
-  obligate: string | null; // 'cave', or blank if status not indicated
+  isCaveObligate: boolean;
 
   // values cached from the locations table
 
@@ -168,7 +169,7 @@ export class Specimen implements TaxonPathSpec {
     this.subspeciesID = data.subspeciesID;
     this.taxonUnique = data.taxonUnique;
     this.taxonAuthor = data.taxonAuthor;
-    this.obligate = data.obligate;
+    this.isCaveObligate = data.isCaveObligate;
     this.countyName = data.countyName;
     this.countyID = data.countyID;
     this.localityName = data.localityName;
@@ -421,8 +422,8 @@ export class Specimen implements TaxonPathSpec {
     // subgenus, so check for that directly.
 
     const caveObligatesMap = await getCaveObligatesMap(db);
-    let obligate = taxon.obligate;
-    if (subgenus && caveObligatesMap[subgenus]) obligate = 'cave';
+    let isCaveObligate = (taxon.flags & CAVE_OBLIGATE_FLAG) != 0;
+    if (subgenus && caveObligatesMap[subgenus]) isCaveObligate = true;
 
     // Assemble the specimen instance from the data.
 
@@ -465,7 +466,7 @@ export class Specimen implements TaxonPathSpec {
       subspeciesID: getRankedID(taxonIDs, 7, taxon.taxonID),
       taxonUnique: taxon.uniqueName,
       taxonAuthor: taxon.author,
-      obligate,
+      isCaveObligate,
       countyName: getRankedName(locationNames, 3, location.locationName),
       countyID: getRankedID(locationIDs, 3, location.locationID),
       localityName: location.locationName,
@@ -485,7 +486,7 @@ export class Specimen implements TaxonPathSpec {
           type_status, specimen_count, life_stage, problems, kingdom_name, kingdom_id,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
-          subspecies_name, subspecies_id, taxon_unique, taxon_author, obligate,
+          subspecies_name, subspecies_id, taxon_unique, taxon_author, is_cave_obligate,
           county_name, county_id, locality_name, latitude, longitude, is_cave
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
           $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
@@ -529,7 +530,8 @@ export class Specimen implements TaxonPathSpec {
         specimen.subspeciesID,
         specimen.taxonUnique,
         specimen.taxonAuthor,
-        specimen.obligate,
+        // @ts-ignore incorrect type def
+        specimen.isCaveObligate,
         specimen.countyName,
         specimen.countyID,
         specimen.localityName,

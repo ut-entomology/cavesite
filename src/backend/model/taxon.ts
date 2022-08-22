@@ -10,7 +10,12 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
-import { TaxonRank, TaxonSpec, createContainingTaxonSpecs } from '../../shared/model';
+import {
+  TaxonRank,
+  TaxonSpec,
+  createContainingTaxonSpecs,
+  CAVE_OBLIGATE_FLAG
+} from '../../shared/model';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
 import { ImportFailure } from './import_failure';
 
@@ -37,7 +42,7 @@ export class Taxon {
   taxonName: string;
   uniqueName: string;
   author: string | null; // null => not retrieved from GBIF
-  obligate: string | null; // null => not specified
+  flags: number;
   parentID: number | null;
   parentIDPath: string;
   parentNamePath: string;
@@ -51,7 +56,7 @@ export class Taxon {
     this.taxonName = data.taxonName;
     this.uniqueName = data.uniqueName;
     this.author = data.author;
-    this.obligate = data.obligate;
+    this.flags = data.flags;
     this.parentID = data.parentID;
     this.parentIDPath = data.parentIDPath;
     this.parentNamePath = data.parentNamePath;
@@ -64,7 +69,7 @@ export class Taxon {
     if (this.taxonID === 0) {
       const result = await db.query(
         `insert into taxa(
-            taxon_rank, taxon_name, unique_name, author, obligate,
+            taxon_rank, taxon_name, unique_name, author, flags,
             parent_id, parent_id_path, parent_name_path
           ) values ($1, $2, $3, $4, $5, $6, $7, $8) returning taxon_id`,
         [
@@ -72,7 +77,7 @@ export class Taxon {
           this.taxonName,
           this.uniqueName,
           this.author,
-          this.obligate,
+          this.flags,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath
@@ -82,7 +87,7 @@ export class Taxon {
     } else {
       const result = await db.query(
         `update taxa set
-            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4, obligate=$5,
+            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4, flags=$5,
             parent_id=$6, parent_id_path=$7, parent_name_path=$8
           where taxon_id=$9`,
         [
@@ -90,7 +95,7 @@ export class Taxon {
           this.taxonName,
           this.uniqueName,
           this.author,
-          this.obligate,
+          this.flags,
           this.parentID,
           this.parentIDPath,
           this.parentNamePath,
@@ -196,7 +201,7 @@ export class Taxon {
       name: taxonName,
       unique: '',
       author: Taxon._extractAuthor(source.scientificName),
-      obligate: null, // don't have the unique yet for making this determination
+      flags: 0, // don't have the unique yet for determining flags
       parentNamePath,
       hasChildren: null
     };
@@ -240,12 +245,17 @@ export class Taxon {
         parentIDPath += taxon.taxonID.toString();
       }
       const spec = specs[taxonIndex];
+      let flags = 0;
+      if ((taxon && taxon.flags & CAVE_OBLIGATE_FLAG) || toObligateValue(spec.unique)) {
+        flags |= CAVE_OBLIGATE_FLAG;
+      }
+
       taxon = await Taxon.create(db, spec.parentNamePath, parentIDPath, {
         taxonRank: spec.rank,
         taxonName: spec.name,
         uniqueName: spec.unique,
         author: spec.author,
-        obligate: taxon?.obligate || toObligateValue(spec.unique) || null,
+        flags,
         parentID: taxon?.taxonID || null,
         hasChildren: spec.hasChildren || null
       });

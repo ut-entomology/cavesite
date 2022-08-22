@@ -13,7 +13,7 @@ import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE, LogType } from '../shared/model';
 import { Logs } from '../backend/model/logs';
 
-const RECORDS_PER_TICK = 500;
+const RECORDS_PER_TICK = 300;
 const description = 'import from CSV via command line';
 
 if (process.argv.length != 3) {

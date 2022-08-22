@@ -23,7 +23,7 @@ export enum QueryColumnID {
   Subgenus,
   Species,
   Subspecies,
-  Obligate,
+  IsCaveObligate,
   SpecimenCount,
   LifeStage,
   Latitude,
@@ -136,7 +136,7 @@ export interface QueryRow {
   taxonID?: number;
   taxonAuthor?: string | null;
 
-  obligate?: string | null;
+  isCaveObligate?: boolean;
 
   countyName?: string | null;
   countyID?: number | null;
@@ -503,20 +503,20 @@ setColumnInfo({
   }
 });
 setColumnInfo({
-  columnID: QueryColumnID.Obligate,
+  columnID: QueryColumnID.IsCaveObligate,
   fullName: 'Cave Obligate',
   abbrName: null,
   description: 'Whether the taxon is cave obligate',
   defaultSelection: false,
-  column1: 'obligate',
+  column1: 'is_cave_obligate',
   options: [
     { text: 'Any value', sql: null },
-    { text: 'Yes', sql: 'X is not null' },
-    { text: 'No', sql: 'X is null' }
+    { text: 'Yes', sql: 'X = true' },
+    { text: 'No', sql: 'X = false' }
   ],
   defaultEmWidth: 6,
   columnClass: 'center',
-  getValue: (row: QueryRow) => (row.obligate ? 'Yes' : 'No')
+  getValue: (row: QueryRow) => (row.isCaveObligate ? 'Yes' : 'No')
 });
 setColumnInfo({
   columnID: QueryColumnID.County,
