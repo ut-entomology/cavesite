@@ -254,7 +254,6 @@
         zoom: map.getZoom(),
         showingKFRs: regionSelection == 'KFR'
       });
-      console.log('**** showingKFRs', regionSelection == 'KFR');
     }
   }
 
