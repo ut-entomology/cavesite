@@ -362,7 +362,7 @@
         <span slot="instructions"
           >This tab clusters caves by the similarity of their fauna, and based on these
           clusterings, predicts the additional taxa that can be expected to be found in
-          the cave. The tab also shows you the expected accuracy of the predictions
+          a cave. The tab also shows you the expected accuracy of the predictions
           according to the accuracy of the predictive technique on recent historical
           data. <MoreLess
             >To produce these predictions, you must first partition the data into
