@@ -163,7 +163,8 @@
       <TabHeader {tabName} title={$pageName} center={false} onResize={() => {}}>
         <span slot="instructions"
           >This tab provides a log of events that are specific to this application. The
-          web server maintains a separate log of all visits to the website.</span
+          web server maintains a separate log of all visits to the website. When you
+          delete logs, you delete them up through a specified date.</span
         >
         <span slot="main-buttons">
           {#if logs && logs.length > 0}
