@@ -55,7 +55,7 @@
     errors = [];
   } else {
     if (timer === null) {
-      // Don't keep timer going, as it keeps going when changing pages in an SPA.
+      // Don't restart timeout, as timer runs across pages in an SPA.
       setTimeout(() => {
         $unsavedKeyData = text;
         timer = null;
