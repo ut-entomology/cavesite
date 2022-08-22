@@ -8,10 +8,6 @@
     instructions: string;
   }
 
-  export const unsavedDataKey = createSessionStore<string | null>(
-    'unsaved_data_key',
-    null
-  );
   export const unsavedKeyData = createSessionStore<string | null>(
     'unsaved_key_data',
     null
@@ -31,14 +27,9 @@
   export let fileSpec: FileSpec;
   export let close: () => void;
 
-  if ($unsavedDataKey != fileSpec.dataKey) {
-    $unsavedKeyData = null;
-    $unsavedDataKey = fileSpec.dataKey;
-  }
-
   let saveDisabled = true;
   let closeLabel: string;
-  let originalText: string;
+  let originalText = '';
   let text = $unsavedKeyData || '';
   let requestCancelConfirmation = false;
   let status: string;
