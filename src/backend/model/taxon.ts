@@ -230,8 +230,6 @@ export class Taxon {
 
   private static async _createMissingTaxa(db: DB, specs: TaxonSpec[]): Promise<Taxon> {
     const caveObligatesMap = await getCaveObligatesMap(db);
-    const toObligateValue = (unique: string) =>
-      caveObligatesMap[unique] ? 'cave' : null;
 
     let [taxon, taxonIndex] = await Taxon._getClosestTaxon(
       db,
@@ -246,7 +244,10 @@ export class Taxon {
       }
       const spec = specs[taxonIndex];
       let flags = 0;
-      if ((taxon && taxon.flags & CAVE_OBLIGATE_FLAG) || toObligateValue(spec.unique)) {
+      if (
+        (taxon && taxon.flags & CAVE_OBLIGATE_FLAG) ||
+        caveObligatesMap[spec.unique]
+      ) {
         flags |= CAVE_OBLIGATE_FLAG;
       }
 
