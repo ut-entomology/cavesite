@@ -24,6 +24,7 @@ export enum QueryColumnID {
   Species,
   Subspecies,
   IsCaveObligate,
+  IsFederallyListed,
   TexasStateRank,
   TpwdStatus,
   SpecimenCount,
@@ -139,6 +140,8 @@ export interface QueryRow {
   taxonAuthor?: string | null;
 
   isCaveObligate?: boolean;
+
+  isFederallyListed?: boolean;
 
   stateRank?: string;
 
@@ -523,6 +526,22 @@ setColumnInfo({
   defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => (row.isCaveObligate ? 'Yes' : 'No')
+});
+setColumnInfo({
+  columnID: QueryColumnID.IsFederallyListed,
+  fullName: 'Federally Listed',
+  abbrName: null,
+  description: 'Whether the taxon is a federally listed species',
+  defaultSelection: false,
+  column1: 'is_federally_listed',
+  options: [
+    { text: 'Any value', sql: null },
+    { text: 'Yes', sql: 'X = true' },
+    { text: 'No', sql: 'X = false' }
+  ],
+  defaultEmWidth: 6,
+  columnClass: 'center',
+  getValue: (row: QueryRow) => (row.isFederallyListed ? 'Yes' : 'No')
 });
 setColumnInfo({
   columnID: QueryColumnID.TexasStateRank,

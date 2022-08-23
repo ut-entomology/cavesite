@@ -19,7 +19,6 @@ export interface ModelSpec {
 export const ROOT_TAXON_UNIQUE = 'Animalia';
 export const CAVE_OBLIGATE_FLAG = 0x01;
 export const FEDERALLY_LISTED_FLAG = 0x02;
-export const TEXAS_SGCN_FLAG = 0x04;
 
 export enum TaxonRank {
   Kingdom = 'kingdom',

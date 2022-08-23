@@ -173,6 +173,7 @@ create table specimens (
     taxon_unique text not null,
     taxon_author text, -- author of taxon_unique
     is_cave_obligate boolean not null,
+    is_federally_listed boolean not null,
     state_rank text,
     tpwd_status text,
 
@@ -213,6 +214,7 @@ create index on specimens(species_name);
 create index on specimens(species_id);
 create index on specimens(subspecies_name);
 create index on specimens(subspecies_id);
+create index on specimens(is_federally_listed);
 create index on specimens(is_cave_obligate);
 create index on specimens(state_rank);
 create index on specimens(tpwd_status);

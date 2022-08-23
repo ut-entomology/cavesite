@@ -14,9 +14,10 @@ import {
   TaxonRank,
   TaxonSpec,
   createContainingTaxonSpecs,
-  CAVE_OBLIGATE_FLAG
+  CAVE_OBLIGATE_FLAG,
+  FEDERALLY_LISTED_FLAG
 } from '../../shared/model';
-import type { TexasSpeciesStatus } from '../../shared/data_keys';
+import { parseFederalSpeciesStatus, TexasSpeciesStatus } from '../../shared/data_keys';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
 import { ImportFailure } from './import_failure';
 import { KeyData } from './key_data';
@@ -24,6 +25,7 @@ import { DataKey, parseStateSpeciesStatus } from '../../shared/data_keys';
 import { Permission } from '../../shared/user_auth';
 
 const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
+let federallyListedSpecies: Record<string, boolean> | null = null;
 let texasStatusBySpecies: Record<string, TexasSpeciesStatus> | null = null;
 
 export interface TaxonSource {
@@ -266,6 +268,9 @@ export class Taxon {
       ) {
         flags |= CAVE_OBLIGATE_FLAG;
       }
+      if (await Taxon._isFederallyListed(db, spec)) {
+        flags |= FEDERALLY_LISTED_FLAG;
+      }
       const texasStatus = await Taxon._getSpeciesStatus(db, spec);
 
       taxon = await Taxon.create(db, spec.parentNamePath, parentIDPath, {
@@ -393,6 +398,28 @@ export class Taxon {
       }
     }
     return texasStatusBySpecies[spec.unique];
+  }
+
+  private static async _isFederallyListed(db: DB, spec: TaxonSpec): Promise<boolean> {
+    if (spec.rank != TaxonRank.Species && spec.rank != TaxonRank.Subspecies) {
+      return false;
+    }
+
+    if (federallyListedSpecies === null) {
+      const text = await KeyData.read(
+        db,
+        null,
+        Permission.None,
+        DataKey.FederalSpeciesStatus
+      );
+      if (text === null) return false;
+      federallyListedSpecies = {};
+      const speciesList = parseFederalSpeciesStatus(text);
+      for (const species of speciesList) {
+        federallyListedSpecies[species] = true;
+      }
+    }
+    return federallyListedSpecies[spec.unique];
   }
 }
 

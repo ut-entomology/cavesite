@@ -151,6 +151,15 @@ export const dataValidatorsByKey = {
       }
     }
     return errors;
+  },
+  [DataKey.FederalSpeciesStatus]: (text: string) => {
+    const errors: string[] = [];
+    for (let line of text.split('\n')) {
+      line = line.trim();
+      if (line.length == 0 || line[0] == '#') continue;
+      _checkSpeciesName(errors, line);
+    }
+    return errors;
   }
 };
 
@@ -219,6 +228,10 @@ export function parseStateSpeciesStatus(text: string): TexasSpeciesStatus[] {
     });
   }
   return statuses;
+}
+
+export function parseFederalSpeciesStatus(text: string): string[] {
+  return parseDataLines(text).map((sp) => sp.trim());
 }
 
 function _checkSpeciesName(errors: string[], text: string): void {
