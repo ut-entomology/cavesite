@@ -9,9 +9,28 @@ import { LogType, type Log } from '../../shared/model';
 export const MAX_LOG_LENGTH = 2048; // VARCHAR (2048)
 
 export class Logs {
-  static async post(
+  static async postGood(
     db: DB,
     type: LogType,
+    tag: string | null,
+    line: string
+  ): Promise<number> {
+    return await Logs._post(db, type, false, tag, line);
+  }
+
+  static async postBad(
+    db: DB,
+    type: LogType,
+    tag: string | null,
+    line: string
+  ): Promise<number> {
+    return await Logs._post(db, type, true, tag, line);
+  }
+
+  static async _post(
+    db: DB,
+    type: LogType,
+    isError: boolean,
     tag: string | null,
     line: string
   ): Promise<number> {
@@ -19,8 +38,9 @@ export class Logs {
       line = line.substring(0, MAX_LOG_LENGTH - 3) + '...';
     }
     const result = await db.query(
-      `insert into logs(type, tag, line) values ($1, $2, $3) returning id`,
-      [type, tag, line]
+      `insert into logs(type, is_error, tag, line) values ($1, $2, $3, $4) returning id`,
+      // @ts-ignore incorrect type def
+      [type, isError, tag, line]
     );
     return result.rows[0].id;
   }

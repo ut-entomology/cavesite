@@ -335,6 +335,7 @@ export interface Log {
   id: number;
   timestamp: Date;
   type: LogType;
+  isError: boolean;
   tag: string | null;
   line: string;
 }

@@ -85,7 +85,7 @@ app.use(async (err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
     return res.status(StatusCodes.FORBIDDEN).send('detected tampering');
   }
-  await Logs.post(getDB(), LogType.Server, 'error', err.toString());
+  await Logs.postBad(getDB(), LogType.Server, 'error', err.toString());
   res.status(err.status || StatusCodes.INTERNAL_SERVER_ERROR).send({
     error: {
       status: err.status || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -111,7 +111,12 @@ app.listen(port, async () => {
   });
   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
   if (process.env.CAVESITE_LOG_SERVER_RESTART == 'on') {
-    await Logs.post(getDB(), LogType.Server, 'startup', 'Server started or restarted');
+    await Logs.postGood(
+      getDB(),
+      LogType.Server,
+      'startup',
+      'Server started or restarted'
+    );
   }
   console.log(`Server listening on port ${port}`);
 });

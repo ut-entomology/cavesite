@@ -261,7 +261,7 @@ export class User {
     user.lastLoginDate = new Date();
     user.lastLoginIP = ipAddress;
     await user.save(db);
-    await Logs.post(
+    await Logs.postGood(
       db,
       LogType.User,
       user.email,

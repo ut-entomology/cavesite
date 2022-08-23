@@ -201,8 +201,11 @@
                     <div class="col-sm-4 log_time">
                       {new Date(log.timestamp).toLocaleString()}
                     </div>
-                    <div class="col-sm-2 log_type type_{log.type}">{log.type}</div>
-                    <div class="col-sm-6">{@html _getTagHtml(log)}</div>
+                    <div class="col-sm-3 log_type type_{log.type}">
+                      {log.type}{#if log.isError}
+                        <span class="log_error">&nbsp;ERROR</span>{/if}
+                    </div>
+                    <div class="col-sm-5">{@html _getTagHtml(log)}</div>
                   </div>
                   <div class="row ps-2 log_line">
                     <div class="col">{log.line}</div>
@@ -253,6 +256,10 @@
     font-weight: bold;
     text-transform: uppercase;
   }
+  .log_error {
+    font-weight: bold;
+    color: red;
+  }
   .log_type.type_import {
     color: green;
   }
@@ -260,7 +267,7 @@
     color: purple;
   }
   .log_type.type_server {
-    color: red;
+    color: black;
   }
 
   .log_line {

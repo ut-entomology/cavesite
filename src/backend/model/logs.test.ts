@@ -21,12 +21,13 @@ test('creating, reading, and clearing logs', async () => {
       id: 1,
       timestamp: new Date(), // ignored
       type,
+      isError: false,
       tag,
       line: `log line ${i}`
     });
   }
   for (const log of expectedLogs) {
-    await Logs.post(db, log.type, log.tag, log.line);
+    await Logs.postGood(db, log.type, log.tag, log.line);
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
@@ -57,7 +58,7 @@ test('creating, reading, and clearing logs', async () => {
   // Verify that log lines get truncated to maximum length.
 
   const longLine = 'x'.repeat(MAX_LOG_LENGTH + 1);
-  await Logs.post(db, LogType.Server, null, longLine);
+  await Logs.postGood(db, LogType.Server, null, longLine);
   logs = await Logs.getBeforeID(db, 22, 0);
   verifyLogs(
     logs,
@@ -66,6 +67,7 @@ test('creating, reading, and clearing logs', async () => {
         id: 21,
         timestamp: new Date(), // ignored
         type: LogType.Server,
+        isError: false,
         tag: null,
         line: 'x'.repeat(MAX_LOG_LENGTH - 3) + '...'
       }

@@ -172,7 +172,7 @@ function toSpeciesOrSubspecies(name: string): string {
   await loadCSV();
 
   const db = await connectDatabase();
-  await Logs.post(db, LogType.Import, 'STARTED', 'Began ' + description);
+  await Logs.postGood(db, LogType.Import, 'STARTED', 'Began ' + description);
 
   process.stdout.write('\nImporting records...');
   const errors = await loadDatabase(
@@ -181,7 +181,7 @@ function toSpeciesOrSubspecies(name: string): string {
     () => process.stdout.write('\nCalculating effort...'),
     () => process.stdout.write('\nCommitting data... (working)')
   );
-  await Logs.post(db, LogType.Import, 'FINISHED', 'Completed ' + description);
+  await Logs.postGood(db, LogType.Import, 'FINISHED', 'Completed ' + description);
   await disconnectDB();
 
   process.stdout.write('\n');

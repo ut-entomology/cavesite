@@ -237,6 +237,7 @@ create table if not exists logs (
     id serial primary key,
     timestamp timestamptz not null default now(),
     type text not null,
+    is_error boolean not null,
     tag text,
     line text not null
 );
