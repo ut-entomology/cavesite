@@ -330,20 +330,13 @@
         if (row.countyName) label += ', ' + row.countyName;
         label = `<b>${label}</b>`;
         if (nextFeatureSpec && label != nextFeatureSpec.label) {
-          let labelSuffix =
-            nextFeatureSpec.recordCount == 1
-              ? '1 record, '
-              : nextFeatureSpec.recordCount + ' records, ';
-          labelSuffix +=
-            nextFeatureSpec.visitCount == 1
-              ? '1 visit, '
-              : nextFeatureSpec.visitCount + ' visits, ';
-          labelSuffix +=
-            'last ' + fromDaysEpoch(nextFeatureSpec.lastDaysEpoch).toLocaleDateString();
-          nextFeatureSpec.label += ` (${labelSuffix})`;
+          _finishFeatureLabel(nextFeatureSpec);
           featureSpecs.push(nextFeatureSpec);
           nextFeatureSpec = null;
         }
+        const lastDate = new Date(
+          row.collectionEndDate ? row.collectionEndDate : row.collectionStartDate!
+        );
         if (nextFeatureSpec === null) {
           nextFeatureSpec = {
             label,
@@ -351,16 +344,20 @@
             longitude: row.longitude!,
             recordCount: row.recordCount!,
             visitCount: 1,
-            lastDaysEpoch: toDaysEpoch(new Date(row.collectionEndDate!))
+            lastDaysEpoch: toDaysEpoch(lastDate)
           };
         } else {
           nextFeatureSpec.recordCount += row.recordCount!;
           ++nextFeatureSpec.visitCount;
-          nextFeatureSpec.lastDaysEpoch = toDaysEpoch(new Date(row.collectionEndDate!));
+          nextFeatureSpec.lastDaysEpoch = toDaysEpoch(lastDate);
         }
       }
       offset += MAP_QUERY_BATCH_SIZE;
       done = rows.length == 0;
+    }
+    if (nextFeatureSpec) {
+      _finishFeatureLabel(nextFeatureSpec);
+      featureSpecs.push(nextFeatureSpec);
     }
 
     // Cache the data.
@@ -397,9 +394,14 @@
       optionText: null
     });
     columnSpecs.push({
-      columnID: QueryColumnID.CollectionEndDate,
+      columnID: QueryColumnID.CollectionStartDate,
       ascending: true,
       optionText: 'Non-blank'
+    });
+    columnSpecs.push({
+      columnID: QueryColumnID.CollectionEndDate,
+      ascending: true,
+      optionText: null
     });
     columnSpecs.push({
       columnID: QueryColumnID.Latitude,
@@ -442,6 +444,18 @@
       locationFilter: mapQuery.locationFilter,
       taxonFilter: mapQuery.taxonFilter
     };
+  }
+
+  function _finishFeatureLabel(featureSpec: FeatureSpec): void {
+    let labelSuffix =
+      featureSpec.recordCount == 1
+        ? '1 record, '
+        : featureSpec.recordCount + ' records, ';
+    labelSuffix +=
+      featureSpec.visitCount == 1 ? '1 visit, ' : featureSpec.visitCount + ' visits, ';
+    labelSuffix +=
+      'last ' + fromDaysEpoch(featureSpec.lastDaysEpoch).toLocaleDateString();
+    featureSpec.label += ` (${labelSuffix})`;
   }
 
   async function _loadBatch(query: GeneralQuery, offset: number): Promise<QueryRow[]> {
