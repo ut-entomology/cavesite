@@ -27,6 +27,8 @@
     locationFilter: QueryLocationFilter | null;
     taxonFilter: QueryTaxonFilter | null;
     onlyCaveObligates: boolean;
+    onlyFederallyListed: boolean;
+    onlySGCN: boolean;
   }
 
   interface FeatureSpec {
@@ -221,7 +223,9 @@
         throughDateMillis: query.throughDateMillis,
         filterTaxa: query.taxonFilter !== null,
         filterLocations: query.locationFilter !== null,
-        onlyCaveObligates: query.onlyCaveObligates
+        onlyCaveObligates: query.onlyCaveObligates,
+        onlyFederallyListed: query.onlyFederallyListed,
+        onlySGCN: query.onlySGCN
       };
     } else {
       queryRequest = {
@@ -229,7 +233,9 @@
         throughDateMillis: new Date().getTime(),
         filterTaxa: false,
         filterLocations: false,
-        onlyCaveObligates: false
+        onlyCaveObligates: false,
+        onlyFederallyListed: false,
+        onlySGCN: false
       };
     }
   }
@@ -242,7 +248,9 @@
       throughDateMillis: request.throughDateMillis,
       locationFilter: request.filterLocations ? await getLocationFilter() : null,
       taxonFilter: request.filterTaxa ? await getTaxonFilter() : null,
-      onlyCaveObligates: request.onlyCaveObligates
+      onlyCaveObligates: request.onlyCaveObligates,
+      onlyFederallyListed: request.onlyFederallyListed,
+      onlySGCN: request.onlySGCN
     };
     const generalQuery = convertMapQuery(specedMapQuery);
 
@@ -266,7 +274,20 @@
       }
     }
 
-    let taxonFilterName = specedMapQuery.onlyCaveObligates ? 'cave obligates' : '';
+    const speciesStatusList: string[] = [];
+    if (specedMapQuery.onlyFederallyListed) speciesStatusList.push('federally listed');
+    if (specedMapQuery.onlySGCN) speciesStatusList.push('SGCN');
+    const speciesStatus = speciesStatusList.join('/');
+    let taxonFilterInfo = '';
+    if (speciesStatus != '') {
+      if (specedMapQuery.onlyCaveObligates) {
+        taxonFilterInfo = speciesStatus + ' cave obligates';
+      } else {
+        taxonFilterInfo = speciesStatus + ' species';
+      }
+    }
+
+    let taxonFilterName = taxonFilterInfo;
     if (generalQuery.taxonFilter) {
       taxonFilterName = 'selected taxa';
       const taxonSpecs = Object.values($selectedTaxa!);
@@ -281,8 +302,8 @@
           taxonFilterName = `<i>${taxonFilterName}</i>`;
         }
       }
-      if (specedMapQuery.onlyCaveObligates) {
-        taxonFilterName += ' that are cave obligates';
+      if (taxonFilterInfo != '') {
+        taxonFilterName += ' that are ' + taxonFilterInfo;
       }
     }
     if (taxonFilterName != '') {
@@ -395,6 +416,20 @@
         columnID: QueryColumnID.IsCaveObligate,
         ascending: null,
         optionText: 'Yes'
+      });
+    }
+    if (mapQuery.onlyFederallyListed) {
+      columnSpecs.push({
+        columnID: QueryColumnID.IsFederallyListed,
+        ascending: null,
+        optionText: 'Yes'
+      });
+    }
+    if (mapQuery.onlySGCN) {
+      columnSpecs.push({
+        columnID: QueryColumnID.TpwdStatus,
+        ascending: null,
+        optionText: 'SGCN'
       });
     }
 

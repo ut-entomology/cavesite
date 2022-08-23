@@ -5,6 +5,8 @@
     filterTaxa: boolean;
     filterLocations: boolean;
     onlyCaveObligates: boolean;
+    onlySGCN: boolean;
+    onlyFederallyListed: boolean;
   }
 </script>
 
@@ -23,6 +25,8 @@
   let filterTaxa = initialQueryRequest.filterTaxa;
   let filterLocations = initialQueryRequest.filterLocations;
   let onlyCaveObligates = initialQueryRequest.onlyCaveObligates;
+  let onlySGCN = initialQueryRequest.onlySGCN;
+  let onlyFederallyListed = initialQueryRequest.onlyFederallyListed;
 
   function submit() {
     onSubmit({
@@ -30,7 +34,9 @@
       throughDateMillis: throughDate.getTime(),
       filterTaxa,
       filterLocations,
-      onlyCaveObligates
+      onlyCaveObligates,
+      onlySGCN,
+      onlyFederallyListed
     });
   }
 
@@ -62,16 +68,42 @@
 
   <FilterSelector {filterTaxa} {filterLocations} {setFilters} />
 
-  <div class="row mt-3 ms-1 mb-2 gx-2 justify-content-center">
+  <div class="row mt-3 ms-3 gx-2">
     <div class="col-auto form-check checkable">
       <input
-        id="proximity_checkbox"
+        id="cave_obligates_checkbox"
         type="checkbox"
         bind:checked={onlyCaveObligates}
         class="form-check-input"
       />
-      <label class="form-check-label" for="proximity_checkbox"
-        >Further restrict to locations containing cave obligates</label
+      <label class="form-check-label" for="cave_obligates_checkbox"
+        >Further restrict to locations containing <b>cave obligates</b></label
+      >
+    </div>
+  </div>
+  <div class="row ms-3 gx-2">
+    <div class="col-auto form-check checkable">
+      <input
+        id="federally_listed_checkbox"
+        type="checkbox"
+        bind:checked={onlyFederallyListed}
+        class="form-check-input"
+      />
+      <label class="form-check-label" for="federally_listed_checkbox"
+        >Further restrict to locations containing <b>federally listed</b> species</label
+      >
+    </div>
+  </div>
+  <div class="row ms-3 mb-2 gx-2">
+    <div class="col-auto form-check checkable">
+      <input
+        id="sgcn_checkbox"
+        type="checkbox"
+        bind:checked={onlySGCN}
+        class="form-check-input"
+      />
+      <label class="form-check-label" for="sgcn_checkbox"
+        >Further restrict to locations containing <b>SGCN</b> species</label
       >
     </div>
   </div>
