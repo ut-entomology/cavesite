@@ -16,10 +16,15 @@ import {
   createContainingTaxonSpecs,
   CAVE_OBLIGATE_FLAG
 } from '../../shared/model';
+import type { TexasSpeciesStatus } from '../../shared/data_keys';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
 import { ImportFailure } from './import_failure';
+import { KeyData } from './key_data';
+import { DataKey, parseStateSpeciesStatus } from '../../shared/data_keys';
+import { Permission } from '../../shared/user_auth';
 
 const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
+let texasStatusBySpecies: Record<string, TexasSpeciesStatus> | null = null;
 
 export interface TaxonSource {
   // GBIF field names
@@ -42,6 +47,8 @@ export class Taxon {
   taxonName: string;
   uniqueName: string;
   author: string | null; // null => not retrieved from GBIF
+  stateRank: string | null;
+  tpwdStatus: string | null;
   flags: number;
   parentID: number | null;
   parentIDPath: string;
@@ -56,6 +63,8 @@ export class Taxon {
     this.taxonName = data.taxonName;
     this.uniqueName = data.uniqueName;
     this.author = data.author;
+    this.stateRank = data.stateRank;
+    this.tpwdStatus = data.tpwdStatus;
     this.flags = data.flags;
     this.parentID = data.parentID;
     this.parentIDPath = data.parentIDPath;
@@ -69,14 +78,16 @@ export class Taxon {
     if (this.taxonID === 0) {
       const result = await db.query(
         `insert into taxa(
-            taxon_rank, taxon_name, unique_name, author, flags,
-            parent_id, parent_id_path, parent_name_path
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8) returning taxon_id`,
+            taxon_rank, taxon_name, unique_name, author, state_rank, tpwd_status,
+            flags, parent_id, parent_id_path, parent_name_path
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) returning taxon_id`,
         [
           this.taxonRank,
           this.taxonName,
           this.uniqueName,
           this.author,
+          this.stateRank,
+          this.tpwdStatus,
           this.flags,
           this.parentID,
           this.parentIDPath,
@@ -87,14 +98,17 @@ export class Taxon {
     } else {
       const result = await db.query(
         `update taxa set
-            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4, flags=$5,
-            parent_id=$6, parent_id_path=$7, parent_name_path=$8
-          where taxon_id=$9`,
+            taxon_rank=$1, taxon_name=$2, unique_name=$3, author=$4,
+            state_rank=$5, tpwd_status=$6, flags=$7,
+            parent_id=$8, parent_id_path=$9, parent_name_path=$10
+          where taxon_id=$11`,
         [
           this.taxonRank,
           this.taxonName,
           this.uniqueName,
           this.author,
+          this.stateRank,
+          this.tpwdStatus,
           this.flags,
           this.parentID,
           this.parentIDPath,
@@ -201,7 +215,9 @@ export class Taxon {
       name: taxonName,
       unique: '',
       author: Taxon._extractAuthor(source.scientificName),
-      flags: 0, // don't have the unique yet for determining flags
+      stateRank: null, // no taxon unique, so can't determine yet
+      tpwdStatus: null, // no taxon unique, so can't determine yet
+      flags: 0, // no taxon unique, so can't determine yet
       parentNamePath,
       hasChildren: null
     };
@@ -250,12 +266,15 @@ export class Taxon {
       ) {
         flags |= CAVE_OBLIGATE_FLAG;
       }
+      const texasStatus = await Taxon._getSpeciesStatus(db, spec);
 
       taxon = await Taxon.create(db, spec.parentNamePath, parentIDPath, {
         taxonRank: spec.rank,
         taxonName: spec.name,
         uniqueName: spec.unique,
         author: spec.author,
+        stateRank: texasStatus?.stateRank || null,
+        tpwdStatus: texasStatus?.tpwdStatus || null,
         flags,
         parentID: taxon?.taxonID || null,
         hasChildren: spec.hasChildren || null
@@ -349,6 +368,31 @@ export class Taxon {
     }
     if (!source.scientificName) throw new ImportFailure('Scientific name not given');
     return [taxonNames, taxonRank];
+  }
+
+  private static async _getSpeciesStatus(
+    db: DB,
+    spec: TaxonSpec
+  ): Promise<TexasSpeciesStatus | null> {
+    if (spec.rank != TaxonRank.Species && spec.rank != TaxonRank.Subspecies) {
+      return null;
+    }
+
+    if (texasStatusBySpecies === null) {
+      const text = await KeyData.read(
+        db,
+        null,
+        Permission.None,
+        DataKey.TexasSpeciesStatus
+      );
+      if (text === null) return null;
+      texasStatusBySpecies = {};
+      const speciesStatuses = parseStateSpeciesStatus(text);
+      for (const speciesStatus of speciesStatuses) {
+        texasStatusBySpecies[speciesStatus.species] = speciesStatus;
+      }
+    }
+    return texasStatusBySpecies[spec.unique];
   }
 }
 

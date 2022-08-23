@@ -118,6 +118,8 @@ export class Specimen implements TaxonPathSpec {
   taxonUnique: string;
   taxonAuthor: string | null;
   isCaveObligate: boolean;
+  stateRank: string | null;
+  tpwdStatus: string | null;
 
   // values cached from the locations table
 
@@ -170,6 +172,8 @@ export class Specimen implements TaxonPathSpec {
     this.taxonUnique = data.taxonUnique;
     this.taxonAuthor = data.taxonAuthor;
     this.isCaveObligate = data.isCaveObligate;
+    this.stateRank = data.stateRank;
+    this.tpwdStatus = data.tpwdStatus;
     this.countyName = data.countyName;
     this.countyID = data.countyID;
     this.localityName = data.localityName;
@@ -467,6 +471,8 @@ export class Specimen implements TaxonPathSpec {
       taxonUnique: taxon.uniqueName,
       taxonAuthor: taxon.author,
       isCaveObligate,
+      stateRank: taxon.stateRank,
+      tpwdStatus: taxon.tpwdStatus,
       countyName: getRankedName(locationNames, 3, location.locationName),
       countyID: getRankedID(locationIDs, 3, location.locationID),
       localityName: location.locationName,
@@ -487,10 +493,11 @@ export class Specimen implements TaxonPathSpec {
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
           subspecies_name, subspecies_id, taxon_unique, taxon_author, is_cave_obligate,
+          state_rank, tpwd_status,
           county_name, county_id, locality_name, latitude, longitude, is_cave
-        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-          $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45)`,
+        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+          $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32,
+          $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -532,6 +539,8 @@ export class Specimen implements TaxonPathSpec {
         specimen.taxonAuthor,
         // @ts-ignore incorrect type def
         specimen.isCaveObligate,
+        specimen.stateRank,
+        specimen.tpwdStatus,
         specimen.countyName,
         specimen.countyID,
         specimen.localityName,

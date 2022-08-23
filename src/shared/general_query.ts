@@ -24,6 +24,8 @@ export enum QueryColumnID {
   Species,
   Subspecies,
   IsCaveObligate,
+  TexasStateRank,
+  TpwdStatus,
   SpecimenCount,
   LifeStage,
   Latitude,
@@ -137,6 +139,10 @@ export interface QueryRow {
   taxonAuthor?: string | null;
 
   isCaveObligate?: boolean;
+
+  stateRank?: string;
+
+  tpwdStatus?: string;
 
   countyName?: string | null;
   countyID?: number | null;
@@ -517,6 +523,35 @@ setColumnInfo({
   defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => (row.isCaveObligate ? 'Yes' : 'No')
+});
+setColumnInfo({
+  columnID: QueryColumnID.TexasStateRank,
+  fullName: 'Texas State Rank',
+  abbrName: 'State Rank',
+  description: 'State of Texas conservation rank',
+  defaultSelection: false,
+  column1: 'state_rank',
+  options: nullableOptions,
+  defaultEmWidth: 6,
+  columnClass: 'center',
+  getValue: (row: QueryRow) => row.stateRank || ''
+});
+setColumnInfo({
+  columnID: QueryColumnID.TpwdStatus,
+  fullName: 'TPWD Status',
+  abbrName: null,
+  description: 'TPWD conservation status',
+  defaultSelection: false,
+  column1: 'tpwd_status',
+  options: [
+    { text: 'Any value', sql: null },
+    { text: 'SGCN', sql: "X='SGCN'" },
+    { text: 'Non-blank', sql: 'X is not null' },
+    { text: 'Blank', sql: 'X is null' }
+  ],
+  defaultEmWidth: 6,
+  columnClass: 'center',
+  getValue: (row: QueryRow) => row.tpwdStatus || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.County,

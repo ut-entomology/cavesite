@@ -7,7 +7,9 @@ export enum DataKey {
   CaveLocalities = 'cave_localities',
   CaveObligates = 'cave_obligates',
   ImportSchedule = 'import_schedule',
-  KarstRegions = 'karst_regions'
+  KarstRegions = 'karst_regions',
+  TexasSpeciesStatus = 'texas_status',
+  FederalSpeciesStatus = 'federal_status'
 }
 
 export const daysOfWeek = [
@@ -30,6 +32,12 @@ export interface MapRegionSource {
   propertyName: string;
   layerName: string;
   mapboxCode: string;
+}
+
+export interface TexasSpeciesStatus {
+  species: string;
+  stateRank: string;
+  tpwdStatus: string;
 }
 
 export const dataValidatorsByKey = {
@@ -115,6 +123,34 @@ export const dataValidatorsByKey = {
       }
     }
     return errors;
+  },
+  [DataKey.TexasSpeciesStatus]: (text: string) => {
+    const errors: string[] = [];
+    for (let line of text.split('\n')) {
+      line = line.trim();
+      if (line.length == 0 || line[0] == '#') continue;
+      const values = line.split(',');
+      if (values.length != 3) {
+        addError(errors, line, 'must contain 3 comma-delimited values');
+      }
+      _checkSpeciesName(errors, values[0]);
+      const stateRank = values[1].trim();
+      if (stateRank.includes(' ') || (stateRank != '' && stateRank[0] != 'S')) {
+        addError(
+          errors,
+          line,
+          `does not appear to have a state rank (a single term starting with 'S')`
+        );
+      }
+      if (stateRank == 'SGCN') {
+        addError(
+          errors,
+          line,
+          `appears to have reversed the state rank and TPWD columns`
+        );
+      }
+    }
+    return errors;
   }
 };
 
@@ -126,7 +162,9 @@ export const readPermissionsByKey = {
   [DataKey.CaveLocalities]: Permission.None,
   [DataKey.CaveObligates]: Permission.None,
   [DataKey.ImportSchedule]: Permission.Admin,
-  [DataKey.KarstRegions]: Permission.None
+  [DataKey.KarstRegions]: Permission.None,
+  [DataKey.TexasSpeciesStatus]: Permission.None,
+  [DataKey.FederalSpeciesStatus]: Permission.None
 };
 
 export function parseDataLines(text: string): string[] {
@@ -168,4 +206,35 @@ export function parseRegions(text: string): MapRegionSource[] {
     });
   }
   return regionSources;
+}
+
+export function parseStateSpeciesStatus(text: string): TexasSpeciesStatus[] {
+  const statuses: TexasSpeciesStatus[] = [];
+  for (let line of parseDataLines(text)) {
+    const values = line.split(',');
+    statuses.push({
+      species: values[0].trim(),
+      stateRank: values[1].trim(),
+      tpwdStatus: values[2].trim()
+    });
+  }
+  return statuses;
+}
+
+function _checkSpeciesName(errors: string[], text: string): void {
+  const regex = /^[-A-Za-z ]+$/;
+  text = text.trim();
+  if (text[0] != text[0].toUpperCase()) {
+    addError(errors, text, 'does not begin with an uppercase letter');
+  }
+  if (!text.match(regex)) {
+    addError(errors, text, 'contains dissallowed characters');
+  }
+  if (text.substring(1) != text.substring(1).toLowerCase()) {
+    addError(errors, text, 'is not entirely lowercase after first letter');
+  }
+  const spaces = text.length - text.replace(' ', '').length;
+  if (spaces < 1 || spaces > 2) {
+    addError(errors, text, 'must consist of 2 or 3 words (3 for subspecies)');
+  }
 }

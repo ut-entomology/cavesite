@@ -70,6 +70,8 @@ function _toTaxonSpec(taxon: Taxon): TaxonSpec {
     name: taxon.taxonName,
     unique: taxon.uniqueName,
     author: taxon.author,
+    stateRank: taxon.stateRank,
+    tpwdStatus: taxon.tpwdStatus,
     flags: taxon.flags,
     parentNamePath: taxon.parentNamePath,
     hasChildren: taxon.hasChildren
