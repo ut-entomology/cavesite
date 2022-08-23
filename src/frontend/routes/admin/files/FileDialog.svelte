@@ -48,7 +48,8 @@
     if (timer === null) {
       // Don't restart timeout, as timer runs across pages in an SPA.
       setTimeout(() => {
-        $unsavedKeyData = text;
+        // Text might be saved before timeout.
+        if (text != originalText) $unsavedKeyData = text;
         timer = null;
       }, BACKUP_MILLIS);
     }
