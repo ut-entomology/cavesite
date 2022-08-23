@@ -1,4 +1,4 @@
-# Setting up the server
+noce# Setting up the server
 
 ## Assumptions
 
@@ -105,9 +105,11 @@ Otherwise update the repo:
     yarn build
     sudo ./bin/deploy
     
+(11.5) Start the server and setup the admin files. [TBD: Embellish this step.]
+    
 (12) From the client, use scp to copy the uploadable datafile to the host (temporary measure until integrated with GBIF):
 
-scp uploadable.csv user@caves.tacc.utexas.edu:~/
+    scp uploadable.csv user@caves.tacc.utexas.edu:~/
 
 (13) Load the data into the database:
 
