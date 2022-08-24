@@ -18,7 +18,7 @@
   import ModalDialog from '../../../common/ModalDialog.svelte';
   import AutosizingTextArea from '../../../components/AutosizingTextArea.svelte';
   import ConfirmationRequest from '../../../common/ConfirmationRequest.svelte';
-  import { dataValidatorsByKey } from '../../../../shared/data_keys';
+  import { keyDataInfoByKey } from '../../../../shared/data_keys';
   import { loadKeyData, saveKeyData } from '../../../lib/key_data_client';
   import { client } from '../../../stores/client';
 
@@ -90,9 +90,8 @@
   }
 
   function checkForErrors() {
-    // @ts-ignore fact that not all keys are present in dataValidatorsByKey
-    const validator = dataValidatorsByKey[fileSpec.dataKey];
-    errors = validator(text);
+    const keyDataInfo = keyDataInfoByKey[fileSpec.dataKey];
+    errors = keyDataInfo.getErrors!(text);
   }
 </script>
 

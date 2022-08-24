@@ -15,12 +15,7 @@ import {
   checkPermissions
 } from '../util/http_util';
 import { Permission } from '../../shared/user_auth';
-import {
-  DataKey,
-  type ImportSchedule,
-  readPermissionsByKey,
-  dataValidatorsByKey
-} from '../../shared/data_keys';
+import { DataKey, type ImportSchedule, keyDataInfoByKey } from '../../shared/data_keys';
 
 export const router = Router();
 
@@ -69,9 +64,9 @@ router.post('/save', async (req: Request, res) => {
   ) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  // @ts-ignore fact that not all keys are present in dataValidatorsByKey
-  const validator = dataValidatorsByKey[key];
-  if (validator && validator(data).length > 0) {
+
+  const dataKeyInfo = keyDataInfoByKey[key];
+  if (dataKeyInfo.getErrors && dataKeyInfo.getErrors(data).length > 0) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
 
@@ -79,7 +74,7 @@ router.post('/save', async (req: Request, res) => {
     getDB(),
     mine ? loginUserID : null,
     key,
-    readPermissionsByKey[key],
+    dataKeyInfo.readPermission,
     data
   );
   return res.status(StatusCodes.OK).send();

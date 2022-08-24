@@ -4,12 +4,27 @@
 import { Permission } from '../shared/user_auth';
 
 export enum DataKey {
-  CaveLocalities = 'cave_localities',
-  CaveObligates = 'cave_obligates',
+  // General admin
+
+  WelcomePageText = 'welcome_page_text',
   ImportSchedule = 'import_schedule',
+
+  // Locality characterization
+
+  CaveLocalities = 'cave_localities',
   KarstRegions = 'karst_regions',
+
+  // Species characterization
+
+  CaveObligates = 'cave_obligates',
   TexasSpeciesStatus = 'texas_status',
-  FederalSpeciesStatus = 'federal_status'
+  FederalSpeciesStatus = 'federal_status',
+
+  // Email text
+
+  NewAccountEmail = 'new_account_email',
+  ResetRequestEmail = 'reset_request_email',
+  PasswordResetEmail = 'password_reset_email'
 }
 
 export const daysOfWeek = [
@@ -40,75 +55,124 @@ export interface TexasSpeciesStatus {
   tpwdStatus: string;
 }
 
-export const dataValidatorsByKey = {
-  [DataKey.CaveLocalities]: (text: string) => {
-    const errors: string[] = [];
-    for (let line of text.split('\n')) {
-      line = line.trim();
-      if (line.length == 0 || line[0] == '#') continue;
-      if (line[0] == '(') {
-        addError(errors, line, 'cannot begin cave name with parentheses');
+export interface KeyDataInfo {
+  readPermission: Permission;
+  getErrors: ((text: string) => string[]) | null;
+}
+
+export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
+  [DataKey.ImportSchedule]: {
+    readPermission: Permission.Admin,
+    getErrors: null
+  },
+  [DataKey.WelcomePageText]: {
+    readPermission: Permission.None,
+    getErrors: null
+  },
+  [DataKey.CaveLocalities]: {
+    readPermission: Permission.None,
+    getErrors: getCaveLocalityErrors
+  },
+  [DataKey.KarstRegions]: {
+    readPermission: Permission.None,
+    getErrors: getKarstRegionsErrors
+  },
+  [DataKey.CaveObligates]: {
+    readPermission: Permission.None,
+    getErrors: getCaveObligatesErrors
+  },
+  [DataKey.TexasSpeciesStatus]: {
+    readPermission: Permission.None,
+    getErrors: getTexasSpeciesStatusErrors
+  },
+  [DataKey.FederalSpeciesStatus]: {
+    readPermission: Permission.None,
+    getErrors: getFederalSpeciesStatusErrors
+  },
+  [DataKey.NewAccountEmail]: {
+    readPermission: Permission.None,
+    getErrors: null
+  },
+  [DataKey.ResetRequestEmail]: {
+    readPermission: Permission.Admin,
+    getErrors: null
+  },
+  [DataKey.PasswordResetEmail]: {
+    readPermission: Permission.Admin,
+    getErrors: null
+  }
+};
+
+function getCaveLocalityErrors(text: string) {
+  const errors: string[] = [];
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (line.length == 0 || line[0] == '#') continue;
+    if (line[0] == '(') {
+      addError(errors, line, 'cannot begin cave name with parentheses');
+    }
+    const lastLeftParenIndex = line.lastIndexOf('(');
+    if (lastLeftParenIndex < 0) {
+      addError(errors, line, 'is missing parenthesized county name');
+    } else if (line[line.length - 1] != ')') {
+      addError(errors, line, 'is missing trailing parenthesis');
+    } else {
+      const locality = line.substring(0, lastLeftParenIndex).trim();
+      const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
+      if (county == '') {
+        addError(errors, line, 'has no county name');
       }
-      const lastLeftParenIndex = line.lastIndexOf('(');
-      if (lastLeftParenIndex < 0) {
-        addError(errors, line, 'is missing parenthesized county name');
-      } else if (line[line.length - 1] != ')') {
-        addError(errors, line, 'is missing trailing parenthesis');
-      } else {
-        const locality = line.substring(0, lastLeftParenIndex).trim();
-        const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
-        if (county == '') {
-          addError(errors, line, 'has no county name');
-        }
-        if (locality.toLowerCase().includes('cave')) {
-          addError(
-            errors,
-            line,
-            "contains the text 'cave' and so need not be listed here"
-          );
-        }
+      if (locality.toLowerCase().includes('cave')) {
+        addError(
+          errors,
+          line,
+          "contains the text 'cave' and so need not be listed here"
+        );
       }
     }
-    return errors;
-  },
-  [DataKey.CaveObligates]: (text: string) => {
-    const regex = /^[-A-Za-z0-9 .]+$/;
-    const errors: string[] = [];
-    for (let line of text.split('\n')) {
-      line = line.trim();
-      if (line.length == 0 || line[0] == '#') continue;
-      if (line[0] != line[0].toUpperCase()) {
-        addError(errors, line, 'does not begin with an uppercase letter');
-      }
-      if (line[1] == '.') {
-        addError(errors, line, 'appears to have an abbreviated genus');
-      }
-      if (!line.match(regex)) {
-        addError(errors, line, 'contains dissallowed characters');
-      }
-      if (line.substring(1) != line.substring(1).toLowerCase()) {
-        addError(errors, line, 'is not entirely lowercase after first letter');
-      }
+  }
+  return errors;
+}
+
+function getCaveObligatesErrors(text: string) {
+  const regex = /^[-A-Za-z0-9 .]+$/;
+  const errors: string[] = [];
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (line.length == 0 || line[0] == '#') continue;
+    if (line[0] != line[0].toUpperCase()) {
+      addError(errors, line, 'does not begin with an uppercase letter');
     }
-    return errors;
-  },
-  [DataKey.KarstRegions]: (text: string) => {
-    const errors: string[] = [];
-    for (let line of text.split('\n')) {
-      line = line.trim();
-      if (line.length == 0 || line[0] == '#') continue;
-      const colonOffset = line.indexOf(':');
-      if (colonOffset <= 0) {
-        addError(errors, line, "must begin with 'KR:' or 'KFR:'");
-      }
-      const regionType = line.substring(0, colonOffset);
-      if (!['KR', 'KFR'].includes(regionType)) {
-        addError(errors, line, "must begin with 'KR:' or 'KFR:'");
-      }
-      const params = line.substring(colonOffset + 1).split(',');
-      if (params.length != 3) {
-        addError(errors, line, 'must contain 3 comma-delimited parameters');
-      }
+    if (line[1] == '.') {
+      addError(errors, line, 'appears to have an abbreviated genus');
+    }
+    if (!line.match(regex)) {
+      addError(errors, line, 'contains dissallowed characters');
+    }
+    if (line.substring(1) != line.substring(1).toLowerCase()) {
+      addError(errors, line, 'is not entirely lowercase after first letter');
+    }
+  }
+  return errors;
+}
+
+function getKarstRegionsErrors(text: string) {
+  const errors: string[] = [];
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (line.length == 0 || line[0] == '#') continue;
+    const colonOffset = line.indexOf(':');
+    if (colonOffset <= 0) {
+      addError(errors, line, "must begin with 'KR:' or 'KFR:'");
+    }
+    const regionType = line.substring(0, colonOffset);
+    if (!['KR', 'KFR'].includes(regionType)) {
+      addError(errors, line, "must begin with 'KR:' or 'KFR:'");
+    }
+    const params = line.substring(colonOffset + 1).split(',');
+    if (params.length != 3) {
+      addError(errors, line, 'must contain 3 comma-delimited parameters');
+    } else {
       for (let param of params) {
         param = param.trim();
         if (param.includes(' ')) {
@@ -122,17 +186,19 @@ export const dataValidatorsByKey = {
         addError(errors, line, `"${params[2]}" does not appear to be a tileset ID`);
       }
     }
-    return errors;
-  },
-  [DataKey.TexasSpeciesStatus]: (text: string) => {
-    const errors: string[] = [];
-    for (let line of text.split('\n')) {
-      line = line.trim();
-      if (line.length == 0 || line[0] == '#') continue;
-      const values = line.split(',');
-      if (values.length != 3) {
-        addError(errors, line, 'must contain 3 comma-delimited values');
-      }
+  }
+  return errors;
+}
+
+function getTexasSpeciesStatusErrors(text: string) {
+  const errors: string[] = [];
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (line.length == 0 || line[0] == '#') continue;
+    const values = line.split(',');
+    if (values.length != 3) {
+      addError(errors, line, 'must contain 3 comma-delimited values');
+    } else {
       _checkSpeciesName(errors, values[0]);
       const stateRank = values[1].trim();
       if (stateRank.includes(' ') || (stateRank != '' && stateRank[0] != 'S')) {
@@ -150,31 +216,23 @@ export const dataValidatorsByKey = {
         );
       }
     }
-    return errors;
-  },
-  [DataKey.FederalSpeciesStatus]: (text: string) => {
-    const errors: string[] = [];
-    for (let line of text.split('\n')) {
-      line = line.trim();
-      if (line.length == 0 || line[0] == '#') continue;
-      _checkSpeciesName(errors, line);
-    }
-    return errors;
   }
-};
+  return errors;
+}
+
+function getFederalSpeciesStatusErrors(text: string) {
+  const errors: string[] = [];
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (line.length == 0 || line[0] == '#') continue;
+    _checkSpeciesName(errors, line);
+  }
+  return errors;
+}
 
 function addError(errors: string[], line: string, message: string): void {
   errors.push(`"${line}" ${message}`);
 }
-
-export const readPermissionsByKey = {
-  [DataKey.CaveLocalities]: Permission.None,
-  [DataKey.CaveObligates]: Permission.None,
-  [DataKey.ImportSchedule]: Permission.Admin,
-  [DataKey.KarstRegions]: Permission.None,
-  [DataKey.TexasSpeciesStatus]: Permission.None,
-  [DataKey.FederalSpeciesStatus]: Permission.None
-};
 
 export function parseDataLines(text: string): string[] {
   const lines: string[] = [];

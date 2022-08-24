@@ -5,7 +5,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { DataKey, readPermissionsByKey, parseDataLines } from '../../shared/data_keys';
+import { DataKey, keyDataInfoByKey, parseDataLines } from '../../shared/data_keys';
 import type { DB } from '../integrations/postgres';
 import { KeyData } from '../model/key_data';
 import { Permission } from '../../shared/user_auth';
@@ -64,7 +64,7 @@ export async function loadDefaultCaveObligates(db: DB): Promise<void> {
     db,
     null,
     DataKey.CaveObligates,
-    readPermissionsByKey[DataKey.CaveObligates],
+    keyDataInfoByKey[DataKey.CaveObligates].readPermission,
     text
   );
 }
