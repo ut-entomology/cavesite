@@ -334,8 +334,10 @@
           featureSpecs.push(nextFeatureSpec);
           nextFeatureSpec = null;
         }
-        const lastDate = new Date(
-          row.collectionEndDate ? row.collectionEndDate : row.collectionStartDate!
+        const lastDaysEpoch = toDaysEpoch(
+          new Date(
+            row.collectionEndDate ? row.collectionEndDate : row.collectionStartDate!
+          )
         );
         if (nextFeatureSpec === null) {
           nextFeatureSpec = {
@@ -344,12 +346,14 @@
             longitude: row.longitude!,
             recordCount: row.recordCount!,
             visitCount: 1,
-            lastDaysEpoch: toDaysEpoch(lastDate)
+            lastDaysEpoch
           };
         } else {
           nextFeatureSpec.recordCount += row.recordCount!;
           ++nextFeatureSpec.visitCount;
-          nextFeatureSpec.lastDaysEpoch = toDaysEpoch(lastDate);
+          if (lastDaysEpoch > nextFeatureSpec.lastDaysEpoch) {
+            nextFeatureSpec.lastDaysEpoch = lastDaysEpoch;
+          }
         }
       }
       offset += MAP_QUERY_BATCH_SIZE;
