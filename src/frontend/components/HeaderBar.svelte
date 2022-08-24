@@ -19,6 +19,7 @@
     try {
       await logoutUser(true);
       page('/');
+      window.location.reload();
     } catch (err: any) {
       await flashMessage(`Error ${err.response.status} logging out`);
     }

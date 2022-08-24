@@ -29,6 +29,7 @@
         setExpiration(res.data.expiration);
         closeDialog();
         await flashMessage('You are logged in');
+        window.location.reload();
       } catch (err: any) {
         $userInfo = null;
         if (err.response.status == StatusCodes.UNAUTHORIZED) {

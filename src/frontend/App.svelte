@@ -6,7 +6,7 @@
   import { userInfo } from './stores/user_info';
   import { appInfo } from './stores/app_info';
   import { globalDialog } from './stores/globalDialog.svelte';
-  import { type LoginInfo, toResetQueryStr } from '../shared/user_auth';
+  import { type LoginInfo, toResetQueryStr, Permission } from '../shared/user_auth';
   import { initRefresher, setExpiration } from './util/refresher';
   import Layout from './routes/_Layout.svelte';
   import WelcomePage from './routes/welcome/WelcomePage.svelte';
@@ -29,21 +29,21 @@
 
   // Initialize client-side routes.
 
-  const routes: Record<string, typeof SvelteComponent> = {
+  const publicRoutes: Record<string, typeof SvelteComponent> = {
     '/': WelcomePage,
     '/taxa': TaxaPage,
     '/locations': LocationsPage,
     '/map': MapPage,
     '/time': TimePage,
     '/predictions': PredictionsPage,
-    '/queries': QueriesPage,
+    '/queries': QueriesPage
+  };
 
+  const adminRoutes: Record<string, typeof SvelteComponent> = {
     '/admin/users': UsersPage,
     '/admin/files': FilesPage,
     '/admin/logs': LogsPage,
-    '/admin/schedule': SchedulePage,
-
-    '*': NotFound
+    '/admin/schedule': SchedulePage
   };
 
   let pageComponent: typeof SvelteComponent;
@@ -53,7 +53,13 @@
     document.title = title;
   }
 
-  for (const [route, component] of Object.entries(routes)) {
+  function addRoutes(routes: Record<string, typeof SvelteComponent>) {
+    for (const [route, component] of Object.entries(routes)) {
+      addRoute(route, component);
+    }
+  }
+
+  function addRoute(route: string, component: typeof SvelteComponent) {
     router(
       route,
       (ctx, next) => {
@@ -64,7 +70,6 @@
       () => (pageComponent = component)
     );
   }
-  router.start();
 
   async function prepare() {
     // Get app information and re-establish any prior login.
@@ -78,11 +83,21 @@
         hiddenRoutes: loginInfo.hiddenRoutes,
         mapToken: loginInfo.mapToken
       });
+
+      $appInfo.hiddenRoutes.forEach((route) => delete publicRoutes[route]);
+      $appInfo.hiddenRoutes.forEach((route) => delete adminRoutes[route]);
+
+      addRoutes(publicRoutes);
+      if (loginInfo.userInfo && loginInfo.userInfo.permissions & Permission.Admin) {
+        addRoutes(adminRoutes);
+      }
+      addRoute('*', NotFound);
+      router.start();
+
       if (loginInfo.userInfo && loginInfo.expiration) {
         $userInfo = loginInfo.userInfo;
         setExpiration(loginInfo.expiration);
       }
-      $appInfo.hiddenRoutes.forEach((route) => delete routes[route]);
     }
 
     // Handle a password reset request.
