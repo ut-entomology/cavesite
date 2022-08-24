@@ -35,6 +35,8 @@ export interface TimeGraphQuery {
   throughDateMillis: number;
   locationFilter: QueryLocationFilter | null;
   taxonFilter: QueryTaxonFilter | null;
+  onlyFederallyListed: boolean;
+  onlySGCN: boolean;
 }
 
 export enum LifeStage {
@@ -114,11 +116,6 @@ export function convertTimeQuery(
       optionText: null
     });
     columnSpecs.push({
-      columnID: QueryColumnID.IsCaveObligate,
-      ascending: null,
-      optionText: timeGraphQuery.taxonFilter === null && !queryAllTaxa ? 'Yes' : null
-    });
-    columnSpecs.push({
       columnID: QueryColumnID.LifeStage,
       ascending: null,
       optionText: null
@@ -133,6 +130,27 @@ export function convertTimeQuery(
       ascending: null,
       optionText: null
     });
+    if (timeGraphQuery.taxonFilter === null && !queryAllTaxa) {
+      columnSpecs.push({
+        columnID: QueryColumnID.IsCaveObligate,
+        ascending: null,
+        optionText: 'Yes'
+      });
+    }
+    if (timeGraphQuery.onlyFederallyListed) {
+      columnSpecs.push({
+        columnID: QueryColumnID.IsFederallyListed,
+        ascending: null,
+        optionText: 'Yes'
+      });
+    }
+    if (timeGraphQuery.onlySGCN) {
+      columnSpecs.push({
+        columnID: QueryColumnID.TpwdStatus,
+        ascending: null,
+        optionText: 'SGCN'
+      });
+    }
   }
 
   return {

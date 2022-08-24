@@ -4,6 +4,8 @@
     throughDateMillis: number;
     filterTaxa: boolean;
     filterLocations: boolean;
+    onlySGCN: boolean;
+    onlyFederallyListed: boolean;
   }
 </script>
 
@@ -21,13 +23,17 @@
   let throughDate = new Date(initialQueryRequest.throughDateMillis);
   let filterTaxa = initialQueryRequest.filterTaxa;
   let filterLocations = initialQueryRequest.filterLocations;
+  let onlySGCN = initialQueryRequest.onlySGCN;
+  let onlyFederallyListed = initialQueryRequest.onlyFederallyListed;
 
   function submit() {
     onSubmit({
       fromDateMillis: fromDate.getTime(),
       throughDateMillis: throughDate.getTime(),
       filterTaxa,
-      filterLocations
+      filterLocations,
+      onlySGCN,
+      onlyFederallyListed
     });
   }
 
@@ -62,6 +68,33 @@
   />
 
   <FilterSelector {filterTaxa} {filterLocations} {setFilters} />
+
+  <div class="row mt-3 ms-3 gx-2">
+    <div class="col-auto form-check checkable">
+      <input
+        id="sgcn_checkbox"
+        type="checkbox"
+        bind:checked={onlySGCN}
+        class="form-check-input"
+      />
+      <label class="form-check-label" for="sgcn_checkbox"
+        >Further restrict to locations containing <b>SGCN</b> species</label
+      >
+    </div>
+  </div>
+  <div class="row ms-3 mb-2 gx-2">
+    <div class="col-auto form-check checkable">
+      <input
+        id="federally_listed_checkbox"
+        type="checkbox"
+        bind:checked={onlyFederallyListed}
+        class="form-check-input"
+      />
+      <label class="form-check-label" for="federally_listed_checkbox"
+        >Further restrict to locations containing <b>federally listed</b> species</label
+      >
+    </div>
+  </div>
 
   <div class="dialog_controls row g-2">
     <div class="col-12 text-center">

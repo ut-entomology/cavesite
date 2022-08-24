@@ -181,14 +181,18 @@
         fromDateMillis: query.fromDateMillis,
         throughDateMillis: query.throughDateMillis,
         filterTaxa: query.taxonFilter !== null,
-        filterLocations: query.locationFilter !== null
+        filterLocations: query.locationFilter !== null,
+        onlyFederallyListed: query.onlyFederallyListed,
+        onlySGCN: query.onlySGCN
       };
     } else {
       queryRequest = {
         fromDateMillis: EARLIEST_RECORD_DATE.getTime(),
         throughDateMillis: new Date().getTime(),
         filterTaxa: false,
-        filterLocations: false
+        filterLocations: false,
+        onlyFederallyListed: false,
+        onlySGCN: false
       };
     }
   }
@@ -201,7 +205,9 @@
       fromDateMillis: request.fromDateMillis,
       throughDateMillis: request.throughDateMillis,
       locationFilter: request.filterLocations ? await getLocationFilter() : null,
-      taxonFilter: null
+      taxonFilter: null,
+      onlyFederallyListed: request.onlyFederallyListed,
+      onlySGCN: request.onlySGCN
     };
     const specedTimeQuery: TimeGraphQuery = Object.assign({}, allTaxaTimeQuery, {
       taxonFilter: request.filterTaxa ? await getTaxonFilter() : null

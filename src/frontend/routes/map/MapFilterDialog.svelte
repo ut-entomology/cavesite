@@ -84,19 +84,6 @@
   <div class="row ms-3 gx-2">
     <div class="col-auto form-check checkable">
       <input
-        id="federally_listed_checkbox"
-        type="checkbox"
-        bind:checked={onlyFederallyListed}
-        class="form-check-input"
-      />
-      <label class="form-check-label" for="federally_listed_checkbox"
-        >Further restrict to locations containing <b>federally listed</b> species</label
-      >
-    </div>
-  </div>
-  <div class="row ms-3 mb-2 gx-2">
-    <div class="col-auto form-check checkable">
-      <input
         id="sgcn_checkbox"
         type="checkbox"
         bind:checked={onlySGCN}
@@ -104,6 +91,19 @@
       />
       <label class="form-check-label" for="sgcn_checkbox"
         >Further restrict to locations containing <b>SGCN</b> species</label
+      >
+    </div>
+  </div>
+  <div class="row ms-3 mb-2 gx-2">
+    <div class="col-auto form-check checkable">
+      <input
+        id="federally_listed_checkbox"
+        type="checkbox"
+        bind:checked={onlyFederallyListed}
+        class="form-check-input"
+      />
+      <label class="form-check-label" for="federally_listed_checkbox"
+        >Further restrict to locations containing <b>federally listed</b> species</label
       >
     </div>
   </div>
