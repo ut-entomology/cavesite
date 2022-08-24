@@ -13,10 +13,14 @@
   let html: string;
 
   async function prepare() {
-    html = await loadKeyData($client, false, DataKey.WelcomePageText);
-    html = html
-      .replace('{website-title}', $appInfo.appTitle)
-      .replace('{website-subtitle}', $appInfo.appSubtitle);
+    const data = await loadKeyData($client, false, DataKey.WelcomePageText);
+    if (data === null || data == '') {
+      html = 'Please setup the Welcome page in the admin Files tab.';
+    } else {
+      html = data
+        .replace('{website-title}', $appInfo.appTitle)
+        .replace('{website-subtitle}', $appInfo.appSubtitle);
+    }
   }
 </script>
 
