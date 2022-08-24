@@ -69,7 +69,7 @@
 
   <FilterSelector {filterTaxa} {filterLocations} {setFilters} />
 
-  <div class="row mt-3 ms-3 gx-2">
+  <div class="row mt-3 ms-4 gx-2">
     <div class="col-auto form-check checkable">
       <input
         id="sgcn_checkbox"
@@ -78,11 +78,11 @@
         class="form-check-input"
       />
       <label class="form-check-label" for="sgcn_checkbox"
-        >Further restrict to locations containing <b>SGCN</b> species</label
+        >Further restrict to records for <b>SGCN</b> species</label
       >
     </div>
   </div>
-  <div class="row ms-3 mb-2 gx-2">
+  <div class="row ms-4 mb-2 gx-2">
     <div class="col-auto form-check checkable">
       <input
         id="federally_listed_checkbox"
@@ -91,7 +91,7 @@
         class="form-check-input"
       />
       <label class="form-check-label" for="federally_listed_checkbox"
-        >Further restrict to locations containing <b>federally listed</b> species</label
+        >Further restrict to records for <b>federally listed</b> species</label
       >
     </div>
   </div>
