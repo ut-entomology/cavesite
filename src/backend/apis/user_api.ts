@@ -26,6 +26,8 @@ router.use(requirePermissions(Permission.Admin));
 router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
   const userInfo = req.body;
   const userID = req.session!.userID;
+  console.log('**** userInfo', userInfo);
+  console.log('**** userID', userID);
   if (!_checkNewUserInfo(userInfo) || !checkInteger(userID)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
@@ -102,16 +104,16 @@ router.post('/update', async (req: Request<void, any, NewUserInfo>, res) => {
 
 function _checkNewUserInfo(userInfo?: NewUserInfo): boolean {
   return (
-    !userInfo ||
-    !checkInteger(userInfo.permissions) ||
-    !checkString(userInfo.firstName) ||
-    userInfo.firstName.length > MAX_STR_LENGTH ||
-    !checkString(userInfo.lastName) ||
-    userInfo.lastName.length > MAX_STR_LENGTH ||
-    !checkString(userInfo.email) ||
-    userInfo.email.length > MAX_STR_LENGTH ||
-    (!!userInfo.affiliation &&
-      (!checkString(userInfo.affiliation) ||
-        userInfo.affiliation.length > MAX_STR_LENGTH))
+    !!userInfo &&
+    checkInteger(userInfo.permissions) &&
+    checkString(userInfo.firstName) &&
+    userInfo.firstName.length <= MAX_STR_LENGTH &&
+    checkString(userInfo.lastName) &&
+    userInfo.lastName.length <= MAX_STR_LENGTH &&
+    checkString(userInfo.email) &&
+    userInfo.email.length <= MAX_STR_LENGTH &&
+    !!userInfo.affiliation &&
+    checkString(userInfo.affiliation) &&
+    userInfo.affiliation.length <= MAX_STR_LENGTH
   );
 }
