@@ -37,9 +37,10 @@ export const daysOfWeek = [
   'Saturday'
 ];
 
+export const commonTemplateVars = ['website-title', 'website-subtitle'];
+
 const commonEmailVars = [
-  'website-title',
-  'website-subtitle',
+  ...commonTemplateVars,
   'first-name',
   'full-name',
   'user-email',
@@ -82,7 +83,7 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
   },
   [DataKey.WelcomePageText]: {
     readPermission: Permission.None,
-    getErrors: null
+    getErrors: getWelcomePageErrors
   },
   [DataKey.CaveLocalities]: {
     readPermission: Permission.None,
@@ -117,6 +118,10 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     getErrors: getCredentialEmailErrors
   }
 };
+
+function getWelcomePageErrors(text: string) {
+  return checkTemplateVars(text, commonTemplateVars);
+}
 
 function getCaveLocalityErrors(text: string) {
   const errors: string[] = [];
@@ -281,12 +286,19 @@ function checkEmailTemplate(text: string, varNames: string[]): string[] {
         addError(errors, null, "body of email can't be empty");
       }
     }
-    const BRACKET_REGEX = /[{]([^}]+)[}]/g;
-    for (const match of text.matchAll(BRACKET_REGEX)) {
-      const varName = match[1];
-      if (!varNames.includes(varName)) {
-        addError(errors, varName, ' is not a recognized variable');
-      }
+    const varErrors = checkTemplateVars(text, varNames);
+    if (varErrors.length > 0) errors.push(...varErrors);
+  }
+  return errors;
+}
+
+function checkTemplateVars(text: string, varNames: string[]): string[] {
+  const errors: string[] = [];
+  const BRACKET_REGEX = /[{]([^}]+)[}]/g;
+  for (const match of text.matchAll(BRACKET_REGEX)) {
+    const varName = match[1];
+    if (!varNames.includes(varName)) {
+      addError(errors, varName, ' is not a recognized variable');
     }
   }
   return errors;

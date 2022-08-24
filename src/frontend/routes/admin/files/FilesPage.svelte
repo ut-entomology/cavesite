@@ -12,7 +12,8 @@
   import {
     DataKey,
     credentialEmailVars,
-    resetRequestEmailVars
+    resetRequestEmailVars,
+    commonTemplateVars
   } from '../../../../shared/data_keys';
 
   $pageName = 'Data Files';
@@ -24,6 +25,18 @@
   }
 
   const fileGroups: FileGroup[] = [
+    {
+      name: 'General Admin',
+      specs: [
+        {
+          dataKey: DataKey.WelcomePageText,
+          title: 'Welcome Page',
+          instructions: `Provide the HTML for the Welcome page. You may use the ${_toVarNames(
+            commonTemplateVars
+          )} variables. You may also use any CSS class available in Bootstrap 5. You may pull in images from other websites or upload them to this site at /var/www/html/static, referencing them relative to the URL "/static/" (via the <img> tag). Changes apply the next time the user loads the website or visits the Welcome tab.`
+        }
+      ]
+    },
     {
       name: 'Locality Characterization',
       specs: [
@@ -112,7 +125,8 @@
   function _toVarNames(nameList: string[]): string {
     let bracketedNames = nameList.map((n) => `{${n}}`);
     let varNames = bracketedNames.slice(0, nameList.length - 1).join(', ');
-    return varNames + ', and ' + bracketedNames[nameList.length - 1];
+    if (nameList.length > 2) varNames += ',';
+    return varNames + ' and ' + bracketedNames[nameList.length - 1];
   }
 </script>
 
