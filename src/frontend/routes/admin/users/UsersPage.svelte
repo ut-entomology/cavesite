@@ -109,8 +109,32 @@
     };
   };
 
-  const resetPassword = (_user: AdminUserInfo) => {
-    //
+  const resetPassword = (user: AdminUserInfo) => {
+    confirmationDetails = {
+      message: `Reset password for user ${toUserDescription(
+        user,
+        false,
+        true
+      )}? A new password will be sent to their email address.`,
+      okayButton: 'Reset',
+      onOkay: async () => {
+        confirmationDetails = null;
+        try {
+          await $client.post('/api/user/reset-password', { email: user.email });
+          await flashMessage('Reset password');
+        } catch (err: any) {
+          showNotice({
+            message: `Reset failed<br/><br/>` + errorReason(err.response),
+            header: 'Error',
+            alert: 'danger'
+          });
+        }
+      },
+      onCancel: async () => {
+        confirmationDetails = null;
+        await flashMessage('Canceled reset');
+      }
+    };
   };
 
   function sortUsers() {
