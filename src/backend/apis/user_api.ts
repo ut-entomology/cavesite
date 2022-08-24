@@ -26,8 +26,6 @@ router.use(requirePermissions(Permission.Admin));
 router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
   const userInfo = req.body;
   const userID = req.session!.userID;
-  console.log('**** userInfo', userInfo);
-  console.log('**** userID', userID);
   if (!_checkNewUserInfo(userInfo) || !checkInteger(userID)) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
@@ -73,6 +71,25 @@ router.post('/pull_all', async (_req: Request<void, any, void>, res) => {
     userData.push(user.toAdminUserInfo());
   }
   return res.status(StatusCodes.OK).send(userData);
+});
+
+router.post('/reset-password', async (req, res) => {
+  const email: string = req.body.email;
+  if (!email || req.session!.userInfo.email.toLowerCase() == email.toLowerCase()) {
+    return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  const user = await User.getByEmail(getDB(), email);
+  if (!user) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: `Email address not found` });
+  }
+  const password = User.generatePassword(PASSWORD_CHARSET, GENERATED_PASSWORD_LENGTH);
+  await user.resetPassword(getDB(), null, password);
+  await Session.dropUser(getDB(), user.userID, null);
+  // TBD: Change email
+  await sendEmail(EmailType.PasswordReset, user, { password });
+  return res.status(StatusCodes.NO_CONTENT).send();
 });
 
 router.post('/update', async (req: Request<void, any, NewUserInfo>, res) => {

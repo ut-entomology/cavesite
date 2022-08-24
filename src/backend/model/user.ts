@@ -88,7 +88,7 @@ export class User {
 
   async resetPassword(
     db: DB,
-    resetCode: string,
+    resetCode: string | null,
     newPassword: string
   ): Promise<boolean> {
     if (!this.resetCode) return false;
@@ -96,8 +96,8 @@ export class User {
     const expected: Record<string, boolean> = {};
     expected[this.resetCode] = true;
     if (
-      !expected[resetCode] ||
-      new Date().getTime() > this.resetExpiration!.getTime()
+      resetCode &&
+      (!expected[resetCode] || new Date().getTime() > this.resetExpiration!.getTime())
     ) {
       return false;
     }
