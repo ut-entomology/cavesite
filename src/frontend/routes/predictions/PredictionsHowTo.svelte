@@ -29,7 +29,8 @@
   restricted to caves. We do not have exact information about which locations are caves
   and which are not, but nearly all caves include the word "cave" in their names, so
   only locations that include the sequence of characters "cave" are included in the
-  analysis. This includes, for example, names including the word "cavern".
+  analysis. This includes, for example, names including the word "cavern". The website
+  also supports designating specified other locations as caves.
 </p>
 
 <SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
