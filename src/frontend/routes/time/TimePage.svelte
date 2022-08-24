@@ -95,7 +95,7 @@
   $pageName = 'Seasonality and History';
   const tabName = 'Time';
 
-  const CACHED_DATA_VERSION = 5;
+  const CACHED_DATA_VERSION = 6;
 
   let seasonalityYUnits = $savedView?.seasonalityYUnits || CountUnits.species;
   let historyYUnits = $savedView?.historyYUnits || CountUnits.species;

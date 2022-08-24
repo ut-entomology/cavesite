@@ -52,7 +52,7 @@
     mapState: MapState | null;
   }
 
-  const CACHED_DATA_VERSION = 4;
+  const CACHED_DATA_VERSION = 5;
   const MAP_QUERY_BATCH_SIZE = 400;
 
   export const cachedData = createSessionStore<MapData | null>('map_data', null);
