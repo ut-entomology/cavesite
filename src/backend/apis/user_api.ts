@@ -11,7 +11,8 @@ import { requirePermissions } from '../util/http_util';
 import { User } from '../model/user';
 import { AdminUserInfo, NewUserInfo } from '../../shared/user_auth';
 import { Session } from '../model/session';
-import { EmailType, sendEmail } from '../util/email_util';
+import { sendEmail } from '../util/email_util';
+import { DataKey } from '../../shared/data_keys';
 import { checkInteger, checkString } from '../util/http_util';
 
 export const router = Router();
@@ -41,7 +42,7 @@ router.post('/add', async (req: Request<void, any, NewUserInfo>, res) => {
     userInfo.permissions,
     userID
   );
-  await sendEmail(EmailType.NewAccount, user, { password });
+  await sendEmail(getDB(), DataKey.NewAccountEmail, user, { password });
   const loginUserInfo = req.session!.userInfo;
   const newUserInfo = user.toAdminUserInfo();
   newUserInfo.createdByName = loginUserInfo.firstName
@@ -75,8 +76,13 @@ router.post('/pull_all', async (_req: Request<void, any, void>, res) => {
 
 router.post('/reset-password', async (req, res) => {
   const email: string = req.body.email;
-  if (!email || req.session!.userInfo.email.toLowerCase() == email.toLowerCase()) {
+  if (!email) {
     return res.status(StatusCodes.BAD_REQUEST).send();
+  }
+  if (req.session!.userInfo.email.toLowerCase() == email.toLowerCase()) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ message: `Click the (i) icon to change your own password` });
   }
   const user = await User.getByEmail(getDB(), email);
   if (!user) {
@@ -87,8 +93,7 @@ router.post('/reset-password', async (req, res) => {
   const password = User.generatePassword(PASSWORD_CHARSET, GENERATED_PASSWORD_LENGTH);
   await user.resetPassword(getDB(), null, password);
   await Session.dropUser(getDB(), user.userID, null);
-  // TBD: Change email
-  await sendEmail(EmailType.PasswordReset, user, { password });
+  await sendEmail(getDB(), DataKey.PasswordResetEmail, user, { password });
   return res.status(StatusCodes.NO_CONTENT).send();
 });
 

@@ -91,16 +91,18 @@ export class User {
     resetCode: string | null,
     newPassword: string
   ): Promise<boolean> {
-    if (!this.resetCode) return false;
-    // Use hash lookup to reduce effectiveness of timing attacks.
-    const expected: Record<string, boolean> = {};
-    expected[this.resetCode] = true;
-    if (
-      resetCode &&
-      (!expected[resetCode] || new Date().getTime() > this.resetExpiration!.getTime())
-    ) {
-      return false;
+    if (resetCode) {
+      if (!this.resetCode) return false;
+      // Use hash lookup to reduce effectiveness of timing attacks.
+      const expected: Record<string, boolean> = { [this.resetCode]: true };
+      if (
+        !expected[resetCode] ||
+        new Date().getTime() > this.resetExpiration!.getTime()
+      ) {
+        return false;
+      }
     }
+
     await this.setPassword(newPassword);
     this.resetCode = null;
     this.resetExpiration = null;

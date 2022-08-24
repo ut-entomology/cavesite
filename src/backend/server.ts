@@ -12,7 +12,6 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import sgMail from '@sendgrid/mail';
 
 import { loadAndCheckEnvVars } from './lib/env_vars';
-import { checkAllEmails } from './util/email_util';
 import { connectDB, getDB } from '../backend/integrations/postgres';
 import { sessionware } from '../backend/integrations/sessionware';
 import { router as authApi } from './apis/auth_api';
@@ -97,7 +96,6 @@ app.use(async (err: any, _req: any, res: any) => {
 // Launch server.
 
 app.listen(port, async () => {
-  await checkAllEmails();
   await connectDB({
     host: process.env.CAVESITE_DB_HOST,
     database: process.env.CAVESITE_DB_NAME,

@@ -121,7 +121,7 @@
         confirmationDetails = null;
         try {
           await $client.post('/api/user/reset-password', { email: user.email });
-          await flashMessage('Reset password');
+          await flashMessage('Emailed new password');
         } catch (err: any) {
           showNotice({
             message: `Reset failed<br/><br/>` + errorReason(err.response),

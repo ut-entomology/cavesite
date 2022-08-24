@@ -52,9 +52,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
       }
     }
 
-    if (!process.env.CAVESITE_SENDER_NAME) {
-      errors.push('CAVESITE_SENDER_NAME - missing');
-    }
     if (!process.env.CAVESITE_SENDER_EMAIL) {
       errors.push('CAVESITE_SENDER_EMAIL - missing');
     }
@@ -112,7 +109,6 @@ NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 
 CAVESITE_TITLE* - Title to display for website.
 CAVESITE_SUBTITLE* - Subtitle to display for website.
-CAVESITE_SENDER_NAME* - Name of person emails appear to come from.
 CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.

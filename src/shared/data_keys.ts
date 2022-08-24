@@ -37,6 +37,21 @@ export const daysOfWeek = [
   'Saturday'
 ];
 
+const commonEmailVars = [
+  'website-title',
+  'website-subtitle',
+  'first-name',
+  'full-name',
+  'user-email',
+  'sender-email'
+];
+export const credentialEmailVars = [...commonEmailVars, 'password'];
+export const resetRequestEmailVars = [
+  ...commonEmailVars,
+  'reset-link',
+  'reset-link-minutes'
+];
+
 export interface ImportSchedule {
   importDaysOfWeek: number[];
   importHourOfDay: number;
@@ -91,15 +106,15 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
   },
   [DataKey.NewAccountEmail]: {
     readPermission: Permission.None,
-    getErrors: null
+    getErrors: getCredentialEmailErrors
   },
   [DataKey.ResetRequestEmail]: {
     readPermission: Permission.Admin,
-    getErrors: null
+    getErrors: getResetRequestEmailErrors
   },
   [DataKey.PasswordResetEmail]: {
     readPermission: Permission.Admin,
-    getErrors: null
+    getErrors: getCredentialEmailErrors
   }
 };
 
@@ -230,8 +245,58 @@ function getFederalSpeciesStatusErrors(text: string) {
   return errors;
 }
 
-function addError(errors: string[], line: string, message: string): void {
-  errors.push(`"${line}" ${message}`);
+function getCredentialEmailErrors(text: string) {
+  const errors = checkEmailTemplate(text, credentialEmailVars);
+  const requiredVar = '{password}';
+  if (!text.includes(requiredVar)) {
+    addError(errors, requiredVar, 'missing from email template');
+  }
+  return errors;
+}
+
+function getResetRequestEmailErrors(text: string) {
+  const errors = checkEmailTemplate(text, resetRequestEmailVars);
+  const requiredVar = '{reset-link}';
+  if (!text.includes(requiredVar)) {
+    addError(errors, requiredVar, 'missing from email template');
+  }
+  return errors;
+}
+
+function checkEmailTemplate(text: string, varNames: string[]): string[] {
+  const errors: string[] = [];
+  if (text.trim() == '') {
+    addError(errors, '', 'is empty');
+  } else {
+    if (!text.toLowerCase().startsWith('subject:')) {
+      addError(errors, null, `first line must start with "Subject:"`);
+    } else {
+      const lines = text.split('\n');
+      const subject = lines[0].substring('subject:'.length).trim();
+      if (subject == '') {
+        addError(errors, null, "subject can't be empty");
+      }
+      const body = lines.slice(1).join('\n').trim();
+      if (body == '') {
+        addError(errors, null, "body of email can't be empty");
+      }
+    }
+    const BRACKET_REGEX = /[{]([^}]+)[}]/g;
+    for (const match of text.matchAll(BRACKET_REGEX)) {
+      const varName = match[1];
+      if (!varNames.includes(varName)) {
+        addError(errors, varName, ' is not a recognized variable');
+      }
+    }
+  }
+  return errors;
+}
+
+function addError(errors: string[], line: string | null, message: string): void {
+  if (line !== null) {
+    message = `"${line}" ${message}`;
+  }
+  errors.push(message);
 }
 
 export function parseDataLines(text: string): string[] {

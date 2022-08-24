@@ -16,7 +16,8 @@ import type {
   PasswordResetInfo
 } from '../../shared/user_auth';
 import { toResetQueryStr } from '../../shared/user_auth';
-import { EmailType, sendEmail } from '../util/email_util';
+import { sendEmail } from '../util/email_util';
+import { DataKey } from '../../shared/data_keys';
 import { ValidationError } from '../../shared/validation';
 
 type LoginParams = {
@@ -106,7 +107,7 @@ router.post('/request-reset', async (req, res) => {
     return res.status(StatusCodes.NO_CONTENT).send();
   }
   const resetCode = await user.generateResetCode(getDB());
-  await sendEmail(EmailType.PasswordReset, user, {
+  await sendEmail(getDB(), DataKey.ResetRequestEmail, user, {
     'reset-link': `${process.env.CAVESITE_BASE_URL}/${toResetQueryStr(
       user.email,
       resetCode
