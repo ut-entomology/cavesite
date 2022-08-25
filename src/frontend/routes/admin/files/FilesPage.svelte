@@ -33,14 +33,14 @@
           title: 'Site Title & Subtitle',
           instructions: `Provide site's title and subtitle on two separate lines. These correspond to the ${_toVarNames(
             commonTemplateVars
-          )} variables used in other files. Changes apply to the website the next time the user loads the website, and they apply immediately to email templates.`
+          )} variables used in other files. Changes apply to the website the next time the user loads the website (e.g. a page reload), and they apply immediately to email templates.`
         },
         {
-          dataKey: DataKey.WelcomePageText,
+          dataKey: DataKey.WelcomePageHTML,
           title: 'Welcome Page',
           instructions: `Provide the HTML for the Welcome page. You may use the ${_toVarNames(
             commonTemplateVars
-          )} variables. You may also use any CSS class available in Bootstrap 5. You may pull in images from other websites or upload them to this site at /var/www/html/static, referencing them relative to the URL "/static/" (via the <img> tag). Changes apply the next time the user loads the website or visits the Welcome tab.`
+          )} variables. You may also use any CSS class available in Bootstrap 5. You may pull in images from other websites or upload them to this site at /var/www/html/static, referencing them relative to the URL "/static/" (via the <img> tag). Changes apply the next time the user loads the website (e.g. a page reload).`
         }
       ]
     },

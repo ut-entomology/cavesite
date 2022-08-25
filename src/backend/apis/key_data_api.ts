@@ -16,7 +16,7 @@ import {
 } from '../util/http_util';
 import { Permission } from '../../shared/user_auth';
 import { DataKey, type ImportSchedule, keyDataInfoByKey } from '../../shared/data_keys';
-import { setSiteTitles } from '../lib/site_titles';
+import { setSiteTitles, setWelcomeHTML } from '../lib/site_info';
 
 export const router = Router();
 
@@ -81,6 +81,8 @@ router.post('/save', async (req: Request, res) => {
   if (key == DataKey.SiteTitleAndSubtitle) {
     // A bit of a hack, but keeps things simple.
     setSiteTitles(data);
+  } else if (key == DataKey.WelcomePageHTML) {
+    setWelcomeHTML(data);
   }
   return res.status(StatusCodes.OK).send();
 });

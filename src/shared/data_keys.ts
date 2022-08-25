@@ -7,7 +7,7 @@ export enum DataKey {
   // General admin
 
   SiteTitleAndSubtitle = 'title_and_subtitle',
-  WelcomePageText = 'welcome_page_text',
+  WelcomePageHTML = 'welcome_page_text',
   ImportSchedule = 'import_schedule',
 
   // Locality characterization
@@ -82,7 +82,7 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     readPermission: Permission.None,
     getErrors: getSiteTitleAndSubtitleErrors
   },
-  [DataKey.WelcomePageText]: {
+  [DataKey.WelcomePageHTML]: {
     readPermission: Permission.None,
     getErrors: getWelcomePageErrors
   },

@@ -80,6 +80,7 @@
       appInfo.set({
         appTitle: loginInfo.appTitle,
         appSubtitle: loginInfo.appSubtitle,
+        welcomeHTML: loginInfo.welcomeHTML,
         hiddenRoutes: loginInfo.hiddenRoutes,
         mapToken: loginInfo.mapToken
       });

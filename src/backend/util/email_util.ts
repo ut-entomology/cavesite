@@ -5,7 +5,7 @@ import type { DB } from '../integrations/postgres';
 import { Permission } from '../../shared/user_auth';
 import { KeyData } from '../model/key_data';
 import { DataKey } from '../../shared/data_keys';
-import { siteTitle, siteSubtitle } from '../lib/site_titles';
+import { siteTitle, siteSubtitle } from '../lib/site_info';
 
 export type EmailType =
   | DataKey.NewAccountEmail

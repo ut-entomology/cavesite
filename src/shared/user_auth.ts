@@ -35,6 +35,7 @@ export type NewUserInfo = Omit<UserInfo, 'lastLoginDate' | 'lastLoginIP'>;
 export interface AppInfo {
   appTitle: string;
   appSubtitle: string;
+  welcomeHTML: string;
   hiddenRoutes: string[];
   mapToken: string;
 }
