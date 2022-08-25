@@ -80,6 +80,14 @@
         </div>
       </div>
     {/if}
+    <div class="container-fluid">
+      <p class="addendum">
+        Data is imported from GBIF via a separate program that the sysadmin must set up
+        to run once per hour, at some specified minute after the hour. The schedule you
+        set here tells this program which wake-ups to actually spend importing data from
+        GBIF.
+      </p>
+    </div>
   {/await}
 </AdminTabRoute>
 
@@ -106,3 +114,10 @@
     onCancel={() => (requestDisableConfirmation = false)}
   />
 {/if}
+
+<style>
+  .addendum {
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+</style>
