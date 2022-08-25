@@ -5,7 +5,7 @@ import type { DB } from '../integrations/postgres';
 import { Permission } from '../../shared/user_auth';
 import { KeyData } from '../model/key_data';
 import { DataKey } from '../../shared/data_keys';
-import { getSiteTitle, getSiteSubtitle } from '../lib/site_titles';
+import { siteTitle, siteSubtitle } from '../lib/site_titles';
 
 export type EmailType =
   | DataKey.NewAccountEmail
@@ -62,10 +62,10 @@ function replaceParams(
       const param = split.toLowerCase().substring(1, split.length - 1);
       switch (param) {
         case 'website-title':
-          segment = getSiteTitle();
+          segment = siteTitle;
           break;
         case 'website-subtitle':
-          segment = getSiteSubtitle();
+          segment = siteSubtitle;
           break;
         case 'first-name':
           segment = userInfo.firstName;

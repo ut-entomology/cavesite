@@ -3,16 +3,8 @@ import { KeyData } from '../model/key_data';
 import { DataKey } from '../../shared/data_keys';
 import { Permission } from '../../shared/user_auth';
 
-let siteTitle = 'Unspecified title';
-let siteSubtitle = 'Unspecified subtitle';
-
-export function getSiteTitle() {
-  return siteTitle;
-}
-
-export function getSiteSubtitle() {
-  return siteSubtitle;
-}
+export let siteTitle = 'Unspecified title';
+export let siteSubtitle = 'Unspecified subtitle';
 
 export async function loadSiteTitles(db: DB): Promise<void> {
   const data = await KeyData.read(

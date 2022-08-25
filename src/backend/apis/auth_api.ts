@@ -19,7 +19,7 @@ import { toResetQueryStr } from '../../shared/user_auth';
 import { sendEmail } from '../util/email_util';
 import { DataKey } from '../../shared/data_keys';
 import { ValidationError } from '../../shared/validation';
-import { getSiteTitle, getSiteSubtitle } from '../lib/site_titles';
+import { siteTitle, siteSubtitle } from '../lib/site_titles';
 
 type LoginParams = {
   email: string;
@@ -157,8 +157,8 @@ function getAppInfo() {
     };
   }
   // Reassign each time because admin can dynamically change.
-  appInfo.appTitle = getSiteTitle();
-  appInfo.appSubtitle = getSiteSubtitle();
+  appInfo.appTitle = siteTitle;
+  appInfo.appSubtitle = siteSubtitle;
   return appInfo;
 }
 
