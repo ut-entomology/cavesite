@@ -9,8 +9,8 @@ import { siteTitle, siteSubtitle } from '../lib/site_info';
 
 export type EmailType =
   | DataKey.NewAccountEmail
-  | DataKey.ResetRequestEmail
-  | DataKey.PasswordResetEmail;
+  | DataKey.PasswordResetLinkEmail
+  | DataKey.NewPasswordEmail;
 
 import type { UserInfo } from '../../shared/user_auth';
 import sgMail from '@sendgrid/mail';

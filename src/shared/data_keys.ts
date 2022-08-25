@@ -24,8 +24,8 @@ export enum DataKey {
   // Email text
 
   NewAccountEmail = 'new_account_email',
-  ResetRequestEmail = 'reset_request_email',
-  PasswordResetEmail = 'password_reset_email'
+  PasswordResetLinkEmail = 'reset_request_email',
+  NewPasswordEmail = 'password_reset_email'
 }
 
 export const daysOfWeek = [
@@ -114,11 +114,11 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     readPermission: Permission.None,
     getErrors: getCredentialEmailErrors
   },
-  [DataKey.ResetRequestEmail]: {
+  [DataKey.PasswordResetLinkEmail]: {
     readPermission: Permission.Admin,
-    getErrors: getResetRequestEmailErrors
+    getErrors: getPasswordResetLinkEmailErrors
   },
-  [DataKey.PasswordResetEmail]: {
+  [DataKey.NewPasswordEmail]: {
     readPermission: Permission.Admin,
     getErrors: getCredentialEmailErrors
   }
@@ -287,7 +287,7 @@ function getCredentialEmailErrors(text: string) {
   return errors;
 }
 
-function getResetRequestEmailErrors(text: string) {
+function getPasswordResetLinkEmailErrors(text: string) {
   const errors = checkEmailTemplate(text, resetRequestEmailVars);
   const requiredVar = '{reset-link}';
   if (!text.includes(requiredVar)) {

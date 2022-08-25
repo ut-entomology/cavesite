@@ -108,7 +108,7 @@ router.post('/request-reset', async (req, res) => {
     return res.status(StatusCodes.NO_CONTENT).send();
   }
   const resetCode = await user.generateResetCode(getDB());
-  await sendEmail(getDB(), DataKey.ResetRequestEmail, user, {
+  await sendEmail(getDB(), DataKey.PasswordResetLinkEmail, user, {
     'reset-link': `${process.env.CAVESITE_BASE_URL}/${toResetQueryStr(
       user.email,
       resetCode

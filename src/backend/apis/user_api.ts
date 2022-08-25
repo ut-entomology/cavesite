@@ -93,7 +93,7 @@ router.post('/reset-password', async (req, res) => {
   const password = User.generatePassword(PASSWORD_CHARSET, GENERATED_PASSWORD_LENGTH);
   await user.resetPassword(getDB(), null, password);
   await Session.dropUser(getDB(), user.userID, null);
-  await sendEmail(getDB(), DataKey.PasswordResetEmail, user, { password });
+  await sendEmail(getDB(), DataKey.NewPasswordEmail, user, { password });
   return res.status(StatusCodes.NO_CONTENT).send();
 });
 

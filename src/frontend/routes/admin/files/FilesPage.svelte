@@ -92,15 +92,15 @@
           )}. The email must include at least the password. Don't include any HTML. Changes apply to the next email sent.`
         },
         {
-          dataKey: DataKey.ResetRequestEmail,
-          title: 'Reset Request Email',
-          instructions: `Provide the text for the email that gets sent when the user requests a password reset. The first line must begin with "Subject:" and be followed by the email's subject line. Both the subject and body may specify any of the following variables in curly brackets: ${_toVarNames(
+          dataKey: DataKey.PasswordResetLinkEmail,
+          title: 'Password Reset Link Email',
+          instructions: `Provide the text for the email that gets sent when the user requests a password reset, providing a link for resetting the password. The first line must begin with "Subject:" and be followed by the email's subject line. Both the subject and body may specify any of the following variables in curly brackets: ${_toVarNames(
             resetRequestEmailVars
           )}. The email must include at least the reset link. Don't include any HTML. Changes apply to the next email sent.`
         },
         {
-          dataKey: DataKey.PasswordResetEmail,
-          title: 'Password Reset Email',
+          dataKey: DataKey.NewPasswordEmail,
+          title: 'New Password Email',
           instructions: `Provide the text for the email that gets sent when an admin resets a user's password on behalf of the user. The first line must begin with "Subject:" and be followed by the email's subject line. Both the subject and body may specify any of the following variables in curly brackets: ${_toVarNames(
             credentialEmailVars
           )}. The email must include at least the password. Don't include any HTML. Changes apply to the next email sent.`
