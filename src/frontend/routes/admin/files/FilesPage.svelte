@@ -40,7 +40,7 @@
           title: 'Welcome Page',
           instructions: `Provide the HTML for the Welcome page. You may use the ${_toVarNames(
             commonTemplateVars
-          )} variables. You may also use any CSS class available in Bootstrap 5. You may pull in images from other websites or upload them to this site at /var/www/html/static, referencing them relative to the URL "/static/" (via the <img> tag). Changes apply the next time the user loads the website (e.g. a page reload).`
+          )} variables. You may also use any CSS class available in Bootstrap 5. You may pull in images from other websites or upload them to this site at /var/www/html/static, referencing them relative to the URL "/static/" (via the &lt;img&gt; tag). Changes apply the next time the user loads the website (e.g. a page reload).`
         }
       ]
     },
@@ -56,7 +56,7 @@
         {
           dataKey: DataKey.KarstRegions,
           title: 'Karst Regions',
-          instructions: `List of all region shapefiles that have been uploaded to MapBox, along with their characterizations. Upload these as 'tilesets' to MapBox Studio. List each tileset here on its own line in the format "[KR|KFR]: <property-name>, <tileset-name>, <tileset-ID>" (e.g. "KR: Region, Karst_Regions_TSS-4adrg1, jtlapput.d6bu8w0a"). Use 'KR' for Texas-wide karst regions and 'KFR' for karst faunal regions. Retrieve the tileset name and tileset ID from MapBox Studio after uploading the shapefile. <property-name> is the name of the property within the shapefile that describes a region and can vary from file to file. You can have multiple KR and KFR lines, one for each shapefile tileset. The order in which you list them does not matter. Everything is case-sensitive. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on each user's next browser session. To update an existing shapefile, click the '...' next to the name of the shapefile in MapBox Studio and then click 'Replace'.`
+          instructions: `List of all region shapefiles that have been uploaded to <a href="https://www.mapbox.com/" target="_blank">MapBox</a>, along with their characterizations. Upload these as 'tilesets' to <a href="https://studio.mapbox.com/" target="_blank">MapBox Studio</a>. List each tileset here on its own line in the format "[KR|KFR]: <i>property-name</i>, <i>tileset-name</i>, <i>tileset-ID</i>" (e.g. "KR: Region, Karst_Regions_TSS-4adrg1, jtlapput.d6bu8w0a"). Use 'KR' for Texas-wide karst regions and 'KFR' for karst faunal regions. Retrieve the tileset name and tileset ID from MapBox Studio after uploading the shapefile. <i>property-name</i> is the name of the property within the shapefile that describes a region and can vary from file to file. You can have multiple KR and KFR lines, one for each shapefile tileset. The order in which you list them does not matter. Everything is case-sensitive. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on each user's next browser session. To update an existing shapefile, click the '...' next to the name of the shapefile in MapBox Studio and then click 'Replace'.`
         }
       ]
     },

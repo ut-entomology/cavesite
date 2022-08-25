@@ -97,7 +97,7 @@
 
 <ModalDialog title="View/Edit {fileSpec.title}" contentClasses="file-dialog">
   <div class="row mb-2 instructions">
-    <div class="col">{fileSpec.instructions}</div>
+    <div class="col">{@html fileSpec.instructions}</div>
   </div>
 
   {#await prepare() then}
