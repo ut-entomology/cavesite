@@ -33,7 +33,7 @@
           title: 'Site Title & Subtitle',
           instructions: `Provide site's title and subtitle on two separate lines. These correspond to the ${_toVarNames(
             commonTemplateVars
-          )} variables used in other files. Changes apply to the website the next time the user loads the website, and they apply immediately to template files.`
+          )} variables used in other files. Changes apply to the website the next time the user loads the website, and they apply immediately to email templates.`
         },
         {
           dataKey: DataKey.WelcomePageText,
