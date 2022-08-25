@@ -12,6 +12,7 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import sgMail from '@sendgrid/mail';
 
 import { loadAndCheckEnvVars } from './lib/env_vars';
+import { loadSiteTitles } from './lib/site_titles';
 import { connectDB, getDB } from '../backend/integrations/postgres';
 import { sessionware } from '../backend/integrations/sessionware';
 import { router as authApi } from './apis/auth_api';
@@ -107,6 +108,7 @@ app.listen(port, async () => {
     sessionTimeoutMillis: SESSION_TIMEOUT_MILLIS,
     expirationCheckMillis: EXPIRATION_CHECK_MILLIS
   });
+  await loadSiteTitles(getDB());
   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
   if (process.env.CAVESITE_LOG_SERVER_RESTART == 'on') {
     await Logs.postGood(

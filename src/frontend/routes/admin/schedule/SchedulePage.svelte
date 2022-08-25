@@ -27,7 +27,9 @@
   }
 
   async function _loadSchedule() {
-    schedule = JSON.parse(await loadKeyData($client, false, DataKey.ImportSchedule));
+    schedule = JSON.parse(
+      (await loadKeyData($client, false, DataKey.ImportSchedule)) || 'null'
+    );
   }
 
   async function submitSchedule(newSchedule: ImportSchedule | null) {

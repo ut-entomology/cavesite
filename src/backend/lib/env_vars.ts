@@ -15,12 +15,6 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
 
   // Check environment variables that the server uses.
 
-  if (!process.env.CAVESITE_TITLE) {
-    errors.push('CAVESITE_TITLE - missing');
-  }
-  if (!process.env.CAVESITE_SUBTITLE) {
-    errors.push('CAVESITE_SUBTITLE - missing');
-  }
   if (process.env.CAVESITE_BASE_URL) {
     if (
       !process.env.CAVESITE_BASE_URL.startsWith('http://') &&
@@ -107,10 +101,8 @@ a '.env' file found in the current directory at the time the server is run:`);
       console.log(`
 NODE_ENV - Must be set to 'production' (sans quotes) for the public website.
 
-CAVESITE_TITLE* - Title to display for website.
-CAVESITE_SUBTITLE* - Subtitle to display for website.
-CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 CAVESITE_BASE_URL* - Base URL of web site, starting with http:// or https://
+CAVESITE_SENDER_EMAIL* - Email address user password emails appear to come from.
 SENDGRID_API_KEY* - Key supplied by https://sendgrid.com/ for sending email.
 MAPBOX_ACCESS_TOKEN* - Token supplied by https://www.mapbox.com/ for maps.
 

@@ -38,7 +38,7 @@
       {#if $userInfo.priorLoginDate}
         <div class="row mb-2">
           <div>
-            You previous login was on<br />{new Date(
+            Your previous login was on<br />{new Date(
               $userInfo.priorLoginDate
             ).toLocaleString()}.<br />
             {#if $userInfo.priorLoginIP == $userInfo.lastLoginIP}

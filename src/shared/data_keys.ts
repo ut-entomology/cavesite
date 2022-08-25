@@ -6,6 +6,7 @@ import { Permission } from '../shared/user_auth';
 export enum DataKey {
   // General admin
 
+  SiteTitleAndSubtitle = 'title_and_subtitle',
   WelcomePageText = 'welcome_page_text',
   ImportSchedule = 'import_schedule',
 
@@ -77,13 +78,17 @@ export interface KeyDataInfo {
 }
 
 export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
-  [DataKey.ImportSchedule]: {
-    readPermission: Permission.Admin,
-    getErrors: null
+  [DataKey.SiteTitleAndSubtitle]: {
+    readPermission: Permission.None,
+    getErrors: getSiteTitleAndSubtitleErrors
   },
   [DataKey.WelcomePageText]: {
     readPermission: Permission.None,
     getErrors: getWelcomePageErrors
+  },
+  [DataKey.ImportSchedule]: {
+    readPermission: Permission.Admin,
+    getErrors: null
   },
   [DataKey.CaveLocalities]: {
     readPermission: Permission.None,
@@ -118,6 +123,29 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     getErrors: getCredentialEmailErrors
   }
 };
+
+function getSiteTitleAndSubtitleErrors(text: string) {
+  const errors: string[] = [];
+  const lines = text.split('\n').map((line) => line.trim());
+  if (lines.length == 0) {
+    addError(errors, null, "this file can't be blank");
+  } else {
+    if (lines[0] == '') {
+      addError(errors, null, 'you must provide a title on the first line');
+    }
+    if (lines.length == 1 || lines[1] == '') {
+      addError(errors, null, 'you must provide a subtitle on the second line');
+    }
+    if (lines.length > 2) {
+      addError(
+        errors,
+        null,
+        'there must only be two lines, one for the title and one for the subtitle'
+      );
+    }
+  }
+  return errors;
+}
 
 function getWelcomePageErrors(text: string) {
   return checkTemplateVars(text, commonTemplateVars);

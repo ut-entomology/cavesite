@@ -26,8 +26,15 @@
 
   const fileGroups: FileGroup[] = [
     {
-      name: 'General Admin',
+      name: 'Presentation',
       specs: [
+        {
+          dataKey: DataKey.SiteTitleAndSubtitle,
+          title: 'Site Title & Subtitle',
+          instructions: `Provide site's title and subtitle on two separate lines. These correspond to the ${_toVarNames(
+            commonTemplateVars
+          )} variables used in other files. Changes apply to the website the next time the user loads the website, after the cache expiration period configured in NGINX. They apply immediately to template files.`
+        },
         {
           dataKey: DataKey.WelcomePageText,
           title: 'Welcome Page',

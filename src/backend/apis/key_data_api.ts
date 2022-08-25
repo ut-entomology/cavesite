@@ -16,6 +16,7 @@ import {
 } from '../util/http_util';
 import { Permission } from '../../shared/user_auth';
 import { DataKey, type ImportSchedule, keyDataInfoByKey } from '../../shared/data_keys';
+import { setSiteTitles } from '../lib/site_titles';
 
 export const router = Router();
 
@@ -77,6 +78,10 @@ router.post('/save', async (req: Request, res) => {
     dataKeyInfo.readPermission,
     data
   );
+  if (key == DataKey.SiteTitleAndSubtitle) {
+    // A bit of a hack, but keeps things simple.
+    setSiteTitles(data);
+  }
   return res.status(StatusCodes.OK).send();
 });
 

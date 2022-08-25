@@ -19,6 +19,7 @@ import { toResetQueryStr } from '../../shared/user_auth';
 import { sendEmail } from '../util/email_util';
 import { DataKey } from '../../shared/data_keys';
 import { ValidationError } from '../../shared/validation';
+import { getSiteTitle, getSiteSubtitle } from '../lib/site_titles';
 
 type LoginParams = {
   email: string;
@@ -140,22 +141,24 @@ router.post('/reset-password', async (req, res) => {
 
 let appInfo: AppInfo;
 function getAppInfo() {
-  const hiddenRoutes: string[] = [];
-  if (process.env.CAVESITE_HIDDEN_TABS) {
-    const rawHiddenTabs = process.env.CAVESITE_HIDDEN_TABS.split(',');
-    for (const hiddenTab of rawHiddenTabs) {
-      hiddenRoutes.push('/' + hiddenTab.trim().toLowerCase());
-    }
-  }
-
   if (!appInfo) {
+    const hiddenRoutes: string[] = [];
+    if (process.env.CAVESITE_HIDDEN_TABS) {
+      const rawHiddenTabs = process.env.CAVESITE_HIDDEN_TABS.split(',');
+      for (const hiddenTab of rawHiddenTabs) {
+        hiddenRoutes.push('/' + hiddenTab.trim().toLowerCase());
+      }
+    }
     appInfo = {
-      appTitle: process.env.CAVESITE_TITLE!,
-      appSubtitle: process.env.CAVESITE_SUBTITLE!,
+      appTitle: '',
+      appSubtitle: '',
       hiddenRoutes,
       mapToken: process.env.MAPBOX_ACCESS_TOKEN!
     };
   }
+  // Reassign each time because admin can dynamically change.
+  appInfo.appTitle = getSiteTitle();
+  appInfo.appSubtitle = getSiteSubtitle();
   return appInfo;
 }
 

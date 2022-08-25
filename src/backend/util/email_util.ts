@@ -5,6 +5,7 @@ import type { DB } from '../integrations/postgres';
 import { Permission } from '../../shared/user_auth';
 import { KeyData } from '../model/key_data';
 import { DataKey } from '../../shared/data_keys';
+import { getSiteTitle, getSiteSubtitle } from '../lib/site_titles';
 
 export type EmailType =
   | DataKey.NewAccountEmail
@@ -61,10 +62,10 @@ function replaceParams(
       const param = split.toLowerCase().substring(1, split.length - 1);
       switch (param) {
         case 'website-title':
-          segment = process.env.CAVESITE_TITLE!;
+          segment = getSiteTitle();
           break;
         case 'website-subtitle':
-          segment = process.env.CAVESITE_SUBTITLE!;
+          segment = getSiteSubtitle();
           break;
         case 'first-name':
           segment = userInfo.firstName;

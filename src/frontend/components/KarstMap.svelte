@@ -113,7 +113,7 @@
     if (!$allRegionSources) {
       // Load region sources once per browser session.
       const data = await loadKeyData($client, false, DataKey.KarstRegions);
-      $allRegionSources = parseRegions(data);
+      $allRegionSources = parseRegions(data || '');
     }
 
     if (map) {
