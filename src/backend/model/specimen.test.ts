@@ -1735,7 +1735,7 @@ async function containsLog(
   const logs = await Logs.getBeforeID(db, 100, 100);
   for (const log of logs) {
     if (
-      log.type == LogType.Import &&
+      log.type == LogType.ImportRecord &&
       log.tag == catalogNumber &&
       log.line.includes(portion)
     ) {

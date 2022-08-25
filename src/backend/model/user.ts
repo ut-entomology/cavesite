@@ -265,7 +265,7 @@ export class User {
     await user.save(db);
     await Logs.postGood(
       db,
-      LogType.User,
+      LogType.UserLogin,
       user.email,
       `${user.firstName} ${user.lastName} logged in from IP ${ipAddress}`
     );

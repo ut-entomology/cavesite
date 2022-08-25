@@ -326,9 +326,13 @@ export function checkComparedFauna(comparedFauna: ComparedFauna | undefined): bo
 //// Logs ////////////////////////////////////////////////////////////////////
 
 export enum LogType {
-  User = 'user',
-  Import = 'import',
-  Server = 'server'
+  UserLogin = 'user login',
+  ImportStarted = 'import started',
+  ImportRecord = 'import record',
+  ImportNote = 'import note',
+  ImportEnded = 'import ended',
+  ServerNote = 'server',
+  ServerStarted = 'server started'
 }
 
 export interface Log {

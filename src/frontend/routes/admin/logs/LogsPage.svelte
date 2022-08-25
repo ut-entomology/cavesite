@@ -143,17 +143,21 @@
     await prepareLogs();
   }
 
+  function _getFirstTerm(logType: LogType): string {
+    const spaceOffset = logType.indexOf(' ');
+    return spaceOffset < 0 ? logType : logType.substring(0, spaceOffset);
+  }
+
   function _getTagHtml(log: Log): string {
     const tag = log.tag ? `<b>${log.tag}</b>` : '';
     switch (log.type) {
-      case LogType.Import:
+      case LogType.ImportRecord:
         if (log.tag == 'NO CATALOG NUMBER') return tag;
-        return log.tag ? 'Cat. # ' + tag : '';
-      case LogType.Server:
-        return tag;
-      case LogType.User:
+        return log.tag ? '# ' + tag : '';
+      case LogType.UserLogin:
         return 'email: ' + tag;
     }
+    return '';
   }
 </script>
 
@@ -201,7 +205,7 @@
                     <div class="col-sm-4 log_time">
                       {new Date(log.timestamp).toLocaleString()}
                     </div>
-                    <div class="col-sm-3 log_type type_{log.type}">
+                    <div class="col-sm-3 log_type type_{_getFirstTerm(log.type)}">
                       {log.type}{#if log.isError}
                         <span class="log_error">&nbsp;ERROR</span>{/if}
                     </div>
@@ -267,7 +271,7 @@
     color: purple;
   }
   .log_type.type_server {
-    color: black;
+    color: rgb(53, 180, 202);
   }
 
   .log_line {

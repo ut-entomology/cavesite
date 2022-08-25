@@ -85,7 +85,7 @@ app.use(async (err: any, _req: any, res: any) => {
   if (err.code == 'EBADCSRFTOKEN') {
     return res.status(StatusCodes.FORBIDDEN).send('detected tampering');
   }
-  await Logs.postBad(getDB(), LogType.Server, 'error', err.toString());
+  await Logs.postBad(getDB(), LogType.ServerNote, null, err.toString());
   res.status(err.status || StatusCodes.INTERNAL_SERVER_ERROR).send({
     error: {
       status: err.status || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -113,8 +113,8 @@ app.listen(port, async () => {
   if (process.env.CAVESITE_LOG_SERVER_RESTART == 'on') {
     await Logs.postGood(
       getDB(),
-      LogType.Server,
-      'startup',
+      LogType.ServerStarted,
+      null,
       'Server started or restarted'
     );
   }

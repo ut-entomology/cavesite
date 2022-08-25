@@ -57,8 +57,8 @@ abstract class GbifImporter {
   async load(): Promise<void> {
     await Logs.postGood(
       await this.getDB(),
-      LogType.Import,
-      'STARTED',
+      LogType.ImportStarted,
+      null,
       'Began ' + this.description
     );
     this.importFailures = await loadDatabase(
@@ -69,8 +69,8 @@ abstract class GbifImporter {
     );
     await Logs.postGood(
       await this.getDB(),
-      LogType.Import,
-      'FINISHED',
+      LogType.ImportEnded,
+      null,
       'Completed ' + this.description
     );
     await disconnectDB();
@@ -192,7 +192,12 @@ class CheckedGbifImporter extends GbifImporter {
   }
 
   async _handleError(message: string): Promise<void> {
-    await Logs.postBad(await this.getDB(), LogType.Import, null, 'Error: ' + message);
+    await Logs.postBad(
+      await this.getDB(),
+      LogType.ImportNote,
+      null,
+      'Error: ' + message
+    );
   }
 }
 

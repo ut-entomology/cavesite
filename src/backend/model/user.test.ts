@@ -436,7 +436,7 @@ async function verifyUser(
 async function containsLog(db: DB, email: string, portion: string): Promise<boolean> {
   const logs = await Logs.getBeforeID(db, 100, 100);
   for (const log of logs) {
-    if (log.type == LogType.User && log.tag == email) {
+    if (log.type == LogType.UserLogin && log.tag == email) {
       return log.line.includes(portion);
     }
   }

@@ -15,7 +15,7 @@ test('creating, reading, and clearing logs', async () => {
 
   const expectedLogs: Log[] = [];
   for (let i = 1; i <= 20; ++i) {
-    const type = i % 2 ? LogType.User : LogType.Import;
+    const type = i % 2 ? LogType.UserLogin : LogType.ImportRecord;
     const tag = i % 2 ? 'Fred' : 'TMM12345';
     expectedLogs.push({
       id: 1,
@@ -58,7 +58,7 @@ test('creating, reading, and clearing logs', async () => {
   // Verify that log lines get truncated to maximum length.
 
   const longLine = 'x'.repeat(MAX_LOG_LENGTH + 1);
-  await Logs.postGood(db, LogType.Server, null, longLine);
+  await Logs.postGood(db, LogType.ServerNote, null, longLine);
   logs = await Logs.getBeforeID(db, 22, 0);
   verifyLogs(
     logs,
@@ -66,7 +66,7 @@ test('creating, reading, and clearing logs', async () => {
       {
         id: 21,
         timestamp: new Date(), // ignored
-        type: LogType.Server,
+        type: LogType.ServerNote,
         isError: false,
         tag: null,
         line: 'x'.repeat(MAX_LOG_LENGTH - 3) + '...'
