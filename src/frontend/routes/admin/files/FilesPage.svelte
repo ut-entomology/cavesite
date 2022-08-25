@@ -157,9 +157,28 @@
         {/each}
       </ul>
     {/each}
+    <p class="addendum">
+      The sysadmin maintains additional site configuration in a '.env' file that is part
+      of the deployment. This file specifies the site URL, the directory in which to
+      store log files, the details of the database connection, the <a
+        href="https://www.mapbox.com/"
+        target="_blank">MapBox</a
+      >
+      access token for displaying maps, and the
+      <a href="https://sendgrid.com/" target="_blank">SendGrid</a> API key for sending user
+      credential emails. It can also specify website tabs to hide from users, which is useful
+      for tabs that are under development or that have issues requiring resolution.
+    </p>
   </div>
 </AdminTabRoute>
 
 {#if dialogFileSpec}
   <FileDialog fileSpec={dialogFileSpec} close={closeDialog} />
 {/if}
+
+<style>
+  .addendum {
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+  }
+</style>
