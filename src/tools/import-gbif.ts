@@ -63,9 +63,9 @@ abstract class GbifImporter {
     );
     this.importFailures = await loadDatabase(
       await this.getDB(),
-      this._loadNextGbifRecord,
-      this._calculatingEffort,
-      this._committingData
+      this._loadNextGbifRecord.bind(this),
+      this._calculatingEffort.bind(this),
+      this._committingData.bind(this)
     );
     await Logs.postGood(
       await this.getDB(),
@@ -117,6 +117,7 @@ class ForcedGbifImporter extends GbifImporter {
 
   async run(): Promise<void> {
     try {
+      process.stdout.write('\nImporting records...');
       await this.load();
     } catch (err: any) {
       this.errors.push('Error: ' + err.message);
