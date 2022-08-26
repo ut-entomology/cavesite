@@ -293,7 +293,14 @@ export class Specimen implements TaxonPathSpec {
     // Extract the start and end dates, getting the end date from
     // eventRemarks, when present.
 
-    let startDate = source.eventDate ? new Date(source.eventDate) : null;
+    let startDate: Date | null = null;
+    if (source.eventDate) {
+      let eventDate = source.eventDate;
+      if (eventDate.includes('T')) {
+        eventDate = eventDate.substring(0, eventDate.indexOf('T'));
+      }
+      startDate = new Date(eventDate);
+    }
     let startMatch: RegExpMatchArray | null = null;
     let partialStartDate: string | null = null;
     let endDate: Date | null = null;
@@ -354,12 +361,19 @@ export class Specimen implements TaxonPathSpec {
           endDate = null;
           partialEndDate = null;
         }
-        if (endDate && startDate.getTime() > endDate.getTime()) {
-          problemList.push(
-            `Start date follows end date ${endDate.toDateString()}; end date ignored`
-          );
-          endDate = null;
-          partialEndDate = null;
+        if (endDate) {
+          const startTime = startDate.getTime();
+          const endTime = endDate.getTime();
+          if (startTime == endTime && partialEndDate === null) {
+            // Handle case where end date is given even if equal to start date.
+            endDate = null;
+          } else if (startTime > endTime) {
+            problemList.push(
+              `Start date follows end date ${endDate.toDateString()}; end date ignored`
+            );
+            endDate = null;
+            partialEndDate = null;
+          }
         }
         if (
           endDate &&
@@ -383,6 +397,7 @@ export class Specimen implements TaxonPathSpec {
         }
       }
     }
+    if (startDate && !endDate) endDate = startDate;
 
     // Parse the determination year. Depending on where the data was imported
     // from, the month and day may be zeros or random values.
