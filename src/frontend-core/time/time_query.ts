@@ -20,6 +20,7 @@ import {
   type GeneralQuery,
   type QueryRow
 } from '../../shared/general_query';
+import { toDateFromNumbers } from '../../shared/date_tools';
 import { TaxonCounter } from '../../shared/taxon_counter';
 
 const ADULTS_REGEX = /(\d+) *(adult|male|female|worker|alate|queen)/gi;
@@ -548,15 +549,15 @@ function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
   // in order to hasten computation.
   let yearStartDaysEpoch = _daysEpochByYear[year];
   if (yearStartDaysEpoch === undefined) {
-    yearStartDaysEpoch = toDaysEpoch(new Date(year, 0 /*Jan*/, 1));
+    yearStartDaysEpoch = toDaysEpoch(toDateFromNumbers(year, 1, 1));
     _daysEpochByYear[year] = yearStartDaysEpoch;
 
     const daysEpochBySeason: number[] = [];
     const leap = year % 4 == 0 && (year % 400 == 0 || year % 100 != 0) ? 1 : 0;
-    daysEpochBySeason[0] = toDaysEpoch(new Date(year, 2, 20 + leap));
-    daysEpochBySeason[1] = toDaysEpoch(new Date(year, 5, 21 + leap));
-    daysEpochBySeason[2] = toDaysEpoch(new Date(year, 8, 22 + leap));
-    daysEpochBySeason[3] = toDaysEpoch(new Date(year, 11, 21 + leap));
+    daysEpochBySeason[0] = toDaysEpoch(toDateFromNumbers(year, 3, 20 + leap));
+    daysEpochBySeason[1] = toDaysEpoch(toDateFromNumbers(year, 6, 21 + leap));
+    daysEpochBySeason[2] = toDaysEpoch(toDateFromNumbers(year, 9, 22 + leap));
+    daysEpochBySeason[3] = toDaysEpoch(toDateFromNumbers(year, 12, 21 + leap));
     _daysEpochByYearAndSeason[year] = daysEpochBySeason;
   }
 

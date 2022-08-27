@@ -119,13 +119,6 @@ export function toCamelRow<T>(snakeRow: Record<string, any>): T {
 const snakeToCamelMap: Record<string, string> = {};
 
 /**
- * Returns the given date in the local timezone.
- */
-export function toLocalDate(date: Date): Date {
-  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-}
-
-/**
  * Converts a date into the format Postgres expects.
  */
 export function toPostgresDate(date: Date): string {

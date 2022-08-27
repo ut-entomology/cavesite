@@ -17,7 +17,11 @@ import {
   CAVE_OBLIGATE_FLAG,
   FEDERALLY_LISTED_FLAG
 } from '../../shared/model';
-import { toDaysEpoch } from '../../shared/date_tools';
+import {
+  toDaysEpoch,
+  toDateFromNumbers,
+  toDateFromString
+} from '../../shared/date_tools';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
 import {
   QueryColumnID,
@@ -223,7 +227,11 @@ export class Specimen implements TaxonPathSpec {
       // Return the specimen if it already exists.
 
       const lookup = await Specimen.getByCatNum(db, source.catalogNumber, false);
-      if (lookup) return lookup;
+      if (lookup) {
+        throw new ImportFailure(
+          `Duplicate catalog number ${source.catalogNumber} (GBIF occurrenceID ${source.occurrenceID})`
+        );
+      }
 
       // Parse the subgenus from the determination remarks.
 
@@ -293,14 +301,7 @@ export class Specimen implements TaxonPathSpec {
     // Extract the start and end dates, getting the end date from
     // eventRemarks, when present.
 
-    let startDate: Date | null = null;
-    if (source.eventDate) {
-      let eventDate = source.eventDate;
-      if (eventDate.includes('T')) {
-        eventDate = eventDate.substring(0, eventDate.indexOf('T'));
-      }
-      startDate = new Date(eventDate);
-    }
+    let startDate = source.eventDate ? toDateFromString(source.eventDate) : null;
     let startMatch: RegExpMatchArray | null = null;
     let partialStartDate: string | null = null;
     let endDate: Date | null = null;
@@ -397,7 +398,6 @@ export class Specimen implements TaxonPathSpec {
         }
       }
     }
-    if (startDate && !endDate) endDate = startDate;
 
     // Parse the determination year. Depending on where the data was imported
     // from, the month and day may be zeros or random values.
@@ -822,33 +822,35 @@ function _collectInIntegerList(
 function _parseStartDate(match: RegExpMatchArray): [Date, string | null] {
   const year = parseInt(match[2]);
   if (match[3] === undefined) {
-    return [new Date(year, 0, 1), match[2]];
+    return [toDateFromNumbers(year, 1, 1), match[2]];
   } else {
-    const month = parseInt(match[3]) - 1;
+    const month = parseInt(match[3]);
     if (match[4] === undefined) {
-      const date = new Date(year, month, 1);
+      const date = toDateFromNumbers(year, month, 1);
       return [date, `${match[2]}-${match[3]}`];
     }
     const day = parseInt(match[4]);
-    return [new Date(year, month, day), null];
+    return [toDateFromNumbers(year, month, day), null];
   }
 }
 
 function _parseEndDate(match: RegExpMatchArray): [Date, string | null] {
   let year = parseInt(match[2]);
   if (match[3] === undefined) {
-    return [new Date(year, 11, 31), match[2]];
+    return [toDateFromNumbers(year, 12, 31), match[2]];
   } else {
-    let month = parseInt(match[3]) - 1;
+    let month = parseInt(match[3]);
     if (match[4] === undefined) {
-      if (++month == 11) {
+      if (++month == 13) {
         ++year;
-        month = 0;
+        month = 1;
       }
-      const date = new Date(new Date(year, month, 1).getTime() - MILLIS_PER_DAY);
+      const date = new Date(
+        toDateFromNumbers(year, month, 1).getTime() - MILLIS_PER_DAY
+      );
       return [date, `${match[2]}-${match[3]}`];
     }
     const day = parseInt(match[4]);
-    return [new Date(year, month, day), null];
+    return [toDateFromNumbers(year, month, day), null];
   }
 }

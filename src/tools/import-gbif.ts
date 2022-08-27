@@ -35,7 +35,6 @@ abstract class GbifImporter {
   db: DB | null = null;
   recordCount = 0;
   importFailures: string[] = [];
-  hasMoreRecords = true;
   batch: GbifRecord[] = [];
 
   constructor(description: string) {
@@ -86,14 +85,13 @@ abstract class GbifImporter {
       nextRecord = this.batch.pop();
     }
     if (!nextRecord) {
-      if (!this.hasMoreRecords) return null;
       try {
         const res = await this.client.get(
           `https://api.gbif.org/v1/occurrence/search?institutionCode=${INSTITUTION_CODE}&collectionCode=${COLLECTION_CODE}&offset=${this.recordCount}&limit=${LIMIT_PER_REQUEST}`
         );
         const data = res.data as GbifResponse;
         this.batch = data.results;
-        this.hasMoreRecords = !data.endOfRecords;
+        if (this.batch.length == 0) return null;
         nextRecord = this.batch.pop();
       } catch (err: any) {
         this._handleError(_errorReason(err.response));

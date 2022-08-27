@@ -1,10 +1,10 @@
 import type { DB } from '../integrations/postgres';
-import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Specimen, GbifRecord } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { LocationEffort } from './location_effort';
 import { ComparedFauna } from '../../shared/model';
+import { toDateFromString } from '../../shared/date_tools';
 
 type PartialGbifRecord = Pick<
   GbifRecord,
@@ -1182,7 +1182,7 @@ async function _retally(): Promise<void> {
 }
 
 function _toISODate(dateString: string): string {
-  return toLocalDate(new Date(dateString)).toISOString();
+  return toDateFromString(dateString).toISOString();
 }
 
 function _toJsonPoints(points: number[][]): string {

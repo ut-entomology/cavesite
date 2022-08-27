@@ -335,9 +335,7 @@
           nextFeatureSpec = null;
         }
         const lastDaysEpoch = toDaysEpoch(
-          new Date(
-            row.collectionEndDate ? row.collectionEndDate : row.collectionStartDate!
-          )
+          new Date(row.collectionEndDate || row.collectionStartDate!)
         );
         if (nextFeatureSpec === null) {
           nextFeatureSpec = {

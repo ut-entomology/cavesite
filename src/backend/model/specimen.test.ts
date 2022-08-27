@@ -1,5 +1,4 @@
 import type { DB } from '../integrations/postgres';
-import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { type GbifRecord, Specimen } from './specimen';
 import {
@@ -12,17 +11,18 @@ import {
 import { Location } from './location';
 import { Taxon } from './taxon';
 import { LogType } from '../../shared/model';
+import { toDateFromNumbers, toDateFromString } from '../../shared/date_tools';
 import { Logs } from './logs';
 
-const startDate = toLocalDate(new Date('2020-01-01'));
-const endDate = toLocalDate(new Date('2020-01-04'));
+const startDate = toDateFromString('2020-01-01');
+const endDate = toDateFromString('2020-01-04');
 const endDateStr = _toEndDate(2020, 1, 4);
-const detDate = toLocalDate(new Date('2020-06-10'));
+const detDate = toDateFromString('2020-06-10');
 
-const startDate1 = toLocalDate(new Date('2021-01-01'));
-const endDate1 = toLocalDate(new Date('2021-01-03'));
-const startDate2 = toLocalDate(new Date('2021-01-04'));
-const detDate2 = toLocalDate(new Date('2022-01-01'));
+const startDate1 = toDateFromString('2021-01-01');
+const endDate1 = toDateFromString('2021-01-03');
+const startDate2 = toDateFromString('2021-01-04');
+const detDate2 = toDateFromString('2022-01-01');
 
 const baseSource = {
   catalogNumber: 'C1',
@@ -585,7 +585,7 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C6';
     source.occurrenceID = 'X6';
-    source.eventDate = endDateStr;
+    source.eventDate = endDateStr.substring(endDateStr.indexOf(' ') + 1);
     source.eventRemarks =
       'ended ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
@@ -602,8 +602,8 @@ describe('basic specimen methods', () => {
   });
 
   test('end date follows start date by too much time', async () => {
-    const startDateISO = new Date('10/10/70').toISOString();
-    const endDateISO = new Date('10/10/80').toISOString();
+    const startDateISO = toDateFromString('10/10/70').toISOString();
+    const endDateISO = toDateFromString('10/10/80').toISOString();
     const source = Object.assign({}, baseSource);
     // @ts-ignore
     source.catalogNumber = 'C99';
@@ -710,14 +710,14 @@ describe('partial start and end dates', () => {
     source.eventRemarks = _toStartDate(2022);
     const specimen = await Specimen.create(db, source);
 
-    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 0, 1));
+    expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 1, 1));
     expect(specimen?.partialStartDate).toEqual('2022');
-    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(specimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 12, 31));
     expect(specimen?.partialEndDate).toBe(null);
     const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
-    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 0, 1));
+    expect(readSpecimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 1, 1));
     expect(readSpecimen?.partialStartDate).toEqual('2022');
-    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(readSpecimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 12, 31));
     expect(readSpecimen?.partialEndDate).toBe(null);
   });
 
@@ -730,14 +730,14 @@ describe('partial start and end dates', () => {
     source.eventRemarks = _toStartDate(2022, 6);
     const specimen = await Specimen.create(db, source);
 
-    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 1));
     expect(specimen?.partialStartDate).toEqual('2022-6');
-    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(specimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 6, 30));
     expect(specimen?.partialEndDate).toBe(null);
     const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
-    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(readSpecimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 1));
     expect(readSpecimen?.partialStartDate).toEqual('2022-6');
-    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(readSpecimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 6, 30));
     expect(readSpecimen?.partialEndDate).toBe(null);
   });
 
@@ -747,18 +747,18 @@ describe('partial start and end dates', () => {
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
-    source.eventDate = new Date(2022, 5, 12).toISOString();
+    source.eventDate = toDateFromNumbers(2022, 6, 12).toISOString();
     source.eventRemarks = _toEndDate(2022);
     const specimen = await Specimen.create(db, source);
 
-    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 12));
     expect(specimen?.partialStartDate).toBe(null);
-    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(specimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 12, 31));
     expect(specimen?.partialEndDate).toBe('2022');
     const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
-    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(readSpecimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 12));
     expect(readSpecimen?.partialStartDate).toBe(null);
-    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 11, 31));
+    expect(readSpecimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 12, 31));
     expect(readSpecimen?.partialEndDate).toBe('2022');
   });
 
@@ -768,18 +768,18 @@ describe('partial start and end dates', () => {
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
-    source.eventDate = new Date(2022, 5, 12).toISOString();
+    source.eventDate = toDateFromNumbers(2022, 6, 12).toISOString();
     source.eventRemarks = _toEndDate(2022, 6);
     const specimen = await Specimen.create(db, source);
 
-    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 12));
     expect(specimen?.partialStartDate).toBe(null);
-    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(specimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 6, 30));
     expect(specimen?.partialEndDate).toBe('2022-6');
     const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
-    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 12));
+    expect(readSpecimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 12));
     expect(readSpecimen?.partialStartDate).toBe(null);
-    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 5, 30));
+    expect(readSpecimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 6, 30));
     expect(readSpecimen?.partialEndDate).toBe('2022-6');
   });
 
@@ -792,14 +792,14 @@ describe('partial start and end dates', () => {
     source.eventRemarks = _toStartDate(2022, 6) + '; ' + _toEndDate(2022, 8);
     const specimen = await Specimen.create(db, source);
 
-    expect(specimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 1));
     expect(specimen?.partialStartDate).toEqual('2022-6');
-    expect(specimen?.collectionEndDate).toEqual(new Date(2022, 7, 31));
+    expect(specimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 8, 31));
     expect(specimen?.partialEndDate).toBe('2022-8');
     const readSpecimen = await Specimen.getByCatNum(db, 'C1', false);
-    expect(readSpecimen?.collectionStartDate).toEqual(new Date(2022, 5, 1));
+    expect(readSpecimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 1));
     expect(readSpecimen?.partialStartDate).toEqual('2022-6');
-    expect(readSpecimen?.collectionEndDate).toEqual(new Date(2022, 7, 31));
+    expect(readSpecimen?.collectionEndDate).toEqual(toDateFromNumbers(2022, 8, 31));
     expect(readSpecimen?.partialEndDate).toBe('2022-8');
   });
 });
@@ -1365,7 +1365,7 @@ describe('general specimen query', () => {
     await Specimen.commit(db);
 
     let dateFilter: QueryDateFilter = {
-      fromDateMillis: new Date('2021-01-01').getTime(),
+      fromDateMillis: toDateFromString('2021-01-01').getTime(),
       throughDateMillis: null
     };
     // prettier-ignore
@@ -1382,7 +1382,7 @@ describe('general specimen query', () => {
 
     dateFilter = {
       fromDateMillis: null,
-      throughDateMillis: new Date('2021-01-01').getTime()
+      throughDateMillis: toDateFromString('2021-01-01').getTime()
     };
     // prettier-ignore
     results = await Specimen.generalQuery(
@@ -1398,8 +1398,8 @@ describe('general specimen query', () => {
     // Test bracketing start dates.
 
     dateFilter = {
-      fromDateMillis: new Date('2020-01-02').getTime(),
-      throughDateMillis: new Date('2021-01-02').getTime()
+      fromDateMillis: toDateFromString('2020-01-02').getTime(),
+      throughDateMillis: toDateFromString('2021-01-02').getTime()
     };
     // prettier-ignore
     results = await Specimen.generalQuery(
@@ -1411,7 +1411,7 @@ describe('general specimen query', () => {
     // Test filtering before end date.
 
     dateFilter = {
-      fromDateMillis: new Date('2021-01-02').getTime(),
+      fromDateMillis: toDateFromString('2021-01-02').getTime(),
       throughDateMillis: null
     };
     // prettier-ignore
@@ -1427,8 +1427,8 @@ describe('general specimen query', () => {
     // Test bracketing between start and end dates.
 
     dateFilter = {
-      fromDateMillis: new Date('2021-01-02').getTime(),
-      throughDateMillis: new Date('2021-01-02').getTime()
+      fromDateMillis: toDateFromString('2021-01-02').getTime(),
+      throughDateMillis: toDateFromString('2021-01-02').getTime()
     };
     // prettier-ignore
     results = await Specimen.generalQuery(

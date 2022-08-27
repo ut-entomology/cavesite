@@ -8,6 +8,7 @@ import {
   type HistoryStageTallies,
   type SeasonalityStageTallies
 } from '../../frontend-core/time/time_query';
+import { toDateFromNumbers } from '../../shared/date_tools';
 
 const FILL_OPACITY = 0.2;
 const TOTAL_SPECIES_LABEL = 'min. species';
@@ -290,7 +291,7 @@ function _hexToRGBAColor(hexColor: string, delta: number, opacity: number): stri
 
 function _makeWeeklyLabels(): string[] {
   const labels: string[] = [];
-  const anyNonLeapYear = new Date(2021, 0, 1);
+  const anyNonLeapYear = toDateFromNumbers(2021, 1, 1);
   const dateMillies = anyNonLeapYear.getTime();
   for (let i = 0; i < 52 * 7; i += 7) {
     const date = new Date(dateMillies + i * MILLIS_PER_DAY);

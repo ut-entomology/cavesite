@@ -1,10 +1,9 @@
 import type { DB } from '../integrations/postgres';
-import { toLocalDate } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Specimen, GbifRecord } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { ComparedFauna } from '../../shared/model';
-import { toDaysEpoch } from '../../shared/date_tools';
+import { toDaysEpoch, toDateFromString } from '../../shared/date_tools';
 
 type PartialGbifRecord = Pick<
   GbifRecord,
@@ -870,10 +869,10 @@ async function _getVisitFor(specimen: Specimen): Promise<LocationVisit> {
 }
 
 function _toDaysEpoch(date: Date | string): number {
-  if (typeof date == 'string') date = new Date(date);
+  if (typeof date == 'string') date = toDateFromString(date);
   return toDaysEpoch(date);
 }
 
 function _toISODate(dateString: string): string {
-  return toLocalDate(new Date(dateString)).toISOString();
+  return toDateFromString(dateString).toISOString();
 }
