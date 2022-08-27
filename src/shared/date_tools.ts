@@ -37,7 +37,7 @@ export function toDateFromString(dateStr: string): Date {
   if (dateStr.includes('/')) {
     parts = dateStr.split('/');
     if (parts[2].length == 2) {
-      if (parseInt(parts[2]) >= 30) {
+      if (parseInt(parts[2]) >= 25) {
         parts[2] = '19' + parts[2];
       } else {
         parts[2] = '20' + parts[2];

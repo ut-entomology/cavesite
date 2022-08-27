@@ -118,6 +118,13 @@ function toEventRemarksDate(csvDate: string, onlyIfPartial: boolean): string | n
     return null;
   }
   const parts = csvDate.split('/');
+  if (parts[2].length == 2) {
+    if (parseInt(parts[2]) < 24) {
+      parts[2] = '20' + parts[2];
+    } else {
+      parts[2] = '19' + parts[2];
+    }
+  }
   if (parts[0] == '00') return parts[2];
   if (parts[1] == '00') return `${parts[2]}-${parts[0]}`;
   return `${parts[2]}-${parts[0]}-${parts[1]}`;
