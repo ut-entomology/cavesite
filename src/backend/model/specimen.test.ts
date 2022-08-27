@@ -297,7 +297,7 @@ describe('basic specimen methods', () => {
       source.catalogNumber = 'C101';
       source.occurrenceID = 'X101';
       // @ts-ignore
-      source.order = undefined;
+      source.genus = undefined;
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -306,7 +306,7 @@ describe('basic specimen methods', () => {
       let found = await containsLog(
         db,
         source.catalogNumber,
-        'Family given without order',
+        'Specific epithet given without genus',
         true
       );
       expect(found).toEqual(true);
@@ -787,7 +787,7 @@ describe('partial start and end dates', () => {
     expect(readSpecimen?.partialEndDate).toBe('2022-6');
   });
 
-  test('start and end dates of differnt months missing day of month', async () => {
+  test('start and end dates of different months missing day of month', async () => {
     await Specimen.dropAll(db);
 
     const source = Object.assign({}, baseSource);

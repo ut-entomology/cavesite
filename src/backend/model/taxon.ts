@@ -188,8 +188,12 @@ export class Taxon {
     return childrenPerParent;
   }
 
-  static async getOrCreate(db: DB, source: TaxonSource): Promise<Taxon> {
-    const [containingNames, taxonRank] = Taxon._extractTaxa(source);
+  static async getOrCreate(
+    db: DB,
+    source: TaxonSource,
+    problems: string[]
+  ): Promise<Taxon> {
+    const [containingNames, taxonRank] = Taxon._extractTaxa(source, problems);
     const taxonName = containingNames.pop()!;
     const parentNamePath = containingNames.join('|');
 
@@ -328,8 +332,14 @@ export class Taxon {
     return null;
   }
 
-  private static _extractTaxa(source: TaxonSource): [string[], TaxonRank] {
-    if (!source.kingdom) throw new ImportFailure('Kingdom not given');
+  private static _extractTaxa(
+    source: TaxonSource,
+    problems: string[]
+  ): [string[], TaxonRank] {
+    if (!source.kingdom) {
+      source.kingdom = 'Animalia';
+      problems.push(`Kingdom not given; assumed ${source.kingdom}`);
+    }
 
     let taxonRank = TaxonRank.Kingdom;
     const taxonNames: string[] = [source.kingdom];
@@ -339,22 +349,34 @@ export class Taxon {
       taxonNames.push(source.phylum);
     }
     if (source.class) {
-      if (!source.phylum) throw new ImportFailure('Class given without phylum');
+      if (!source.phylum) {
+        source.phylum = _toPatchedTaxon('Phylum', source.class);
+        problems.push(`Class given without phylum; assumed ${source.phylum}`);
+      }
       taxonRank = TaxonRank.Class;
       taxonNames.push(source.class);
     }
     if (source.order) {
-      if (!source.class) throw new ImportFailure('Order given without class');
+      if (!source.class) {
+        source.class = _toPatchedTaxon('Class', source.order);
+        problems.push(`Order given without class; assumed ${source.class}`);
+      }
       taxonRank = TaxonRank.Order;
       taxonNames.push(source.order);
     }
     if (source.family) {
-      if (!source.order) throw new ImportFailure('Family given without order');
+      if (!source.order) {
+        source.order = _toPatchedTaxon('Order', source.family);
+        problems.push(`Family given without order; assumed ${source.order}`);
+      }
       taxonRank = TaxonRank.Family;
       taxonNames.push(source.family);
     }
     if (source.genus) {
-      if (!source.family) throw new ImportFailure('Genus given without family');
+      if (!source.family) {
+        source.family = _toPatchedTaxon('Family', source.genus);
+        problems.push(`Genus given without family; assumed ${source.family}`);
+      }
       taxonRank = TaxonRank.Genus;
       let genus = source.genus;
       taxonNames.push(genus);
@@ -421,6 +443,10 @@ export class Taxon {
     }
     return federallyListedSpecies[spec.unique];
   }
+}
+
+function _toPatchedTaxon(missingTaxon: string, lowerTaxon: string): string {
+  return `${missingTaxon}-of-${lowerTaxon}`;
 }
 
 function _toTaxonData(row: any): TaxonData {

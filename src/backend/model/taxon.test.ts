@@ -76,23 +76,31 @@ test('sequentially dependent taxa tests', async () => {
     const taxonName = 'Arthropoda';
     const expectedTaxon = await Taxon.getByID(db, 2);
     expect(expectedTaxon?.taxonName).toEqual(taxonName);
-    const readTaxon = await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: taxonName,
-      scientificName: taxonName
-    });
+    const readTaxon = await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: taxonName,
+        scientificName: taxonName
+      },
+      []
+    );
     expect(readTaxon).toEqual(expectedTaxon);
   }
 
   // test auto-creating new taxon having no intermediates
 
   {
-    const createdTaxon = await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      scientificName: 'Arachnida'
-    });
+    const createdTaxon = await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        scientificName: 'Arachnida'
+      },
+      []
+    );
     expect(createdTaxon).toEqual({
       taxonID: 3,
       taxonRank: TaxonRank.Class,
@@ -112,16 +120,20 @@ test('sequentially dependent taxa tests', async () => {
   // test auto-creating new species and new intermediate taxa
 
   {
-    const createdTaxon = await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Thomisidae',
-      genus: 'Mecaphesa',
-      specificEpithet: 'dubia',
-      scientificName: 'Mecaphesa dubia (Keyserling, 1880)'
-    });
+    const createdTaxon = await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        order: 'Araneae',
+        family: 'Thomisidae',
+        genus: 'Mecaphesa',
+        specificEpithet: 'dubia',
+        scientificName: 'Mecaphesa dubia (Keyserling, 1880)'
+      },
+      []
+    );
     expect(await Taxon.getByID(db, 4)).toEqual({
       taxonID: 4,
       taxonRank: TaxonRank.Order,
@@ -185,15 +197,19 @@ test('sequentially dependent taxa tests', async () => {
   // test providing a scientific name for an implied taxon created without one
 
   {
-    const createdTaxon = await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Thomisidae',
-      genus: 'Mecaphesa',
-      scientificName: 'Mecaphesa Simon, 1900'
-    });
+    const createdTaxon = await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        order: 'Araneae',
+        family: 'Thomisidae',
+        genus: 'Mecaphesa',
+        scientificName: 'Mecaphesa Simon, 1900'
+      },
+      []
+    );
     expect(createdTaxon.taxonName).toEqual('Mecaphesa');
     expect(createdTaxon.uniqueName).toEqual('Mecaphesa');
     expect(createdTaxon.author).toEqual('Simon, 1900');
@@ -207,17 +223,21 @@ test('sequentially dependent taxa tests', async () => {
   // test creating new subspecies with new intermediate species
 
   {
-    const createdTaxon = await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Philodromidae',
-      genus: 'Philodromus',
-      specificEpithet: 'rufus',
-      infraspecificEpithet: 'jenningsi',
-      scientificName: 'Philodromus rufus jenningsi Author'
-    });
+    const createdTaxon = await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        order: 'Araneae',
+        family: 'Philodromidae',
+        genus: 'Philodromus',
+        specificEpithet: 'rufus',
+        infraspecificEpithet: 'jenningsi',
+        scientificName: 'Philodromus rufus jenningsi Author'
+      },
+      []
+    );
     expect(await Taxon.getByID(db, 8)).toEqual({
       taxonID: 8,
       taxonRank: TaxonRank.Family,
@@ -282,16 +302,20 @@ test('sequentially dependent taxa tests', async () => {
   // test creating multiple intermediate taxa under kingdom
 
   {
-    const createdTaxon = await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Chordata',
-      class: 'Amphibia',
-      order: 'Urodela',
-      family: 'Plethodontidae',
-      genus: 'Eurycea',
-      specificEpithet: 'rathbuni',
-      scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
-    });
+    const createdTaxon = await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Chordata',
+        class: 'Amphibia',
+        order: 'Urodela',
+        family: 'Plethodontidae',
+        genus: 'Eurycea',
+        specificEpithet: 'rathbuni',
+        scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
+      },
+      []
+    );
     expect(await Taxon.getByID(db, 12)).toEqual({
       taxonID: 12,
       taxonRank: TaxonRank.Phylum,
@@ -489,28 +513,36 @@ test('sequentially dependent taxa tests', async () => {
   // test replacing existing records
 
   {
-    await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Philodromidae',
-      genus: 'Philodromus',
-      specificEpithet: 'rufus',
-      infraspecificEpithet: 'jenningsi',
-      scientificName: 'Philodromus rufus jenningsi New Author'
-    });
+    await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        order: 'Araneae',
+        family: 'Philodromidae',
+        genus: 'Philodromus',
+        specificEpithet: 'rufus',
+        infraspecificEpithet: 'jenningsi',
+        scientificName: 'Philodromus rufus jenningsi New Author'
+      },
+      []
+    );
     let matches = await Taxon.matchName(db, 'jenningsi', 10);
     expect(matches[0].author).toEqual('Author');
 
-    await Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Arthropoda',
-      class: 'Arachnida',
-      order: 'Araneae',
-      family: 'Salticidae',
-      scientificName: 'Salticidae'
-    });
+    await Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Arthropoda',
+        class: 'Arachnida',
+        order: 'Araneae',
+        family: 'Salticidae',
+        scientificName: 'Salticidae'
+      },
+      []
+    );
     matches = await Taxon.matchName(db, 'Salticidae', 10);
     expect(matches.length).toEqual(0);
 
@@ -529,17 +561,21 @@ test('sequentially dependent taxa tests', async () => {
 test('taxa with subgenera', async () => {
   await Taxon.dropAll(db);
 
-  const createdTaxon = await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Arachnida',
-    order: 'Araneae',
-    family: 'Thomisidae',
-    genus: 'Mecaphesa',
-    specificEpithet: 'dubia',
-    infraspecificEpithet: 'notreal',
-    scientificName: 'Mecaphesa dubia notreal (Keyserling, 1880)'
-  });
+  const createdTaxon = await Taxon.getOrCreate(
+    db,
+    {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Arachnida',
+      order: 'Araneae',
+      family: 'Thomisidae',
+      genus: 'Mecaphesa',
+      specificEpithet: 'dubia',
+      infraspecificEpithet: 'notreal',
+      scientificName: 'Mecaphesa dubia notreal (Keyserling, 1880)'
+    },
+    []
+  );
   await Taxon.commit(db);
   expect(await Taxon.getByID(db, 4)).toEqual({
     taxonID: 4,
@@ -618,15 +654,19 @@ test('taxa with subgenera', async () => {
 test('create a cave-obligate genus and species', async () => {
   await Taxon.dropAll(db);
 
-  let createdTaxon = await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Insecta',
-    order: 'Zygentoma',
-    family: 'Nicoletiidae',
-    genus: 'Texoreddellia',
-    scientificName: 'Texoreddellia Wygodzinsky, 1973'
-  });
+  let createdTaxon = await Taxon.getOrCreate(
+    db,
+    {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Insecta',
+      order: 'Zygentoma',
+      family: 'Nicoletiidae',
+      genus: 'Texoreddellia',
+      scientificName: 'Texoreddellia Wygodzinsky, 1973'
+    },
+    []
+  );
   await Taxon.commit(db);
   expect(await Taxon.getByID(db, 4)).toEqual({
     taxonID: 4,
@@ -673,16 +713,20 @@ test('create a cave-obligate genus and species', async () => {
   });
   expect(createdTaxon).toEqual(readTaxon);
 
-  createdTaxon = await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Insecta',
-    order: 'Zygentoma',
-    family: 'Nicoletiidae',
-    genus: 'Texoreddellia',
-    specificEpithet: 'aquilonalis',
-    scientificName: 'Texoreddellia aquilonalis'
-  });
+  createdTaxon = await Taxon.getOrCreate(
+    db,
+    {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Insecta',
+      order: 'Zygentoma',
+      family: 'Nicoletiidae',
+      genus: 'Texoreddellia',
+      specificEpithet: 'aquilonalis',
+      scientificName: 'Texoreddellia aquilonalis'
+    },
+    []
+  );
   await Taxon.commit(db);
   readTaxon = await Taxon.getByID(db, 13);
   expect(readTaxon).toEqual({
@@ -704,16 +748,20 @@ test('create a cave-obligate genus and species', async () => {
 
 test('create a cave-obligate species and subspecies not in a cave-obligate genus', async () => {
   await Taxon.dropAll(db);
-  let createdTaxon = await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Insecta',
-    order: 'Coleoptera',
-    family: 'Carabidae',
-    genus: 'Rhadine',
-    specificEpithet: 'infernalis',
-    scientificName: 'Rhadine infernalis (Barr)'
-  });
+  let createdTaxon = await Taxon.getOrCreate(
+    db,
+    {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Insecta',
+      order: 'Coleoptera',
+      family: 'Carabidae',
+      genus: 'Rhadine',
+      specificEpithet: 'infernalis',
+      scientificName: 'Rhadine infernalis (Barr)'
+    },
+    []
+  );
   await Taxon.commit(db);
   expect(await Taxon.getByID(db, 4)).toEqual({
     taxonID: 4,
@@ -774,17 +822,21 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
   });
   expect(createdTaxon).toEqual(readTaxon);
 
-  createdTaxon = await Taxon.getOrCreate(db, {
-    kingdom: 'Animalia',
-    phylum: 'Arthropoda',
-    class: 'Insecta',
-    order: 'Coleoptera',
-    family: 'Carabidae',
-    genus: 'Rhadine',
-    specificEpithet: 'infernalis',
-    infraspecificEpithet: 'ewersi',
-    scientificName: 'Rhadine infernalis ewersi (Barr)'
-  });
+  createdTaxon = await Taxon.getOrCreate(
+    db,
+    {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Insecta',
+      order: 'Coleoptera',
+      family: 'Carabidae',
+      genus: 'Rhadine',
+      specificEpithet: 'infernalis',
+      infraspecificEpithet: 'ewersi',
+      scientificName: 'Rhadine infernalis ewersi (Barr)'
+    },
+    []
+  );
   readTaxon = await Taxon.getByID(db, 15);
   expect(readTaxon).toEqual({
     taxonID: 15,
@@ -807,8 +859,10 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
 test('poorly sourced taxa', async () => {
   await Taxon.dropAll(db);
 
-  await expect(() =>
-    Taxon.getOrCreate(db, {
+  let problems: string[] = [];
+  await Taxon.getOrCreate(
+    db,
+    {
       // @ts-ignore
       kingdom: undefined,
       phylum: 'Chordata',
@@ -818,11 +872,15 @@ test('poorly sourced taxa', async () => {
       genus: 'Eurycea',
       specificEpithet: 'rathbuni',
       scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
-    })
-  ).rejects.toThrow(new ImportFailure('Kingdom not given'));
+    },
+    problems
+  );
+  expect(problems).toEqual(['Kingdom not given; assumed Animalia']);
 
-  await expect(() =>
-    Taxon.getOrCreate(db, {
+  problems = [];
+  await Taxon.getOrCreate(
+    db,
+    {
       kingdom: 'Animalia',
       phylum: 'Chordata',
       order: 'Urodela',
@@ -830,33 +888,43 @@ test('poorly sourced taxa', async () => {
       genus: 'Eurycea',
       specificEpithet: 'rathbuni',
       scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
-    })
-  ).rejects.toThrow(new ImportFailure('Order given without class'));
+    },
+    problems
+  );
+  expect(problems).toEqual(['Order given without class; assumed Class-of-Urodela']);
 
   await expect(() =>
-    Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Chordata',
-      class: 'Amphibia',
-      order: 'Urodela',
-      family: 'Plethodontidae',
-      specificEpithet: 'rathbuni',
-      scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
-    })
+    Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Chordata',
+        class: 'Amphibia',
+        order: 'Urodela',
+        family: 'Plethodontidae',
+        specificEpithet: 'rathbuni',
+        scientificName: 'Eurycea rathbuni (Stejneger, 1896)'
+      },
+      []
+    )
   ).rejects.toThrow(new ImportFailure('Specific epithet given without genus'));
 
   await expect(() =>
-    Taxon.getOrCreate(db, {
-      kingdom: 'Animalia',
-      phylum: 'Chordata',
-      class: 'Amphibia',
-      order: 'Urodela',
-      family: 'Plethodontidae',
-      genus: 'Eurycea',
-      specificEpithet: 'rathbuni',
-      // @ts-ignore
-      scientificName: undefined
-    })
+    Taxon.getOrCreate(
+      db,
+      {
+        kingdom: 'Animalia',
+        phylum: 'Chordata',
+        class: 'Amphibia',
+        order: 'Urodela',
+        family: 'Plethodontidae',
+        genus: 'Eurycea',
+        specificEpithet: 'rathbuni',
+        // @ts-ignore
+        scientificName: undefined
+      },
+      []
+    )
   ).rejects.toThrow(new ImportFailure('Scientific name not given'));
 });
 

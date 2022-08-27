@@ -73,11 +73,15 @@ describe('without location location uniques', () => {
     // test skipping unspecified intermediate locations
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        locality: 'Someplace in U.S.'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          locality: 'Someplace in U.S.'
+        },
+        []
+      );
       const readLocation = await _getByID(db, 3);
       expect(readLocation).toEqual({
         locationID: 3,
@@ -100,23 +104,31 @@ describe('without location location uniques', () => {
     {
       const expectedLocation = await _getByID(db, 3);
       expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
-      const readLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        locality: 'Someplace in U.S.'
-      });
+      const readLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          locality: 'Someplace in U.S.'
+        },
+        []
+      );
       expect(readLocation).toEqual(expectedLocation);
     }
 
     // test auto-creating new location having some but not all intermediates
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        locality: 'Someplace in Texas'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          locality: 'Someplace in Texas'
+        },
+        []
+      );
       expect(await _getByID(db, 4)).toEqual({
         locationID: 4,
         locationRank: LocationRank.StateProvince,
@@ -150,15 +162,19 @@ describe('without location location uniques', () => {
     // test auto-creating new locality and final intermediate location
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        county: 'Travis County',
-        locality: 'Missing Cave',
-        decimalLatitude: '28.12',
-        decimalLongitude: '-97.34'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          county: 'Travis County',
+          locality: 'Missing Cave',
+          decimalLatitude: '28.12',
+          decimalLongitude: '-97.34'
+        },
+        []
+      );
       expect(await _getByID(db, 6)).toEqual({
         locationID: 6,
         locationRank: LocationRank.County,
@@ -192,15 +208,19 @@ describe('without location location uniques', () => {
     // test creating multiple intermediate localities under continent
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'Mexico',
-        stateProvince: 'Chihuahua',
-        county: 'Mun. Xyz',
-        locality: 'Invisible Spring',
-        decimalLatitude: '21.12',
-        decimalLongitude: '-96.34'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'Mexico',
+          stateProvince: 'Chihuahua',
+          county: 'Mun. Xyz',
+          locality: 'Invisible Spring',
+          decimalLatitude: '21.12',
+          decimalLongitude: '-96.34'
+        },
+        []
+      );
       expect(await _getByID(db, 8)).toEqual({
         locationID: 8,
         locationRank: LocationRank.Country,
@@ -265,15 +285,19 @@ describe('without location location uniques', () => {
     // test adding a second county
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        county: 'Bastrop County',
-        locality: 'Fire Cave',
-        decimalLatitude: '28.50',
-        decimalLongitude: '-97.50'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          county: 'Bastrop County',
+          locality: 'Fire Cave',
+          decimalLatitude: '28.50',
+          decimalLongitude: '-97.50'
+        },
+        []
+      );
 
       let readLocation = await _getByID(db, 12);
       expect(readLocation).toEqual({
@@ -439,26 +463,34 @@ describe('without location location uniques', () => {
     // test replacing existing records
 
     {
-      await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        county: 'Travis County',
-        locality: 'Missing Cave',
-        decimalLatitude: '30',
-        decimalLongitude: '-100'
-      });
+      await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          county: 'Travis County',
+          locality: 'Missing Cave',
+          decimalLatitude: '30',
+          decimalLongitude: '-100'
+        },
+        []
+      );
       let matches = await Location.matchName(db, 'Missing Cave', 10);
       expect(matches.length).toEqual(1);
       expect(matches[0].latitude).not.toEqual(30);
 
-      await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        county: 'Bastrop County',
-        locality: 'Piney Cave'
-      });
+      await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          county: 'Bastrop County',
+          locality: 'Piney Cave'
+        },
+        []
+      );
       matches = await Location.matchName(db, 'Piney Cave', 10);
       expect(matches.length).toEqual(0);
 
@@ -558,11 +590,15 @@ describe('with location location uniques', () => {
     // test skipping unspecified intermediate locations
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        locality: 'Someplace in U.S.'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          locality: 'Someplace in U.S.'
+        },
+        []
+      );
       const readLocation = await _getByID(db, 3);
       expect(readLocation).toEqual({
         locationID: 3,
@@ -589,23 +625,31 @@ describe('with location location uniques', () => {
         false
       );
       expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
-      const readLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        locality: 'Someplace in U.S.'
-      });
+      const readLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          locality: 'Someplace in U.S.'
+        },
+        []
+      );
       expect(readLocation).toEqual(expectedLocation);
     }
 
     // test auto-creating new location having some but not all intermediates
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        locality: 'Someplace in Texas'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          locality: 'Someplace in Texas'
+        },
+        []
+      );
       expect(await _getByID(db, 4)).toEqual({
         locationID: 4,
         locationRank: LocationRank.StateProvince,
@@ -645,12 +689,16 @@ describe('with location location uniques', () => {
     // test creating a second location under the prior new intermediate
 
     {
-      const createdLocation = await Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        stateProvince: 'Texas',
-        locality: 'Another Place in Texas'
-      });
+      const createdLocation = await Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          stateProvince: 'Texas',
+          locality: 'Another Place in Texas'
+        },
+        []
+      );
       let readLocation = await _getByID(db, 6);
       expect(readLocation).toEqual({
         locationID: 6,
@@ -690,68 +738,96 @@ describe('import failures', () => {
 
   test('poorly sourced locations', async () => {
     await expect(() =>
-      Location.getOrCreate(db, {
-        continent: 'North America',
-        // no country specified
-        stateProvince: 'Texas',
-        locality: 'Good Place'
-      })
+      Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          // no country specified
+          stateProvince: 'Texas',
+          locality: 'Good Place'
+        },
+        []
+      )
     ).rejects.toThrow(new ImportFailure('State/province given without country'));
 
     await expect(() =>
-      Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        county: 'Travis County',
-        locality: 'Good Place'
-      })
+      Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          county: 'Travis County',
+          locality: 'Good Place'
+        },
+        []
+      )
     ).rejects.toThrow(new ImportFailure('County given without state/province'));
 
     await expect(() =>
-      Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States'
-        // no locality specified
-      })
+      Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States'
+          // no locality specified
+        },
+        []
+      )
     ).rejects.toThrow(new ImportFailure('Locality name not given'));
 
-    await expect(() =>
-      Location.getOrCreate(db, {
+    let problems: string[] = [];
+    await Location.getOrCreate(
+      db,
+      {
         continent: 'North America',
         country: 'United States',
         locality: 'Good Place',
         decimalLatitude: '24.12'
-      })
-    ).rejects.toThrow(new ImportFailure('Latitude given without longitude'));
+      },
+      problems
+    );
+    expect(problems).toEqual(['Latitude given without longitude']);
 
-    await expect(() =>
-      Location.getOrCreate(db, {
+    problems = [];
+    await Location.getOrCreate(
+      db,
+      {
         continent: 'North America',
         country: 'United States',
         locality: 'Good Place',
         decimalLongitude: '-97.15'
-      })
-    ).rejects.toThrow(new ImportFailure('Longitude given without latitude'));
+      },
+      problems
+    );
+    expect(problems).toEqual(['Longitude given without latitude']);
 
     await expect(() =>
-      Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        locality: 'Good Place',
-        decimalLatitude: 'abc',
-        decimalLongitude: '-97.15'
-      })
-    ).rejects.toThrow(new ImportFailure('Invalid latitude'));
+      Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          locality: 'Another Good Place',
+          decimalLatitude: 'abc',
+          decimalLongitude: '-97.15'
+        },
+        []
+      )
+    ).rejects.toThrow(new ImportFailure('Invalid latitude "abc"'));
 
     await expect(() =>
-      Location.getOrCreate(db, {
-        continent: 'North America',
-        country: 'United States',
-        locality: 'Good Place',
-        decimalLatitude: '24.15',
-        decimalLongitude: '#!3'
-      })
-    ).rejects.toThrow(new ImportFailure('Invalid longitude'));
+      Location.getOrCreate(
+        db,
+        {
+          continent: 'North America',
+          country: 'United States',
+          locality: 'Another Good Place',
+          decimalLatitude: '24.15',
+          decimalLongitude: '#!3'
+        },
+        []
+      )
+    ).rejects.toThrow(new ImportFailure('Invalid longitude "#!3"'));
   });
 
   afterAll(async () => {

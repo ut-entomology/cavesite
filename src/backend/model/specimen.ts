@@ -284,13 +284,13 @@ export class Specimen implements TaxonPathSpec {
 
       // Create the associated taxa and locations, if they don't already exist.
 
-      taxon = await Taxon.getOrCreate(db, taxonSource);
+      taxon = await Taxon.getOrCreate(db, taxonSource, problemList);
       if (taxon.parentIDPath != '') {
         taxonIDs = taxon.parentIDPath.split(',');
         taxonNames = taxon.parentNamePath.split('|');
       }
 
-      location = await Location.getOrCreate(db, source);
+      location = await Location.getOrCreate(db, source, problemList);
       locationIDs = location.parentIDPath.split(',');
       locationNames = location.parentNamePath.split('|');
       // Location always has locality but may be missing intermediates.
@@ -478,7 +478,7 @@ export class Specimen implements TaxonPathSpec {
       typeStatus,
       specimenCount: specimenCount || null /* 0 and NaN => null */,
       lifeStage: lifeStage || null,
-      problems: problemList.length > 0 ? problemList.join('|') : null,
+      problems: problemList.length > 0 ? problemList.join(' | ') : null,
       kingdomName: getRankedName(taxonNames, 0, taxon.taxonName)!,
       kingdomID: getRankedID(taxonIDs, 0, taxon.taxonID)!,
       phylumName: getRankedName(taxonNames, 1, taxon.taxonName),
