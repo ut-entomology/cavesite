@@ -65,15 +65,12 @@ const monthFirst = !yearFirst && parseInt(sampleLocalDateParts[0]) <= 12;
 
 // Locally format date without drawing on local timezone.
 export function toLocalDate(date: Date): string {
-  const dateStr = toZonelessDateString(date);
-  if (yearFirst) {
-    return dateDelimiter == '-' ? dateStr : dateStr.replace('-', dateDelimiter);
-  }
-  const parts = dateStr.split('-');
-  if (monthFirst) {
-    return `${parts[1]}${dateDelimiter}${parts[2]}${dateDelimiter}${parts[0]}`;
-  }
-  return `${parts[2]}${dateDelimiter}${parts[1]}${dateDelimiter}${parts[0]}`;
+  const parts = toZonelessDateString(date).split('-');
+  if (parts[1][0] == '0') parts[1] = parts[1][1];
+  if (parts[2][0] == '0') parts[2] = parts[2][1];
+  if (yearFirst) return parts.join(dateDelimiter);
+  if (!monthFirst) parts.reverse().join(dateDelimiter);
+  return `${parts[1]}${dateDelimiter}${parts[2]}${dateDelimiter}${parts[0]}`;
 }
 
 export function toZonelessDateString(date: Date): string {
