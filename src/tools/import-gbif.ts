@@ -54,7 +54,7 @@ abstract class GbifImporter {
   }
 
   async load(): Promise<void> {
-    await Logs.postGood(
+    await Logs.postNormal(
       await this.getDB(),
       LogType.ImportStarted,
       null,
@@ -66,7 +66,7 @@ abstract class GbifImporter {
       this._calculatingEffort.bind(this),
       this._committingData.bind(this)
     );
-    await Logs.postGood(
+    await Logs.postNormal(
       await this.getDB(),
       LogType.ImportEnded,
       null,
@@ -191,7 +191,7 @@ class CheckedGbifImporter extends GbifImporter {
   }
 
   async _handleError(message: string): Promise<void> {
-    await Logs.postBad(
+    await Logs.postError(
       await this.getDB(),
       LogType.ImportNote,
       null,

@@ -1,6 +1,6 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
-import { LogType, type Log } from '../../shared/model';
+import { LogType, LogLevel, type Log } from '../../shared/model';
 import { Logs, MAX_LOG_LENGTH } from './logs';
 
 const mutex = new DatabaseMutex();
@@ -21,13 +21,13 @@ test('creating, reading, and clearing logs', async () => {
       id: 1,
       timestamp: new Date(), // ignored
       type,
-      isError: false,
+      level: LogLevel.Normal,
       tag,
       line: `log line ${i}`
     });
   }
   for (const log of expectedLogs) {
-    await Logs.postGood(db, log.type, log.tag, log.line);
+    await Logs.postNormal(db, log.type, log.tag, log.line);
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
@@ -58,7 +58,7 @@ test('creating, reading, and clearing logs', async () => {
   // Verify that log lines get truncated to maximum length.
 
   const longLine = 'x'.repeat(MAX_LOG_LENGTH + 1);
-  await Logs.postGood(db, LogType.ServerNote, null, longLine);
+  await Logs.postNormal(db, LogType.ServerNote, null, longLine);
   logs = await Logs.getBeforeID(db, 22, 0);
   verifyLogs(
     logs,
@@ -67,7 +67,7 @@ test('creating, reading, and clearing logs', async () => {
         id: 21,
         timestamp: new Date(), // ignored
         type: LogType.ServerNote,
-        isError: false,
+        level: LogLevel.Normal,
         tag: null,
         line: 'x'.repeat(MAX_LOG_LENGTH - 3) + '...'
       }

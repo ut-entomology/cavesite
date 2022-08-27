@@ -6,7 +6,7 @@
     type RowControlsConfig
   } from '../../../components/RowControls.svelte';
   import DeleteLogsDialog from './DeleteLogsDialog.svelte';
-  import { LogType, type Log } from '../../../../shared/model';
+  import { LogType, LogLevel, type Log } from '../../../../shared/model';
   import { flashMessage } from '../../../common/VariableFlash.svelte';
   import { showNotice } from '../../../common/VariableNotice.svelte';
   import { pageName } from '../../../stores/pageName';
@@ -206,8 +206,8 @@
                       {new Date(log.timestamp).toLocaleString()}
                     </div>
                     <div class="col-sm-3 log_type type_{_getFirstTerm(log.type)}">
-                      {log.type}{#if log.isError}
-                        <span class="log_error">&nbsp;ERROR</span>{/if}
+                      {log.type}{#if log.level != LogLevel.Normal}
+                        <span class="log_{log.level}">&nbsp;{log.level}</span>{/if}
                     </div>
                     <div class="col-sm-5">{@html _getTagHtml(log)}</div>
                   </div>
@@ -260,8 +260,10 @@
     font-weight: bold;
     text-transform: uppercase;
   }
+  .log_warning {
+    color: orange;
+  }
   .log_error {
-    font-weight: bold;
     color: red;
   }
   .log_type.type_import {

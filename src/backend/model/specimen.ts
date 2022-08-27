@@ -822,7 +822,11 @@ async function logImportProblem(
   const catalogNumber = source.catalogNumber
     ? source.catalogNumber
     : 'NO CATALOG NUMBER';
-  await Logs.postBad(db, LogType.ImportRecord, catalogNumber, line);
+  if (failed) {
+    await Logs.postError(db, LogType.ImportRecord, catalogNumber, line);
+  } else {
+    await Logs.postWarning(db, LogType.ImportRecord, catalogNumber, line);
+  }
 }
 
 function _collectInIntegerList(

@@ -4,33 +4,42 @@
  */
 
 import { DB, toCamelRow } from '../integrations/postgres';
-import { LogType, type Log } from '../../shared/model';
+import { LogType, LogLevel, type Log } from '../../shared/model';
 
 export const MAX_LOG_LENGTH = 2048; // VARCHAR (2048)
 
 export class Logs {
-  static async postGood(
+  static async postNormal(
     db: DB,
     type: LogType,
     tag: string | null,
     line: string
   ): Promise<number> {
-    return await Logs._post(db, type, false, tag, line);
+    return await Logs._post(db, type, LogLevel.Normal, tag, line);
   }
 
-  static async postBad(
+  static async postWarning(
     db: DB,
     type: LogType,
     tag: string | null,
     line: string
   ): Promise<number> {
-    return await Logs._post(db, type, true, tag, line);
+    return await Logs._post(db, type, LogLevel.Warning, tag, line);
+  }
+
+  static async postError(
+    db: DB,
+    type: LogType,
+    tag: string | null,
+    line: string
+  ): Promise<number> {
+    return await Logs._post(db, type, LogLevel.Error, tag, line);
   }
 
   static async _post(
     db: DB,
     type: LogType,
-    isError: boolean,
+    level: LogLevel,
     tag: string | null,
     line: string
   ): Promise<number> {
@@ -38,9 +47,9 @@ export class Logs {
       line = line.substring(0, MAX_LOG_LENGTH - 3) + '...';
     }
     const result = await db.query(
-      `insert into logs(type, is_error, tag, line) values ($1, $2, $3, $4) returning id`,
+      `insert into logs(type, level, tag, line) values ($1, $2, $3, $4) returning id`,
       // @ts-ignore incorrect type def
-      [type, isError, tag, line]
+      [type, level, tag, line]
     );
     return result.rows[0].id;
   }

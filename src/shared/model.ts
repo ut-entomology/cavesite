@@ -335,11 +335,17 @@ export enum LogType {
   ServerStarted = 'server started'
 }
 
+export enum LogLevel {
+  Normal = 'normal',
+  Warning = 'warning',
+  Error = 'error'
+}
+
 export interface Log {
   id: number;
   timestamp: Date;
   type: LogType;
-  isError: boolean;
+  level: LogLevel;
   tag: string | null;
   line: string;
 }
