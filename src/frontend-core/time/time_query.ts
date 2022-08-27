@@ -10,7 +10,8 @@ import {
 import {
   MILLIS_PER_DAY,
   partialDateHasMonth,
-  toDaysEpoch
+  toDaysEpoch,
+  toZonelessMonthAndYear
 } from '../../shared/date_tools';
 import {
   QueryColumnID,
@@ -527,9 +528,8 @@ interface _DateInfo {
 
 // returns weeks since epoch (millis = 0), resetting each week at start of year
 function _toDateInfo(date: Date, partialDate: string | null): _DateInfo {
-  const year = date.getFullYear();
+  const [month, year] = toZonelessMonthAndYear(date);
   let seasonYear = year;
-  const month = date.getMonth() + 1; // 1-based
   const daysEpoch = toDaysEpoch(date);
 
   if (partialDate) {

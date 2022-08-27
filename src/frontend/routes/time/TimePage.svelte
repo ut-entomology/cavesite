@@ -12,6 +12,7 @@
     createHistoryGraphSpec,
     createSeasonalityGraphSpec
   } from '../../lib/time_graphs';
+  import { toLocalDate } from '../../../shared/date_tools';
 
   interface TimeGraphSpecPair {
     species: TimeGraphSpec;
@@ -255,7 +256,7 @@
     const thruDate = new Date(specedQuery.dateFilter!.throughDateMillis!);
     let description =
       `${taxonFilterName} ${locationFilterName}<br/>` +
-      `from ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
+      `from ${toLocalDate(fromDate)} through ${toLocalDate(thruDate)}`;
 
     // Get a count of the number of blank dates in the filtered set.
 

@@ -4,11 +4,6 @@
 
 export const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
-// Place the date midday in the CST/CDT timezone (5 + 12 = 17). Putting it in the
-// CST/CDT timezone is correct for Texas specimens. Not having it on midnight of
-// that day (T00:00:00) prevents problems intepreting the date of the day.
-const UTC_TIME = 'T17:00:00.000Z';
-
 export function partialDateHasMonth(partialDate: string): boolean {
   return partialDate.indexOf('-') > 0;
 }
@@ -18,22 +13,26 @@ export function fromDaysEpoch(daysEpoch: number): Date {
   return new Date((daysEpoch + 1) * MILLIS_PER_DAY);
 }
 
+export function stripTimeZone(date: Date): Date {
+  return toDateFromString(date.toISOString());
+}
+
+export function stripTimeZoneOrNull(date: Date | null): Date | null {
+  return date === null ? null : stripTimeZone(date);
+}
+
 export function toDaysEpoch(date: Date): number {
   return Math.floor(date.getTime() / MILLIS_PER_DAY);
 }
 
 export function toDateFromNumbers(year: number, month: number, day: number): Date {
   return new Date(
-    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(
-      2,
-      '0'
-    )}${UTC_TIME}`
+    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   );
 }
 
+// Extract the date and interprets it as GMT regardless of timezone.
 export function toDateFromString(dateStr: string): Date {
-  // Texas CST/CDT dates are loading into GBIF as GMT. This function
-  // extracts the date and interprets it as CDT regardless of time zone.
   let parts: string[];
   if (dateStr.includes('/')) {
     parts = dateStr.split('/');
@@ -44,20 +43,47 @@ export function toDateFromString(dateStr: string): Date {
         parts[2] = '20' + parts[2];
       }
     }
-    parts = [parts[2], parts[0], parts[1]]; // assume U.S. date
+    parts = [parts[2], parts[0], parts[1]]; // assume U.S. date format
   } else {
     const tOffset = dateStr.indexOf('T');
     if (tOffset > 0) dateStr = dateStr.substring(0, tOffset);
     parts = dateStr.split('-');
     if (parts[0].length < 4) {
-      parts = [parts[2], parts[0], parts[1]]; // assume U.S. date
+      parts = [parts[2], parts[0], parts[1]]; // assume U.S. date format
     }
   }
   return new Date(
-    `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}${UTC_TIME}`
+    `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`
   );
 }
 
-export function toExpectedTZ(date: Date): Date {
-  return toDateFromString(date.toISOString());
+const sampleLocalDate = new Date('2022-10-16').toLocaleDateString();
+const dateDelimiter = sampleLocalDate.includes('/') ? '/' : '-';
+const sampleLocalDateParts = sampleLocalDate.split(dateDelimiter);
+const yearFirst = sampleLocalDateParts[0].length == 4;
+const monthFirst = !yearFirst && parseInt(sampleLocalDateParts[0]) <= 12;
+
+export function toLocalDate(date: Date): string {
+  const dateStr = toZonelessDateString(date);
+  if (yearFirst) {
+    return dateDelimiter == '-' ? dateStr : dateStr.replace('-', dateDelimiter);
+  }
+  const parts = dateStr.split('-');
+  if (monthFirst) {
+    return `${parts[1]}${dateDelimiter}${parts[2]}${dateDelimiter}${parts[0]}`;
+  }
+  return `${parts[2]}${dateDelimiter}${parts[1]}${dateDelimiter}${parts[0]}`;
+}
+
+export function toZonelessDateString(date: Date): string {
+  return date.toISOString().substring(0, 'YYYY-MM-DD'.length);
+}
+
+export function toZonelessMonthAndYear(date: Date): [number, number] {
+  const iso = date.toISOString();
+  return [parseInt(iso.substring(5, 7)), parseInt(iso.substring(0, 4))];
+}
+
+export function toZonelessYear(date: Date): number {
+  return parseInt(date.toISOString().substring(0, 4));
 }

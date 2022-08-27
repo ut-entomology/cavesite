@@ -121,12 +121,12 @@ create table specimens (
     taxon_id integer not null references taxa,
     -- locally generated; non-null because all specimens have locality names
     locality_id integer not null references locations,
-    -- GBIF eventDate/year/month/day (specify ce.StartDate)
-    collection_start_date timestamptz,
+    -- GBIF year/month/day (specify ce.StartDate)
+    collection_start_date date,
     -- extracted from GBIF eventRemarks
     partial_start_date text,
-    -- extracted from GBIF eventRemarks
-    collection_end_date timestamptz, -- not in GBIF
+    -- both extracted from GBIF eventRemarks
+    collection_end_date date, -- not in GBIF
     partial_end_date text,
     -- GBIF recordedBy (|-delimited names, last name last)
     collectors text,
@@ -249,9 +249,9 @@ create table all_taxa_for_visits (
 
     location_id integer not null references locations,
     is_cave boolean not null,
-    start_date timestamptz, -- to pass on to effort table with timezone
+    start_date date, -- to pass on to effort table with timezone
     start_epoch_day integer, -- days since 1/1/1970, for performance
-    end_date timestamptz,
+    end_date date,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
     flags integer not null,
     normalized_collectors text not null,
@@ -281,9 +281,9 @@ create table cave_genera_for_visits (
 
     location_id integer not null references locations,
     is_cave boolean not null,
-    start_date timestamptz, -- to pass on to effort table with timezone
+    start_date date, -- to pass on to effort table with timezone
     start_epoch_day integer, -- days since 1/1/1970, for performance
-    end_date timestamptz,
+    end_date date,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
     flags integer not null,
     normalized_collectors text not null,
@@ -313,9 +313,9 @@ create table cave_obligates_for_visits (
 
     location_id integer not null references locations,
     is_cave boolean not null,
-    start_date timestamptz, -- to pass on to effort table with timezone
+    start_date date, -- to pass on to effort table with timezone
     start_epoch_day integer, -- days since 1/1/1970, for performance
-    end_date timestamptz,
+    end_date date,
     end_epoch_day integer not null, -- days since 1/1/1970, for performance
     flags integer not null,
     normalized_collectors text not null,

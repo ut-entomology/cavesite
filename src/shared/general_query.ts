@@ -1,6 +1,7 @@
 /**
  * Support for conveying general queries and query results between client and server.
  */
+import { toLocalDate } from '../shared/date_tools';
 
 export const EARLIEST_RECORD_DATE = new Date('1/1/1930');
 
@@ -191,7 +192,7 @@ const setColumnInfo = (columnInfo: QueryColumnInfo) => {
   columnInfoMap[columnInfo.columnID] = columnInfo;
 };
 const getDateValue = (date?: Date | null) => {
-  return date ? new Date(date).toLocaleDateString() : '';
+  return date ? toLocalDate(new Date(date)) : '';
 };
 const getNames = (names?: string | null) => (names ? names.replace('|', '; ') : '');
 const getNumber = (num?: number | null) => (num ? num.toString() : '');

@@ -4,12 +4,16 @@
  */
 
 import type { DataOf } from '../../shared/data_of';
-import { type DB, toCamelRow } from '../integrations/postgres';
+import { type DB, toCamelRow, toPostgresDateOrNull } from '../integrations/postgres';
 import { Specimen } from '../model/specimen';
 import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
 import { getCaveObligatesMap, getCaveContainingGeneraMap } from '../lib/cave_obligates';
-import { partialDateHasMonth, toDaysEpoch } from '../../shared/date_tools';
+import {
+  partialDateHasMonth,
+  stripTimeZoneOrNull,
+  toDaysEpoch
+} from '../../shared/date_tools';
 
 const NO_DATE_EPOCH_DAY = -Math.pow(1, 9); // very negative to make first in sort
 
@@ -32,9 +36,9 @@ export class LocationVisit extends TaxonCounter {
     super(data);
     this.locationID = data.locationID;
     this.isCave = data.isCave;
-    this.startDate = data.startDate;
+    this.startDate = stripTimeZoneOrNull(data.startDate);
     this.startEpochDay = data.startEpochDay;
-    this.endDate = data.endDate;
+    this.endDate = stripTimeZoneOrNull(data.endDate);
     this.endEpochDay = data.endEpochDay;
     this.flags = data.flags;
     this.normalizedCollectors = data.normalizedCollectors;
@@ -71,11 +75,9 @@ export class LocationVisit extends TaxonCounter {
         this.locationID,
         // @ts-ignore
         this.isCave,
-        // @ts-ignore
-        this.startDate,
+        toPostgresDateOrNull(this.startDate),
         this.startEpochDay,
-        // @ts-ignore
-        this.endDate,
+        toPostgresDateOrNull(this.endDate),
         this.endEpochDay,
         this.flags,
         this.normalizedCollectors,

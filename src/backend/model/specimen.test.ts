@@ -11,7 +11,11 @@ import {
 import { Location } from './location';
 import { Taxon } from './taxon';
 import { LogType } from '../../shared/model';
-import { toDateFromNumbers, toDateFromString } from '../../shared/date_tools';
+import {
+  toDateFromNumbers,
+  toDateFromString,
+  toZonelessYear
+} from '../../shared/date_tools';
 import { Logs } from './logs';
 
 const startDate = toDateFromString('2020-01-01');
@@ -617,7 +621,7 @@ describe('basic specimen methods', () => {
     let found = await containsLog(
       db,
       source.catalogNumber,
-      'End date Fri Oct 10 1980 follows start date Sat Oct 10 1970 by more than 124 days; dropped end date',
+      'End date 1980-10-10 follows start date 1970-10-10 by more than 124 days; dropped end date',
       false
     );
     expect(found).toEqual(true);
@@ -906,12 +910,12 @@ describe('general specimen query', () => {
       {
         collectionStartDate: startDate1,
         partialStartDate: null,
-        determinationYear: detDate.getFullYear()
+        determinationYear: toZonelessYear(detDate)
       },
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        determinationYear: detDate2.getFullYear()
+        determinationYear: toZonelessYear(detDate2)
       }
     ]);
     expect(results[1]).toEqual(2);
@@ -1002,7 +1006,7 @@ describe('general specimen query', () => {
       {
         collectionStartDate: startDate2,
         partialStartDate: null,
-        problems: 'Start date follows end date Mon Jan 01 1900; end date ignored'
+        problems: 'Start date follows end date 1900-01-01; end date ignored'
       }
     ]);
 

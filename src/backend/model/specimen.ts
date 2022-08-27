@@ -4,7 +4,12 @@
  */
 
 import type { DataOf } from '../../shared/data_of';
-import { type DB, toCamelRow, toPostgresDate } from '../integrations/postgres';
+import {
+  type DB,
+  toCamelRow,
+  toPostgresDate,
+  toPostgresDateOrNull
+} from '../integrations/postgres';
 import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
 import { ImportFailure } from './import_failure';
@@ -18,9 +23,12 @@ import {
   FEDERALLY_LISTED_FLAG
 } from '../../shared/model';
 import {
+  stripTimeZone,
+  stripTimeZoneOrNull,
   toDaysEpoch,
   toDateFromNumbers,
-  toDateFromString
+  toDateFromString,
+  toZonelessDateString
 } from '../../shared/date_tools';
 import { getCaveObligatesMap } from '../lib/cave_obligates';
 import {
@@ -143,9 +151,9 @@ export class Specimen implements TaxonPathSpec {
     this.occurrenceGuid = data.occurrenceGuid; // GBIF occurrenceID (Specify co.GUID)
     this.taxonID = data.taxonID; // ID of most specific taxon
     this.localityID = data.localityID;
-    this.collectionStartDate = data.collectionStartDate;
+    this.collectionStartDate = stripTimeZoneOrNull(data.collectionStartDate);
     this.partialStartDate = data.partialStartDate;
-    this.collectionEndDate = data.collectionEndDate;
+    this.collectionEndDate = stripTimeZoneOrNull(data.collectionEndDate);
     this.partialEndDate = data.partialEndDate;
     this.collectors = data.collectors; // |-delimited names, last name last
     this.normalizedCollectors = data.normalizedCollectors;
@@ -370,7 +378,9 @@ export class Specimen implements TaxonPathSpec {
             endDate = null;
           } else if (startTime > endTime) {
             problemList.push(
-              `Start date follows end date ${endDate.toDateString()}; end date ignored`
+              `Start date follows end date ${toZonelessDateString(
+                endDate
+              )}; end date ignored`
             );
             endDate = null;
             partialEndDate = null;
@@ -384,8 +394,8 @@ export class Specimen implements TaxonPathSpec {
             MAX_PITFALL_TRAP_COLLECTION_DAYS
         ) {
           problemList.push(
-            `End date ${endDate.toDateString()} follows start date ` +
-              `${startDate.toDateString()} by more than ` +
+            `End date ${toZonelessDateString(endDate)} follows start date ` +
+              `${toZonelessDateString(startDate)} by more than ` +
               `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropped end date`
           );
           endDate = null;
@@ -522,9 +532,9 @@ export class Specimen implements TaxonPathSpec {
         specimen.occurrenceGuid,
         specimen.taxonID,
         specimen.localityID,
-        specimen.collectionStartDate?.toISOString() || null,
+        toPostgresDateOrNull(specimen.collectionStartDate),
         partialStartDate,
-        specimen.collectionEndDate?.toISOString() || null,
+        toPostgresDateOrNull(specimen.collectionEndDate),
         partialEndDate,
         specimen.collectors,
         specimen.normalizedCollectors,
@@ -616,14 +626,14 @@ export class Specimen implements TaxonPathSpec {
       if (dateFilter.fromDateMillis !== null) {
         const fromDate = toPostgresDate(new Date(dateFilter.fromDateMillis));
         whereComponents.push(
-          `(collection_start_date >= ${fromDate} or
+          `(collection_start_date >= '${fromDate}' or
             (collection_end_date is not null and
-              collection_end_date >= ${fromDate}))`
+              collection_end_date >= '${fromDate}'))`
         );
       }
       if (dateFilter.throughDateMillis !== null) {
         const throughDate = toPostgresDate(new Date(dateFilter.throughDateMillis));
-        whereComponents.push(`collection_start_date <= ${throughDate}`);
+        whereComponents.push(`collection_start_date <= '${throughDate}'`);
       }
     }
 
@@ -739,6 +749,12 @@ export class Specimen implements TaxonPathSpec {
       if (data.recordCount) {
         // postgres returns counts as strings
         data.recordCount = parseInt(data.recordCount);
+      }
+      if (data.collectionStartDate) {
+        data.collectionStartDate = stripTimeZone(data.collectionStartDate);
+      }
+      if (data.collectionEndDate) {
+        data.collectionEndDate = stripTimeZone(data.collectionEndDate);
       }
       return data;
     });

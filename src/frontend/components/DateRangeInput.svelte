@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { toDateFromString, toExpectedTZ } from '../../shared/date_tools';
+  import { toDateFromString, stripTimeZone } from '../../shared/date_tools';
   import { localToInputDate, inputToLocalDate } from '../util/conversion';
 
   export let classes = '';
@@ -21,8 +21,8 @@
   let earliestStr = localToInputDate(earliestDate);
   let latestStr = localToInputDate(toDateFromString('2040-12-31'));
 
-  $: fromDate = toExpectedTZ(inputToLocalDate(fromStr));
-  $: throughDate = toExpectedTZ(inputToLocalDate(throughStr));
+  $: fromDate = stripTimeZone(inputToLocalDate(fromStr));
+  $: throughDate = stripTimeZone(inputToLocalDate(throughStr));
 
   function onToggle(): void {
     setDateRange(fromDate, throughDate, selected);

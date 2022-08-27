@@ -13,6 +13,7 @@
     type QueryRow,
     QueryColumnID
   } from '../../../shared/general_query';
+  import { toLocalDate } from '../../../shared/date_tools';
   import { createSessionStore } from '../../util/session_store';
 
   enum ColorMeaning {
@@ -183,7 +184,7 @@
             ? 1
             : (spanOfDays - 1) / (scaleDivisionCount - 1);
         for (let v = oldestDaysEpoch; Math.round(v) <= currentDaysEpoch; v += delta) {
-          scaleDivisions.push(fromDaysEpoch(Math.round(v)).toLocaleDateString());
+          scaleDivisions.push(toLocalDate(fromDaysEpoch(Math.round(v))));
           scaleColors.push(
             _toScaleColor(
               v - oldestDaysEpoch + 1,
@@ -314,7 +315,9 @@
     const thruDate = new Date(generalQuery.dateFilter!.throughDateMillis!);
     let description =
       `${locationFilterName}${taxonFilterName} ` +
-      `${dateQualifier} records dated ${fromDate.toLocaleDateString()} through ${thruDate.toLocaleDateString()}`;
+      `${dateQualifier} records dated ${toLocalDate(fromDate)} through ${toLocalDate(
+        thruDate
+      )}`;
 
     // Load the data
 
@@ -455,8 +458,7 @@
         : featureSpec.recordCount + ' records, ';
     labelSuffix +=
       featureSpec.visitCount == 1 ? '1 visit, ' : featureSpec.visitCount + ' visits, ';
-    labelSuffix +=
-      'last ' + fromDaysEpoch(featureSpec.lastDaysEpoch).toLocaleDateString();
+    labelSuffix += 'last ' + toLocalDate(fromDaysEpoch(featureSpec.lastDaysEpoch));
     featureSpec.label += ` (${labelSuffix})`;
   }
 

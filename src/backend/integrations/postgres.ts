@@ -122,9 +122,14 @@ const snakeToCamelMap: Record<string, string> = {};
  * Converts a date into the format Postgres expects.
  */
 export function toPostgresDate(date: Date): string {
-  // from https://stackoverflow.com/a/57712188
-  const parts = date.toISOString().split('T')[0].split('-');
-  return `'${parts[1]}-${parts[2]}-${parts[0]}'`;
+  return date.toISOString().substring(0, 'YYYY-MM-DD'.length);
+}
+
+/**
+ * Converts a date into the format Postgres expects, or leaves it null.
+ */
+export function toPostgresDateOrNull(date: Date | null): string | null {
+  return date === null ? null : toPostgresDate(date);
 }
 
 /**

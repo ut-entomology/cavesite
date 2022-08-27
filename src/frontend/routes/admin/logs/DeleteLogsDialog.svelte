@@ -1,7 +1,7 @@
 <script lang="ts">
   import ModalDialog from '../../../common/ModalDialog.svelte';
   import { localToInputDate, inputToLocalDate } from '../../../util/conversion';
-  import { toExpectedTZ } from '../../../../shared/date_tools';
+  import { stripTimeZone } from '../../../../shared/date_tools';
 
   export let submit: (throughDate: Date) => void;
   export let close: () => void;
@@ -9,7 +9,7 @@
   let throughStr = localToInputDate(new Date());
 
   function onSubmit() {
-    submit(toExpectedTZ(inputToLocalDate(throughStr)));
+    submit(stripTimeZone(inputToLocalDate(throughStr)));
   }
 </script>
 
