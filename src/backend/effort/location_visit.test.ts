@@ -8,7 +8,7 @@ import { toDaysEpoch, toDateFromString } from '../../shared/date_tools';
 type PartialGbifRecord = Pick<
   GbifRecord,
   | 'locality'
-  | 'eventDate'
+  | 'startDate'
   | 'recordedBy'
   | 'kingdom'
   | 'phylum'
@@ -41,7 +41,7 @@ beforeAll(async () => {
 test('sequentially specifying a single subspecies', async () => {
   let specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia'
   });
@@ -49,7 +49,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda'
@@ -62,7 +62,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -78,7 +78,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -97,7 +97,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -119,7 +119,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -144,7 +144,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -172,7 +172,7 @@ test('sequentially specifying a single subspecies', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -223,7 +223,7 @@ test('adding existing taxonomic groups', async () => {
 
   let specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -238,7 +238,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -253,7 +253,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -267,7 +267,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -280,7 +280,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -292,7 +292,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -303,7 +303,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -313,7 +313,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda'
@@ -322,7 +322,7 @@ test('adding existing taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia'
   });
@@ -332,7 +332,7 @@ test('adding existing taxonomic groups', async () => {
 test('adding multiple taxonomic groups', async () => {
   let specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -363,7 +363,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -394,7 +394,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -424,7 +424,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -454,7 +454,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -483,7 +483,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -512,7 +512,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -542,7 +542,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -571,7 +571,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -598,7 +598,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -629,7 +629,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -656,7 +656,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -685,7 +685,7 @@ test('adding multiple taxonomic groups', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Annelida'
@@ -713,7 +713,7 @@ test('adding multiple taxonomic groups', async () => {
 test('respect for components of primary key', async () => {
   let specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -729,7 +729,7 @@ test('respect for components of primary key', async () => {
 
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors2,
     kingdom: 'Animalia',
     phylum: 'Annelida'
@@ -742,7 +742,7 @@ test('respect for components of primary key', async () => {
 
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Annelida'
@@ -755,7 +755,7 @@ test('respect for components of primary key', async () => {
 
   specimen = await _addSpecimen({
     locality: locality3,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',

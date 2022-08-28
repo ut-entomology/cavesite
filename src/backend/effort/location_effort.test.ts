@@ -9,7 +9,7 @@ import { toDateFromString } from '../../shared/date_tools';
 type PartialGbifRecord = Pick<
   GbifRecord,
   | 'locality'
-  | 'eventDate'
+  | 'startDate'
   | 'recordedBy'
   | 'kingdom'
   | 'phylum'
@@ -47,7 +47,7 @@ test('tallying species counts per unit effort', async () => {
 
   let specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-01'),
+    startDate: _toISODate('2020-02-01'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -95,7 +95,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-02'),
+    startDate: _toISODate('2020-02-02'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -144,7 +144,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-03'),
+    startDate: _toISODate('2020-02-03'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -192,7 +192,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-04'),
+    startDate: _toISODate('2020-02-04'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -240,7 +240,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-05'),
+    startDate: _toISODate('2020-02-05'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -288,7 +288,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-06'),
+    startDate: _toISODate('2020-02-06'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -335,7 +335,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-07'),
+    startDate: _toISODate('2020-02-07'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -382,7 +382,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-08'),
+    startDate: _toISODate('2020-02-08'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -428,7 +428,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-09'),
+    startDate: _toISODate('2020-02-09'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -474,7 +474,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-10'),
+    startDate: _toISODate('2020-02-10'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -521,7 +521,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-11'),
+    startDate: _toISODate('2020-02-11'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -567,7 +567,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-12'),
+    startDate: _toISODate('2020-02-12'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -611,7 +611,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-13'),
+    startDate: _toISODate('2020-02-13'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -660,7 +660,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-14'),
+    startDate: _toISODate('2020-02-14'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -705,7 +705,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-15'),
+    startDate: _toISODate('2020-02-15'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -752,7 +752,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality1,
-    eventDate: _toISODate('2020-02-16'),
+    startDate: _toISODate('2020-02-16'),
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Annelida'
@@ -797,7 +797,7 @@ test('tallying species counts per unit effort', async () => {
 
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -810,14 +810,14 @@ test('tallying species counts per unit effort', async () => {
   let locationID2 = specimen.localityID;
   await _addSpecimen({
     locality: locality2,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Annelida'
   });
   await _addSpecimen({
     locality: locality2,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -829,7 +829,7 @@ test('tallying species counts per unit effort', async () => {
   });
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date1,
+    startDate: date1,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -877,7 +877,7 @@ test('tallying species counts per unit effort', async () => {
 
   await _addSpecimen({
     locality: locality2,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -889,7 +889,7 @@ test('tallying species counts per unit effort', async () => {
   });
   await _addSpecimen({
     locality: locality2,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -900,7 +900,7 @@ test('tallying species counts per unit effort', async () => {
   });
   await _addSpecimen({
     locality: locality2,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -911,7 +911,7 @@ test('tallying species counts per unit effort', async () => {
   });
   await _addSpecimen({
     locality: locality2,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -923,7 +923,7 @@ test('tallying species counts per unit effort', async () => {
   });
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date2,
+    startDate: date2,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Mollusca'
@@ -969,7 +969,7 @@ test('tallying species counts per unit effort', async () => {
 
   await _addSpecimen({
     locality: locality2,
-    eventDate: date3,
+    startDate: date3,
     recordedBy: collectors2,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -981,7 +981,7 @@ test('tallying species counts per unit effort', async () => {
   });
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date5,
+    startDate: date5,
     recordedBy: collectors2,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -1035,7 +1035,7 @@ test('tallying species counts per unit effort', async () => {
 
   await _addSpecimen({
     locality: locality2,
-    eventDate: date4,
+    startDate: date4,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',
@@ -1046,7 +1046,7 @@ test('tallying species counts per unit effort', async () => {
   });
   specimen = await _addSpecimen({
     locality: locality2,
-    eventDate: date4,
+    startDate: date4,
     recordedBy: collectors1,
     kingdom: 'Animalia',
     phylum: 'Arthropoda',

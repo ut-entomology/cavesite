@@ -98,6 +98,10 @@ abstract class GbifImporter {
       }
     }
     if (nextRecord) {
+      const datedRecord = nextRecord as any;
+      if (datedRecord.year && datedRecord.month && datedRecord.day) {
+        nextRecord.startDate = `${datedRecord.year}-${datedRecord.month}-${datedRecord.day}`;
+      }
       ++this.recordCount;
     }
     return nextRecord || null;

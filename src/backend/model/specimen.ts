@@ -54,6 +54,9 @@ const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
 export interface GbifRecord {
   // DarwinCore / GBIF field names
 
+  // startDate must be constructed from GBIF's year/month/day fields, because
+  // it randomly wrong, and not even consistent for the same catalog number.
+
   catalogNumber: string;
   occurrenceID: string;
 
@@ -75,7 +78,7 @@ export interface GbifRecord {
   decimalLatitude?: string;
   decimalLongitude?: string;
 
-  eventDate?: string;
+  startDate?: string; // constructed from GBIF year/month/day
   recordedBy?: string; // collectors, |-delimited names, last name last
   dateIdentified?: string; // determination date (not just year)
   identifiedBy?: string; // determiners, |-delimited names, last name last
@@ -309,7 +312,7 @@ export class Specimen implements TaxonPathSpec {
     // Extract the start and end dates, getting the end date from
     // eventRemarks, when present.
 
-    let startDate = source.eventDate ? toDateFromString(source.eventDate) : null;
+    let startDate = source.startDate ? toDateFromString(source.startDate) : null;
     let startMatch: RegExpMatchArray | null = null;
     let partialStartDate: string | null = null;
     let endDate: Date | null = null;
@@ -377,11 +380,6 @@ export class Specimen implements TaxonPathSpec {
             // Handle case where end date is given even if equal to start date.
             endDate = null;
           } else if (startTime > endTime) {
-            console.log('**** catalogNumber', source.catalogNumber);
-            console.log('**** source', source);
-            console.log('**** startDate, endDate', startDate, endDate);
-            console.log('**** startTime, endTime', startTime, endTime);
-            console.log('**** partial start, end', partialStartDate, partialEndDate);
             problemList.push(
               `Start date follows end date ${toZonelessDateString(
                 endDate

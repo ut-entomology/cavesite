@@ -77,7 +77,7 @@ function recordToGbifRecord(record: CsvSpecimen): GbifRecord {
     decimalLatitude: record.latitude,
     decimalLongitude: record.longitude,
 
-    eventDate: record.startDate,
+    startDate: record.startDate,
     eventRemarks: toEventRemarks(record),
     recordedBy: toNameField(record.collectors),
     dateIdentified: record.determinedDate,

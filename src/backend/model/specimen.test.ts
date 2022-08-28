@@ -50,7 +50,7 @@ const baseSource = {
   decimalLatitude: '23.45',
   decimalLongitude: '-93.21',
 
-  eventDate: startDate.toISOString(),
+  startDate: startDate.toISOString(),
   recordedBy: 'Some One | Another P. Someone, II | Foo | Baz, Jr.',
   dateIdentified: detDate.toISOString(),
   identifiedBy: 'Person A | Person B',
@@ -193,7 +193,7 @@ describe('basic specimen methods', () => {
         stateProvince: 'Texas',
         locality: 'Some Cave',
 
-        eventDate: startDate.toISOString(),
+        startDate: startDate.toISOString(),
         recordedBy: 'Any Body',
         identifiedBy: 'Person C'
       };
@@ -560,7 +560,7 @@ describe('basic specimen methods', () => {
       const source = Object.assign({}, baseSource);
       source.catalogNumber = 'C4';
       source.occurrenceID = 'X4';
-      source.eventDate = '';
+      source.startDate = '';
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -573,7 +573,7 @@ describe('basic specimen methods', () => {
       source.catalogNumber = 'C5';
       source.occurrenceID = 'X5';
       // @ts-ignore
-      source.eventDate = undefined;
+      source.startDate = undefined;
 
       await clearLogs(db);
       const specimen = await Specimen.create(db, source);
@@ -589,7 +589,7 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C6';
     source.occurrenceID = 'X6';
-    source.eventDate = endDateStr.substring(endDateStr.indexOf(' ') + 1);
+    source.startDate = endDateStr.substring(endDateStr.indexOf(' ') + 1);
     source.eventRemarks =
       'ended ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
@@ -612,7 +612,7 @@ describe('basic specimen methods', () => {
     // @ts-ignore
     source.catalogNumber = 'C99';
     source.occurrenceID = 'X99';
-    source.eventDate = startDateISO;
+    source.startDate = startDateISO;
     source.eventRemarks = 'ended ' + endDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
@@ -751,7 +751,7 @@ describe('partial start and end dates', () => {
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
-    source.eventDate = toDateFromNumbers(2022, 6, 12).toISOString();
+    source.startDate = toDateFromNumbers(2022, 6, 12).toISOString();
     source.eventRemarks = _toEndDate(2022);
     const specimen = await Specimen.create(db, source);
 
@@ -772,7 +772,7 @@ describe('partial start and end dates', () => {
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
-    source.eventDate = toDateFromNumbers(2022, 6, 12).toISOString();
+    source.startDate = toDateFromNumbers(2022, 6, 12).toISOString();
     source.eventRemarks = _toEndDate(2022, 6);
     const specimen = await Specimen.create(db, source);
 
@@ -1754,7 +1754,7 @@ async function _createSpecimen1(db: DB): Promise<Specimen | null> {
   const source: GbifRecord = Object.assign({}, baseSource);
   source.catalogNumber = 'Q1';
   source.occurrenceID = 'GQ1';
-  source.eventDate = startDate1.toISOString();
+  source.startDate = startDate1.toISOString();
   source.eventRemarks =
     'cave; ended ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
   return await Specimen.create(db, source);
@@ -1783,7 +1783,7 @@ async function _createSpecimen2(db: DB): Promise<Specimen | null> {
     decimalLatitude: '24.00',
     decimalLongitude: '-92.00',
 
-    eventDate: startDate2.toISOString(),
+    startDate: startDate2.toISOString(),
     recordedBy: 'Person X',
     eventRemarks: _toEndDate(1900, 1, 1),
     dateIdentified: detDate2.toISOString(),
@@ -1817,7 +1817,7 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
     decimalLatitude: '20.2',
     decimalLongitude: '-90.9',
 
-    eventDate: startDate.toISOString(),
+    startDate: startDate.toISOString(),
     recordedBy: 'Some One',
     eventRemarks: 'had fun!',
     dateIdentified: detDate.toISOString(),
@@ -1851,7 +1851,7 @@ async function _createSpecimen4(db: DB): Promise<Specimen | null> {
     decimalLatitude: '23.45',
     decimalLongitude: '-93.21',
 
-    eventDate: startDate.toISOString(),
+    startDate: startDate.toISOString(),
     recordedBy: 'Some One',
     typeStatus: ''
   };
