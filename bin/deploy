@@ -3,11 +3,13 @@
 rm -rdf /var/www/html/*
 rm -rdf /var/www/build
 rm -rdf /var/www/bin
+rm -rdf /var/www/setup
 rm -rdf /var/www/node_modules
 
 cp -R public/* /var/www/html
 cp -R build /var/www/build
 cp -R bin /var/www/bin
+cp -R setup /var/www/setup
 cp -R node_modules /var/www/node_modules
 
 mkdir -p /var/www/logs
