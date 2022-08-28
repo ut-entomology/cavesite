@@ -40,11 +40,12 @@ router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
   if (!body.email || !body.password) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  const user = await User.authenticate(getDB(), body.email, body.password, req.ip);
+  const ipAddress = req.header('Forwarded') || 'NO Forwarded HEADER';
+  const user = await User.authenticate(getDB(), body.email, body.password, ipAddress);
   if (!user) {
     return res.status(StatusCodes.UNAUTHORIZED).send();
   }
-  const session = await Session.create(getDB(), user, req.ip);
+  const session = await Session.create(getDB(), user, 'dummy' /*TBD*/);
   req.setSession(session);
   return res.status(StatusCodes.OK).send(getLoginInfo(session));
 });
