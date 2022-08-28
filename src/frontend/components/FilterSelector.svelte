@@ -2,6 +2,7 @@
   import { selectedLocations } from '../stores/selectedLocations';
   import { selectedTaxa } from '../stores/selectedTaxa';
 
+  export let classes = 'mt-3 mb-2';
   export let filterTaxa: boolean;
   export let filterLocations: boolean;
   export let setFilters: (filterTaxa: boolean, filterLocations: boolean) => string;
@@ -16,7 +17,7 @@
   $: summary = setFilters(filterTaxa, filterLocations);
 </script>
 
-<div class="row justify-content-center mt-3 mb-2">
+<div class="row justify-content-center {classes}">
   <div class="col-auto">
     Restrict results to selected:
     <span class="form-check form-check-inline ms-2">

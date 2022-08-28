@@ -187,7 +187,7 @@
     </div>
   </div>
   <DateRangeInput
-    classes="justify-content-center mb-4"
+    classes="justify-content-center mb-3"
     selectable={true}
     selected={filterByDate}
     from={fromDate}
@@ -195,6 +195,9 @@
     earliestDate={EARLIEST_RECORD_DATE}
     setDateRange={_setDateRange}
   />
+
+  <FilterSelector classes="mb-4" {filterTaxa} {filterLocations} {setFilters} />
+
   <div class="included_columns">
     <div class="drag_area_title">Included in Query</div>
     <div
@@ -304,8 +307,6 @@
       {/each}
     </div>
   </div>
-
-  <FilterSelector {filterTaxa} {filterLocations} {setFilters} />
 
   <div class="dialog_controls row g-2">
     <div class="col-12 text-center">
