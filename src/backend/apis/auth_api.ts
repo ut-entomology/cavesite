@@ -40,7 +40,7 @@ router.post('/login', async (req: Request<void, any, LoginParams>, res) => {
   if (!body.email || !body.password) {
     return res.status(StatusCodes.BAD_REQUEST).send();
   }
-  const ipAddress = req.header('X-Forwarded-For') || '[NO IP ADDRESS]';
+  const ipAddress = req.header('X-Forwarded-For') || req.ip;
   const user = await User.authenticate(getDB(), body.email, body.password, ipAddress);
   if (!user) {
     return res.status(StatusCodes.UNAUTHORIZED).send();
