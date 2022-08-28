@@ -377,6 +377,11 @@ export class Specimen implements TaxonPathSpec {
             // Handle case where end date is given even if equal to start date.
             endDate = null;
           } else if (startTime > endTime) {
+            console.log('**** catalogNumber', source.catalogNumber);
+            console.log('**** source', source);
+            console.log('**** startDate, endDate', startDate, endDate);
+            console.log('**** startTime, endTime', startTime, endTime);
+            console.log('**** partial start, end', partialStartDate, partialEndDate);
             problemList.push(
               `Start date follows end date ${toZonelessDateString(
                 endDate
