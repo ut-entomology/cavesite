@@ -17,7 +17,7 @@
   const tabName = 'Logs';
 
   const SMALL_STEP_ROWS = 20;
-  const BIG_STEP_ROWS = 100;
+  const BIG_STEP_ROWS = 400;
 
   const rowControlsConfig: RowControlsConfig = {
     smallStepRows: SMALL_STEP_ROWS,
