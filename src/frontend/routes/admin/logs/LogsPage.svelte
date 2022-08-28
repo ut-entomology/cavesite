@@ -11,7 +11,6 @@
   import { showNotice } from '../../../common/VariableNotice.svelte';
   import { pageName } from '../../../stores/pageName';
   import { client, errorReason } from '../../../stores/client';
-  import { MILLIS_PER_DAY } from '../../../../shared/date_tools';
 
   $pageName = 'Website Logs';
   const tabName = 'Logs';
@@ -137,7 +136,7 @@
   async function _performDeletion(throughDate: Date) {
     requestDeletion = false;
     await $client.post('api/logs/delete', {
-      throughUnixTime: throughDate.getTime() + MILLIS_PER_DAY - 1
+      throughUnixTime: throughDate.getTime()
     });
     flashMessage('Deleted requested logs');
     await prepareLogs();

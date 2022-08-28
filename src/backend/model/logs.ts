@@ -5,6 +5,7 @@
 
 import { DB, toCamelRow } from '../integrations/postgres';
 import { LogType, LogLevel, type Log } from '../../shared/model';
+import { toZonelessDateString } from '../../shared/date_tools';
 
 export const MAX_LOG_LENGTH = 2048; // VARCHAR (2048)
 
@@ -90,8 +91,8 @@ export class Logs {
   }
 
   static async clear(db: DB, throughDate: Date): Promise<void> {
-    await db.query(`delete from logs where timestamp <= $1`, [
-      throughDate.toISOString()
+    await db.query(`delete from logs where timestamp::date <= $1::date`, [
+      toZonelessDateString(throughDate)
     ]);
   }
 }

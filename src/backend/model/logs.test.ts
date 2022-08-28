@@ -1,6 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { LogType, LogLevel, type Log } from '../../shared/model';
+import { MILLIS_PER_DAY } from '../../shared/date_tools';
 import { Logs, MAX_LOG_LENGTH } from './logs';
 
 const mutex = new DatabaseMutex();
@@ -42,12 +43,12 @@ test('creating, reading, and clearing logs', async () => {
   logs = await Logs.getBeforeID(db, log11.id, 10);
   verifyLogs(logs, expectedLogs, 0);
 
-  // Verify that we can clear the prior 10 logs.
+  // Verify that no logs clear when clearing through prior day.
 
-  await Logs.clear(db, log11.timestamp);
+  await Logs.clear(db, new Date(log11.timestamp.getTime() - MILLIS_PER_DAY));
   logs = await Logs.getBeforeTime(db, getNowDate(), 100);
-  expect(logs.length).toEqual(10);
-  verifyLogs(logs, expectedLogs, 10);
+  expect(logs.length).toEqual(20);
+  verifyLogs(logs, expectedLogs, 0);
 
   // Verify that we can clear all logs.
 
