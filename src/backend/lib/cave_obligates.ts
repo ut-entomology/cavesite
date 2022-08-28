@@ -14,7 +14,7 @@ export type TaxonPathsByUniqueMap = Record<string, string[]>;
 
 const DEFAULT_DATA_FILE = path.join(
   __dirname,
-  '../../../setup/data/cave-obligates.txt'
+  `../../../setup/data_files/${DataKey.CaveObligates}.txt`
 );
 const cachedCaveObligateTaxa: string[] = [];
 

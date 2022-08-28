@@ -36,7 +36,7 @@
           )} variables used in other files. Changes apply to the website the next time the user loads the website (e.g. a page reload), and they apply immediately to email templates.`
         },
         {
-          dataKey: DataKey.WelcomePageHTML,
+          dataKey: DataKey.WelcomePage,
           title: 'Welcome Page',
           instructions: `Provide the HTML for the Welcome page. You may use the ${_toVarNames(
             commonTemplateVars

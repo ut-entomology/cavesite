@@ -17,7 +17,7 @@ export async function loadSiteInfo(db: DB): Promise<void> {
   if (data !== null) {
     setSiteTitles(data);
   }
-  data = await KeyData.read(db, null, Permission.Admin, DataKey.WelcomePageHTML);
+  data = await KeyData.read(db, null, Permission.Admin, DataKey.WelcomePage);
   if (data !== null) {
     welcomeHTML = data;
   }

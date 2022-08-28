@@ -1,0 +1,4 @@
+KR: Region, Karst_Regions_TSS-4adrg1, jtlapput.d6bu8w0a
+
+KFR: Name, Bexar_KFRs-2lu38z, jtlapput.3rmne8o7
+KFR: KFR, Trav_Will_KFRs-356oa0, jtlapput.3idlwl9a

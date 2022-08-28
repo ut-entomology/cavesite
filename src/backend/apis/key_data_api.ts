@@ -81,7 +81,7 @@ router.post('/save', async (req: Request, res) => {
   if (key == DataKey.SiteTitleAndSubtitle) {
     // A bit of a hack, but keeps things simple.
     setSiteTitles(data);
-  } else if (key == DataKey.WelcomePageHTML) {
+  } else if (key == DataKey.WelcomePage) {
     setWelcomeHTML(data);
   }
   return res.status(StatusCodes.OK).send();
