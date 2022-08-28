@@ -338,7 +338,7 @@ export class Taxon {
   ): [string[], TaxonRank] {
     if (!source.kingdom) {
       source.kingdom = 'Animalia';
-      problems.push(`Kingdom not given; assumed ${source.kingdom}`);
+      problems.push(`Kingdom not given; using "${source.kingdom}"`);
     }
 
     let taxonRank = TaxonRank.Kingdom;
@@ -352,7 +352,7 @@ export class Taxon {
       if (!source.phylum) {
         source.phylum = _toPatchedTaxon('Phylum', source.class);
         taxonNames.push(source.phylum);
-        problems.push(`Class given without phylum; assumed ${source.phylum}`);
+        problems.push(`Class given without phylum; using "${source.phylum}"`);
       }
       taxonRank = TaxonRank.Class;
       taxonNames.push(source.class);
@@ -361,7 +361,7 @@ export class Taxon {
       if (!source.class) {
         source.class = _toPatchedTaxon('Class', source.order);
         taxonNames.push(source.class);
-        problems.push(`Order given without class; assumed ${source.class}`);
+        problems.push(`Order given without class; using "${source.class}"`);
       }
       taxonRank = TaxonRank.Order;
       taxonNames.push(source.order);
@@ -370,7 +370,7 @@ export class Taxon {
       if (!source.order) {
         source.order = _toPatchedTaxon('Order', source.family);
         taxonNames.push(source.order);
-        problems.push(`Family given without order; assumed ${source.order}`);
+        problems.push(`Family given without order; using "${source.order}"`);
       }
       taxonRank = TaxonRank.Family;
       taxonNames.push(source.family);
@@ -379,7 +379,7 @@ export class Taxon {
       if (!source.family) {
         source.family = _toPatchedTaxon('Family', source.genus);
         taxonNames.push(source.family);
-        problems.push(`Genus given without family; assumed ${source.family}`);
+        problems.push(`Genus given without family; using "${source.family}"`);
       }
       taxonRank = TaxonRank.Genus;
       let genus = source.genus;
@@ -450,7 +450,7 @@ export class Taxon {
 }
 
 function _toPatchedTaxon(missingTaxon: string, lowerTaxon: string): string {
-  return `${missingTaxon}-of-${lowerTaxon}`;
+  return `(${missingTaxon.toLowerCase()}/${lowerTaxon})`;
 }
 
 function _toTaxonData(row: any): TaxonData {

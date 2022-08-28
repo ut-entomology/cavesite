@@ -886,10 +886,10 @@ test('generate an implied taxon', async () => {
     flags: 0,
     parentID: 6,
     parentIDPath: '1,2,3,4,5,6',
-    parentNamePath: 'Animalia|Arthropoda|Insecta|Order-of-Familyx|Familyx|Genusx',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|(order/Familyx)|Familyx|Genusx',
     hasChildren: null
   });
-  expect(problems).toEqual(['Family given without order; assumed Order-of-Familyx']);
+  expect(problems).toEqual(['Family given without order; using "(order/Familyx)"']);
 });
 
 test('poorly sourced taxa', async () => {
@@ -911,7 +911,7 @@ test('poorly sourced taxa', async () => {
     },
     problems
   );
-  expect(problems).toEqual(['Kingdom not given; assumed Animalia']);
+  expect(problems).toEqual(['Kingdom not given; using "Animalia"']);
 
   problems = [];
   await Taxon.getOrCreate(
@@ -927,7 +927,7 @@ test('poorly sourced taxa', async () => {
     },
     problems
   );
-  expect(problems).toEqual(['Order given without class; assumed Class-of-Urodela']);
+  expect(problems).toEqual(['Order given without class; using "(class/Urodela)"']);
 
   await expect(() =>
     Taxon.getOrCreate(
