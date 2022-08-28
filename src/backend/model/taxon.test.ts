@@ -856,6 +856,42 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
   await Taxon.commit(db);
 });
 
+test('generate an implied taxon', async () => {
+  await Taxon.dropAll(db);
+
+  const problems: string[] = [];
+  await Taxon.getOrCreate(
+    db,
+    {
+      kingdom: 'Animalia',
+      phylum: 'Arthropoda',
+      class: 'Insecta',
+      order: null!,
+      family: 'Familyx',
+      genus: 'Genusx',
+      specificEpithet: 'speciesx',
+      scientificName: 'Genusx speciesx'
+    },
+    problems
+  );
+  await Taxon.commit(db);
+  expect(await Taxon.getByID(db, 7)).toEqual({
+    taxonID: 7,
+    taxonRank: TaxonRank.Species,
+    taxonName: 'speciesx',
+    uniqueName: 'Genusx speciesx',
+    author: null,
+    stateRank: null,
+    tpwdStatus: null,
+    flags: 0,
+    parentID: 6,
+    parentIDPath: '1,2,3,4,5,6',
+    parentNamePath: 'Animalia|Arthropoda|Insecta|Order-of-Familyx|Familyx|Genusx',
+    hasChildren: null
+  });
+  expect(problems).toEqual(['Family given without order; assumed Order-of-Familyx']);
+});
+
 test('poorly sourced taxa', async () => {
   await Taxon.dropAll(db);
 

@@ -351,6 +351,7 @@ export class Taxon {
     if (source.class) {
       if (!source.phylum) {
         source.phylum = _toPatchedTaxon('Phylum', source.class);
+        taxonNames.push(source.phylum);
         problems.push(`Class given without phylum; assumed ${source.phylum}`);
       }
       taxonRank = TaxonRank.Class;
@@ -359,6 +360,7 @@ export class Taxon {
     if (source.order) {
       if (!source.class) {
         source.class = _toPatchedTaxon('Class', source.order);
+        taxonNames.push(source.class);
         problems.push(`Order given without class; assumed ${source.class}`);
       }
       taxonRank = TaxonRank.Order;
@@ -367,6 +369,7 @@ export class Taxon {
     if (source.family) {
       if (!source.order) {
         source.order = _toPatchedTaxon('Order', source.family);
+        taxonNames.push(source.order);
         problems.push(`Family given without order; assumed ${source.order}`);
       }
       taxonRank = TaxonRank.Family;
@@ -375,6 +378,7 @@ export class Taxon {
     if (source.genus) {
       if (!source.family) {
         source.family = _toPatchedTaxon('Family', source.genus);
+        taxonNames.push(source.family);
         problems.push(`Genus given without family; assumed ${source.family}`);
       }
       taxonRank = TaxonRank.Genus;
