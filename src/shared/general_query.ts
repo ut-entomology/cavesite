@@ -12,6 +12,7 @@ export enum QueryColumnID {
   CollectionEndDate,
   County,
   Locality,
+  IsCave,
   TypeStatus,
   TaxonUnique,
   // these do not initially appear, but QueryColumnInfo provides this info
@@ -156,6 +157,8 @@ export interface QueryRow {
 
   latitude?: number | null;
   longitude?: number | null;
+
+  isCave?: boolean;
 }
 
 export interface QueryOption {
@@ -186,6 +189,11 @@ const nullableOptions: QueryOption[] = [
   { text: 'Any value', sql: null },
   { text: 'Non-blank', sql: 'X is not null' },
   { text: 'Blank', sql: 'X is null' }
+];
+const yesNoOptions: QueryOption[] = [
+  { text: 'Any value', sql: null },
+  { text: 'Yes', sql: 'X = true' },
+  { text: 'No', sql: 'X = false' }
 ];
 
 const setColumnInfo = (columnInfo: QueryColumnInfo) => {
@@ -514,32 +522,24 @@ setColumnInfo({
 });
 setColumnInfo({
   columnID: QueryColumnID.IsCaveObligate,
-  fullName: 'Cave Obligate',
+  fullName: 'Cave Obligate?',
   abbrName: null,
   description: 'Whether the taxon is cave obligate',
   defaultSelection: false,
   column1: 'is_cave_obligate',
-  options: [
-    { text: 'Any value', sql: null },
-    { text: 'Yes', sql: 'X = true' },
-    { text: 'No', sql: 'X = false' }
-  ],
+  options: yesNoOptions,
   defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => (row.isCaveObligate ? 'Yes' : 'No')
 });
 setColumnInfo({
   columnID: QueryColumnID.IsFederallyListed,
-  fullName: 'Federally Listed',
+  fullName: 'Federally Listed?',
   abbrName: null,
   description: 'Whether the taxon is a federally listed species',
   defaultSelection: false,
   column1: 'is_federally_listed',
-  options: [
-    { text: 'Any value', sql: null },
-    { text: 'Yes', sql: 'X = true' },
-    { text: 'No', sql: 'X = false' }
-  ],
+  options: yesNoOptions,
   defaultEmWidth: 6,
   columnClass: 'center',
   getValue: (row: QueryRow) => (row.isFederallyListed ? 'Yes' : 'No')
@@ -598,6 +598,18 @@ setColumnInfo({
   defaultEmWidth: 16,
   columnClass: null,
   getValue: (row: QueryRow) => row.localityName || ''
+});
+setColumnInfo({
+  columnID: QueryColumnID.IsCave,
+  fullName: 'Cave?',
+  abbrName: null,
+  description: 'Whether the locality is a cave',
+  defaultSelection: false,
+  column1: 'is_cave',
+  options: yesNoOptions,
+  defaultEmWidth: 6,
+  columnClass: 'center',
+  getValue: (row: QueryRow) => (row.isCave ? 'Yes' : 'No')
 });
 setColumnInfo({
   columnID: QueryColumnID.Latitude,
