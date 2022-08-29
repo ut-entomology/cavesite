@@ -75,7 +75,8 @@
       const containingLocations = spec.parentNamePath
         .split('|')
         .slice(LocationRankIndex.County, rankIndex);
-      return `${html} <span>(${containingLocations.join(' ')})</span>`;
+      let containingString = containingLocations.join(' ') || 'no county given';
+      return `${html} <span>(${containingString})</span>`;
     }
   }
 </script>

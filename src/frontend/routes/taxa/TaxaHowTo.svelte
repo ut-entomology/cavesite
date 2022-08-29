@@ -24,7 +24,7 @@
 <h3 id="autocompletion">The Taxon Autocompletion Box</h3>
 
 <p>
-  To locate a taxon, either type the taxon into the lookup field or click the "Browse
+  To find a taxon, either type the taxon into the lookup field or click the "Browse
   Taxa" button. You can type any portion of the taxon name into the lookup field, and it
   will show you up to {MAX_LOOKUP_MATCHES} taxa containing the text you typed. Here is an
   example:
@@ -153,12 +153,12 @@
 <p>
   If you navigate into a selected taxon, you'll find that all of the taxa it contains
   are also selected. You are free to deselect any of these taxa. Mind you, if you
-  deselect a taxon below a taxon that you have selected, that higher taxon no longer
-  includes all of the taxa it contains and therefore ceases to be selected. However, all
-  other taxa that were previously selected below this higher taxon remain selected. This
-  allows you to select all taxa in a group except for a few particular taxa. For
-  example, to select all Araneae but <i>Latrodectus</i>, first add Araneae to your
-  selections, then navigate to
+  deselect a taxon below a taxon that you have selected, that higher taxon ceases to be
+  selected because not all of its containing taxa are selected. However, all other taxa
+  that were previously selected below this higher taxon remain selected. This allows you
+  to select all taxa in a group except for a few. For example, to select all Araneae but <i
+    >Latrodectus</i
+  >, first add Araneae to your selections, then navigate to
   <i>Latrodectus</i> and remove it from your selections.
 </p>
 

@@ -32,6 +32,7 @@
     QueryColumnID
   } from '../../../shared/general_query';
   import { getLocationFilter } from '../../lib/query_filtering';
+  import LocationsHowTo from './LocationsHowTo.svelte';
 
   $pageName = 'Selected Locations';
   const tabName = 'Locations';
@@ -225,7 +226,8 @@
   }
 </script>
 
-<DataTabRoute activeTab={tabName}>
+<DataTabRoute activeTab={tabName} embedHowTo={!rootNode}>
+  <svelte:fragment slot="how-to"><LocationsHowTo /></svelte:fragment>
   <svelte:fragment slot="body">
     <div class="container-fluid mb-3">
       <TabHeader {tabName} title={$pageName}>
@@ -253,6 +255,7 @@
             >Browse Locations</button
           >
         </span>
+        <div slot="how-to"><LocationsHowTo /></div>
       </TabHeader>
 
       <div class="location_lookup container-fluid">
