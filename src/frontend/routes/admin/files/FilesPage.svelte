@@ -31,7 +31,7 @@
         {
           dataKey: DataKey.SiteTitleAndSubtitle,
           title: 'Site Title & Subtitle',
-          instructions: `Provide site's title and subtitle on two separate lines. These correspond to the ${_toVarNames(
+          instructions: `Provide the site's title and subtitle on two separate lines. These correspond to the ${_toVarNames(
             commonTemplateVars
           )} variables used in other files. Changes apply to the website the next time the user loads the website (e.g. a page reload), and they apply immediately to email templates.`
         },
