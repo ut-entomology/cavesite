@@ -6,10 +6,9 @@ Speorthus
 Texamaurops
 Texoreddellia
 
-# Subenera that are entirely cave obligate. Must also list species within
-# the subgenus that are cave obligate.
+# Subenera that are entirely cave obligate. Must also list species within the subgenus that are cave obligate.
 
-Cicurella
+# Cicurella (James says one species is not cave obligate)
 
 # Species that are cave obligate not necessarily in cave-obligate genera.
 
