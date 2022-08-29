@@ -2,28 +2,17 @@
   import { createSessionStore } from '../../util/session_store';
   import { GeneralQuery, QueryColumnID, QueryRow } from '../../../shared/general_query';
 
-  interface CachedResults {
-    version: number;
-    query: GeneralQuery;
-    startOffset: number;
-    totalRows: number;
-    rows: QueryRow[];
-  }
-
   const CACHED_VERSION = 2;
 
-  const cachedResults = createSessionStore<CachedResults | null>(
-    'cached_results',
-    null
-  );
   // columnPxWidths is indexed by ColumnID
   const columnPxWidths = createSessionStore<number[]>('column_widths', []);
 </script>
 
 <script lang="ts">
   import { onMount, afterUpdate } from 'svelte';
-  import { pageName } from '../../stores/pageName';
+  import page from 'page';
 
+  import { pageName } from '../../stores/pageName';
   import DataTabRoute from '../../components/DataTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
@@ -38,6 +27,8 @@
   import { showNotice } from '../../common/VariableNotice.svelte';
   import { columnInfoMap } from '../../../shared/general_query';
   import { client, errorReason } from '../../stores/client';
+  import { type CachedResults, cachedResults } from '../../stores/cached_results';
+  import { generateResultsMap } from '../../stores/generate_results_map';
 
   $pageName = 'Queries';
   const tabName = 'Queries';
@@ -210,6 +201,17 @@
     }
   }
 
+  function generateMap() {
+    $generateResultsMap = true;
+    page('/map');
+  }
+
+  function _checkForMapResultButton(results: CachedResults): boolean {
+    return !!results.query.columnSpecs.find(
+      (spec) => spec.columnID == QueryColumnID.Locality
+    );
+  }
+
   async function _downloadData(filename: string) {
     requestDownload = false;
     downloadingData = true;
@@ -358,6 +360,11 @@
         >
         <span slot="main-buttons">
           {#if $cachedResults}
+            {#if _checkForMapResultButton($cachedResults)}
+              <button class="btn btn-major" type="button" on:click={generateMap}
+                >Map Results</button
+              >
+            {/if}
             <button class="btn btn-minor" type="button" on:click={clearQuery}
               >Clear</button
             >

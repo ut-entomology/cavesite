@@ -7,7 +7,6 @@
   import {
     EARLIEST_RECORD_DATE,
     type GeneralQuery,
-    type QueryColumnSpec,
     type QueryLocationFilter,
     type QueryTaxonFilter,
     type QueryRow,
@@ -44,7 +43,7 @@
   interface MapData {
     version: number;
     description: string;
-    query: MapQuery;
+    query: MapQuery | null;
     featureSpecs: FeatureSpec[];
   }
 
@@ -61,6 +60,7 @@
 </script>
 
 <script lang="ts">
+  import { onMount } from 'svelte';
   import ConfirmationRequest from '../../common/ConfirmationRequest.svelte';
   import DataTabRoute from '../../components/DataTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
@@ -74,12 +74,28 @@
   import { LocationRank } from '../../../shared/model';
   import { toDaysEpoch, fromDaysEpoch } from '../../../shared/date_tools';
   import { showNotice } from '../../common/VariableNotice.svelte';
+  import { generateResultsMap } from '../../stores/generate_results_map';
+  import { cachedResults } from '../../stores/cached_results';
 
   $pageName = 'Map View';
   const tabName = 'Map';
+
+  if ($generateResultsMap && $cachedResults) {
+    // prevent loading prior map if we'll be replacing with a query results map
+    $cachedData = null;
+  }
+
   $: if ($cachedData && $cachedData.version != CACHED_DATA_VERSION) {
     $cachedData = null;
   }
+
+  onMount(async () => {
+    if ($generateResultsMap && $cachedResults) {
+      $generateResultsMap = false;
+      const generalQuery = convertMapQuery($cachedResults.query);
+      await loadData('Map of Query Results', generalQuery, null);
+    }
+  });
 
   const ZERO_COLOR = [200, 200, 200];
   const RECORD_COUNT_COLOR = [220, 0, 0]; // red
@@ -217,7 +233,7 @@
   $: savedView.set({ colorMeaning, mapState });
 
   function requestLoadData() {
-    if ($cachedData) {
+    if ($cachedData && $cachedData.query) {
       const query = $cachedData.query;
       queryRequest = {
         fromDateMillis: query.fromDateMillis,
@@ -253,7 +269,18 @@
       onlyFederallyListed: request.onlyFederallyListed,
       onlySGCN: request.onlySGCN
     };
-    const generalQuery = convertMapQuery(specedMapQuery);
+    const generalQuery = convertMapQuery(
+      {
+        columnSpecs: [],
+        dateFilter: {
+          fromDateMillis: specedMapQuery.fromDateMillis,
+          throughDateMillis: specedMapQuery.throughDateMillis
+        },
+        locationFilter: specedMapQuery.locationFilter,
+        taxonFilter: specedMapQuery.taxonFilter
+      },
+      specedMapQuery
+    );
 
     // Generate the title.
 
@@ -319,6 +346,14 @@
         thruDate
       )}`;
 
+    await loadData(description, generalQuery, specedMapQuery);
+  }
+
+  async function loadData(
+    description: string,
+    generalQuery: GeneralQuery,
+    specedMapQuery: MapQuery | null
+  ) {
     // Load the data
 
     tabState = TabState.loadingData;
@@ -381,58 +416,107 @@
     initialMapState = null;
   }
 
-  function convertMapQuery(mapQuery: MapQuery): GeneralQuery {
-    const columnSpecs: QueryColumnSpec[] = [];
-    columnSpecs.push({
-      columnID: QueryColumnID.RecordCount,
-      ascending: null,
-      optionText: null
-    });
-    columnSpecs.push({
-      columnID: QueryColumnID.County,
-      ascending: true,
-      optionText: null
-    });
-    columnSpecs.push({
-      columnID: QueryColumnID.Locality,
-      ascending: true,
-      optionText: null
-    });
+  function convertMapQuery(
+    generalQuery: GeneralQuery,
+    mapQuery?: MapQuery
+  ): GeneralQuery {
+    // Create tools we'll need for retrieving existing column specs.
+
+    const getSpec = (columnID: QueryColumnID) =>
+      columnSpecs.find((spec) => spec.columnID == columnID);
+    const removeSpec = (columnID: QueryColumnID) => {
+      const specOffset = columnSpecs.findIndex((spec) => spec.columnID == columnID);
+      if (specOffset < 0) return null;
+      return columnSpecs.splice(specOffset, 1)[0];
+    };
+
+    // Remove sort order from existing column specs.
+
+    const columnSpecs = generalQuery.columnSpecs.slice();
+    columnSpecs.forEach((spec) => (spec.ascending = null));
+
+    // Add or update required column specs.
+
+    if (!getSpec(QueryColumnID.RecordCount)) {
+      columnSpecs.push({
+        columnID: QueryColumnID.RecordCount,
+        ascending: null,
+        optionText: null
+      });
+    }
+
+    const countySpec = removeSpec(QueryColumnID.County);
+    if (countySpec) {
+      countySpec.ascending = true;
+      columnSpecs.push(countySpec);
+    } else {
+      columnSpecs.push({
+        columnID: QueryColumnID.County,
+        ascending: true,
+        optionText: null
+      });
+    }
+
+    const localitySpec = removeSpec(QueryColumnID.Locality);
+    if (localitySpec) {
+      localitySpec.ascending = true;
+      columnSpecs.push(localitySpec);
+    } else {
+      columnSpecs.push({
+        columnID: QueryColumnID.Locality,
+        ascending: true,
+        optionText: null
+      });
+    }
+
+    removeSpec(QueryColumnID.CollectionStartDate);
     columnSpecs.push({
       columnID: QueryColumnID.CollectionStartDate,
       ascending: true,
       optionText: 'Non-blank'
     });
-    columnSpecs.push({
-      columnID: QueryColumnID.CollectionEndDate,
-      ascending: true,
-      optionText: null
-    });
+
+    const endDateSpec = removeSpec(QueryColumnID.CollectionEndDate);
+    if (endDateSpec) {
+      endDateSpec.ascending = true;
+      columnSpecs.push(endDateSpec);
+    } else {
+      columnSpecs.push({
+        columnID: QueryColumnID.CollectionEndDate,
+        ascending: true,
+        optionText: null
+      });
+    }
+
+    removeSpec(QueryColumnID.Latitude);
     columnSpecs.push({
       columnID: QueryColumnID.Latitude,
       ascending: null,
       optionText: 'Non-blank'
     });
+
+    removeSpec(QueryColumnID.Longitude);
     columnSpecs.push({
       columnID: QueryColumnID.Longitude,
       ascending: null,
       optionText: 'Non-blank'
     });
-    if (mapQuery.onlyCaveObligates) {
+
+    if (mapQuery?.onlyCaveObligates) {
       columnSpecs.push({
         columnID: QueryColumnID.IsCaveObligate,
         ascending: null,
         optionText: 'Yes'
       });
     }
-    if (mapQuery.onlyFederallyListed) {
+    if (mapQuery?.onlyFederallyListed) {
       columnSpecs.push({
         columnID: QueryColumnID.IsFederallyListed,
         ascending: null,
         optionText: 'Yes'
       });
     }
-    if (mapQuery.onlySGCN) {
+    if (mapQuery?.onlySGCN) {
       columnSpecs.push({
         columnID: QueryColumnID.TpwdStatus,
         ascending: null,
@@ -442,12 +526,9 @@
 
     return {
       columnSpecs,
-      dateFilter: {
-        fromDateMillis: mapQuery.fromDateMillis,
-        throughDateMillis: mapQuery.throughDateMillis
-      },
-      locationFilter: mapQuery.locationFilter,
-      taxonFilter: mapQuery.taxonFilter
+      dateFilter: generalQuery.dateFilter,
+      locationFilter: generalQuery.locationFilter,
+      taxonFilter: generalQuery.taxonFilter
     };
   }
 
