@@ -372,8 +372,7 @@
             want to repeatedly generate clusters with the same criteria to find the best
             one. You can also use this tab to see graphs of visits to the caves and the
             frequency of encountering taxa in any cave. This tab only characterizes
-            localities having the text "cave" in their names, including, for example,
-            the word "cavern".</MoreLess
+            caves.</MoreLess
           ></span
         >
         <span slot="main-buttons">

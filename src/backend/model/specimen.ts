@@ -598,6 +598,21 @@ export class Specimen implements TaxonPathSpec {
     await db.query('delete from specimens');
   }
 
+  static async getMissingCaveObligateLocationIDs(
+    db: DB,
+    committed: boolean
+  ): Promise<number[]> {
+    const result = await db.query(
+      `select distinct locality_id from specimens where is_cave_obligate=true
+        and is_cave=false and committed=$1`,
+      [
+        // @ts-ignore
+        committed
+      ]
+    );
+    return result.rows.map((row) => row.locality_id);
+  }
+
   static async getNextBatch(
     db: DB,
     skip: number,
@@ -778,6 +793,13 @@ export class Specimen implements TaxonPathSpec {
       ]
     );
     return result.rows.length > 0 ? new Specimen(toCamelRow(result.rows[0])) : null;
+  }
+
+  static async assignCaveLocations(db: DB, locationIDs: number[]): Promise<void> {
+    await db.query(`update specimens set is_cave=true where locality_id=any ($1)`, [
+      // @ts-ignore
+      locationIDs
+    ]);
   }
 }
 

@@ -37,6 +37,10 @@ export async function loadDatabase(
 
   calculatingEffort();
   for (const compare of comparedFauna) {
+    const locationIDs = await Specimen.getMissingCaveObligateLocationIDs(db, false);
+    await Specimen.assignCaveLocations(db, locationIDs);
+    await LocationVisit.assignCaveLocations(db, locationIDs);
+
     await LocationEffort.tallyEffort(db, compare);
     // Commit data as the process proceeds.
     await LocationVisit.commit(db, compare);

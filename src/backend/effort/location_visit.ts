@@ -215,6 +215,18 @@ export class LocationVisit extends TaxonCounter {
     }
   }
 
+  static async assignCaveLocations(db: DB, locationIDs: number[]): Promise<void> {
+    for (const comparedFauna of Object.values(ComparedFauna)) {
+      await db.query(
+        `update ${comparedFauna}_for_visits set is_cave=true where location_id=any ($1)`,
+        [
+          // @ts-ignore
+          locationIDs
+        ]
+      );
+    }
+  }
+
   // for testing purposes...
   static async dropAll(db: DB, comparedFauna: ComparedFauna): Promise<void> {
     await db.query(`delete from ${comparedFauna}_for_visits`);
