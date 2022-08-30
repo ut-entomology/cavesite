@@ -18,8 +18,10 @@ import {
   type TaxonPathSpec,
   locationRanks,
   LogType,
-  CAVE_FLAG,
-  CAVE_OBLIGATE_FLAG,
+  AQUATIC_KARST_FLAG,
+  TERRESTRIAL_KARST_FLAG,
+  STYGOBITE_FLAG,
+  TROGLOBITE_FLAG,
   FEDERALLY_LISTED_FLAG
 } from '../../shared/model';
 import {
@@ -30,7 +32,6 @@ import {
   toDateFromString,
   toZonelessDateString
 } from '../../shared/date_tools';
-import { getCaveObligatesMap } from '../lib/cave_obligates';
 import {
   QueryColumnID,
   type QueryColumnSpec,
@@ -133,7 +134,7 @@ export class Specimen implements TaxonPathSpec {
   subspeciesID: number | null;
   taxonUnique: string;
   taxonAuthor: string | null;
-  isCaveObligate: boolean;
+  karstObligate: string | null;
   isFederallyListed: boolean;
   stateRank: string | null;
   tpwdStatus: string | null;
@@ -145,7 +146,8 @@ export class Specimen implements TaxonPathSpec {
   localityName: string;
   latitude: number | null;
   longitude: number | null;
-  isCave: boolean;
+  isAquaticKarst: boolean;
+  isTerrestrialKarst: boolean;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
 
@@ -188,7 +190,7 @@ export class Specimen implements TaxonPathSpec {
     this.subspeciesID = data.subspeciesID;
     this.taxonUnique = data.taxonUnique;
     this.taxonAuthor = data.taxonAuthor;
-    this.isCaveObligate = data.isCaveObligate;
+    this.karstObligate = data.karstObligate;
     this.isFederallyListed = data.isFederallyListed;
     this.stateRank = data.stateRank;
     this.tpwdStatus = data.tpwdStatus;
@@ -197,7 +199,8 @@ export class Specimen implements TaxonPathSpec {
     this.localityName = data.localityName;
     this.latitude = data.latitude;
     this.longitude = data.longitude;
-    this.isCave = data.isCave;
+    this.isAquaticKarst = data.isAquaticKarst;
+    this.isTerrestrialKarst = data.isTerrestrialKarst;
   }
 
   //// PUBLIC CLASS METHODS //////////////////////////////////////////////////
@@ -453,12 +456,16 @@ export class Specimen implements TaxonPathSpec {
         .join('|');
     }
 
-    // Determine whether is cave obligate. `taxon` will never represent a
-    // subgenus, so check for that directly.
+    // Determine karst characteristics.
 
-    const caveObligatesMap = await getCaveObligatesMap(db);
-    let isCaveObligate = (taxon.flags & CAVE_OBLIGATE_FLAG) != 0;
-    if (subgenus && caveObligatesMap[subgenus]) isCaveObligate = true;
+    let karstObligate = null;
+    if (taxon.flags & TROGLOBITE_FLAG) {
+      karstObligate = 'troglobite';
+    } else if (taxon.flags & STYGOBITE_FLAG) {
+      karstObligate = 'stygobite';
+    }
+    const isAquaticKarst = (location.flags & AQUATIC_KARST_FLAG) != 0;
+    const isTerrestrialKarst = (location.flags & TERRESTRIAL_KARST_FLAG) != 0;
 
     // Assemble the specimen instance from the data.
 
@@ -501,7 +508,7 @@ export class Specimen implements TaxonPathSpec {
       subspeciesID: getRankedID(taxonIDs, 7, taxon.taxonID),
       taxonUnique: taxon.uniqueName,
       taxonAuthor: taxon.author,
-      isCaveObligate,
+      karstObligate,
       isFederallyListed: !!(taxon.flags & FEDERALLY_LISTED_FLAG),
       stateRank: taxon.stateRank,
       tpwdStatus: taxon.tpwdStatus,
@@ -510,7 +517,8 @@ export class Specimen implements TaxonPathSpec {
       localityName: location.locationName,
       latitude: location.latitude,
       longitude: location.longitude,
-      isCave: !!(location.flags & CAVE_FLAG)
+      isAquaticKarst,
+      isTerrestrialKarst
     });
 
     // Add the specimen to the database. Specimens are read-only.
@@ -524,12 +532,13 @@ export class Specimen implements TaxonPathSpec {
           type_status, specimen_count, life_stage, problems, kingdom_name, kingdom_id,
           phylum_name, phylum_id, class_name, class_id, order_Name, order_id,
           family_name, family_id, genus_name, genus_id, subgenus, species_name, species_id,
-          subspecies_name, subspecies_id, taxon_unique, taxon_author, is_cave_obligate,
+          subspecies_name, subspecies_id, taxon_unique, taxon_author, karst_obligate,
           is_federally_listed, state_rank, tpwd_status,
-          county_name, county_id, locality_name, latitude, longitude, is_cave
+          county_name, county_id, locality_name, latitude, longitude,
+          is_aquatic_karst, is_terrestrial_karst
         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
           $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32,
-          $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48)`,
+          $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49)`,
       [
         specimen.catalogNumber,
         specimen.occurrenceGuid,
@@ -570,7 +579,7 @@ export class Specimen implements TaxonPathSpec {
         specimen.taxonUnique,
         specimen.taxonAuthor,
         // @ts-ignore incorrect type def
-        specimen.isCaveObligate,
+        specimen.karstObligate,
         // @ts-ignore incorrect type def
         specimen.isFederallyListed,
         specimen.stateRank,
@@ -581,7 +590,9 @@ export class Specimen implements TaxonPathSpec {
         specimen.latitude,
         specimen.longitude,
         // @ts-ignore incorrect type def
-        specimen.isCave
+        specimen.isAquaticKarst,
+        // @ts-ignore incorrect type def
+        specimen.isTerrestrialKarst
       ]
     );
 
@@ -598,13 +609,28 @@ export class Specimen implements TaxonPathSpec {
     await db.query('delete from specimens');
   }
 
-  static async getMissingCaveObligateLocationIDs(
+  static async getMissingAquaticKarstLocationIDs(
     db: DB,
     committed: boolean
   ): Promise<number[]> {
     const result = await db.query(
-      `select distinct locality_id from specimens where is_cave_obligate=true
-        and is_cave=false and committed=$1`,
+      `select distinct locality_id from specimens where karst_obligate='stygobite'
+        and is_aquatic_karst=false and committed=$1`,
+      [
+        // @ts-ignore
+        committed
+      ]
+    );
+    return result.rows.map((row) => row.locality_id);
+  }
+
+  static async getMissingTerrestrialKarstLocationIDs(
+    db: DB,
+    committed: boolean
+  ): Promise<number[]> {
+    const result = await db.query(
+      `select distinct locality_id from specimens where karst_obligate='troglobite'
+        and is_terrestrial_karst=false and committed=$1`,
       [
         // @ts-ignore
         committed
@@ -795,11 +821,30 @@ export class Specimen implements TaxonPathSpec {
     return result.rows.length > 0 ? new Specimen(toCamelRow(result.rows[0])) : null;
   }
 
-  static async assignCaveLocations(db: DB, locationIDs: number[]): Promise<void> {
-    await db.query(`update specimens set is_cave=true where locality_id=any ($1)`, [
-      // @ts-ignore
-      locationIDs
-    ]);
+  static async assignAquaticKarstLocations(
+    db: DB,
+    locationIDs: number[]
+  ): Promise<void> {
+    await db.query(
+      `update specimens set is_aquatic_karst=true where locality_id=any ($1)`,
+      [
+        // @ts-ignore
+        locationIDs
+      ]
+    );
+  }
+
+  static async assignTerrestrialKarstLocations(
+    db: DB,
+    locationIDs: number[]
+  ): Promise<void> {
+    await db.query(
+      `update specimens set is_terrestrial_karst=true where locality_id=any ($1)`,
+      [
+        // @ts-ignore
+        locationIDs
+      ]
+    );
   }
 }
 

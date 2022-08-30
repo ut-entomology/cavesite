@@ -134,7 +134,7 @@ export function convertTimeQuery(
     });
     if (timeGraphQuery.taxonFilter === null && !queryAllTaxa) {
       columnSpecs.push({
-        columnID: QueryColumnID.IsCaveObligate,
+        columnID: QueryColumnID.KarstObligate,
         ascending: null,
         optionText: 'Yes'
       });

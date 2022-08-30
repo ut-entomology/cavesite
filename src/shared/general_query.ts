@@ -12,7 +12,8 @@ export enum QueryColumnID {
   CollectionEndDate,
   County,
   Locality,
-  IsCave,
+  IsAquaticKarst,
+  IsTerrestrialKarst,
   TypeStatus,
   TaxonUnique,
   // these do not initially appear, but QueryColumnInfo provides this info
@@ -25,7 +26,7 @@ export enum QueryColumnID {
   Subgenus,
   Species,
   Subspecies,
-  IsCaveObligate,
+  KarstObligate,
   IsFederallyListed,
   TexasStateRank,
   TpwdStatus,
@@ -141,7 +142,7 @@ export interface QueryRow {
   taxonID?: number;
   taxonAuthor?: string | null;
 
-  isCaveObligate?: boolean;
+  karstObligate?: string | null;
 
   isFederallyListed?: boolean;
 
@@ -158,7 +159,9 @@ export interface QueryRow {
   latitude?: number | null;
   longitude?: number | null;
 
-  isCave?: boolean;
+  isAquaticKarst?: boolean;
+
+  isTerrestrialKarst?: boolean;
 }
 
 export interface QueryOption {
@@ -521,16 +524,22 @@ setColumnInfo({
   }
 });
 setColumnInfo({
-  columnID: QueryColumnID.IsCaveObligate,
-  fullName: 'Cave Obligate?',
+  columnID: QueryColumnID.KarstObligate,
+  fullName: 'Karst Obligate?',
   abbrName: null,
-  description: 'Whether the taxon is cave obligate',
+  description: 'Whether the taxon is stygobitic or troglobitic',
   defaultSelection: false,
-  column1: 'is_cave_obligate',
-  options: yesNoOptions,
+  column1: 'karst_obligate',
+  options: [
+    { text: 'Any value', sql: null },
+    { text: 'Yes', sql: 'X is not null' },
+    { text: 'Stygobite', sql: "X='stygobite'" },
+    { text: 'Troglobite', sql: "X='troglobite'" },
+    { text: 'No', sql: 'X is null' }
+  ],
   defaultEmWidth: 6,
   columnClass: 'center',
-  getValue: (row: QueryRow) => (row.isCaveObligate ? 'Yes' : 'No')
+  getValue: (row: QueryRow) => row.karstObligate || ''
 });
 setColumnInfo({
   columnID: QueryColumnID.IsFederallyListed,
@@ -600,16 +609,28 @@ setColumnInfo({
   getValue: (row: QueryRow) => row.localityName || ''
 });
 setColumnInfo({
-  columnID: QueryColumnID.IsCave,
-  fullName: 'Cave?',
+  columnID: QueryColumnID.IsAquaticKarst,
+  fullName: 'Aquatic Karst?',
   abbrName: null,
-  description: 'Whether the locality is a cave',
+  description: 'Whether the locality is aquatic karst',
   defaultSelection: false,
-  column1: 'is_cave',
+  column1: 'is_aquatic_karst',
   options: yesNoOptions,
   defaultEmWidth: 6,
   columnClass: 'center',
-  getValue: (row: QueryRow) => (row.isCave ? 'Yes' : 'No')
+  getValue: (row: QueryRow) => (row.isAquaticKarst ? 'Yes' : 'No')
+});
+setColumnInfo({
+  columnID: QueryColumnID.IsTerrestrialKarst,
+  fullName: 'Terrestrial Karst?',
+  abbrName: null,
+  description: 'Whether the locality is terrestrial karst',
+  defaultSelection: false,
+  column1: 'is_terrestrial_karst',
+  options: yesNoOptions,
+  defaultEmWidth: 6,
+  columnClass: 'center',
+  getValue: (row: QueryRow) => (row.isTerrestrialKarst ? 'Yes' : 'No')
 });
 setColumnInfo({
   columnID: QueryColumnID.Latitude,

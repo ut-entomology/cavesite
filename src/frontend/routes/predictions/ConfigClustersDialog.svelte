@@ -84,9 +84,9 @@
         >
           <option value={ComparedFauna.all}>All fauna</option>
           <option value={ComparedFauna.generaHavingCaveObligates}
-            >Genera of cave obligates</option
+            >Genera of troglobites</option
           >
-          <option value={ComparedFauna.caveObligates}>Only cave obligates</option>
+          <option value={ComparedFauna.caveObligates}>Only troglobites</option>
         </select>
       </div>
     </div>

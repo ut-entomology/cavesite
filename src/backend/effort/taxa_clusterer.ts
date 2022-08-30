@@ -6,7 +6,7 @@
 import { Clusterer } from './clusterer';
 import { type DB } from '../integrations/postgres';
 import { LocationEffort } from '../effort/location_effort';
-import { type TaxonPathsByUniqueMap } from '../lib/cave_obligates';
+import { type TaxonPathsByUniqueMap } from '../lib/karst_obligates';
 import { Location } from '../model/location';
 import {
   TaxonRankIndex,

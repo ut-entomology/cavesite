@@ -294,7 +294,7 @@ async function _addEfforts(effortSpecs: EffortSpec[]): Promise<void> {
         locationID: effortSpec.locationID,
         countyName: 'Dummy County',
         localityName: 'Dummy Locality',
-        isCave: true,
+        isTerrestrialKarst: true,
         latitude: effortSpec.latitude || null,
         longitude: effortSpec.longitude || null
       },

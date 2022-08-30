@@ -91,7 +91,7 @@
 
   function checkForErrors() {
     const keyDataInfo = keyDataInfoByKey[fileSpec.dataKey];
-    errors = keyDataInfo.getErrors!(text);
+    errors = keyDataInfo.getErrors ? keyDataInfo.getErrors(text) : [];
   }
 </script>
 

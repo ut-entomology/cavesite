@@ -115,7 +115,7 @@
 
 <p>
   If you don't select any taxa, other tabs will provide default taxa selections, such as
-  restricting taxa to just those of cave obligates or not restricting taxa at all,
+  restricting taxa to just those of karst obligates or not restricting taxa at all,
   equivalent to selecting all taxa.
 </p>
 

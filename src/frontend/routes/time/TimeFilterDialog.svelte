@@ -46,7 +46,7 @@
     filterTaxa = taxa;
     filterLocations = locations;
 
-    return `retrieving ${taxa ? 'selected taxa' : 'cave obligates'} and ${
+    return `retrieving ${taxa ? 'selected taxa' : 'karst obligates'} and ${
       locations ? 'selected' : 'all'
     } locations`;
   }
@@ -56,7 +56,7 @@
   <div class="row mb-4">
     <div class="col">
       Specify the criteria for generating new charts. When not restricting to selected
-      taxa, results are restricted to cave obligates.
+      taxa, results are restricted to karst obligates.
     </div>
   </div>
   <DateRangeInput

@@ -12,19 +12,16 @@ import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
 import { ImportFailure } from './import_failure';
 import {
-  CAVE_FLAG,
+  AQUATIC_KARST_FLAG,
+  TERRESTRIAL_KARST_FLAG,
   LocationRank,
   LocationSpec,
   createContainingLocationSpecs,
   toLocationUnique
 } from '../../shared/model';
-import { KeyData } from './key_data';
-import { DataKey, parseLocalities } from '../../shared/data_keys';
-import { Permission } from '../../shared/user_auth';
+import { aquaticKarstData, terrestrialKarstData } from '../lib/karst_localities';
 
 const childCountSql = `(select count(*) from locations y where y.parent_id=x.location_id) as child_count`;
-
-let caveLocalitiesByLocalityCounty: Record<string, boolean> | null = null;
 
 export interface LocationSource {
   // GBIF field names
@@ -292,12 +289,21 @@ export class Location {
         if (parentIDPath != '') parentIDPath += ',';
         parentIDPath += location.locationID.toString();
       }
+
+      let flags = 0;
+      if (await aquaticKarstData.indicatesLocation(db, spec)) {
+        flags |= AQUATIC_KARST_FLAG;
+      }
+      if (await terrestrialKarstData.indicatesLocation(db, spec)) {
+        flags |= TERRESTRIAL_KARST_FLAG;
+      }
+
       location = await Location.create(db, spec.parentNamePath, parentIDPath, {
         locationRank: spec.rank,
         locationName: spec.name,
         latitude: spec.latitude,
         longitude: spec.longitude,
-        flags: (await Location._isCave(db, spec)) ? CAVE_FLAG : 0,
+        flags,
         parentID: location?.locationID || null,
         hasChildren: spec.hasChildren || null
       });
@@ -373,33 +379,6 @@ export class Location {
 
     return locationNames;
   }
-
-  private static async _isCave(db: DB, spec: LocationSpec): Promise<boolean> {
-    if (spec.rank != LocationRank.Locality) return false;
-    const localityName = spec.name.toLowerCase();
-    if (localityName.includes('cave')) return true;
-
-    if (caveLocalitiesByLocalityCounty === null) {
-      const text = await KeyData.read(
-        db,
-        null,
-        Permission.None,
-        DataKey.CaveLocalities
-      );
-      if (text === null) return false;
-      caveLocalitiesByLocalityCounty = {};
-      const localityCounties = parseLocalities(text);
-      for (const localityCounty of localityCounties) {
-        caveLocalitiesByLocalityCounty[
-          _toNameKey(localityCounty[0], localityCounty[1])
-        ] = true;
-      }
-    }
-    const parentName = spec.parentNamePath.split('|').pop()!;
-    return caveLocalitiesByLocalityCounty[
-      _toNameKey(spec.name.toLowerCase(), parentName.toLowerCase())
-    ];
-  }
 }
 
 function _toLocationData(row: any): LocationData {
@@ -408,8 +387,4 @@ function _toLocationData(row: any): LocationData {
   const data: any = toCamelRow(row);
   data.hasChildren = childCount ? childCount > 0 : null;
   return data;
-}
-
-function _toNameKey(locality: string, county: string) {
-  return `${locality} (${county})`;
 }

@@ -17,6 +17,7 @@ import {
 import { Permission } from '../../shared/user_auth';
 import { DataKey, type ImportSchedule, keyDataInfoByKey } from '../../shared/data_keys';
 import { setSiteTitles, setWelcomeHTML } from '../lib/site_info';
+import { aquaticKarstData, terrestrialKarstData } from '../lib/karst_localities';
 
 export const router = Router();
 
@@ -78,12 +79,24 @@ router.post('/save', async (req: Request, res) => {
     dataKeyInfo.readPermission,
     data
   );
-  if (key == DataKey.SiteTitleAndSubtitle) {
-    // A bit of a hack, but keeps things simple.
-    setSiteTitles(data);
-  } else if (key == DataKey.WelcomePage) {
-    setWelcomeHTML(data);
+  switch (key) {
+    case DataKey.SiteTitleAndSubtitle:
+      // A bit of a hack, but keeps things simple.
+      setSiteTitles(data);
+      break;
+    case DataKey.WelcomePage:
+      setWelcomeHTML(data);
+      break;
+    case DataKey.AquaticKarstTerms:
+    case DataKey.AquaticKarstLocalities:
+      aquaticKarstData.reset();
+      break;
+    case DataKey.TerrestrialKarstTerms:
+    case DataKey.TerrestrialKarstLocalities:
+      terrestrialKarstData.reset();
+      break;
   }
+
   return res.status(StatusCodes.OK).send();
 });
 

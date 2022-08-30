@@ -26,7 +26,6 @@
     throughDateMillis: number;
     locationFilter: QueryLocationFilter | null;
     taxonFilter: QueryTaxonFilter | null;
-    onlyCaveObligates: boolean;
     onlyFederallyListed: boolean;
     onlySGCN: boolean;
   }
@@ -240,7 +239,6 @@
         throughDateMillis: query.throughDateMillis,
         filterTaxa: query.taxonFilter !== null,
         filterLocations: query.locationFilter !== null,
-        onlyCaveObligates: query.onlyCaveObligates,
         onlyFederallyListed: query.onlyFederallyListed,
         onlySGCN: query.onlySGCN
       };
@@ -250,7 +248,6 @@
         throughDateMillis: new Date().getTime(),
         filterTaxa: false,
         filterLocations: false,
-        onlyCaveObligates: false,
         onlyFederallyListed: false,
         onlySGCN: false
       };
@@ -265,7 +262,6 @@
       throughDateMillis: request.throughDateMillis,
       locationFilter: request.filterLocations ? await getLocationFilter() : null,
       taxonFilter: request.filterTaxa ? await getTaxonFilter() : null,
-      onlyCaveObligates: request.onlyCaveObligates,
       onlyFederallyListed: request.onlyFederallyListed,
       onlySGCN: request.onlySGCN
     };
@@ -305,15 +301,8 @@
     const speciesStatusList: string[] = [];
     if (specedMapQuery.onlyFederallyListed) speciesStatusList.push('federally listed');
     if (specedMapQuery.onlySGCN) speciesStatusList.push('SGCN');
-    const speciesStatus = speciesStatusList.join('/');
-    let taxonFilterInfo = '';
-    if (speciesStatus != '') {
-      if (specedMapQuery.onlyCaveObligates) {
-        taxonFilterInfo = speciesStatus + ' cave obligates';
-      } else {
-        taxonFilterInfo = speciesStatus + ' species';
-      }
-    }
+    let taxonFilterInfo =
+      speciesStatusList.length > 0 ? speciesStatusList.join('/') + ' species' : '';
 
     let taxonFilterName = taxonFilterInfo;
     if (generalQuery.taxonFilter) {
@@ -502,13 +491,6 @@
       optionText: 'Non-blank'
     });
 
-    if (mapQuery?.onlyCaveObligates) {
-      columnSpecs.push({
-        columnID: QueryColumnID.IsCaveObligate,
-        ascending: null,
-        optionText: 'Yes'
-      });
-    }
     if (mapQuery?.onlyFederallyListed) {
       columnSpecs.push({
         columnID: QueryColumnID.IsFederallyListed,

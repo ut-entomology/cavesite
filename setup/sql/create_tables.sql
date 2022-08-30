@@ -172,7 +172,7 @@ create table specimens (
     subspecies_id integer references taxa,
     taxon_unique text not null,
     taxon_author text, -- author of taxon_unique
-    is_cave_obligate boolean not null,
+    karst_obligate text,
     is_federally_listed boolean not null,
     state_rank text,
     tpwd_status text,
@@ -184,7 +184,8 @@ create table specimens (
     locality_name text not null,
     latitude float8,
     longitude float8,
-    is_cave boolean not null
+    is_aquatic_karst boolean not null,
+    is_terrestrial_karst boolean not null
 );
 create index on specimens(catalog_number);
 create index on specimens(collection_start_date);
@@ -214,8 +215,8 @@ create index on specimens(species_name);
 create index on specimens(species_id);
 create index on specimens(subspecies_name);
 create index on specimens(subspecies_id);
+create index on specimens(karst_obligate);
 create index on specimens(is_federally_listed);
-create index on specimens(is_cave_obligate);
 create index on specimens(state_rank);
 create index on specimens(tpwd_status);
 create index on specimens(county_name);
@@ -223,6 +224,8 @@ create index on specimens(county_id);
 create index on specimens(locality_name);
 create index on specimens(latitude);
 create index on specimens(longitude);
+create index on specimens(is_aquatic_karst);
+create index on specimens(is_terrestrial_karst);
 
 create table if not exists key_data (
     user_id integer references users,
@@ -248,7 +251,7 @@ create table all_taxa_for_visits (
     committed boolean not null default false,
 
     location_id integer not null references locations,
-    is_cave boolean not null,
+    is_terrestrial_karst boolean not null,
     start_date date, -- to pass on to effort table with timezone
     start_epoch_day integer, -- days since 1/1/1970, for performance
     end_date date,
@@ -274,13 +277,14 @@ create table all_taxa_for_visits (
     subspecies_counts text,
     primary key (location_id, end_epoch_day, normalized_collectors)
 );
+create index on all_taxa_for_visits(is_terrestrial_karst);
 
 create table cave_genera_for_visits (
     -- new data loads into the table prior to completely replacing old data
     committed boolean not null default false,
 
     location_id integer not null references locations,
-    is_cave boolean not null,
+    is_terrestrial_karst boolean not null,
     start_date date, -- to pass on to effort table with timezone
     start_epoch_day integer, -- days since 1/1/1970, for performance
     end_date date,
@@ -306,13 +310,14 @@ create table cave_genera_for_visits (
     subspecies_counts text,
     primary key (location_id, end_epoch_day, normalized_collectors)
 );
+create index on cave_genera_for_visits(is_terrestrial_karst);
 
 create table cave_obligates_for_visits (
     -- new data loads into the table prior to completely replacing old data
     committed boolean not null default false,
 
     location_id integer not null references locations,
-    is_cave boolean not null,
+    is_terrestrial_karst boolean not null,
     start_date date, -- to pass on to effort table with timezone
     start_epoch_day integer, -- days since 1/1/1970, for performance
     end_date date,
@@ -338,6 +343,7 @@ create table cave_obligates_for_visits (
     subspecies_counts text,
     primary key (location_id, end_epoch_day, normalized_collectors)
 );
+create index on cave_obligates_for_visits(is_terrestrial_karst);
 
 create table all_taxa_for_effort (
     -- new data loads into the table prior to completely replacing old data
@@ -346,7 +352,7 @@ create table all_taxa_for_effort (
     location_id integer not null references locations,
     county_name text,
     locality_name text not null,
-    is_cave boolean not null,
+    is_terrestrial_karst boolean not null,
     latitude float8,
     longitude float8,
     flags integer not null,
@@ -385,7 +391,7 @@ create table cave_genera_for_effort (
     location_id integer not null references locations,
     county_name text,
     locality_name text not null,
-    is_cave boolean not null,
+    is_terrestrial_karst boolean not null,
     latitude float8,
     longitude float8,
     flags integer not null,
@@ -424,7 +430,7 @@ create table cave_obligates_for_effort (
     location_id integer not null references locations,
     county_name text,
     locality_name text not null,
-    is_cave boolean not null,
+    is_terrestrial_karst boolean not null,
     latitude float8,
     longitude float8,
     flags integer not null,

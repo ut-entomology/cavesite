@@ -1,7 +1,11 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Location } from './location';
-import { LocationRank, CAVE_FLAG } from '../../shared/model';
+import {
+  LocationRank,
+  AQUATIC_KARST_FLAG,
+  TERRESTRIAL_KARST_FLAG
+} from '../../shared/model';
 import { ImportFailure } from './import_failure';
 
 describe('without location location uniques', () => {
@@ -196,7 +200,7 @@ describe('without location location uniques', () => {
         locationUnique: 'texas|travis county|missing cave',
         latitude: 28.12,
         longitude: -97.34,
-        flags: CAVE_FLAG,
+        flags: TERRESTRIAL_KARST_FLAG,
         parentID: 6,
         parentIDPath: '1,2,4,6',
         parentNamePath: 'North America|United States|Texas|Travis County',
@@ -268,7 +272,7 @@ describe('without location location uniques', () => {
         locationUnique: 'chihuahua|mun xyz|invisible spring',
         latitude: 21.12,
         longitude: -96.34,
-        flags: 0,
+        flags: AQUATIC_KARST_FLAG,
         parentID: 10,
         parentIDPath: '1,8,9,10',
         parentNamePath: 'North America|Mexico|Chihuahua|Mun. Xyz',
@@ -321,7 +325,7 @@ describe('without location location uniques', () => {
         locationUnique: 'texas|bastrop county|fire cave',
         latitude: 28.5,
         longitude: -97.5,
-        flags: CAVE_FLAG,
+        flags: TERRESTRIAL_KARST_FLAG,
         parentID: 12,
         parentIDPath: '1,2,4,12',
         parentNamePath: 'North America|United States|Texas|Bastrop County',

@@ -48,15 +48,33 @@
       name: 'Locality Characterization',
       specs: [
         {
-          dataKey: DataKey.CaveLocalities,
-          title: 'Cave Localities',
-          instructions:
-            "List of the locality names of caves not having the text 'cave' in their names. You must follow each locality name with the county name in parentheses. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
-        },
-        {
           dataKey: DataKey.KarstRegions,
           title: 'Karst Regions',
           instructions: `List of all region shapefiles that have been uploaded to <a href="https://www.mapbox.com/" target="_blank">MapBox</a>, along with their characterizations. Upload these as 'tilesets' to <a href="https://studio.mapbox.com/" target="_blank">MapBox Studio</a>. List each tileset here on its own line in the format "[KR|KFR]: <i>property-name</i>, <i>tileset-name</i>, <i>tileset-ID</i>" (e.g. "KR: Region, Karst_Regions_TSS-4adrg1, jtlapput.d6bu8w0a"). Use 'KR' for Texas-wide karst regions and 'KFR' for karst faunal regions. Retrieve the tileset name and tileset ID from MapBox Studio after uploading the shapefile. <i>property-name</i> is the name of the property within the shapefile that describes a region and can vary from file to file. You can have multiple KR and KFR lines, one for each shapefile tileset. The order in which you list them does not matter. Everything is case-sensitive. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on each user's next browser session. To update an existing shapefile, click the '...' next to the name of the shapefile in MapBox Studio and then click 'Replace'.`
+        },
+        {
+          dataKey: DataKey.TerrestrialKarstTerms,
+          title: 'Terrestrial Karst Terms',
+          instructions:
+            "List terms that necessarily designate a locality as terrestrial karst, one term per line. Terms are not case sensitive and may include spaces and punctuation, but they must indicate complete words, not portions of words. Any given locality can be both terrestrial and aquatic. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+        },
+        {
+          dataKey: DataKey.TerrestrialKarstLocalities,
+          title: 'Terrestrial Karst Localities',
+          instructions:
+            "List of the locality names of terrestrial karst features (e.g. caves) not designated at terrestrial karst by a term. Any given locality can be both terrestrial and aquatic. You must follow each locality name with the county name in parentheses. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+        },
+        {
+          dataKey: DataKey.AquaticKarstTerms,
+          title: 'Aquatic Karst Terms',
+          instructions:
+            "List terms that necessarily designate a locality as aquatic karst, one term per line. Terms are not case sensitive and may include spaces and punctuation, but they must indicate complete words, not portions of words. Not case sensitive. Any given locality can be both terrestrial and aquatic. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+        },
+        {
+          dataKey: DataKey.AquaticKarstLocalities,
+          title: 'Aquatic Karst Localities',
+          instructions:
+            "List of the locality names of aquatic karst features (e.g. springs) not designated at aquatic karst by a term. Any given locality can be both terrestrial and aquatic. You must follow each locality name with the county name in parentheses. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
         }
       ]
     },
@@ -64,10 +82,16 @@
       name: 'Species Characterization',
       specs: [
         {
-          dataKey: DataKey.CaveObligates,
-          title: 'Cave Obligates',
+          dataKey: DataKey.Stygobites,
+          title: 'Stygobites',
           instructions:
-            "List of all cave obligates at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+            "List of all stygobites at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+        },
+        {
+          dataKey: DataKey.Troglobites,
+          title: 'Troglobites',
+          instructions:
+            "List of all stygobites at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
         },
         {
           dataKey: DataKey.TexasSpeciesStatus,

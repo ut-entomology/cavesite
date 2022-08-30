@@ -12,12 +12,16 @@ export enum DataKey {
 
   // Locality characterization
 
-  CaveLocalities = 'cave_localities',
   KarstRegions = 'karst_regions',
+  TerrestrialKarstTerms = 'terrestrial_karst_terms',
+  TerrestrialKarstLocalities = 'terrestrial_karst_localities',
+  AquaticKarstTerms = 'aquatic_karst_terms',
+  AquaticKarstLocalities = 'aquatic_karst_localities',
 
   // Species characterization
 
-  CaveObligates = 'cave_obligates',
+  Stygobites = 'stygobites',
+  Troglobites = 'troglobites',
   TexasSpeciesStatus = 'texas_status',
   FederalSpeciesStatus = 'federal_status',
 
@@ -90,17 +94,33 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     readPermission: Permission.Admin,
     getErrors: null
   },
-  [DataKey.CaveLocalities]: {
-    readPermission: Permission.None,
-    getErrors: getCaveLocalityErrors
-  },
   [DataKey.KarstRegions]: {
     readPermission: Permission.None,
     getErrors: getKarstRegionsErrors
   },
-  [DataKey.CaveObligates]: {
+  [DataKey.TerrestrialKarstTerms]: {
     readPermission: Permission.None,
-    getErrors: getCaveObligatesErrors
+    getErrors: null
+  },
+  [DataKey.TerrestrialKarstLocalities]: {
+    readPermission: Permission.None,
+    getErrors: getKarstLocalityErrors
+  },
+  [DataKey.AquaticKarstTerms]: {
+    readPermission: Permission.None,
+    getErrors: null
+  },
+  [DataKey.AquaticKarstLocalities]: {
+    readPermission: Permission.None,
+    getErrors: getKarstLocalityErrors
+  },
+  [DataKey.Stygobites]: {
+    readPermission: Permission.None,
+    getErrors: getKarstObligatesErrors
+  },
+  [DataKey.Troglobites]: {
+    readPermission: Permission.None,
+    getErrors: getKarstObligatesErrors
   },
   [DataKey.TexasSpeciesStatus]: {
     readPermission: Permission.None,
@@ -151,7 +171,7 @@ function getWelcomePageErrors(text: string) {
   return checkTemplateVars(text, commonTemplateVars);
 }
 
-function getCaveLocalityErrors(text: string) {
+function getKarstLocalityErrors(text: string) {
   const errors: string[] = [];
   for (let line of text.split('\n')) {
     line = line.trim();
@@ -182,7 +202,7 @@ function getCaveLocalityErrors(text: string) {
   return errors;
 }
 
-function getCaveObligatesErrors(text: string) {
+function getKarstObligatesErrors(text: string) {
   const regex = /^[-A-Za-z0-9 .]+$/;
   const errors: string[] = [];
   for (let line of text.split('\n')) {

@@ -1,7 +1,7 @@
 import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/test_util';
 import { Taxon } from './taxon';
-import { TaxonRank, CAVE_OBLIGATE_FLAG } from '../../shared/model';
+import { TaxonRank, STYGOBITE_FLAG, TROGLOBITE_FLAG } from '../../shared/model';
 import { ImportFailure } from './import_failure';
 
 const mutex = new DatabaseMutex();
@@ -395,7 +395,7 @@ test('sequentially dependent taxa tests', async () => {
       author: '(Stejneger, 1896)',
       stateRank: null,
       tpwdStatus: null,
-      flags: CAVE_OBLIGATE_FLAG,
+      flags: STYGOBITE_FLAG,
       parentID: 16,
       parentIDPath: '1,12,13,14,15,16',
       parentNamePath: 'Animalia|Chordata|Amphibia|Urodela|Plethodontidae|Eurycea',
@@ -705,7 +705,7 @@ test('create a cave-obligate genus and species', async () => {
     author: 'Wygodzinsky, 1973',
     stateRank: null,
     tpwdStatus: null,
-    flags: CAVE_OBLIGATE_FLAG,
+    flags: TROGLOBITE_FLAG,
     parentID: 5,
     parentIDPath: '1,2,3,4,5',
     parentNamePath: 'Animalia|Arthropoda|Insecta|Zygentoma|Nicoletiidae',
@@ -737,7 +737,7 @@ test('create a cave-obligate genus and species', async () => {
     author: null,
     stateRank: null,
     tpwdStatus: null,
-    flags: CAVE_OBLIGATE_FLAG,
+    flags: TROGLOBITE_FLAG,
     parentID: 12,
     parentIDPath: '7,8,9,10,11,12',
     parentNamePath: 'Animalia|Arthropoda|Insecta|Zygentoma|Nicoletiidae|Texoreddellia',
@@ -814,7 +814,7 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
     author: '(Barr)',
     stateRank: null,
     tpwdStatus: null,
-    flags: CAVE_OBLIGATE_FLAG,
+    flags: TROGLOBITE_FLAG,
     parentID: 6,
     parentIDPath: '1,2,3,4,5,6',
     parentNamePath: 'Animalia|Arthropoda|Insecta|Coleoptera|Carabidae|Rhadine',
@@ -846,7 +846,7 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
     author: '(Barr)',
     stateRank: null,
     tpwdStatus: null,
-    flags: CAVE_OBLIGATE_FLAG,
+    flags: TROGLOBITE_FLAG,
     parentID: 14,
     parentIDPath: '8,9,10,11,12,13,14',
     parentNamePath:

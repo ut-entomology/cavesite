@@ -14,11 +14,12 @@ import {
   TaxonRank,
   TaxonSpec,
   createContainingTaxonSpecs,
-  CAVE_OBLIGATE_FLAG,
+  STYGOBITE_FLAG,
+  TROGLOBITE_FLAG,
   FEDERALLY_LISTED_FLAG
 } from '../../shared/model';
 import { parseFederalSpeciesStatus, TexasSpeciesStatus } from '../../shared/data_keys';
-import { getCaveObligatesMap } from '../lib/cave_obligates';
+import { stygobiteData, troglobiteData } from '../lib/karst_obligates';
 import { ImportFailure } from './import_failure';
 import { KeyData } from './key_data';
 import { DataKey, parseStateSpeciesStatus } from '../../shared/data_keys';
@@ -251,7 +252,8 @@ export class Taxon {
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
   private static async _createMissingTaxa(db: DB, specs: TaxonSpec[]): Promise<Taxon> {
-    const caveObligatesMap = await getCaveObligatesMap(db);
+    const stygobitesMap = await stygobiteData.getMap(db);
+    const troglobitesMap = await troglobiteData.getMap(db);
 
     let [taxon, taxonIndex] = await Taxon._getClosestTaxon(
       db,
@@ -266,11 +268,11 @@ export class Taxon {
       }
       const spec = specs[taxonIndex];
       let flags = 0;
-      if (
-        (taxon && taxon.flags & CAVE_OBLIGATE_FLAG) ||
-        caveObligatesMap[spec.unique]
-      ) {
-        flags |= CAVE_OBLIGATE_FLAG;
+      if ((taxon && taxon.flags & STYGOBITE_FLAG) || stygobitesMap[spec.unique]) {
+        flags |= STYGOBITE_FLAG;
+      }
+      if ((taxon && taxon.flags & TROGLOBITE_FLAG) || troglobitesMap[spec.unique]) {
+        flags |= TROGLOBITE_FLAG;
       }
       if (await Taxon._isFederallyListed(db, spec)) {
         flags |= FEDERALLY_LISTED_FLAG;

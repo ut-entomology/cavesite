@@ -29,8 +29,8 @@
   restricted to caves. We do not have exact information about which locations are caves
   and which are not, so we use heuristics. Localities meeting any of the following
   criteria are considered caves: the name of the locality contains the text "cave"
-  (including, for example, the word "cavern"), at least one cave obligate has been found
-  at the locality, or the admin has explicitly designated the locality as a cave.
+  (including, for example, the word "cavern"), at least one troglobite has been found at
+  the locality, or the admin has explicitly designated the locality as a cave.
 </p>
 
 <SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
@@ -71,12 +71,11 @@
   <li>
     <b>Fauna to compare</b> when clustering caves by common taxa &mdash; This selects the
     fauna that will be used when comparing caves for similarity. The "All fauna" option uses
-    all specimens collected for each cave in the analysis. The "Genera of cave obligates"
-    option uses only specimens belonging to genera for which at least one species is known
-    to be cave obligate, whether or not the specimen is cave obligate. The "Cave obligates"
-    option uses only specimens that are known to be cave obligate. Generally, the more restricted
-    the fauna, the more accurate the predictions, but the fewer caves for which predictions
-    are made.
+    all specimens collected for each cave in the analysis. The "Genera of troglobites" option
+    uses only specimens belonging to genera for which at least one species is known to be
+    troglobitic, whether or not the specimen is troglobitic. The "Troglobites" option uses
+    only specimens that are known to be troglobitic. Generally, the more restricted the fauna,
+    the more accurate the predictions, but the fewer caves for which predictions are made.
   </li>
   <li>
     <b>Highest taxonomic rank</b> to use in comparisons &mdash; This selects the taxonomic

@@ -147,7 +147,7 @@ describe('basic specimen methods', () => {
         subspeciesID: null,
         taxonUnique: 'Argiope aurantia',
         taxonAuthor: 'Lucas, 1833',
-        isCaveObligate: false,
+        karstObligate: null,
         isFederallyListed: false,
         stateRank: null,
         tpwdStatus: null,
@@ -156,7 +156,8 @@ describe('basic specimen methods', () => {
         localityName: 'My backyard',
         latitude: 23.45,
         longitude: -93.21,
-        isCave: false
+        isAquaticKarst: false,
+        isTerrestrialKarst: false
       });
       expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
       expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -237,7 +238,7 @@ describe('basic specimen methods', () => {
         subspeciesID: null,
         taxonUnique: 'Thomisidae',
         taxonAuthor: null,
-        isCaveObligate: false,
+        karstObligate: null,
         isFederallyListed: false,
         stateRank: null,
         tpwdStatus: null,
@@ -246,7 +247,8 @@ describe('basic specimen methods', () => {
         localityName: 'Some Cave',
         latitude: null,
         longitude: null,
-        isCave: true
+        isAquaticKarst: false,
+        isTerrestrialKarst: true
       });
       expect((await Taxon.getByID(db, 8))?.taxonName).toEqual('Thomisidae');
       expect((await _getLocationByID(db, 6))?.locationName).toEqual('Some Cave');
@@ -384,7 +386,7 @@ describe('basic specimen methods', () => {
       subspeciesID: null,
       taxonUnique: 'Argiope aurantia',
       taxonAuthor: 'Lucas, 1833',
-      isCaveObligate: false,
+      karstObligate: null,
       isFederallyListed: false,
       stateRank: null,
       tpwdStatus: null,
@@ -393,7 +395,8 @@ describe('basic specimen methods', () => {
       localityName: 'My backyard',
       latitude: 23.45,
       longitude: -93.21,
-      isCave: false
+      isAquaticKarst: false,
+      isTerrestrialKarst: false
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -463,7 +466,7 @@ describe('basic specimen methods', () => {
       subspeciesID: null,
       taxonUnique: 'Argiope',
       taxonAuthor: null,
-      isCaveObligate: false,
+      karstObligate: null,
       isFederallyListed: false,
       stateRank: null,
       tpwdStatus: null,
@@ -472,7 +475,8 @@ describe('basic specimen methods', () => {
       localityName: 'My backyard',
       latitude: 23.45,
       longitude: -93.21,
-      isCave: false
+      isAquaticKarst: false,
+      isTerrestrialKarst: false
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');
@@ -490,7 +494,7 @@ describe('basic specimen methods', () => {
     expect(readSpecimen).toEqual(specimen);
   });
 
-  test('creating a cave obligate specimen', async () => {
+  test('creating a troglobites specimen', async () => {
     await Specimen.dropAll(db);
     await Taxon.dropAll(db);
 
@@ -534,7 +538,7 @@ describe('basic specimen methods', () => {
       subspeciesID: null,
       taxonUnique: 'Texoreddellia aquilonalis',
       taxonAuthor: null,
-      isCaveObligate: true,
+      karstObligate: 'troglobite',
       isFederallyListed: false,
       stateRank: null,
       tpwdStatus: null,
@@ -543,7 +547,8 @@ describe('basic specimen methods', () => {
       localityName: 'My backyard',
       latitude: 23.45,
       longitude: -93.21,
-      isCave: false
+      isAquaticKarst: false,
+      isTerrestrialKarst: false
     });
     expect((await Taxon.getByID(db, 1))?.taxonName).toEqual('Animalia');
     expect((await Taxon.getByID(db, 2))?.taxonName).toEqual('Arthropoda');

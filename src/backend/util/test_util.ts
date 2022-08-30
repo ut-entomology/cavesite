@@ -7,7 +7,8 @@ import * as path from 'path';
 import * as lockfile from 'proper-lockfile';
 
 import { type DB, connectDB, disconnectDB, getDB } from '../integrations/postgres';
-import { loadDefaultCaveObligates } from '../lib/cave_obligates';
+import { DataKey, keyDataInfoByKey } from '../../shared/data_keys';
+import { KeyData } from '../model/key_data';
 
 const LOCK_RETRY_MILLIS = 100;
 const LOCKFILE = path.join(__dirname, '../../../db-test-mutex');
@@ -49,7 +50,10 @@ export class DatabaseMutex {
       .toString();
     await this._db.query(dropTablesSQL);
     await this._db.query(createTablesSQL);
-    await loadDefaultCaveObligates(this._db);
+    await _loadDefaultData(this._db, DataKey.Stygobites);
+    await _loadDefaultData(this._db, DataKey.AquaticKarstTerms);
+    await _loadDefaultData(this._db, DataKey.Troglobites);
+    await _loadDefaultData(this._db, DataKey.TerrestrialKarstTerms);
 
     return this._db;
   }
@@ -87,4 +91,17 @@ export function expectRecentTime(date: Date | null) {
 
 export async function sleep(millis: number) {
   return new Promise((resolve) => setTimeout(resolve, millis));
+}
+
+async function _loadDefaultData(db: DB, dataKey: DataKey): Promise<void> {
+  const filePath = path.join(__dirname, `../../../setup/data_files/${dataKey}.txt`);
+
+  const text = fs.readFileSync(filePath).toString();
+  await KeyData.write(
+    db,
+    null,
+    dataKey,
+    keyDataInfoByKey[dataKey].readPermission,
+    text
+  );
 }

@@ -1,5 +1,5 @@
 /**
- * Tool for parsing the cave obligates out of the raw file that James provided.
+ * Tool for parsing the karst obligates out of the raw file that James provided.
  */
 
 import * as fs from 'fs';
@@ -17,7 +17,7 @@ const NON_TAXA = [
 
 if (process.argv.length != 3) {
   console.log(
-    'Please provide the path to the raw file listing cave obligates at one per line. Each line lists a genus, species, or species+subspecies. The program cleans up the data, inferring missing information from preceding lines.\n'
+    'Please provide the path to the raw file listing karst obligates at one per line. Each line lists a genus, species, or species+subspecies. The program cleans up the data, inferring missing information from preceding lines.\n'
   );
   process.exit(1);
 }

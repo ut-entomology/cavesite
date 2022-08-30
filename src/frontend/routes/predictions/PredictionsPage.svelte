@@ -402,9 +402,9 @@
           {#if clusterSpec.comparedFauna == ComparedFauna.all}
             any taxon,
           {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
-            cave obligates,
+            troglobites,
           {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
-            genera of cave obligates,
+            genera of troglobites,
           {/if}
           {$clusterStore.dataByCluster.length} clusters
         </div>
@@ -414,9 +414,9 @@
             {#if clusterSpec.comparedFauna == ComparedFauna.all}
               all fauna
             {:else if clusterSpec.comparedFauna == ComparedFauna.caveObligates}
-              cave obligates
+              troglobites
             {:else if clusterSpec.comparedFauna == ComparedFauna.generaHavingCaveObligates}
-              genera of cave obligates
+              genera of troglobites
             {/if}
           </span>
           &lt;= <span>{clusterSpec.metric.highestComparedRank}</span>,

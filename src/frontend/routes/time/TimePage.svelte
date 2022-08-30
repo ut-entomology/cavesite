@@ -219,7 +219,7 @@
 
     // Generate the title.
 
-    let taxonFilterName = 'All cave obligates';
+    let taxonFilterName = 'All karst obligates';
     if (specedQuery.taxonFilter) {
       taxonFilterName = 'Selected taxa';
       const taxonSpecs = Object.values($selectedTaxa!);

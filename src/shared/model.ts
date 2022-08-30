@@ -17,8 +17,9 @@ export interface ModelSpec {
 //// Taxa ////////////////////////////////////////////////////////////////////
 
 export const ROOT_TAXON_UNIQUE = 'Animalia';
-export const CAVE_OBLIGATE_FLAG = 0x01;
-export const FEDERALLY_LISTED_FLAG = 0x02;
+export const STYGOBITE_FLAG = 0x01;
+export const TROGLOBITE_FLAG = 0x02;
+export const FEDERALLY_LISTED_FLAG = 0x08;
 
 export enum TaxonRank {
   Kingdom = 'kingdom',
@@ -139,7 +140,8 @@ function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
 //// Location /////////////////////////////////////////////////////////////////
 
 export const ROOT_LOCATION_UNIQUE = 'north america|united states|texas';
-export const CAVE_FLAG = 0x01;
+export const TERRESTRIAL_KARST_FLAG = 0x01;
+export const AQUATIC_KARST_FLAG = 0x02;
 
 export enum LocationRank {
   Continent = 'continent',

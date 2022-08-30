@@ -4,7 +4,6 @@
     throughDateMillis: number;
     filterTaxa: boolean;
     filterLocations: boolean;
-    onlyCaveObligates: boolean;
     onlySGCN: boolean;
     onlyFederallyListed: boolean;
   }
@@ -24,7 +23,6 @@
   let throughDate = new Date(initialQueryRequest.throughDateMillis);
   let filterTaxa = initialQueryRequest.filterTaxa;
   let filterLocations = initialQueryRequest.filterLocations;
-  let onlyCaveObligates = initialQueryRequest.onlyCaveObligates;
   let onlySGCN = initialQueryRequest.onlySGCN;
   let onlyFederallyListed = initialQueryRequest.onlyFederallyListed;
 
@@ -34,7 +32,6 @@
       throughDateMillis: throughDate.getTime(),
       filterTaxa,
       filterLocations,
-      onlyCaveObligates,
       onlySGCN,
       onlyFederallyListed
     });
@@ -68,19 +65,6 @@
 
   <FilterSelector {filterTaxa} {filterLocations} {setFilters} />
 
-  <div class="row mt-3 ms-3 gx-2">
-    <div class="col-auto form-check checkable">
-      <input
-        id="cave_obligates_checkbox"
-        type="checkbox"
-        bind:checked={onlyCaveObligates}
-        class="form-check-input"
-      />
-      <label class="form-check-label" for="cave_obligates_checkbox"
-        >Further restrict to locations containing <b>cave obligates</b></label
-      >
-    </div>
-  </div>
   <div class="row ms-3 gx-2">
     <div class="col-auto form-check checkable">
       <input

@@ -8,7 +8,7 @@ import { type DB, toCamelRow, toPostgresDateOrNull } from '../integrations/postg
 import { Specimen } from '../model/specimen';
 import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
-import { getCaveObligatesMap, getCaveContainingGeneraMap } from '../lib/cave_obligates';
+import { troglobiteData } from '../lib/karst_obligates';
 import {
   partialDateHasMonth,
   stripTimeZoneOrNull,
@@ -21,7 +21,7 @@ type LocationVisitData = DataOf<LocationVisit>;
 
 export class LocationVisit extends TaxonCounter {
   locationID: number;
-  isCave: boolean;
+  isTerrestrialKarst: boolean;
   startDate: Date | null;
   startEpochDay: number | null;
   endDate: Date | null;
@@ -35,7 +35,7 @@ export class LocationVisit extends TaxonCounter {
   private constructor(data: LocationVisitData) {
     super(data);
     this.locationID = data.locationID;
-    this.isCave = data.isCave;
+    this.isTerrestrialKarst = data.isTerrestrialKarst;
     this.startDate = stripTimeZoneOrNull(data.startDate);
     this.startEpochDay = data.startEpochDay;
     this.endDate = stripTimeZoneOrNull(data.endDate);
@@ -48,9 +48,11 @@ export class LocationVisit extends TaxonCounter {
   //// PUBLIC INSTANCE METHODS //////////////////////////////////////////////
 
   async save(db: DB, comparedFauna: ComparedFauna): Promise<void> {
+    //console.log('**** isTerrestrialKarst', this.isTerrestrialKarst);
     const result = await db.query(
       `insert into ${comparedFauna}_for_visits(
-            location_id, is_cave, start_date, start_epoch_day, end_date, end_epoch_day,
+            location_id, is_terrestrial_karst,
+            start_date, start_epoch_day, end_date, end_epoch_day,
             flags, normalized_collectors, kingdom_names, kingdom_counts,
             phylum_names, phylum_counts, class_names, class_counts,
             order_names, order_counts, family_names, family_counts,
@@ -60,8 +62,8 @@ export class LocationVisit extends TaxonCounter {
               $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
           on conflict (location_id, end_epoch_day, normalized_collectors)
           do update set 
-            is_cave=excluded.is_cave, kingdom_names=excluded.kingdom_names,
-            kingdom_counts=excluded.kingdom_counts,
+          is_terrestrial_karst=excluded.is_terrestrial_karst,
+            kingdom_names=excluded.kingdom_names, kingdom_counts=excluded.kingdom_counts,
             phylum_names=excluded.phylum_names, phylum_counts=excluded.phylum_counts,
             class_names=excluded.class_names, class_counts=excluded.class_counts,
             order_names=excluded.order_names, order_counts=excluded.order_counts,
@@ -74,7 +76,7 @@ export class LocationVisit extends TaxonCounter {
       [
         this.locationID,
         // @ts-ignore
-        this.isCave,
+        this.isTerrestrialKarst,
         toPostgresDateOrNull(this.startDate),
         this.startEpochDay,
         toPostgresDateOrNull(this.endDate),
@@ -137,22 +139,22 @@ export class LocationVisit extends TaxonCounter {
 
     switch (comparedFauna) {
       case ComparedFauna.caveObligates:
-        const caveObligatesMap = await getCaveObligatesMap(db);
+        const troglobitesMap = await troglobiteData.getMap(db);
         if (
           !(
-            (speciesName && caveObligatesMap[speciesName]) ||
-            (subspeciesName && caveObligatesMap[subspeciesName]) ||
-            (specimen.genusName && caveObligatesMap[specimen.genusName]) ||
-            (specimen.subgenus && caveObligatesMap[specimen.subgenus])
+            (speciesName && troglobitesMap[speciesName]) ||
+            (subspeciesName && troglobitesMap[subspeciesName]) ||
+            (specimen.genusName && troglobitesMap[specimen.genusName]) ||
+            (specimen.subgenus && troglobitesMap[specimen.subgenus])
           )
         ) {
-          return; // exclude non-cave obligates
+          return; // exclude non-troglobites
         }
         break;
       case ComparedFauna.generaHavingCaveObligates:
-        const caveContainingGeneraMap = await getCaveContainingGeneraMap(db);
-        if (!specimen.genusName || !caveContainingGeneraMap[specimen.genusName]) {
-          return; // exclude genera that don't contain cave obligates
+        const troglobitesGeneraMap = await troglobiteData.getContainingGeneraMap(db);
+        if (!specimen.genusName || !troglobitesGeneraMap[specimen.genusName]) {
+          return; // exclude genera that don't contain troglobites
         }
         break;
     }
@@ -198,7 +200,7 @@ export class LocationVisit extends TaxonCounter {
         TaxonCounter.createFromPathSpec(specimen, speciesName, subspeciesName),
         {
           locationID: specimen.localityID,
-          isCave: specimen.isCave,
+          isTerrestrialKarst: specimen.isTerrestrialKarst,
           startDate: specimen.collectionStartDate,
           startEpochDay,
           endDate,
@@ -208,17 +210,24 @@ export class LocationVisit extends TaxonCounter {
           collectorCount: collectors ? collectors.split('|').length : 1
         }
       );
+      //console.log('**** visitData', visitData);
+      // try {
       await this.create(db, comparedFauna, visitData);
+      //   console.log('**** created visit');
+      // } catch (err: any) {
+      //   console.log('**** error', err);
+      // }
+      // process.exit(1);
     } else {
       visit.updateForPathSpec(specimen, speciesName, subspeciesName);
       await visit.save(db, comparedFauna);
     }
   }
 
-  static async assignCaveLocations(db: DB, locationIDs: number[]): Promise<void> {
+  static async assignKarstLocations(db: DB, locationIDs: number[]): Promise<void> {
     for (const comparedFauna of Object.values(ComparedFauna)) {
       await db.query(
-        `update ${comparedFauna}_for_visits set is_cave=true where location_id=any ($1)`,
+        `update ${comparedFauna}_for_visits set is_terrestrial_karst=true where location_id=any ($1)`,
         [
           // @ts-ignore
           locationIDs
@@ -232,7 +241,7 @@ export class LocationVisit extends TaxonCounter {
     await db.query(`delete from ${comparedFauna}_for_visits`);
   }
 
-  static async getNextCaveBatch(
+  static async getNextKarstBatch(
     db: DB,
     comparedFauna: ComparedFauna,
     skip: number,
@@ -244,7 +253,7 @@ export class LocationVisit extends TaxonCounter {
     // collectors here -- this may not be necessary.
     const result = await db.query(
       `select * from ${comparedFauna}_for_visits
-        where is_cave=true and committed=false
+        where is_terrestrial_karst=true and committed=false
         order by location_id, end_epoch_day, normalized_collectors
         limit $1 offset $2`,
       [limit, skip]

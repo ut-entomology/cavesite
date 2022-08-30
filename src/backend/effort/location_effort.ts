@@ -33,7 +33,7 @@ interface LocationInfo {
   locationID: number;
   countyName: string | null;
   localityName: string;
-  isCave: boolean;
+  isTerrestrialKarst: boolean;
   latitude: number | null;
   longitude: number | null;
 }
@@ -42,7 +42,7 @@ export class LocationEffort {
   locationID: number;
   countyName: string | null;
   localityName: string;
-  isCave: boolean;
+  isTerrestrialKarst: boolean;
   latitude: number | null;
   longitude: number | null;
   flags: EffortFlags;
@@ -75,7 +75,7 @@ export class LocationEffort {
     this.locationID = data.locationID;
     this.countyName = data.countyName;
     this.localityName = data.localityName;
-    this.isCave = data.isCave;
+    this.isTerrestrialKarst = data.isTerrestrialKarst;
     this.latitude = data.latitude;
     this.longitude = data.longitude;
     this.flags = data.flags;
@@ -123,7 +123,7 @@ export class LocationEffort {
           locationID: locationInfo.locationID,
           countyName: locationInfo.countyName,
           localityName: locationInfo.localityName,
-          isCave: locationInfo.isCave,
+          isTerrestrialKarst: locationInfo.isTerrestrialKarst,
           latitude: locationInfo.latitude,
           longitude: locationInfo.longitude,
           kingdomNames: TaxonCounter.toNameSeries(counterData.kingdomNames)!,
@@ -152,7 +152,8 @@ export class LocationEffort {
     );
     const result = await db.query(
       `insert into ${comparedFauna}_for_effort (
-            location_id, county_name, locality_name, is_cave, latitude, longitude,
+            location_id, county_name, locality_name, is_terrestrial_karst,
+            latitude, longitude,
             flags, total_visits, total_person_visits, total_species,
             kingdom_names, kingdom_visits, phylum_names, phylum_visits,
             class_names, class_visits, order_names, order_visits,
@@ -166,7 +167,7 @@ export class LocationEffort {
         effort.countyName,
         effort.localityName,
         // @ts-ignore
-        effort.isCave,
+        effort.isTerrestrialKarst,
         effort.latitude,
         effort.longitude,
         effort.flags,
@@ -255,7 +256,7 @@ export class LocationEffort {
     let perPersonVisitPoints: number[][] = [];
     let skipCount = 0;
 
-    let visits = await LocationVisit.getNextCaveBatch(
+    let visits = await LocationVisit.getNextKarstBatch(
       db,
       comparedFauna,
       skipCount,
@@ -277,7 +278,7 @@ export class LocationEffort {
                 locationID,
                 countyName,
                 localityName: location.locationName,
-                isCave: firstVisitOfLocation!.isCave,
+                isTerrestrialKarst: firstVisitOfLocation!.isTerrestrialKarst,
                 latitude: location.latitude,
                 longitude: location.longitude
               },
@@ -345,7 +346,7 @@ export class LocationEffort {
       }
 
       skipCount += visits.length;
-      visits = await LocationVisit.getNextCaveBatch(
+      visits = await LocationVisit.getNextKarstBatch(
         db,
         comparedFauna,
         skipCount,
@@ -364,7 +365,7 @@ export class LocationEffort {
           locationID,
           countyName,
           localityName: location.locationName,
-          isCave: firstVisitOfLocation!.isCave,
+          isTerrestrialKarst: firstVisitOfLocation!.isTerrestrialKarst,
           latitude: location.latitude,
           longitude: location.longitude
         },
