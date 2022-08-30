@@ -86,13 +86,9 @@
   function createNewQuery() {
     templateQuery = $cachedResults?.query || null;
     if (templateQuery === null) {
-      const defaultDateRange = getDefaultDateRange();
       templateQuery = {
         columnSpecs: [],
-        dateFilter: {
-          fromDateMillis: defaultDateRange[0].getTime(),
-          throughDateMillis: defaultDateRange[1].getTime()
-        },
+        dateFilter: null,
         locationFilter: null,
         taxonFilter: null
       };
