@@ -6,17 +6,18 @@ import { toLocalDate } from '../shared/date_tools';
 export const EARLIEST_RECORD_DATE = new Date('1/1/1930');
 
 export enum QueryColumnID {
-  // in default order of appearance
+  // in default order of appearance (defaultSelection: true)
   CatalogNumber,
   CollectionStartDate,
   CollectionEndDate,
-  County,
+  TaxonUnique,
+  KarstObligate,
   Locality,
+  County,
+  // these do not initially appear (defaultSelection: false)
   IsAquaticKarst,
   IsTerrestrialKarst,
   TypeStatus,
-  TaxonUnique,
-  // these do not initially appear, but QueryColumnInfo provides this info
   RecordCount,
   Phylum,
   Class,
@@ -26,7 +27,6 @@ export enum QueryColumnID {
   Subgenus,
   Species,
   Subspecies,
-  KarstObligate,
   IsFederallyListed,
   TexasStateRank,
   TpwdStatus,
@@ -348,7 +348,7 @@ setColumnInfo({
   abbrName: null,
   description:
     'Type status of this particular specimen, and whether it is undescribed.',
-  defaultSelection: true,
+  defaultSelection: false,
   column1: 'type_status',
   options: [
     { text: 'Any value', sql: null },
@@ -528,7 +528,7 @@ setColumnInfo({
   fullName: 'Karst Obligate?',
   abbrName: null,
   description: 'Whether the taxon is stygobitic or troglobitic',
-  defaultSelection: false,
+  defaultSelection: true,
   column1: 'karst_obligate',
   options: [
     { text: 'Any value', sql: null },
@@ -537,7 +537,7 @@ setColumnInfo({
     { text: 'Troglobite', sql: "X='troglobite'" },
     { text: 'No', sql: 'X is null' }
   ],
-  defaultEmWidth: 6,
+  defaultEmWidth: 8,
   columnClass: 'center',
   getValue: (row: QueryRow) => row.karstObligate || ''
 });
