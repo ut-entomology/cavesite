@@ -539,7 +539,7 @@ setColumnInfo({
   ],
   defaultEmWidth: 8,
   columnClass: 'center',
-  getValue: (row: QueryRow) => row.karstObligate || ''
+  getValue: (row: QueryRow) => row.karstObligate || 'no'
 });
 setColumnInfo({
   columnID: QueryColumnID.IsFederallyListed,
