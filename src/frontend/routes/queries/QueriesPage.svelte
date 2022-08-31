@@ -58,6 +58,9 @@
   let requestDownload = false;
   let downloadingData = false;
 
+  // Drop prior representation of columns, in case users have this cached.
+  if (Array.isArray($columnPxWidths)) $columnPxWidths = {};
+
   $: if ($cachedResults && $cachedResults.version != CACHED_VERSION) {
     $cachedResults = null;
   }
