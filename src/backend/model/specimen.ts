@@ -705,7 +705,7 @@ export class Specimen implements TaxonPathSpec {
           (opt) => opt.text == columnSpec.optionText
         );
         if (option && option.sql) {
-          whereComponents.push(option.sql.replace('X', columnInfo.column1));
+          whereComponents.push(option.sql.replaceAll('X', columnInfo.column1));
         }
       }
       const sortColumnName = columnInfo.asName ? columnInfo.asName : columnInfo.column1;
