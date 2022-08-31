@@ -20,6 +20,8 @@ import { sendEmail } from '../util/email_util';
 import { DataKey } from '../../shared/data_keys';
 import { ValidationError } from '../../shared/validation';
 import { siteTitle, siteSubtitle, getWelcomeHTML } from '../lib/site_info';
+import { defaultQueryFields } from '../lib/default_query_fields';
+import { QueryColumnID } from '../../shared/general_query';
 
 type LoginParams = {
   email: string;
@@ -154,6 +156,7 @@ function getAppInfo(): AppInfo {
     appTitle: siteTitle,
     appSubtitle: siteSubtitle,
     welcomeHTML: getWelcomeHTML(),
+    defaultQueryFields: defaultQueryFields as QueryColumnID[],
     hiddenRoutes,
     mapToken: process.env.MAPBOX_ACCESS_TOKEN!
   };

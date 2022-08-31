@@ -2,13 +2,18 @@
  * Data keys and the structures found at them.
  */
 import { Permission } from '../shared/user_auth';
+import { QueryColumnID } from '../shared/general_query';
 
 export enum DataKey {
   // General admin
 
+  ImportSchedule = 'import_schedule',
+  DefaultQueryFields = 'default_query_fields',
+
+  // Presentation
+
   SiteTitleAndSubtitle = 'title_and_subtitle',
   WelcomePage = 'welcome_page',
-  ImportSchedule = 'import_schedule',
 
   // Locality characterization
 
@@ -90,6 +95,10 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     readPermission: Permission.None,
     getErrors: getWelcomePageErrors
   },
+  [DataKey.DefaultQueryFields]: {
+    readPermission: Permission.None,
+    getErrors: getDefaultQueryFieldsErrors
+  },
   [DataKey.ImportSchedule]: {
     readPermission: Permission.Admin,
     getErrors: null
@@ -169,6 +178,17 @@ function getSiteTitleAndSubtitleErrors(text: string) {
 
 function getWelcomePageErrors(text: string) {
   return checkTemplateVars(text, commonTemplateVars);
+}
+
+function getDefaultQueryFieldsErrors(text: string) {
+  const lines = parseDataLines(text);
+  const errors: string[] = [];
+  for (const line of lines) {
+    if (!Object.values(QueryColumnID).includes(line.trim() as QueryColumnID)) {
+      addError(errors, line, 'is not a valid query field');
+    }
+  }
+  return errors;
 }
 
 function getKarstLocalityErrors(text: string) {

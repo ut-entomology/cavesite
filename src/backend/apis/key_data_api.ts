@@ -17,6 +17,7 @@ import {
 import { Permission } from '../../shared/user_auth';
 import { DataKey, type ImportSchedule, keyDataInfoByKey } from '../../shared/data_keys';
 import { setSiteTitles, setWelcomeHTML } from '../lib/site_info';
+import { setDefaultQueryFields } from '../lib/default_query_fields';
 import { aquaticKarstData, terrestrialKarstData } from '../lib/karst_localities';
 
 export const router = Router();
@@ -86,6 +87,9 @@ router.post('/save', async (req: Request, res) => {
       break;
     case DataKey.WelcomePage:
       setWelcomeHTML(data);
+      break;
+    case DataKey.DefaultQueryFields:
+      setDefaultQueryFields(data);
       break;
     case DataKey.AquaticKarstTerms:
     case DataKey.AquaticKarstLocalities:

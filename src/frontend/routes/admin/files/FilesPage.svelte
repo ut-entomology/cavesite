@@ -41,6 +41,11 @@
           instructions: `Provide the HTML for the Welcome page. You may use the ${_toVarNames(
             commonTemplateVars
           )} variables. You may also use any CSS class available in Bootstrap 5. You may pull in images from other websites or upload them to this site at /var/www/html/static, referencing them relative to the URL "/static/" (via the &lt;img&gt; tag). Changes apply the next time the user loads the website (e.g. a page reload).`
+        },
+        {
+          dataKey: DataKey.DefaultQueryFields,
+          title: 'Default Query Fields',
+          instructions: `Provide the default query fields, which are shown when the user first visits the Queries tab and after the user clears the Queries tab. Letter case does not matter. The default fields are shown in the order given here. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. All of the query fields appear in this file, but the ones not occurring as defaults are commented out, informing you of their names. If you accidentally delete fields, you can visit the <a href="TBD">source file</a> to recover them. Changes apply the next time the user loads the website (e.g. a page reload).`
         }
       ]
     },

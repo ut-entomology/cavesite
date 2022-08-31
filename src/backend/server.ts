@@ -13,6 +13,7 @@ import sgMail from '@sendgrid/mail';
 
 import { loadAndCheckEnvVars } from './lib/env_vars';
 import { loadSiteInfo } from './lib/site_info';
+import { loadDefaultQueryFields } from './lib/default_query_fields';
 import { connectDB, getDB } from '../backend/integrations/postgres';
 import { sessionware } from '../backend/integrations/sessionware';
 import { router as authApi } from './apis/auth_api';
@@ -104,11 +105,12 @@ app.listen(port, async () => {
     user: process.env.CAVESITE_DB_USER,
     password: process.env.CAVESITE_DB_PASSWORD
   });
-  await Session.init(getDB(), {
+  const db = getDB();
+  await Session.init(db, {
     sessionTimeoutMillis: SESSION_TIMEOUT_MILLIS,
     expirationCheckMillis: EXPIRATION_CHECK_MILLIS
   });
-  await loadSiteInfo(getDB());
+  await loadSiteInfo(db);
   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
   if (process.env.CAVESITE_LOG_SERVER_RESTART == 'on') {
     await Logs.postNormal(
@@ -118,5 +120,6 @@ app.listen(port, async () => {
       'Server started or restarted'
     );
   }
+  await loadDefaultQueryFields(db);
   console.log(`Server listening on port ${port}`);
 });

@@ -1,0 +1,34 @@
+catalog number
+start date
+end date
+scientific name
+karst obligate
+locality
+county
+
+#latitude
+#longitude
+#aquatic karst
+#terrestrial karst
+#type status
+#phylum
+#class
+#order
+#family
+#genus
+#subgenus
+#species epithet
+#subspecies epithet
+#federally listed
+#Texas state rank
+#TPWD status
+#specimen count
+#life stage
+#collectors
+#locality notes
+#determiners
+#determination year
+#determination notes
+#specimen notes
+#record count
+#problems'

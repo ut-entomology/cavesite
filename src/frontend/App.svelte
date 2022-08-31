@@ -81,6 +81,7 @@
         appTitle: loginInfo.appTitle,
         appSubtitle: loginInfo.appSubtitle,
         welcomeHTML: loginInfo.welcomeHTML,
+        defaultQueryFields: loginInfo.defaultQueryFields,
         hiddenRoutes: loginInfo.hiddenRoutes,
         mapToken: loginInfo.mapToken
       });

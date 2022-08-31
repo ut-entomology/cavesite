@@ -15,7 +15,7 @@ import {
 } from '../util/http_util';
 import { Specimen } from '../model/specimen';
 import {
-  QueryColumnID,
+  columnInfoMap,
   type GeneralQuery,
   type QueryRow
 } from '../../shared/general_query';
@@ -34,8 +34,8 @@ router.post('/query', async (req: Request, res) => {
   }
   for (const columnSpec of query.columnSpecs) {
     if (
-      columnSpec.columnID < 0 ||
-      columnSpec.columnID >= QueryColumnID._LENGTH ||
+      !checkString(columnSpec.columnID, false) ||
+      !columnInfoMap[columnSpec.columnID] ||
       !checkBoolean(columnSpec.ascending, true) ||
       !checkString(columnSpec.optionText, true)
     ) {

@@ -5,18 +5,22 @@
   const CACHED_VERSION = 2;
 
   // columnPxWidths is indexed by ColumnID
-  const columnPxWidths = createSessionStore<number[]>('column_widths', []);
+  const columnPxWidths = createSessionStore<Record<string, number>>(
+    'column_widths',
+    {}
+  );
 </script>
 
 <script lang="ts">
   import { onMount, afterUpdate } from 'svelte';
   import page from 'page';
 
+  import { appInfo } from '../../stores/app_info';
   import { pageName } from '../../stores/pageName';
   import DataTabRoute from '../../components/DataTabRoute.svelte';
   import TabHeader from '../../components/TabHeader.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
-  import QueryFilterDialog, { getDefaultDateRange } from './QueryFilterDialog.svelte';
+  import QueryFilterDialog from './QueryFilterDialog.svelte';
   import QueryDownloadDialog from './QueryDownloadDialog.svelte';
   import RowControls, {
     type RowControlsConfig
@@ -92,15 +96,14 @@
         locationFilter: null,
         taxonFilter: null
       };
-      for (let i = 0; i < QueryColumnID._LENGTH; ++i) {
-        const columnInfo = columnInfoMap[i];
-        if (columnInfo.defaultSelection) {
-          templateQuery.columnSpecs.push({
-            columnID: columnInfo.columnID,
-            ascending: null,
-            optionText: columnInfo.options ? columnInfo.options[0].text : null
-          });
-        }
+      console.log('**** fields', $appInfo.defaultQueryFields);
+      for (const columnID of $appInfo.defaultQueryFields) {
+        const columnInfo = columnInfoMap[columnID];
+        templateQuery.columnSpecs.push({
+          columnID: columnInfo.columnID,
+          ascending: null,
+          optionText: columnInfo.options ? columnInfo.options[0].text : null
+        });
       }
     }
   }
@@ -272,7 +275,7 @@
   }
 
   function _initColumnWidths() {
-    if ($columnPxWidths.length == 0) {
+    if (Object.values($columnPxWidths).length == 0) {
       const emInPx = _getEmInPx();
       for (const columnInfo of Object.values(columnInfoMap)) {
         $columnPxWidths[columnInfo.columnID] = columnInfo.defaultEmWidth * emInPx;
