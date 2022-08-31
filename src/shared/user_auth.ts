@@ -2,7 +2,7 @@
  * Types and structures for managing user authentication.
  */
 
-import { QueryColumnID } from './general_query';
+import type { QueryColumnID } from './general_query';
 
 export const CSRF_TOKEN_HEADER = 'X-XSRF-TOKEN';
 
