@@ -28,6 +28,7 @@
   import ColumnResizer from '../../components/ColumnResizer.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
   import BusyMessage from '../../common/BusyMessage.svelte';
+  import QueriesHowTo from './QueriesHowTo.svelte';
   import { showNotice } from '../../common/VariableNotice.svelte';
   import { columnInfoMap } from '../../../shared/general_query';
   import { client, errorReason } from '../../stores/client';
@@ -96,7 +97,6 @@
         locationFilter: null,
         taxonFilter: null
       };
-      console.log('**** fields', $appInfo.defaultQueryFields);
       for (const columnID of $appInfo.defaultQueryFields) {
         const columnInfo = columnInfoMap[columnID];
         templateQuery.columnSpecs.push({
@@ -337,7 +337,8 @@
   }
 </script>
 
-<DataTabRoute activeTab={tabName}>
+<DataTabRoute activeTab={tabName} embedHowTo={!$cachedResults}>
+  <svelte:fragment slot="how-to"><QueriesHowTo /></svelte:fragment>
   <svelte:fragment slot="body">
     <div id="em_sample" />
     <div class="container-fluid">
@@ -392,6 +393,7 @@
             />
           {/if}
         </span>
+        <div slot="how-to"><QueriesHowTo /></div>
       </TabHeader>
     </div>
 
