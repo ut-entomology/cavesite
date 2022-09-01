@@ -22,6 +22,9 @@ type SessionData = Omit<DataOf<Session>, 'userInfo'>;
 
 const SESSION_ID_BYTES = 24; // byte length of random session ID
 const MAX_ID_GEN_ATTEMPTS = 10; // maximum attempts to create a unique ID
+const CSRF_TOKEN_LENGTH = 24;
+let CSRF_TOKEN_CHARSET = 'abcdefghijklmnopqrstuvwxyz';
+CSRF_TOKEN_CHARSET += CSRF_TOKEN_CHARSET.toUpperCase() + '0123456789';
 
 const sessionsByID = new Map<string, Session>();
 let expirationTimer: NodeJS.Timeout | null = null;
@@ -33,6 +36,7 @@ export class Session {
   createdOn: Date;
   expiresAt!: Date;
   ipAddress: string;
+  csrfToken: string;
   userInfo: UserInfo;
 
   //// CONSTRUCTION //////////////////////////////////////////////////////////
@@ -43,6 +47,7 @@ export class Session {
     this.createdOn = info.createdOn;
     this.expiresAt = info.expiresAt;
     this.ipAddress = info.ipAddress;
+    this.csrfToken = info.csrfToken;
     this.userInfo = userInfo;
   }
 
@@ -92,14 +97,15 @@ export class Session {
         sessionID: await Session._createSessionID(MAX_ID_GEN_ATTEMPTS),
         createdOn: new Date(),
         expiresAt: Session._getNewExpiration(),
-        ipAddress
+        ipAddress,
+        csrfToken: User.generatePassword(CSRF_TOKEN_CHARSET, CSRF_TOKEN_LENGTH)
       },
       userInfo
     );
     const result = await db.query(
       `insert into sessions (
-            session_id, user_id, created_on, expires_at, ip_address
-          ) values($1, $2, $3, $4, $5)`,
+            session_id, user_id, created_on, expires_at, ip_address, csrf_token
+          ) values($1, $2, $3, $4, $5, $6)`,
       [
         session.sessionID,
         session.userID,
@@ -107,7 +113,8 @@ export class Session {
         session.createdOn,
         // @ts-ignore
         session.expiresAt,
-        ipAddress
+        ipAddress,
+        session.csrfToken
       ]
     );
     if (result.rowCount != 1) {

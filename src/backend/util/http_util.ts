@@ -4,7 +4,7 @@
 
 import { type Request } from 'express';
 
-import { Permission } from '../../shared/user_auth';
+import { CSRF_TOKEN_HEADER, Permission } from '../../shared/user_auth';
 import { Session } from '../model/session';
 
 /**
@@ -17,10 +17,12 @@ export const INTEGER_LIST_CHARS_REGEX = /^[\d,]+$/;
  * the provided permissions.
  */
 export function requirePermissions(permissions: Permission) {
-  return (req: Request<void, any, void>, res: any, next: any) => {
+  return (req: Request, res: any, next: any) => {
+    const session: Session | undefined = req.session;
     if (
-      !req.session ||
-      (req.session.userInfo.permissions & permissions) != permissions
+      !session ||
+      !_checkCsrfToken(req, session) ||
+      (session.userInfo.permissions & permissions) != permissions
     ) {
       return res.status(403).send();
     }
@@ -33,10 +35,11 @@ export function requirePermissions(permissions: Permission) {
  * of which must be present. Returns true iff they are.
  */
 export function checkPermissions(
-  session: Session | undefined,
+  req: Request,
   requiredPermissions: Permission
 ): boolean {
-  if (!session) return false;
+  const session: Session | undefined = req.session;
+  if (!session || !_checkCsrfToken(req, session)) return false;
   return (session.userInfo.permissions & requiredPermissions) == requiredPermissions;
 }
 
@@ -83,4 +86,8 @@ export function checkIntegerList(value: number[] | null, nullable = false): bool
 export function checkString(value: string | null, nullable = false): boolean {
   if (nullable && value === null) return true;
   return typeof value == 'string';
+}
+
+function _checkCsrfToken(req: Request, session: Session): boolean {
+  return req.header(CSRF_TOKEN_HEADER) == session.csrfToken;
 }

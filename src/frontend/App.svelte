@@ -24,7 +24,7 @@
   import Notice from './common/Notice.svelte';
   import { DialogSpec } from './common/VariableDialog.svelte';
   import { showNotice } from './common/VariableNotice.svelte';
-  import { logoutUser } from './util/user_util';
+  import { loginUser, logoutUser } from './util/user_util';
   import { pageName } from './stores/pageName';
 
   // Initialize client-side routes.
@@ -97,8 +97,7 @@
       router.start();
 
       if (loginInfo.userInfo && loginInfo.expiration) {
-        $userInfo = loginInfo.userInfo;
-        setExpiration(loginInfo.expiration);
+        loginUser(loginInfo);
       }
     }
 

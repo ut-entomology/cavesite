@@ -50,7 +50,7 @@ router.post('/pull', async (req: Request, res) => {
 
 router.post('/save', async (req: Request, res) => {
   // Require admin permission until supports saving per-user data.
-  if (!checkPermissions(req.session, Permission.Admin)) {
+  if (!(await checkPermissions(req, Permission.Admin))) {
     return res.status(StatusCodes.FORBIDDEN).send();
   }
   const loginUserID = req.session!.userID;
@@ -105,7 +105,7 @@ router.post('/save', async (req: Request, res) => {
 });
 
 router.post('/set_schedule', async (req: Request, res) => {
-  if (!checkPermissions(req.session, Permission.Admin)) {
+  if (!(await checkPermissions(req, Permission.Admin))) {
     return res.status(StatusCodes.FORBIDDEN).send();
   }
 

@@ -4,7 +4,7 @@
 
 import type { QueryColumnID } from './general_query';
 
-export const CSRF_TOKEN_HEADER = 'X-XSRF-TOKEN';
+export const CSRF_TOKEN_HEADER = 'X-XSRF-Token';
 
 export enum Permission {
   // values are bit flags and therefore powers of 2
@@ -46,6 +46,7 @@ export interface AppInfo {
 export interface LoginInfo extends AppInfo {
   userInfo?: UserInfo;
   expiration?: number;
+  csrfToken?: string;
 }
 
 export interface PasswordChangeInfo {

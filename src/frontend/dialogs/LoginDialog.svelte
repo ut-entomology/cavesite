@@ -8,9 +8,9 @@
   import ModalDialog from '../common/ModalDialog.svelte';
   import { client } from '../stores/client';
   import { userInfo } from '../stores/user_info';
-  import { setExpiration } from '../util/refresher';
+  import { loginUser } from '../util/user_util';
+  import type { LoginInfo } from '../../shared/user_auth';
   import { DialogSpec } from '../common/VariableDialog.svelte';
-  //import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
   const title = 'Login Form for Admins';
 
@@ -25,8 +25,8 @@
     onSubmit: async (values) => {
       try {
         const res = await $client.post('/api/auth/login', values);
-        $userInfo = res.data.userInfo;
-        setExpiration(res.data.expiration);
+        const loginInfo: LoginInfo = res.data;
+        loginUser(loginInfo);
         closeDialog();
         await flashMessage('You are logged in');
         window.location.reload();

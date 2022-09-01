@@ -166,7 +166,8 @@ function getLoginInfo(session: Session): LoginInfo {
   return Object.assign(
     {
       userInfo: session.userInfo,
-      expiration: session.expiresAt.getTime()
+      expiration: session.expiresAt.getTime(),
+      csrfToken: session.csrfToken
     },
     getAppInfo()
   );

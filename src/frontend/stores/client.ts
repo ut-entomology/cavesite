@@ -12,12 +12,12 @@ const REST_API_TIMEOUT_MILLIS = 20000;
 
 const originalOrigin = window.location.origin;
 
-const baseAxiosConfig: any = {
+const axiosConfig: any = {
   baseURL: originalOrigin,
   timeout: REST_API_TIMEOUT_MILLIS,
   withCredentials: true
 };
-const publicClient = axios.create(baseAxiosConfig);
+const publicClient = axios.create(axiosConfig);
 
 export const client = writable<AxiosInstance>(publicClient);
 
@@ -25,13 +25,13 @@ export const bubbleUpError = (err: any) => {
   throw err;
 };
 
-export function setCSRF(csrfToken: string | null) {
+export function setCsrfToken(csrfToken: string | null) {
   if (csrfToken === null) {
+    delete axios.defaults.headers.post[CSRF_TOKEN_HEADER];
     client.set(publicClient);
   } else {
-    const config = Object.assign({}, baseAxiosConfig);
-    config[CSRF_TOKEN_HEADER] = csrfToken;
-    client.set(axios.create(config));
+    axios.defaults.headers.post[CSRF_TOKEN_HEADER] = csrfToken;
+    client.set(axios.create(axiosConfig));
   }
 }
 
