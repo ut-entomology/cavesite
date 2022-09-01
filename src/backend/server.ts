@@ -4,8 +4,8 @@
 
 import * as path from 'path';
 import express from 'express';
-import morgan from 'morgan';
-import { createStream } from 'rotating-file-stream';
+// import morgan from 'morgan';
+// import { createStream } from 'rotating-file-stream';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
@@ -44,15 +44,19 @@ const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 // Set up pre-route stack.
 
 const app = express();
-app.use(
-  morgan('common', {
-    stream: createStream('access.log', {
-      interval: '7d',
-      path: process.env.CAVESITE_LOG_DIR,
-      maxFiles: 12
-    })
-  })
-);
+// Logs API calls. If you're going to use this, you'll need to change the code
+// below to log the gateway-forwarded IP address, not just the local address.
+// See api/auth_api.ts for code that extracts the IP address.
+//
+// app.use(
+//   morgan('common', {
+//     stream: createStream('access.log', {
+//       interval: '7d',
+//       path: process.env.CAVESITE_LOG_DIR,
+//       maxFiles: 12
+//     })
+//   })
+// );
 if (!devMode) {
   app.set('trust proxy', 1);
   app.use(helmet());

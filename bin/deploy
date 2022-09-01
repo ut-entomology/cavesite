@@ -12,5 +12,5 @@ cp -R bin /var/www/bin
 cp -R setup /var/www/setup
 cp -R node_modules /var/www/node_modules
 
-mkdir -p /var/www/logs
-chown -R www-data:www-data /var/www/logs
+# mkdir -p /var/www/logs
+# chown -R www-data:www-data /var/www/logs
