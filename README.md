@@ -1,109 +1,87 @@
-*Psst — looking for a more complete solution? Check out [SvelteKit](https://kit.svelte.dev), the official framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing.*
+# Source Code for Texas Underground
 
-*Looking for a shareable component template instead? You can [use SvelteKit for that as well](https://kit.svelte.dev/docs#packaging) or the older [sveltejs/component-template](https://github.com/sveltejs/component-template)*
+This repo holds the source code for the [Texas Underground](http://caves.tacc.utexas.edu) SPA website. The site is a platform that provides cave researchers with access to the data for the biospeleological collection at the University of Texas at Austin. The university keeps the data in a Specify6 database and periodically uploads the data to GBIF. This site periodically downloads the data from GBIF for presentation and querying. All of the data is public.
 
----
+## Implementation
 
-# svelte app
+The site is written in TypeScript, Svelte, and PostgreSQL. TypeScript is a superset of JavaScript that provides static type checking. It is nearly identical to JavaScript, and any JavaScript developer who is already familiar with another statically typed language, such as Java or C++, should have no problem maintaining it.
 
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
+Svelte is a simple template language for creating reactive user interfaces in JavaScript/TypeScript, HTML, and CSS. It is similar to REACT in that the developer designs the layout of the page as a function of state variables without having to write code that changes the page layout. When you change the variables, the layout changes automatically. It is touted as being much easier to learn than REACT, but it still has a learning curve, and there are idioms to master for properly handling state. (SvelteKit is not used.)
 
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
+The PostgreSQL consists of simple tables and simple SQL statements. It takes advantage of the fact that the data is always imported and never locally maintained. The schemas are sometimes redundant and sometimes flat, making for simpler queries and faster responses. Stateful data includes users, sessions, key-lookup data files, and logs.
 
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
+## Installation
+
+To install the source for development, you'll need to install the following:
+
+- Node.js
+- The NPM package manager
+- The yarn package manager (dependencies are maintained via yarn)
+- TypeScript
+- PostgreSQL and psql
+
+Then git clone this repo. I'll assume its directory name is 'cavesite'.
+
+## Configuring the Server
+
+The server relies on environment variables stored in `cavesite/.env`, which the repo does not provide. Create this file from the following template:
+
+```
+CAVESITE_BASE_URL=http://localhost
+CAVESITE_PORT=3000
+CAVESITE_HIDDEN_TABS=comma-delimited-names-of-tabs-you-want-to-hide
+CAVESITE_SENDER_EMAIL=reply-address-for-emails
+SENDGRID_API_KEY=sender-sendgrid-key
+MAPBOX_ACCESS_TOKEN=your-mapbox-access-token
+
+CAVESITE_DB_HOST=localhost
+CAVESITE_DB_PORT=5432
+CAVESITE_DB_NAME=caves
+CAVESITE_DB_USER=postgres-user-name
+CAVESITE_DB_PASSWORD=postgres-user-password
 ```
 
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
+You'll need to get a SendGrid key and a MapBox access token.
 
+You also need to start the PostgreSQL server, create the database, create the tables, and give a user permission to access the tables.
 
-## Get started
+If your user is already setup with permission to access a database named 'caves', you can run the `bin/setup-db` command to create the tables and give the user access. Otherwise, you can create a database called 'dev_caves' with the SQL in `setup/sql/create_dev_db.sql`. After doing this, as well as after any change you make to the database schema, you can run the following commands to drop the tables, create new tables, and grant the user permissions:
 
-Install the dependencies...
-
-```bash
-cd svelte-app
-npm install
+```
+psql caves -f ./setup/sql/drop_tables.sql
+psql caves -f ./setup/sql/create_tables.sql
+psql caves -f ./setup/sql/dev_permissions.sql
 ```
 
-...then start [Rollup](https://rollupjs.org):
+Note that `drop_tables.sql` does not drop the users, key_data, or logs tables. You can drop those manually when you need to, or else run `drop_all_tables.sql`.
 
-```bash
-npm run dev
+I preferred to instead keep psql running and copy-paste SQL into it as needed.
+
+## Building and Running Locally
+
+Build and run the site with the following series of commands:
+
+```
+cd ~/cavesite
+yarn
+yarn run dev
 ```
 
-Navigate to [localhost:8080](http://localhost:8080). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
+You do have to build with yarn and not NPM because the version dependencies are in yarn.lock.
 
-By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
+The site will then be running on http://localhost port 80. Nodemon will monitor the client source and rebuild/reload the page upon detecting changes.
 
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
+`yarn run dev` builds the server, but if nodemon is already running (watching source code), you can both rebuild and rerun the server as follows:
 
-## Building and running in production mode
-
-To create an optimised version of the app:
-
-```bash
-npm run build
+```
+cd ~/cavesite
+tsc
 ```
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
+While developing the site, I found that cached build client-side files were not always replaced upon being rebuilt. For this reason, I used the following commands every time I reran the client:
 
-
-## Single-page app mode
-
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
-
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
-
-```js
-"start": "sirv public --single"
 ```
-
-## Using TypeScript
-
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
-
-```bash
-node scripts/setupTypeScript.js
-```
-
-Or remove the script via:
-
-```bash
-rm scripts/setupTypeScript.js
-```
-
-If you want to use `baseUrl` or `path` aliases within your `tsconfig`, you need to set up `@rollup/plugin-alias` to tell Rollup to resolve the aliases. For more info, see [this StackOverflow question](https://stackoverflow.com/questions/63427935/setup-tsconfig-path-in-svelte).
-
-## Deploying to the web
-
-### With [Vercel](https://vercel.com)
-
-Install `vercel` if you haven't already:
-
-```bash
-npm install -g vercel
-```
-
-Then, from within your project folder:
-
-```bash
-cd public
-vercel deploy --name my-project
-```
-
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
+cd ~/cavesite
+rm -rdf build
+yarn run dev
 ```
