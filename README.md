@@ -29,8 +29,10 @@ The server relies on environment variables stored in `cavesite/.env`, which the 
 ```
 CAVESITE_BASE_URL=http://localhost
 CAVESITE_PORT=3000
+CAVESITE_LOG_DIR=path-to-API-log-dir
 CAVESITE_HIDDEN_TABS=comma-delimited-names-of-tabs-you-want-to-hide
 CAVESITE_SENDER_EMAIL=reply-address-for-emails
+
 SENDGRID_API_KEY=sender-sendgrid-key
 MAPBOX_ACCESS_TOKEN=your-mapbox-access-token
 
