@@ -68,7 +68,7 @@ I preferred to instead keep psql running and copy-paste SQL into it as needed.
 Build and run the site with the following series of commands:
 
 ```
-cd ~/cavesite
+cd cavesite
 yarn
 yarn run dev
 ```
@@ -80,28 +80,63 @@ The site will then be running on http://localhost port 80. Nodemon will monitor 
 `yarn run dev` builds the server, but if nodemon is already running (watching source code), you can both rebuild and rerun the server as follows:
 
 ```
-cd ~/cavesite
+cd cavesite
 tsc
 ```
 
 While developing the site, I found that cached build client-side files were not always replaced upon being rebuilt. For this reason, I used the following commands every time I reran the client:
 
 ```
-cd ~/cavesite
+cd cavesite
 rm -rdf build
 yarn run dev
 ```
 
+## Creating the First Admin
+
+You have to be able to login to the website to add an admin, so you'll need to create an admin user before your first login. You can do so as follows:
+
+```
+cd cavesite
+node build/tools/create-admin.js
+```
+
+The tool requires that you enter a strong password.
+
 ## Running the Test Suites
 
-Unit tests are written for `jest` and appear adjacent in the code to the modules they test with extension `.test.ts`. You'll find a list of them in `bin/test-all`. You can run them with the following command:
+Unit tests are written for `jest` and appear adjacent in the code to the modules they test with extension `.test.ts`. You'll find a list of them in `bin/test-all`. Many of them create tables in a database called `test_caves`, which you'll need to set up in advance on a running instance of PostgreSQL.
+
+Unit tests assume the following configuration, which you'll find in `src/backend/util/test_util.ts`:
+
+```
+  host: 'localhost',
+  database: 'test_caves',
+  port: 5432,
+  user: 'test_user',
+  password: 'test_pass'
+```
+
+You can run all of the unit tests with the following command:
 
 ```
 yarn run unit-tests
 ```
 
-Browser-based web tests are written for `playwright` and appear in the directory `src/frontend/ui-tests`. They require that the server be running on localhost with valid data. You can run them with the following command:
+To run an individual unit test, do the following (exemplified for one test file):
+
+```
+npx jest src/backend/model/taxon.test.ts
+```
+
+Browser-based web tests are written for `playwright` and appear in the directory `src/frontend/ui-tests` with extension `.play.ts`. They require that the server be running on localhost with valid data in the database setup by `.env`. You can run them with the following command:
 
 ```
 yarn run web-tests
+```
+
+To run an individual web test, do the following (exemplified for one test file):
+
+```
+npx playwright test --project=chromium src/frontend/ui-tests/taxa-tab.play.ts
 ```
