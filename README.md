@@ -92,6 +92,33 @@ rm -rdf build
 yarn run dev
 ```
 
+## Loading Data into the Site
+
+Before you can import data into the site, you have to provide the various data files that affect how data is imported. There are default data files in `setup/data_files` for this purpose. They are likely too obsolete to use with a production site. Load them as follows:
+
+```
+cd cavesite
+node build/tools/load-files.js
+```
+
+Now you can import the data. There are three options for doing so: loading from CSV, immediately loading from GBIF, and load from GBIF on a schedule.
+
+You can immediately load the data from GBIF with the following command:
+
+```
+cd /var/www
+node build/tools/import-gbif.js –force
+```
+
+The way to set up loading from GBIF on a schedule depends on your platform. See the [installation manual](https://github.com/ut-entomology/cavesite/blob/main/setup/installation-manual.md#importing-from-gbif) for how this is done on Ubuntu.
+
+You can also import the data from a CSV file that the cleancave program generates with the `-rW` switch. That command follows:
+
+```
+cd /var/www
+node build/tools/load-csv.js path-to-csv-file.csv
+```
+
 ## Creating the First Admin
 
 You have to be able to login to the website to add an admin, so you'll need to create an admin user before your first login. You can do so as follows:
