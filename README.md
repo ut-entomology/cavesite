@@ -91,3 +91,17 @@ cd ~/cavesite
 rm -rdf build
 yarn run dev
 ```
+
+## Running the Test Suites
+
+Unit tests are written for `jest` and appear adjacent in the code to the modules they test with extension `.test.ts`. You'll find a list of them in `bin/test-all`. You can run them with the following command:
+
+```
+yarn run unit-tests
+```
+
+Browser-based web tests are written for `playwright` and appear in the directory `src/frontend/ui-tests`. They require that the server be running on localhost with valid data. You can run them with the following command:
+
+```
+yarn run web-tests
+```
