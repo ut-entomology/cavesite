@@ -84,72 +84,89 @@ export interface TexasSpeciesStatus {
 export interface KeyDataInfo {
   readPermission: Permission;
   getErrors: ((text: string) => string[]) | null;
+  checkTaxa: boolean;
 }
 
 export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
   [DataKey.SiteTitleAndSubtitle]: {
     readPermission: Permission.None,
-    getErrors: getSiteTitleAndSubtitleErrors
+    getErrors: getSiteTitleAndSubtitleErrors,
+    checkTaxa: false
   },
   [DataKey.WelcomePage]: {
     readPermission: Permission.None,
-    getErrors: getWelcomePageErrors
+    getErrors: getWelcomePageErrors,
+    checkTaxa: false
   },
   [DataKey.DefaultQueryFields]: {
     readPermission: Permission.None,
-    getErrors: getDefaultQueryFieldsErrors
+    getErrors: getDefaultQueryFieldsErrors,
+    checkTaxa: false
   },
   [DataKey.ImportSchedule]: {
     readPermission: Permission.Admin,
-    getErrors: null
+    getErrors: null,
+    checkTaxa: false
   },
   [DataKey.KarstRegions]: {
     readPermission: Permission.None,
-    getErrors: getKarstRegionsErrors
+    getErrors: getKarstRegionsErrors,
+    checkTaxa: false
   },
   [DataKey.TerrestrialKarstTerms]: {
     readPermission: Permission.None,
-    getErrors: null
+    getErrors: null,
+    checkTaxa: false
   },
   [DataKey.TerrestrialKarstLocalities]: {
     readPermission: Permission.None,
-    getErrors: getKarstLocalityErrors
+    getErrors: getKarstLocalityErrors,
+    checkTaxa: false
   },
   [DataKey.AquaticKarstTerms]: {
     readPermission: Permission.None,
-    getErrors: null
+    getErrors: null,
+    checkTaxa: false
   },
   [DataKey.AquaticKarstLocalities]: {
     readPermission: Permission.None,
-    getErrors: getKarstLocalityErrors
+    getErrors: getKarstLocalityErrors,
+    checkTaxa: false
   },
   [DataKey.Stygobites]: {
     readPermission: Permission.None,
-    getErrors: getKarstObligatesErrors
+    getErrors: getKarstObligatesErrors,
+    checkTaxa: true
   },
   [DataKey.Troglobites]: {
     readPermission: Permission.None,
-    getErrors: getKarstObligatesErrors
+    getErrors: getKarstObligatesErrors,
+    checkTaxa: true
   },
   [DataKey.TexasSpeciesStatus]: {
     readPermission: Permission.None,
-    getErrors: getTexasSpeciesStatusErrors
+    getErrors: getTexasSpeciesStatusErrors,
+    checkTaxa: true
   },
   [DataKey.FederalSpeciesStatus]: {
     readPermission: Permission.None,
-    getErrors: getFederalSpeciesStatusErrors
+    getErrors: getFederalSpeciesStatusErrors,
+    checkTaxa: true
   },
   [DataKey.NewAccountEmail]: {
     readPermission: Permission.None,
-    getErrors: getCredentialEmailErrors
+    getErrors: getCredentialEmailErrors,
+    checkTaxa: false
   },
   [DataKey.PasswordResetLinkEmail]: {
     readPermission: Permission.Admin,
-    getErrors: getPasswordResetLinkEmailErrors
+    getErrors: getPasswordResetLinkEmailErrors,
+    checkTaxa: false
   },
   [DataKey.NewPasswordEmail]: {
     readPermission: Permission.Admin,
-    getErrors: getCredentialEmailErrors
+    getErrors: getCredentialEmailErrors,
+    checkTaxa: false
   }
 };
 

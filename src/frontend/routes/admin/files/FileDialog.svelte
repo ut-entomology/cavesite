@@ -18,14 +18,16 @@
   import ModalDialog from '../../../common/ModalDialog.svelte';
   import AutosizingTextArea from '../../../components/AutosizingTextArea.svelte';
   import ConfirmationRequest from '../../../common/ConfirmationRequest.svelte';
-  import { keyDataInfoByKey } from '../../../../shared/data_keys';
+  import { keyDataInfoByKey, parseDataLines } from '../../../../shared/data_keys';
   import { loadKeyData, saveKeyData } from '../../../lib/key_data_client';
-  import { client } from '../../../stores/client';
+  import { client, globalClient } from '../../../stores/client';
 
   const BACKUP_MILLIS = 1000;
 
   export let fileSpec: FileSpec;
   export let close: () => void;
+
+  const keyDataInfo = keyDataInfoByKey[fileSpec.dataKey];
 
   let saveDisabled = true;
   let closeLabel: string;
@@ -34,6 +36,9 @@
   let requestCancelConfirmation = false;
   let status: string;
   let errors: string[] = [];
+  let warnings: string[] = [];
+  let loadingWarnings = false;
+  let warningStatus = '';
   let timer: NodeJS.Timeout | null = null;
 
   checkForErrors();
@@ -63,11 +68,17 @@
     if ($unsavedKeyData == null) {
       text = originalText;
     }
+    if (keyDataInfo.checkTaxa && errors.length == 0) {
+      loadTaxaWarnings(text);
+    }
   }
 
   async function onSave() {
     checkForErrors();
     if (errors.length == 0) {
+      if (keyDataInfo.checkTaxa) {
+        loadTaxaWarnings(text);
+      }
       await saveKeyData($client, false, fileSpec.dataKey, text);
       originalText = text;
     } else {
@@ -90,8 +101,62 @@
   }
 
   function checkForErrors() {
-    const keyDataInfo = keyDataInfoByKey[fileSpec.dataKey];
     errors = keyDataInfo.getErrors ? keyDataInfo.getErrors(text) : [];
+  }
+
+  const TAXA_RANKS = ['species', 'genus', 'family', 'order', 'class', 'phylum'];
+  async function loadTaxaWarnings(text: string): Promise<void> {
+    const lines = parseDataLines(text);
+    const _warnings: string[] = [];
+    loadingWarnings = true;
+    showWarningStatus();
+    for (let line of lines) {
+      line = line.trim();
+      if (line != '') {
+        const lookupTaxon = line.split(',')[0].trim();
+        const urlTaxon = lookupTaxon.replace(' ', '+');
+        let matchedTaxon: string | undefined = undefined;
+        let matchedRank: string | undefined = undefined;
+        try {
+          const res = await $globalClient.get(
+            `https://api.gbif.org/v1/species/match?kingdom=Animalia&name=${urlTaxon}`
+          );
+          for (const rank of TAXA_RANKS) {
+            matchedTaxon = res.data[rank];
+            if (matchedTaxon && matchedTaxon != '') {
+              matchedRank = rank;
+              break;
+            }
+          }
+          if (!matchedTaxon) {
+            _warnings.push(`${formatTaxon(lookupTaxon)} not found in GBIF`);
+          } else if (matchedTaxon != lookupTaxon) {
+            _warnings.push(
+              `${formatTaxon(lookupTaxon)} maps to ${matchedRank} ${formatTaxon(
+                matchedTaxon
+              )} in GBIF`
+            );
+          }
+        } catch (err: any) {
+          _warnings.push(`Error looking up ${formatTaxon(lookupTaxon)} on GBIF`);
+        }
+      }
+    }
+    warnings = _warnings; // render warnings
+    loadingWarnings = false;
+  }
+
+  function showWarningStatus() {
+    if (loadingWarnings) {
+      warningStatus = warningStatus == '' ? 'checking taxa vs GBIF...' : '';
+      setTimeout(showWarningStatus, warningStatus == '' ? 500 : 1500);
+    } else {
+      warningStatus = '';
+    }
+  }
+
+  function formatTaxon(taxon: string): string {
+    return taxon.includes(' ') ? `<i>${taxon}</i>` : taxon;
   }
 </script>
 
@@ -111,9 +176,26 @@
         </ul>
       </div>
     {/if}
+    {#if warnings.length > 0}
+      <div id="warnings" class="col">
+        <div class="warning_header">Warnings</div>
+        <ul>
+          {#each warnings as warning}
+            <li>{@html warning}</li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
 
     <div class="dialog_controls row gx-0">
-      <div class="col status text-center">{status}</div>
+      <div class="col-sm-2 status text-center">{status}</div>
+      <div class="col-sm-5 status text-center">
+        {#if loadingWarnings}
+          {warningStatus}
+        {:else}
+          {warnings.length == 0 ? 'all taxa found on GBIF' : ''}
+        {/if}
+      </div>
       <div class="col text-end">
         <button
           class="btn btn-major"
@@ -161,20 +243,32 @@
     margin-left: 0.75rem;
   }
 
-  #errors {
+  #errors,
+  #warnings {
     border-radius: $border-radius;
-    border: 1px solid red;
     padding: 0 0.5em 0.5em 0.5em;
     margin: 1rem 0 0.5rem 0;
     font-size: 0.95rem;
   }
-  .error_header {
+  .error_header,
+  .warning_header {
     font-weight: bold;
     width: fit-content;
     margin: -0.8em 0 0.5em 1em;
     padding: 0 0.5em;
     background-color: white;
+  }
+  #errors {
+    border: 1px solid red;
+  }
+  .error_header {
     color: red;
+  }
+  #warnings {
+    border: 1px solid orange;
+  }
+  .warning_header {
+    color: orange;
   }
   ul {
     margin: 0.5rem 0;

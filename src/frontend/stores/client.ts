@@ -8,18 +8,27 @@ import { getReasonPhrase } from 'http-status-codes';
 
 import { CSRF_TOKEN_HEADER } from '../../shared/user_auth';
 
-const REST_API_TIMEOUT_MILLIS = 20000;
+const LOCAL_API_TIMEOUT_MILLIS = 10000;
+const GLOBAL_API_TIMEOUT_MILLIS = 30000;
 
 const originalOrigin = window.location.origin;
 
-const axiosConfig: any = {
+const localClientConfig: any = {
   baseURL: originalOrigin,
-  timeout: REST_API_TIMEOUT_MILLIS,
+  timeout: LOCAL_API_TIMEOUT_MILLIS,
   withCredentials: true
 };
-const publicClient = axios.create(axiosConfig);
+const globalClientConfig: any = {
+  baseURL: originalOrigin,
+  timeout: GLOBAL_API_TIMEOUT_MILLIS,
+  withCredentials: false
+};
 
-export const client = writable<AxiosInstance>(publicClient);
+const _localClient = axios.create(localClientConfig);
+const _globalClient = axios.create(globalClientConfig);
+
+export const client = writable<AxiosInstance>(_localClient);
+export const globalClient = writable<AxiosInstance>(_globalClient);
 
 export const bubbleUpError = (err: any) => {
   throw err;
@@ -28,10 +37,10 @@ export const bubbleUpError = (err: any) => {
 export function setCsrfToken(csrfToken: string | null) {
   if (csrfToken === null) {
     delete axios.defaults.headers.post[CSRF_TOKEN_HEADER];
-    client.set(publicClient);
+    client.set(_localClient);
   } else {
     axios.defaults.headers.post[CSRF_TOKEN_HEADER] = csrfToken;
-    client.set(axios.create(axiosConfig));
+    client.set(axios.create(localClientConfig));
   }
 }
 
