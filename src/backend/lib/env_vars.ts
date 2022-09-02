@@ -3,7 +3,6 @@
  * that configure the server for operation.
  */
 
-import * as path from 'path';
 import dotenv from 'dotenv';
 
 export function loadAndCheckEnvVars(forServer: boolean): void {
@@ -35,16 +34,16 @@ export function loadAndCheckEnvVars(forServer: boolean): void {
       process.env.CAVESITE_PORT = '80';
     }
 
-    if (!process.env.CAVESITE_LOG_DIR) {
-      errors.push('CAVESITE_LOG_DIR - missing');
-    } else {
-      if (!'/\\'.includes(process.env.CAVESITE_LOG_DIR[0])) {
-        process.env.CAVESITE_LOG_DIR = path.join(
-          process.cwd(),
-          process.env.CAVESITE_LOG_DIR
-        );
-      }
-    }
+    // if (!process.env.CAVESITE_LOG_DIR) {
+    //   errors.push('CAVESITE_LOG_DIR - missing');
+    // } else {
+    //   if (!'/\\'.includes(process.env.CAVESITE_LOG_DIR[0])) {
+    //     process.env.CAVESITE_LOG_DIR = path.join(
+    //       process.cwd(),
+    //       process.env.CAVESITE_LOG_DIR
+    //     );
+    //   }
+    // }
 
     if (!process.env.CAVESITE_SENDER_EMAIL) {
       errors.push('CAVESITE_SENDER_EMAIL - missing');
@@ -109,8 +108,7 @@ MAPBOX_ACCESS_TOKEN* - Token supplied by https://www.mapbox.com/ for maps.
 CAVESITE_HIDDEN_TABS - Comma-delimited names of page tabs not to display.
 CAVESITE_LOG_SERVER_RESTART - Set to 'on' to log server restarts.
 
-CAVESITE_PORT - Port on which to run the website. Defaults to 80.
-CAVESITE_LOG_DIR* - Directory for the website access log files.`);
+CAVESITE_PORT - Port on which to run the website. Defaults to 80.`);
     }
 
     console.log(`
