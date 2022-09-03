@@ -139,7 +139,7 @@ function _nextUniqueName(parentUniqueName: string, taxonName: string): string {
 
 //// Location /////////////////////////////////////////////////////////////////
 
-export const ROOT_LOCATION_UNIQUE = 'north america|united states|texas';
+export const ROOT_LOCATION_UNIQUE = 'north america|united states of america|texas';
 export const TERRESTRIAL_KARST_FLAG = 0x01;
 export const AQUATIC_KARST_FLAG = 0x02;
 

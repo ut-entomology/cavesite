@@ -349,7 +349,7 @@ export class Location {
   ): string[] {
     if (!source.continent) throw new ImportFailure('Continent not given');
 
-    const locationNames: string[] = [source.continent];
+    const locationNames: string[] = [source.continent.replace('_', ' ')];
 
     if (source.country) {
       locationNames.push(source.country);

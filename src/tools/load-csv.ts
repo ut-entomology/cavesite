@@ -69,8 +69,8 @@ function recordToGbifRecord(record: CsvSpecimen): GbifRecord {
     infraspecificEpithet: toSpeciesOrSubspecies(record.subspecies),
     scientificName: toScientificName(record),
 
-    continent: 'North America',
-    country: 'United States',
+    continent: 'NORTH_AMERICA', // value used by GBIF
+    country: 'United States of America', // value used by GBIF
     stateProvince: record.state,
     county: record.county,
     locality: record.localityName,
