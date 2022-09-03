@@ -72,12 +72,11 @@
   let colorsByLabel: Record<string, string>;
   let strokeColor: string;
   let pinnedLabels: Record<string, boolean>;
-  let completedLayers: boolean;
+  let completedLayers = false;
 
   $: {
     specsByLongByLat = {};
     pinnedLabels = {};
-    completedLayers = false;
 
     for (const spec of markerSpecs) {
       let specsByLong = specsByLongByLat[spec.latitude];

@@ -4,7 +4,7 @@
   export let title: string;
   export let classes = '';
   export let maxWidth: string;
-  export let onClose: () => void;
+  export let onClose: (() => void) | null = null;
 </script>
 
 <ModalDialog {title} {maxWidth} {onClose} contentClasses={classes}>
@@ -13,11 +13,13 @@
       <slot />
     </div>
   </div>
-  <div class="row mt-4 mb-2">
-    <div class="col text-center">
-      <button class="btn btn-major" type="button" on:click={onClose}>Close</button>
+  {#if onClose !== null}
+    <div class="row mt-4 mb-2">
+      <div class="col text-center">
+        <button class="btn btn-major" type="button" on:click={onClose}>Close</button>
+      </div>
     </div>
-  </div>
+  {/if}
 </ModalDialog>
 
 <style>
