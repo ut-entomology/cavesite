@@ -19,17 +19,20 @@
   let selectedClusters: boolean[] = [];
   let markerSpecs: MapMarkerSpec[];
   let featureColors: string[];
+  let togglesPerRow: number;
   selectAll();
 
-  let toggleRow: ClusterToggle[] = [];
-  for (let i = 0; i < clusterColors.length; ++i) {
-    if (i % MAX_TOGGLES_PER_ROW == 0) {
-      toggleRow = [];
-      clusterToggles.push(toggleRow);
+  $: {
+    let toggleRow: ClusterToggle[] = [];
+    for (let i = 0; i < clusterColors.length; ++i) {
+      if (i % MAX_TOGGLES_PER_ROW == 0) {
+        toggleRow = [];
+        clusterToggles.push(toggleRow);
+      }
+      toggleRow.push({ clusterNumber: i + 1, color: clusterColors[i].foreground });
     }
-    toggleRow.push({ clusterNumber: i + 1, color: clusterColors[i].foreground });
+    togglesPerRow = clusterToggles[0].length;
   }
-  let togglesPerRow = clusterToggles[0].length;
 
   $: {
     markerSpecs = [];
@@ -130,6 +133,7 @@
 
   .toggle_rows {
     width: 100%;
+    text-align: center;
   }
   .toggle_rows .toggle {
     position: relative;
