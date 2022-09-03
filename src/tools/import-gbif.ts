@@ -41,7 +41,7 @@ abstract class GbifImporter {
     this.description = description;
     this.client = axios.create({
       baseURL: process.env.CAVESITE_BASE_URL,
-      timeout: 8000, // 8 seconds
+      timeout: 20000, // 20 seconds
       withCredentials: false
     });
   }
