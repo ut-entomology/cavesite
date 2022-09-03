@@ -44,6 +44,7 @@ const SPA_INDEX_FILE = path.join(PUBLIC_FILE_DIR, 'index.html');
 // Set up pre-route stack.
 
 const app = express();
+app.enable('trust proxy');
 // @ts-ignore apparent type def error in morgan
 morgan.token('remote-addr', (req) => req.headers['X-Forwarded-For'] || 'local');
 app.use(
