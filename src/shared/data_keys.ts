@@ -69,7 +69,7 @@ export interface ImportSchedule {
 }
 
 export interface MapRegionSource {
-  isKFR: boolean;
+  switchName: string;
   propertyName: string;
   layerName: string;
   mapboxCode: string;
@@ -267,12 +267,8 @@ function getKarstRegionsErrors(text: string) {
     line = line.trim();
     if (line.length == 0 || line[0] == '#') continue;
     const colonOffset = line.indexOf(':');
-    if (colonOffset <= 0) {
-      addError(errors, line, "must begin with 'KR:' or 'KFR:'");
-    }
-    const regionType = line.substring(0, colonOffset);
-    if (!['KR', 'KFR'].includes(regionType)) {
-      addError(errors, line, "must begin with 'KR:' or 'KFR:'");
+    if (colonOffset <= 0 || line.substring(0, colonOffset).trim() == '') {
+      addError(errors, line, 'must begin with a switch name followed by a colon');
     }
     const params = line.substring(colonOffset + 1).split(',');
     if (params.length != 3) {
@@ -428,7 +424,7 @@ export function parseRegions(text: string): MapRegionSource[] {
     const colonOffset = line.indexOf(':');
     const params = line.substring(colonOffset + 1).split(',');
     regionSources.push({
-      isKFR: line.substring(0, colonOffset) == 'KFR',
+      switchName: line.substring(0, colonOffset).trim(),
       propertyName: params[0].trim(),
       layerName: params[1].trim(),
       mapboxCode: params[2].trim()

@@ -21,7 +21,7 @@
     longitude: number;
     latitude: number;
     zoom: number;
-    showingKFRs: boolean;
+    switchShown: string;
   }
 
   export const allRegionSources = createSessionStore<MapRegionSource[] | null>(
@@ -47,6 +47,7 @@
   export let mapReady = () => {};
 
   interface RegionSet {
+    switchName: string;
     regionSources: MapRegionSource[];
     regionCount: number;
     namesPerSource: any[][];
@@ -57,10 +58,11 @@
   const INNER_RADIUS = 8;
   const STROKE_COLOR_FACTOR = 0.85;
 
-  let krRegionSet: RegionSet;
-  let kfrRegionSet: RegionSet;
+  let prepared = false;
+  let switchNames: string[] = [];
+  let regionSets: RegionSet[];
   let activeRegionSet: RegionSet;
-  let regionSelection = initialState?.showingKFRs ? 'KFR' : 'KR';
+  let regionSelection = initialState?.switchShown || null;
 
   const markerTemplatesBySize: string[] = [];
   markerTemplatesBySize[1] = `<div><svg width="${MARKER_DIAMETER}" height="${MARKER_DIAMETER}" viewbox="0 0 ${MARKER_DIAMETER} ${MARKER_DIAMETER}" text-anchor="middle" stroke="|STROKE|" stroke-width="1px" style="display:block"><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${MARKER_RADIUS}" fill="|ARC|" /><circle cx="${MARKER_RADIUS}" cy="${MARKER_RADIUS}" r="${INNER_RADIUS}" fill="#eee" /><text stroke="#555" dominant-baseline="central" transform="translate(${MARKER_RADIUS}, ${MARKER_RADIUS})">1</text></svg></div>`;
@@ -108,13 +110,27 @@
     strokeColor = `rgb(${strokeRGB.join(',')})`;
   }
 
-  afterUpdate(async () => {
-    if (!$allRegionSources) {
+  async function prepare() {
+    if (!$allRegionSources || !$allRegionSources[0].switchName) {
       // Load region sources once per browser session.
       const data = await loadKeyData($client, false, DataKey.KarstRegions);
       $allRegionSources = parseRegions(data || '');
     }
+    if ($allRegionSources.length > 0) {
+      for (const regionSource of $allRegionSources) {
+        if (!switchNames.includes(regionSource.switchName)) {
+          switchNames.push(regionSource.switchName);
+        }
+      }
+      if (regionSelection === null) {
+        regionSelection = switchNames[0];
+      }
+    }
+    prepared = true;
+  }
 
+  afterUpdate(async () => {
+    if (!prepared) return;
     if (map) {
       for (const marker of markers) marker.remove();
       for (const popup of popups) popup.remove();
@@ -171,8 +187,7 @@
         // shown and extract the region information before choosing initial regions.
 
         if (!completedLayers) {
-          krRegionSet = extractRegionSet(false);
-          kfrRegionSet = extractRegionSet(true);
+          loadRegionSets();
           setVisibleRegions();
           completedLayers = true;
         }
@@ -251,7 +266,7 @@
         latitude: lat,
         longitude: lng,
         zoom: map.getZoom(),
-        showingKFRs: regionSelection == 'KFR'
+        switchShown: regionSelection!
       });
     }
   }
@@ -311,47 +326,52 @@
   }
 
   function setVisibleRegions() {
-    if (regionSelection == 'KR') {
-      removeRegionSet(kfrRegionSet);
-      renderRegionSet(krRegionSet);
-    } else {
-      removeRegionSet(krRegionSet);
-      renderRegionSet(kfrRegionSet);
+    for (const regionSet of regionSets) {
+      if (regionSet.switchName == regionSelection) {
+        renderRegionSet(regionSet);
+      } else {
+        removeRegionSet(regionSet);
+      }
     }
     _stateChanged();
   }
 
-  function extractRegionSet(kfrs: boolean): RegionSet {
-    const features = map.queryRenderedFeatures({
-      // @ts-ignore error in type definition
-      layers: $allRegionSources
-        .filter((src) => src.isKFR == kfrs)
-        .map((src) => _toLayerSourceID(src.layerName))
-    });
-    const regionSources: MapRegionSource[] = [];
-    const namesPerSource: any[][] = [];
-    let regionCount = 0;
-    for (const regionSource of $allRegionSources!) {
-      if (regionSource.isKFR == kfrs) {
-        const regionNames: string[] = [];
-        for (const feature of features) {
-          const regionName = (feature as any).properties[regionSource.propertyName];
-          if (regionName !== undefined && !regionNames.includes(regionName)) {
-            regionNames.push(regionName);
-            ++regionCount;
+  function loadRegionSets(): void {
+    regionSets = [];
+    for (const switchName of switchNames) {
+      const features = map.queryRenderedFeatures({
+        // @ts-ignore error in type definition
+        layers: $allRegionSources
+          .filter((src) => src.switchName == switchName)
+          .map((src) => _toLayerSourceID(src.layerName))
+      });
+      const regionSources: MapRegionSource[] = [];
+      const namesPerSource: any[][] = [];
+      let regionCount = 0;
+      for (const regionSource of $allRegionSources!) {
+        if (regionSource.switchName == switchName) {
+          const regionNames: string[] = [];
+          for (const feature of features) {
+            const regionName = (feature as any).properties[regionSource.propertyName];
+            if (regionName !== undefined && !regionNames.includes(regionName)) {
+              regionNames.push(regionName);
+              ++regionCount;
+            }
           }
+          regionSources.push(regionSource);
+          namesPerSource.push(regionNames);
         }
-        regionSources.push(regionSource);
-        namesPerSource.push(regionNames);
       }
+      regionSets.push({ switchName, regionSources, regionCount, namesPerSource });
     }
-    return { regionSources, regionCount, namesPerSource };
   }
 
   function removeRegionSet(regionSet: RegionSet): void {
     for (const regionSource of regionSet.regionSources) {
       const sourceID = _toLayerSourceID(regionSource.layerName);
-      map.removeLayer(sourceID);
+      if (map.getLayer(sourceID)) {
+        map.removeLayer(sourceID);
+      }
     }
   }
 
@@ -401,31 +421,27 @@
 
 <div id="map_box">
   <div id="map" />
-  <div id="region_controls">
-    <div class="btn-group" role="group" aria-label="Switch between data and admin tabs">
-      <input
-        type="radio"
-        class="btn-check"
-        bind:group={regionSelection}
-        name="region_switch"
-        id="kr_selector"
-        value="KR"
-        on:change={setVisibleRegions}
-      />
-      <label class="btn btn-outline-primary compact" for="kr_selector">KR</label>
-      <input
-        type="radio"
-        class="btn-check"
-        bind:group={regionSelection}
-        name="region_switch"
-        id="kfr_selector"
-        value="KFR"
-        on:change={setVisibleRegions}
-      />
-      <label class="btn btn-outline-primary compact" for="kfr_selector">KFR</label>
+  {#await prepare() then}
+    <div id="region_controls">
+      <div class="btn-group" role="group" aria-label="Switch among region sets">
+        {#each switchNames as switchName}
+          <input
+            type="radio"
+            class="btn-check"
+            bind:group={regionSelection}
+            name="region_switch"
+            id="{switchName}_selector"
+            value={switchName}
+            on:change={setVisibleRegions}
+          />
+          <label class="btn btn-outline-primary compact" for="{switchName}_selector"
+            >{switchName}</label
+          >
+        {/each}
+      </div>
+      <div id="feature_name" class="hidden" />
     </div>
-    <div id="feature_name" class="hidden" />
-  </div>
+  {/await}
   <div id="map_hider" />
 </div>
 
