@@ -1,15 +1,24 @@
 <script lang="ts" context="module">
   import { createSessionStore } from '../../util/session_store';
 
-  enum PredictedDiffUnits {
+  enum AdditionalTaxaUnits {
     Visits = 'visits',
     PersonVisits = 'person-visits'
   }
 
-  const probablityMapUnits = createSessionStore<PredictedDiffUnits>(
-    'probability_map_units',
-    PredictedDiffUnits.Visits
-  );
+  interface ProbabilityMapConfig {
+    minProbabilityPercent: number;
+    additionalTaxaUnits: AdditionalTaxaUnits;
+    factorInTaxaAccuracy: boolean;
+    showExistingRecords: boolean;
+  }
+
+  const mapConfig = createSessionStore<ProbabilityMapConfig>('probability_map_config', {
+    minProbabilityPercent: 25,
+    additionalTaxaUnits: AdditionalTaxaUnits.Visits,
+    factorInTaxaAccuracy: true,
+    showExistingRecords: false
+  });
 </script>
 
 <script lang="ts">
@@ -26,19 +35,25 @@
   const PROBABILITY_COLOR = [220, 0, 0]; // red
   const MAX_SCALE_DIVISIONS = 20;
 
-  export let minProbabilityPercent: number;
   export let dataByCluster: ClusterData[];
   export let close: () => void;
 
   interface LocationProbability {
     clusterNumbers: number[];
     graphData: LocationGraphData;
-    visitsPercent: number;
-    personVisitsPercent: number;
+    visitsPercentNoAccuracy: number;
+    personVisitsPercentNoAccuracy: number;
+    visitsPercentWithAccuracy: number;
+    personVisitsPercentWithAccuracy: number;
   }
 
+  let minProbabilityPercent = $mapConfig.minProbabilityPercent;
+  let additionalTaxaUnits = $mapConfig.additionalTaxaUnits;
+  let factorInTaxaAccuracy = $mapConfig.factorInTaxaAccuracy;
+  let showExistingRecords = $mapConfig.showExistingRecords;
+
   const taxonUniques = Object.keys($selectedTaxa!);
-  let description = 'Probability map for the range of ';
+  let title = 'Probability Map for ';
   let probabilitiesByLocationID: Record<number, LocationProbability> = {};
   let knownMarkerSpecs: MapMarkerSpec[] = [];
   let markerSpecs: MapMarkerSpec[];
@@ -49,15 +64,15 @@
   let taxonName = '';
   const taxonSpecs = Object.values($selectedTaxa!);
   if (taxonSpecs.length == 1) {
-    const taxonUnique = taxonUniques[0];
-    const taxonRank = $selectedTaxa![taxonUnique].rank;
+    taxonName = taxonUniques[0];
+    const taxonRank = $selectedTaxa![taxonName].rank;
     if (
       [TaxonRank.Genus, TaxonRank.Species, TaxonRank.Subspecies].includes(taxonRank)
     ) {
       taxonName = `<i>${taxonName}</i>`;
     }
   }
-  description += taxonName == '' ? 'selected taxa' : taxonName;
+  title += taxonName == '' ? 'selected taxa' : taxonName;
 
   for (const taxonUnique of taxonUniques) {
     for (let i = 0; i < dataByCluster.length; ++i) {
@@ -85,74 +100,108 @@
       }
       for (const graphData of clusterData.locationGraphDataSet) {
         const commonFactor =
-          100 *
-          (taxonCaveCount / clusterData.locationGraphDataSet.length) *
-          finalTaxaFractionCorrect;
+          100 * (taxonCaveCount / clusterData.locationGraphDataSet.length);
         const knownVisits = graphData.visitsByTaxonUnique[taxonUnique];
         if (knownVisits === undefined) {
-          const visitsProbability =
+          const visitsProbabilityNoAccuracy =
             graphData.predictedPerVisitDiff !== null
               ? Math.min(commonFactor * graphData.predictedPerVisitDiff, 100)
               : null;
-          const personVisitsProbability =
+          const personVisitsProbabilityNoAccuracy =
             graphData.predictedPerPersonVisitDiff !== null
               ? Math.min(commonFactor * graphData.predictedPerPersonVisitDiff, 100)
               : null;
+          const visitsProbabilityWithAccuracy = visitsProbabilityNoAccuracy
+            ? visitsProbabilityNoAccuracy * finalTaxaFractionCorrect
+            : null;
+          const personVisitsProbabilityWithAccuracy = personVisitsProbabilityNoAccuracy
+            ? personVisitsProbabilityNoAccuracy * finalTaxaFractionCorrect
+            : null;
           let locationProbability = probabilitiesByLocationID[graphData.locationID];
           if (locationProbability === undefined) {
             locationProbability = {
               clusterNumbers: [],
               graphData,
-              visitsPercent: 0,
-              personVisitsPercent: 0
+              visitsPercentNoAccuracy: 0,
+              personVisitsPercentNoAccuracy: 0,
+              visitsPercentWithAccuracy: 0,
+              personVisitsPercentWithAccuracy: 0
             };
             if (!locationProbability.clusterNumbers.includes(i + 1)) {
               locationProbability.clusterNumbers.push(i + 1);
             }
             probabilitiesByLocationID[graphData.locationID] = locationProbability;
           }
-          if (
-            visitsProbability &&
-            visitsProbability > locationProbability.visitsPercent
-          ) {
-            locationProbability.visitsPercent = visitsProbability;
-          }
-          if (
-            personVisitsProbability &&
-            personVisitsProbability > locationProbability.personVisitsPercent
-          ) {
-            locationProbability.personVisitsPercent = personVisitsProbability;
-          }
+          _updateProbability(
+            locationProbability,
+            'visitsPercentNoAccuracy',
+            visitsProbabilityNoAccuracy
+          );
+          _updateProbability(
+            locationProbability,
+            'personVisitsPercentNoAccuracy',
+            personVisitsProbabilityNoAccuracy
+          );
+          _updateProbability(
+            locationProbability,
+            'visitsPercentWithAccuracy',
+            visitsProbabilityWithAccuracy
+          );
+          _updateProbability(
+            locationProbability,
+            'personVisitsPercentWithAccuracy',
+            personVisitsProbabilityWithAccuracy
+          );
         }
       }
     }
   }
 
-  const deltaScale = (100 - 1) / (MAX_SCALE_DIVISIONS - 1);
-  for (let v = 100; Math.round(v) >= 1; v -= deltaScale) {
+  const lowestPercent = 0;
+  const deltaScale = (100 - lowestPercent) / (MAX_SCALE_DIVISIONS - 1);
+  for (let v = 100; Math.round(v) >= lowestPercent; v -= deltaScale) {
     const rounded = Math.round(v);
     scaleDivisions.push(rounded + ' %');
-    scaleColors.push(_toScaleColor(100 + 1 - v, 100));
+    scaleColors.push(_toScaleColor(100 + lowestPercent - v, 100));
   }
   scaleDivisions.reverse();
+
+  $: {
+    if (minProbabilityPercent < 0) minProbabilityPercent = 0;
+    if (minProbabilityPercent > 100) minProbabilityPercent = 100;
+    $mapConfig = {
+      minProbabilityPercent,
+      additionalTaxaUnits,
+      factorInTaxaAccuracy,
+      showExistingRecords
+    };
+  }
 
   $: {
     markerSpecs = [];
     featureColors = [];
 
-    for (const markerSpec of knownMarkerSpecs) {
-      markerSpecs.push(markerSpec);
-      featureColors.push(KNOWN_LOCATION_COLOR);
+    if (showExistingRecords) {
+      for (const markerSpec of knownMarkerSpecs) {
+        markerSpecs.push(markerSpec);
+        featureColors.push(KNOWN_LOCATION_COLOR);
+      }
     }
 
     for (const locationProbability of Object.values(probabilitiesByLocationID)) {
       const graphData = locationProbability.graphData;
       const latitude = graphData.latitude;
       const longitude = graphData.longitude;
-      const probabilityPercent =
-        $probablityMapUnits == PredictedDiffUnits.Visits
-          ? locationProbability.visitsPercent
-          : locationProbability.personVisitsPercent;
+      let probabilityPercent: number;
+      if (additionalTaxaUnits == AdditionalTaxaUnits.Visits) {
+        probabilityPercent = factorInTaxaAccuracy
+          ? locationProbability.visitsPercentWithAccuracy
+          : locationProbability.visitsPercentNoAccuracy;
+      } else {
+        probabilityPercent = factorInTaxaAccuracy
+          ? locationProbability.personVisitsPercentWithAccuracy
+          : locationProbability.personVisitsPercentNoAccuracy;
+      }
 
       if (probabilityPercent >= minProbabilityPercent && latitude && longitude) {
         let label = graphData.localityName;
@@ -178,50 +227,100 @@
     const b = ZERO_COLOR[2] + fraction * (PROBABILITY_COLOR[2] - ZERO_COLOR[2]);
     return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
   }
+
+  function _updateProbability(
+    locationProbability: LocationProbability,
+    propertyName: Extract<
+      keyof LocationProbability,
+      | 'visitsPercentNoAccuracy'
+      | 'personVisitsPercentNoAccuracy'
+      | 'visitsPercentWithAccuracy'
+      | 'personVisitsPercentWithAccuracy'
+    >,
+    probability: number | null
+  ): void {
+    if (probability && probability > locationProbability[propertyName]) {
+      locationProbability[propertyName] = probability;
+    }
+  }
 </script>
 
-<InfoDialog title="Map of Clustered Caves" classes="map_dialog" maxWidth="1200px">
-  <div class="container-fluid" style="margin-top:-0.5rem">
-    <div class="row mb-3 justify-content-center">
-      <div class="col">
-        <div class="description">{@html description}</div>
+<InfoDialog {title} classes="map_dialog" maxWidth="1200px">
+  <div class="row mb-3 gx-4 justify-content-center" style="margin-top: -0.5rem">
+    <div class="col-auto">
+      Min. probability
+      <input
+        class="ms-1 probability_input"
+        bind:value={minProbabilityPercent}
+        disabled={$selectedTaxa === null}
+      />
+      %
+    </div>
+    <div class="col-auto">
+      <div class="check_input">
+        <input
+          id="factor_accuracy_input"
+          class="form-check-input"
+          type="checkbox"
+          bind:checked={factorInTaxaAccuracy}
+        />
+        <label class="form-check-label" for="factor_accuracy_input"
+          >Factor in historical accuracy of taxa predictions</label
+        >
       </div>
     </div>
-    <div class="row mb-2">
-      <div class="col-auto">
-        <div class="btn-group" role="group" aria-label="Switch datasets">
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={$probablityMapUnits}
-            name="predicted_diff_units"
-            id="map_units_{PredictedDiffUnits.Visits}"
-            value={PredictedDiffUnits.Visits}
-          />
-          <label
-            class="btn btn-outline-primary"
-            for="map_units_{PredictedDiffUnits.Visits}">Visits</label
-          >
-          <input
-            type="radio"
-            class="btn-check"
-            bind:group={$probablityMapUnits}
-            name="predicted_diff_units"
-            id="map_units_{PredictedDiffUnits.PersonVisits}"
-            value={PredictedDiffUnits.PersonVisits}
-          />
-          <label
-            class="btn btn-outline-primary"
-            for="map_units_{PredictedDiffUnits.PersonVisits}">Person-Visits</label
-          >
-        </div>
+    <div class="col-auto">
+      <div class="check_input">
+        <input
+          id="existing_records_input"
+          class="form-check-input"
+          type="checkbox"
+          bind:checked={showExistingRecords}
+        />
+        <label class="form-check-label" for="existing_records_input"
+          >Show existing records</label
+        >
       </div>
-      <div class="col d-flex align-items-center">
-        <ScaleDivisions {scaleDivisions} {scaleColors} />
+    </div>
+  </div>
+  <div class="row ms-1 me-1 mb-3">
+    <div class="col-auto">
+      <div
+        class="btn-group"
+        role="group"
+        aria-label="Predicted additional taxa for visits or person-visits"
+      >
+        <input
+          type="radio"
+          class="btn-check"
+          bind:group={additionalTaxaUnits}
+          name="predicted_diff_units"
+          id="map_units_{AdditionalTaxaUnits.Visits}"
+          value={AdditionalTaxaUnits.Visits}
+        />
+        <label
+          class="btn btn-outline-primary"
+          for="map_units_{AdditionalTaxaUnits.Visits}">Visits</label
+        >
+        <input
+          type="radio"
+          class="btn-check"
+          bind:group={additionalTaxaUnits}
+          name="predicted_diff_units"
+          id="map_units_{AdditionalTaxaUnits.PersonVisits}"
+          value={AdditionalTaxaUnits.PersonVisits}
+        />
+        <label
+          class="btn btn-outline-primary"
+          for="map_units_{AdditionalTaxaUnits.PersonVisits}">Person-Visits</label
+        >
       </div>
-      <div class="col-auto text-end">
-        <button class="btn btn-major" type="button" on:click={close}>Close</button>
-      </div>
+    </div>
+    <div class="col d-flex align-items-center">
+      <ScaleDivisions {scaleDivisions} {scaleColors} />
+    </div>
+    <div class="col-auto text-end">
+      <button class="btn btn-major" type="button" on:click={close}>Close</button>
     </div>
   </div>
 
@@ -230,13 +329,25 @@
   </div>
 </InfoDialog>
 
-<style>
+<style lang="scss">
+  @import '../../variables.scss';
+
   :global(.map_dialog) {
     display: flex;
     position: relative;
     flex-direction: column;
     flex-grow: 1;
     width: 100%;
+  }
+
+  .probability_input {
+    width: 3rem;
+    border-radius: $border-radius;
+    padding-left: 0.4rem;
+  }
+  .check_input {
+    display: inline-block;
+    padding-top: 0.2rem;
   }
 
   .map_area {
@@ -246,10 +357,5 @@
     flex-grow: 1;
     width: 100%;
     height: 600px;
-  }
-  .description {
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1rem;
   }
 </style>

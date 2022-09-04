@@ -27,7 +27,6 @@
   }
 
   const clusterStore = createSessionStore<ClusterStore | null>('clusters', null);
-  const minProbabilityPercent = createSessionStore<number>('min_probability', 25);
 </script>
 
 <script lang="ts">
@@ -205,9 +204,6 @@
 
     loadState = LoadState.ready;
   }
-
-  $: if ($minProbabilityPercent < 0) $minProbabilityPercent = 0;
-  $: if ($minProbabilityPercent > 100) $minProbabilityPercent = 100;
 
   function openLocation(locationData: LocationGraphData): void {
     locationGraphData = locationData;
@@ -508,32 +504,21 @@
           </div>
         </div>
 
-        <div class="row justify-content-center mt-2 mb-2" style="padding-top: 1.5rem">
-          <div class="col-auto" class:disabled={$selectedTaxa === null}>
-            <span>Min. probability</span>
-            <input
-              class="ms-1 probability_input"
-              bind:value={$minProbabilityPercent}
-              disabled={$selectedTaxa === null}
-            />
-            %
-            <button
-              class="btn btn-major ms-3 align-top"
-              type="button"
-              disabled={$selectedTaxa === null}
-              on:click={() => (showingProbabilityMap = true)}
-              >Map probabilities of selected taxa</button
-            >
-          </div>
-        </div>
         <div class="row justify-content-center">
           <div
             class="col d-flex align-items-center"
-            style="max-width: 320px; margin-top: 20px"
+            style="max-width: 320px; margin-top: 40px"
           >
             <div class="text-center">
               <button
-                class="btn btn-major mb-4"
+                class="btn btn-major mb-3"
+                type="button"
+                disabled={$selectedTaxa === null}
+                on:click={() => (showingProbabilityMap = true)}
+                >Map Probabilities of Selected Taxa</button
+              >
+              <button
+                class="btn btn-major mb-3"
                 type="button"
                 on:click={() => (showingClusterMap = true)}>Map Clusters</button
               >
@@ -543,7 +528,7 @@
               />
             </div>
           </div>
-          <div class="col" style="max-width: 460px; margin-top: -20px">
+          <div class="col" style="max-width: 460px">
             <ClusterRadarChart
               dataByCluster={$clusterStore.dataByCluster}
               {clusterColors}
@@ -726,7 +711,6 @@
 
 {#if showingProbabilityMap && $clusterStore}
   <ProbabilityMap
-    minProbabilityPercent={$minProbabilityPercent}
     dataByCluster={$clusterStore.dataByCluster}
     close={() => (showingProbabilityMap = false)}
   />
@@ -816,15 +800,6 @@
   }
   .accuracy_stats .stat span {
     font-weight: bold;
-  }
-
-  .probability_input {
-    border-radius: $border-radius;
-    width: 3rem;
-  }
-  .disabled,
-  .disabled input {
-    color: #999;
   }
 
   #cluster_selector {
