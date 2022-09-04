@@ -70,7 +70,7 @@
   import { ClusterColorSet } from './cluster_color_set';
   import { pageName } from '../../stores/pageName';
 
-  $pageName = 'Collecting Predictions';
+  $pageName = 'Range Predictions';
   const tabName = 'Predictions';
 
   const DEFAULT_CLUSTERING_CONFIG = {
