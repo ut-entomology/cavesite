@@ -519,7 +519,8 @@
               <button
                 class="btn btn-major mb-3"
                 type="button"
-                disabled={$selectedTaxa === null}
+                disabled={$selectedTaxa == null ||
+                  Object.keys($selectedTaxa).length == 0}
                 on:click={() => (showingProbabilityMap = true)}
                 >Map Probabilities of Selected Taxa</button
               >
