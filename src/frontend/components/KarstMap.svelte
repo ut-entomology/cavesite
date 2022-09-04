@@ -139,7 +139,7 @@
         accessToken: $appInfo.mapToken,
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-99.1, 31.5], // longitude, latitude
+        center: [-100.0, 31.3], // longitude, latitude
         zoom: 5
       });
       map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
