@@ -27,6 +27,7 @@
   }
 
   const clusterStore = createSessionStore<ClusterStore | null>('clusters', null);
+  const minProbabilityPercent = createSessionStore<number>('min_probability', 25);
 </script>
 
 <script lang="ts">
@@ -46,6 +47,7 @@
   import LocationBarGraph from './LocationBarGraph.svelte';
   import LocationFootnotes from './LocationFootnotes.svelte';
   import TaxonBarGraph from './TaxonBarGraph.svelte';
+  import ProbabilityMap from './ProbabilityMap.svelte';
   import ClusterMap from './ClusterMap.svelte';
   import MoreLess from '../../components/MoreLess.svelte';
   import EmptyTab from '../../components/EmptyTab.svelte';
@@ -61,6 +63,7 @@
     ComparedFauna,
     EffortFlags
   } from '../../../shared/model';
+  import { selectedTaxa } from '../../stores/selectedTaxa';
   import { client } from '../../stores/client';
   import { loadSeeds, sortIntoClusters, loadPoints } from '../../lib/cluster_client';
   import type { Point } from '../../../shared/point';
@@ -110,6 +113,7 @@
   let datasetType = DatasetType.personVisits;
   let clusterColors: ClusterColorSet[] = [];
   let clusterIndex = 0;
+  let showingProbabilityMap = false;
   let showingClusterMap = false;
   let showingAboutAccuracy = false;
   let showingAverageModel = false;
@@ -201,6 +205,9 @@
 
     loadState = LoadState.ready;
   }
+
+  $: if ($minProbabilityPercent < 0) $minProbabilityPercent = 0;
+  $: if ($minProbabilityPercent > 100) $minProbabilityPercent = 100;
 
   function openLocation(locationData: LocationGraphData): void {
     locationGraphData = locationData;
@@ -501,16 +508,34 @@
           </div>
         </div>
 
+        <div class="row justify-content-center mt-2 mb-2" style="padding-top: 1.5rem">
+          <div class="col-auto" class:disabled={$selectedTaxa === null}>
+            <span>Min. probability</span>
+            <input
+              class="ms-1 probability_input"
+              bind:value={$minProbabilityPercent}
+              disabled={$selectedTaxa === null}
+            />
+            %
+            <button
+              class="btn btn-major ms-3 align-top"
+              type="button"
+              disabled={$selectedTaxa === null}
+              on:click={() => (showingProbabilityMap = true)}
+              >Map probabilities of selected taxa</button
+            >
+          </div>
+        </div>
         <div class="row justify-content-center">
           <div
             class="col d-flex align-items-center"
-            style="max-width: 320px; margin-top: 40px"
+            style="max-width: 320px; margin-top: 20px"
           >
             <div class="text-center">
               <button
                 class="btn btn-major mb-4"
                 type="button"
-                on:click={() => (showingClusterMap = true)}>Show Cluster Map</button
+                on:click={() => (showingClusterMap = true)}>Map Clusters</button
               >
               <ClusterPieChart
                 dataByCluster={$clusterStore.dataByCluster}
@@ -518,7 +543,7 @@
               />
             </div>
           </div>
-          <div class="col" style="max-width: 460px">
+          <div class="col" style="max-width: 460px; margin-top: -20px">
             <ClusterRadarChart
               dataByCluster={$clusterStore.dataByCluster}
               {clusterColors}
@@ -699,6 +724,14 @@
   <AboutAccuracyDialog close={() => (showingAboutAccuracy = false)} />
 {/if}
 
+{#if showingProbabilityMap && $clusterStore}
+  <ProbabilityMap
+    minProbabilityPercent={$minProbabilityPercent}
+    dataByCluster={$clusterStore.dataByCluster}
+    close={() => (showingProbabilityMap = false)}
+  />
+{/if}
+
 {#if showingClusterMap && $clusterStore}
   <ClusterMap
     {clusterColors}
@@ -783,6 +816,15 @@
   }
   .accuracy_stats .stat span {
     font-weight: bold;
+  }
+
+  .probability_input {
+    border-radius: $border-radius;
+    width: 3rem;
+  }
+  .disabled,
+  .disabled input {
+    color: #999;
   }
 
   #cluster_selector {
