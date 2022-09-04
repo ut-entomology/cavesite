@@ -57,7 +57,7 @@ test('test for initial state', async ({ page }) => {
   await page.goto(URL);
 
   const title = page.locator('.tab_title');
-  await expect(title).toContainText('Collecting Predictions');
+  await expect(title).toContainText('Range Predictions');
 
   const main = page.locator('main');
   await expect(main).toContainText(
