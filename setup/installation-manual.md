@@ -142,6 +142,8 @@ sudo ./bin/deploy
 
 If the database schema did not change, you need only run the second of the above commands.
 
+The `bin/deploy` script erases the prior `/var/www/html` directory and hence also its `/static` subdirectory, so you'll need to copy over any images the site uses that are not checked into github.
+
 If this is your first time starting up the site, and if this will be the live deployment, run the following commands. This sets the server up to run in the background and to automatically restart on reboots and crashes:
 
 ```
