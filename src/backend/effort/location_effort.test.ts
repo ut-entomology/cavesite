@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex } from '../util/test_util';
+import { DatabaseMutex } from '../util/unit_test_util';
 import { Specimen, GbifRecord } from '../model/specimen';
 import { LocationVisit } from './location_visit';
 import { LocationEffort } from './location_effort';

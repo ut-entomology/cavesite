@@ -134,7 +134,7 @@ The tool requires that you enter a strong password.
 
 Unit tests are written for `jest` and appear adjacent in the code to the modules they test with extension `.test.ts`. You'll find a list of them in `bin/test-all`. Many of them create tables in a database called `test_caves`, which you'll need to set up in advance on a running instance of PostgreSQL.
 
-Unit tests assume the following configuration, which you'll find in `src/backend/util/test_util.ts`:
+Unit tests assume the following configuration, which you'll find in `src/backend/util/unit_test_util.ts`:
 
 ```
   host: 'localhost',

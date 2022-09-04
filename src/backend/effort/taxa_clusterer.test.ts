@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex } from '../util/test_util';
+import { DatabaseMutex } from '../util/unit_test_util';
 import { Location } from '../model/location';
 import { type TaxonVisitCounterData } from './taxon_visit_counter';
 import { type LocationEffortData, LocationEffort } from './location_effort';

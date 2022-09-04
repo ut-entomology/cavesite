@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex, expectRecentTime, sleep } from '../util/test_util';
+import { DatabaseMutex, expectRecentTime, sleep } from '../util/unit_test_util';
 import { User } from './user';
 import { Permission } from '../../shared/user_auth';
 import {

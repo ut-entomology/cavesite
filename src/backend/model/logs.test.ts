@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex } from '../util/test_util';
+import { DatabaseMutex } from '../util/unit_test_util';
 import { LogType, LogLevel, type Log } from '../../shared/model';
 import { MILLIS_PER_DAY } from '../../shared/date_tools';
 import { Logs, MAX_LOG_LENGTH } from './logs';

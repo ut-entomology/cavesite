@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex } from '../util/test_util';
+import { DatabaseMutex } from '../util/unit_test_util';
 import { Taxon } from './taxon';
 import { TaxonRank, STYGOBITE_FLAG, TROGLOBITE_FLAG } from '../../shared/model';
 import { ImportFailure } from './import_failure';

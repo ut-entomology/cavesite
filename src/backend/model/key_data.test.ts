@@ -1,5 +1,5 @@
 import type { DB } from '../integrations/postgres';
-import { DatabaseMutex } from '../util/test_util';
+import { DatabaseMutex } from '../util/unit_test_util';
 import { Permission } from '../../shared/user_auth';
 import { KeyData } from './key_data';
 import { User } from './user';
