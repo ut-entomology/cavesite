@@ -10,11 +10,11 @@ Svelte is a simple template language for creating reactive user interfaces in Ja
 
 The PostgreSQL consists of simple tables and simple SQL statements. It takes advantage of the fact that the data is always imported and never locally maintained. The schemas are sometimes redundant and sometimes flat, making for simpler queries and faster responses. Stateful data includes users, sessions, key-lookup data files, and logs.
 
-## Installation for Deployment
+## Deployment Installation
 
 To install the site on a publicly available server, follow the instructions in the [installation manual](https://github.com/ut-entomology/cavesite/blob/main/setup/installation-manual.md).
 
-## Installation for Development
+## Development Installation
 
 To install the source locally for development, you'll need to first install the following:
 
