@@ -32,7 +32,7 @@
 
   const KNOWN_LOCATION_COLOR = 'white';
   const ZERO_COLOR = [200, 200, 200];
-  const PROBABILITY_COLOR = [220, 0, 0]; // red
+  const PROBABILITY_COLOR = [220, 0, 220]; // predictive pink
   const MAX_SCALE_DIVISIONS = 20;
 
   export let dataByCluster: ClusterData[];
@@ -72,7 +72,7 @@
       taxonName = `<i>${taxonName}</i>`;
     }
   }
-  title += taxonName == '' ? 'selected taxa' : taxonName;
+  title += taxonName == '' ? 'Selected Taxa' : taxonName;
 
   for (const taxonUnique of taxonUniques) {
     for (let i = 0; i < dataByCluster.length; ++i) {
