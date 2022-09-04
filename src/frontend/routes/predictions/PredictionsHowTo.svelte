@@ -154,9 +154,9 @@
   alt="The buttons that open maps"
 />
 <p>
-  The above two buttons open maps. The first opens a map of all caves color coded by the
-  cluster to which to belongs. This map selectively shows and hides clusters to help you
-  visualize them.
+  The above two buttons open maps. The first opens a map of caves color coded by the
+  cluster to which each belongs. This map selectively shows and hides clusters to help
+  you visualize them.
 </p>
 <p>
   The second of the above buttons maps the range extensions that the clustering
