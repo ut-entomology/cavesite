@@ -10,6 +10,7 @@
   import SortedRowGrower, {
     type RowItemGetter
   } from '../../components/SortedRowGrower.svelte';
+  import SplitHorizontalBar, { type BarSplitSpec } from './SplitHorizontalBar.svelte';
 
   const MIN_ROWS = 50;
   const ROW_INCREMENT = 50;
@@ -23,6 +24,14 @@
     return `${
       row.locationName
     } <span class="stats_deemph">(cluster #${row.clusterNumbers.join(', ')})</span>`;
+  }
+
+  function _toRightSplitSpec(item: any): BarSplitSpec {
+    return {
+      percent: item.probability,
+      barColor: '#faf2c7',
+      backgroundColor: '#ddd'
+    };
   }
 </script>
 
@@ -43,12 +52,16 @@
       These are all the locations that satisfy the probability criteria for the selected
       taxa, sorted by the currently calculated probability.
     </div>
-    <div class="row gx-3 location_row">
-      <div class="col-3 text-center">
-        {item.probability.toFixed(1)} <span class="stats_deemph">%</span>
+    <SplitHorizontalBar classes="outer_bar" rightSplitSpec={_toRightSplitSpec(item)}>
+      <div slot="right">
+        <div class="row gx-3 location_row">
+          <div class="col-3 text-center">
+            {item.probability.toFixed(1)} <span class="stats_deemph">%</span>
+          </div>
+          <div class="col">{@html _toItemHTML(item)}</div>
+        </div>
       </div>
-      <div class="col">{@html _toItemHTML(item)}</div>
-    </div>
+    </SplitHorizontalBar>
   </SortedRowGrower>
 {/key}
 
@@ -57,13 +70,7 @@
     margin-top: 1.5rem;
     font-size: 0.95rem;
   }
-  :global(.location_probability_rows .row + .row:nth-child(even)) {
-    background-color: #ddd;
-  }
-  :global(.location_probability_rows .row + .row:nth-child(odd)) {
-    background-color: #eee;
-  }
-  .location_row {
-    margin-bottom: 2px;
-  }
+  // .location_row {
+  //   margin-bottom: 2px;
+  // }
 </style>

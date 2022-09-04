@@ -64,6 +64,7 @@
   let scaleDivisions: string[] = [];
   let scaleColors: string[] = [];
   let ascendingLocationProbabilityRows = false;
+  let sourceLocationRows: LocationProbabilityRow[];
   let locationRows: LocationProbabilityRow[];
 
   let taxonName = '';
@@ -185,6 +186,7 @@
   $: {
     markerSpecs = [];
     featureColors = [];
+    sourceLocationRows = [];
     locationRows = [];
 
     if (showExistingRecords) {
@@ -212,7 +214,7 @@
       if (probabilityPercent >= minProbabilityPercent && latitude && longitude) {
         let label = graphData.localityName;
         if (graphData.countyName) label += ', ' + graphData.countyName;
-        locationRows.push({
+        sourceLocationRows.push({
           probability: probabilityPercent,
           locationName: label,
           clusterNumbers: locationProbability.clusterNumbers
@@ -235,15 +237,17 @@
     count: number,
     increasing: boolean
   ): Promise<[LocationProbabilityRow[], boolean]> {
-    if (increasing != ascendingLocationProbabilityRows) {
-      locationRows.sort((a, b) => {
+    if (locationRows.length == 0 || increasing != ascendingLocationProbabilityRows) {
+      sourceLocationRows.sort((a, b) => {
         if (a.probability == b.probability) return 0;
         return a.probability - b.probability;
       });
+      if (!increasing) sourceLocationRows.reverse();
       ascendingLocationProbabilityRows = increasing;
+      locationRows = sourceLocationRows.slice(0, count);
     }
     // Don't change locationRows, as that would create an infinite loop of updates.
-    return [locationRows.slice(0, count), count < locationRows.length];
+    return [sourceLocationRows.slice(0, count), count < sourceLocationRows.length];
   }
 
   function _toScaleColor(numerator: number, denominator: number): string {
