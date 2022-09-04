@@ -82,7 +82,7 @@
 </script>
 
 <InfoDialog title="Map of Clustered Caves" classes="map_dialog" maxWidth="1200px">
-  <div class="row mb-2 gx-2">
+  <div class="row mb-2 gx-2" style="margin-top: -0.5rem">
     <div class="col">
       <button class="btn btn-minor" type="button" on:click={selectAll}
         >Select All</button
@@ -144,6 +144,7 @@
     font-weight: bold;
     color: white;
     text-align: center;
+    cursor: pointer;
   }
   .toggle.selected {
     border-bottom: 3px solid blue;
