@@ -16,7 +16,7 @@
   it allows you to select locations. The bottom of the page displays the taxa known for
   the selected locations. Your selections can also be used on the Time and Queries tabs.
   After selecting locations here and switching to either of these other tabs, that tab
-  will give you the option of restricting its output to just the locations you selected.
+  will give you the option of restricting output to just the locations you selected.
 </p>
 
 <SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />

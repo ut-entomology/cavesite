@@ -14,9 +14,9 @@
 <p>
   This tab allows you to browse the taxa for which the collection has records, and it
   allows you to select taxa. The bottom of the page displays the known locations for the
-  selected taxa. Your selections can also be used on the Time and Queries tabs. After
-  selecting taxa here and switching to either of these other tabs, that tab will give
-  you the option of restricting its output to just the taxa you selected.
+  selected taxa. Your selections can also be used on the Time, Queries, and Predictions
+  tabs. After selecting taxa here and switching to one of these other tabs, that tab
+  will give you the option of restricting output to just the taxa you selected.
 </p>
 
 <SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
