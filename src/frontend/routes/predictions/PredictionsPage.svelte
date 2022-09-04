@@ -514,14 +514,14 @@
               <button
                 class="btn btn-major mb-3"
                 type="button"
-                disabled={$selectedTaxa === null}
-                on:click={() => (showingProbabilityMap = true)}
-                >Map Probabilities of Selected Taxa</button
+                on:click={() => (showingClusterMap = true)}>Map Clusters</button
               >
               <button
                 class="btn btn-major mb-3"
                 type="button"
-                on:click={() => (showingClusterMap = true)}>Map Clusters</button
+                disabled={$selectedTaxa === null}
+                on:click={() => (showingProbabilityMap = true)}
+                >Map Probabilities of Selected Taxa</button
               >
               <ClusterPieChart
                 dataByCluster={$clusterStore.dataByCluster}

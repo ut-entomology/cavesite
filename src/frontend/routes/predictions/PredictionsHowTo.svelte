@@ -154,19 +154,18 @@
   alt="The buttons that open maps"
 />
 <p>
-  The above two buttons show maps. The first of these maps the range extensions that the
-  clustering predicts. The button is only enabled when you've selected taxa via the Taxa
-  tab. When you click the button, a map opens showing you where the selected taxa have
-  not yet been found but might be found, color coding each location by the probability
-  of finding any of the taxa there. It gives you the ability to control how the
-  probability is computed, allows you to see the known range of the taxa, and provides a
-  list of all locations having non-zero probability of having the taxa, sorted by
-  probability.
+  The above two buttons open maps. The first opens a map of all caves color coded by the
+  cluster to which to belongs. This map selectively shows and hides clusters to help you
+  visualize them.
 </p>
 <p>
-  The second of the above buttons opens a map of all caves color coded by the cluster to
-  which to belongs. This map allows you to visualize the clusters. You can selectively
-  show and hide clusters.
+  The second of the above buttons maps the range extensions that the clustering
+  predicts. The button is only enabled when you've selected taxa via the Taxa tab. When
+  you click the button, a map opens showing you where the selected taxa have not yet
+  been found but might be found, color coding each location by the probability of
+  finding any of the taxa there. It gives you the ability to control how the probability
+  is computed, allows you to see the known range of the taxa, and provides a list of all
+  locations having non-zero probability of having the taxa, sorted by probability.
 </p>
 <ExampleImage
   src="/static/predictions/radar-graph.jpg"
