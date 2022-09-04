@@ -86,6 +86,7 @@
       const taxaTierStats = clusterData.avgTaxaTierStats;
       const finalTaxaFractionCorrect =
         taxaTierStats[taxaTierStats.length - 1].fractionCorrect;
+
       let taxonCaveCount = 0;
       for (const graphData of clusterData.locationGraphDataSet) {
         if (graphData.visitsByTaxonUnique[taxonUnique]) {
@@ -104,6 +105,8 @@
           }
         }
       }
+      if (taxonCaveCount == 0) continue;
+
       for (const graphData of clusterData.locationGraphDataSet) {
         const commonFactor =
           100 * (taxonCaveCount / clusterData.locationGraphDataSet.length);
@@ -358,12 +361,23 @@
     <KarstMap {markerSpecs} baseRGB={[0, 0, 0]} {featureColors} />
   </div>
 
-  <ProbabilityBarGraph
-    {taxonName}
-    {locationRows}
-    {getLocationRows}
-    increasing={ascendingLocationProbabilityRows}
-  />
+  <div class="explanation">
+    <p>
+      This map shows the possible range of the selected taxa, assigning to each location
+      the probability of finding any of the taxa at that location.
+    </p>
+  </div>
+
+  {#if sourceLocationRows.length > 0}
+    <ProbabilityBarGraph
+      {taxonName}
+      {locationRows}
+      {getLocationRows}
+      increasing={ascendingLocationProbabilityRows}
+    />
+  {:else}
+    <div class="no_locations">No locations meet the criteria</div>
+  {/if}
 </InfoDialog>
 
 <style lang="scss">
@@ -394,5 +408,11 @@
     flex-grow: 1;
     width: 100%;
     height: 600px;
+  }
+
+  .no_locations {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 1.5rem;
   }
 </style>
