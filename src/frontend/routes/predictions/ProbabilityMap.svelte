@@ -25,6 +25,9 @@
   import InfoDialog from '../../dialogs/InfoDialog.svelte';
   import KarstMap, { type MapMarkerSpec } from '../../components/KarstMap.svelte';
   import ScaleDivisions from '../../components/ScaleDivisions.svelte';
+  import ProbabilityBarGraph, {
+    type LocationProbabilityRow
+  } from './ProbabilityBarGraph.svelte';
   import type { ClusterData } from '../../../frontend-core/clusters/cluster_data';
   import { selectedTaxa } from '../../stores/selectedTaxa';
   import type { LocationGraphData } from '../../../frontend-core/clusters/location_graph_data';
@@ -60,6 +63,8 @@
   let featureColors: string[];
   let scaleDivisions: string[] = [];
   let scaleColors: string[] = [];
+  let ascendingLocationProbabilityRows = false;
+  let locationRows: LocationProbabilityRow[];
 
   let taxonName = '';
   const taxonSpecs = Object.values($selectedTaxa!);
@@ -180,6 +185,7 @@
   $: {
     markerSpecs = [];
     featureColors = [];
+    locationRows = [];
 
     if (showExistingRecords) {
       for (const markerSpec of knownMarkerSpecs) {
@@ -206,6 +212,11 @@
       if (probabilityPercent >= minProbabilityPercent && latitude && longitude) {
         let label = graphData.localityName;
         if (graphData.countyName) label += ', ' + graphData.countyName;
+        locationRows.push({
+          probability: probabilityPercent,
+          locationName: label,
+          clusterNumbers: locationProbability.clusterNumbers
+        });
         label = `<b>${label}</b> (cluster #${locationProbability.clusterNumbers.join(
           ', '
         )}; probability ${probabilityPercent.toFixed(1)}%)`;
@@ -218,6 +229,21 @@
         featureColors.push(_toScaleColor(probabilityPercent, 100));
       }
     }
+  }
+
+  async function getLocationRows(
+    count: number,
+    increasing: boolean
+  ): Promise<[LocationProbabilityRow[], boolean]> {
+    if (increasing != ascendingLocationProbabilityRows) {
+      locationRows.sort((a, b) => {
+        if (a.probability == b.probability) return 0;
+        return a.probability - b.probability;
+      });
+      ascendingLocationProbabilityRows = increasing;
+    }
+    // Don't change locationRows, as that would create an infinite loop of updates.
+    return [locationRows.slice(0, count), count < locationRows.length];
   }
 
   function _toScaleColor(numerator: number, denominator: number): string {
@@ -327,6 +353,13 @@
   <div class="map_area">
     <KarstMap {markerSpecs} baseRGB={[0, 0, 0]} {featureColors} />
   </div>
+
+  <ProbabilityBarGraph
+    {taxonName}
+    {locationRows}
+    {getLocationRows}
+    increasing={ascendingLocationProbabilityRows}
+  />
 </InfoDialog>
 
 <style lang="scss">
