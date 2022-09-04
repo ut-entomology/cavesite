@@ -1,8 +1,8 @@
 <script lang="ts" context="module">
   export interface LocationProbabilityRow {
-    probability: number;
+    clusterNumber: number;
     locationName: string;
-    clusterNumbers: number[];
+    probability: number;
   }
 </script>
 
@@ -21,9 +21,7 @@
   export let increasing: boolean;
 
   function _toItemHTML(row: LocationProbabilityRow): string {
-    return `${
-      row.locationName
-    } <span class="stats_deemph">(cluster #${row.clusterNumbers.join(', ')})</span>`;
+    return `${row.locationName} <span class="stats_deemph">(cluster #${row.clusterNumber})</span>`;
   }
 
   function _toRightSplitSpec(item: any): BarSplitSpec {

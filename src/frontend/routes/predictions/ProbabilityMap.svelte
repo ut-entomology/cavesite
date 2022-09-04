@@ -42,7 +42,7 @@
   export let close: () => void;
 
   interface LocationProbability {
-    clusterNumbers: number[];
+    clusterNumber: number;
     graphData: LocationGraphData;
     visitsPercentNoAccuracy: number;
     personVisitsPercentNoAccuracy: number;
@@ -129,16 +129,14 @@
           let locationProbability = probabilitiesByLocationID[graphData.locationID];
           if (locationProbability === undefined) {
             locationProbability = {
-              clusterNumbers: [],
+              clusterNumber: 0,
               graphData,
               visitsPercentNoAccuracy: 0,
               personVisitsPercentNoAccuracy: 0,
               visitsPercentWithAccuracy: 0,
               personVisitsPercentWithAccuracy: 0
             };
-            if (!locationProbability.clusterNumbers.includes(i + 1)) {
-              locationProbability.clusterNumbers.push(i + 1);
-            }
+            locationProbability.clusterNumber = i + 1;
             probabilitiesByLocationID[graphData.locationID] = locationProbability;
           }
           _updateProbability(
@@ -218,13 +216,13 @@
         let label = graphData.localityName;
         if (graphData.countyName) label += ', ' + graphData.countyName;
         sourceLocationRows.push({
-          probability: probabilityPercent,
+          clusterNumber: locationProbability.clusterNumber,
           locationName: label,
-          clusterNumbers: locationProbability.clusterNumbers
+          probability: probabilityPercent
         });
-        label = `<b>${label}</b> (cluster #${locationProbability.clusterNumbers.join(
-          ', '
-        )}; probability ${probabilityPercent.toFixed(1)}%)`;
+        label = `<b>${label}</b> (cluster #${
+          locationProbability.clusterNumber
+        }; probability ${probabilityPercent.toFixed(1)}%)`;
 
         markerSpecs.push({
           label,
