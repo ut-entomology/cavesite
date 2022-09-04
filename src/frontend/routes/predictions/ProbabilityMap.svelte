@@ -212,24 +212,27 @@
           : locationProbability.personVisitsPercentNoAccuracy;
       }
 
-      if (probabilityPercent >= minProbabilityPercent && latitude && longitude) {
-        let label = graphData.localityName;
-        if (graphData.countyName) label += ', ' + graphData.countyName;
-        sourceLocationRows.push({
-          clusterNumber: locationProbability.clusterNumber,
-          locationName: label,
-          probability: probabilityPercent
-        });
-        label = `<b>${label}</b> (cluster #${
-          locationProbability.clusterNumber
-        }; probability ${probabilityPercent.toFixed(1)}%)`;
+      let locationName = graphData.localityName;
+      if (graphData.countyName) locationName += ', ' + graphData.countyName;
+      let parenthetical = `cluster #${
+        locationProbability.clusterNumber
+      }; probability ${probabilityPercent.toFixed(1)}%`;
+      if (!latitude || !longitude) parenthetical += '; no coordinates';
 
+      if (probabilityPercent >= minProbabilityPercent && latitude && longitude) {
         markerSpecs.push({
-          label,
+          label: `<b>${locationName}</b> (${parenthetical})`,
           latitude,
           longitude
         });
         featureColors.push(_toScaleColor(probabilityPercent, 100));
+      }
+      if (probabilityPercent > 0) {
+        sourceLocationRows.push({
+          locationName: locationName,
+          parenthetical,
+          probability: probabilityPercent
+        });
       }
     }
   }
@@ -406,6 +409,11 @@
     flex-grow: 1;
     width: 100%;
     height: 600px;
+  }
+
+  .explanation {
+    margin: 1.5rem 2rem 1rem 2rem;
+    font-size: 0.95rem;
   }
 
   .no_locations {

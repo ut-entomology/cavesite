@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   export interface LocationProbabilityRow {
-    clusterNumber: number;
     locationName: string;
+    parenthetical: string;
     probability: number;
   }
 </script>
@@ -21,7 +21,7 @@
   export let increasing: boolean;
 
   function _toItemHTML(row: LocationProbabilityRow): string {
-    return `${row.locationName} <span class="stats_deemph">(cluster #${row.clusterNumber})</span>`;
+    return `${row.locationName} <span class="stats_deemph">(${row.parenthetical})</span>`;
   }
 
   function _toRightSplitSpec(item: any): BarSplitSpec {
@@ -48,12 +48,14 @@
   >
     <div slot="description">
       These are all the locations that satisfy the probability criteria for the selected
-      taxa, sorted by the currently calculated probability.
+      taxa, sorted by the currently calculated probability. Locations with exactly zero
+      probability are not listed. Locations marked "no coordinates" do not appear on the
+      map.
     </div>
     <SplitHorizontalBar classes="outer_bar" rightSplitSpec={_toRightSplitSpec(item)}>
       <div slot="right">
         <div class="row gx-3 location_row">
-          <div class="col-3 text-center">
+          <div class="col-2 text-center">
             {item.probability.toFixed(1)} <span class="stats_deemph">%</span>
           </div>
           <div class="col">{@html _toItemHTML(item)}</div>
