@@ -364,8 +364,33 @@
 
   <div class="explanation">
     <p>
-      This map shows the possible range of the selected taxa, assigning to each location
-      the probability of finding any of the taxa at that location.
+      This map shows the possible range of the selected taxa, assigning to each cave a
+      probability of finding any of the taxa at that cave. The probability is a function
+      of the clustering configuration, the randomness of the clustering process, and the
+      constraints provided here in the inputs above the map. The probability for a given
+      cave is the greatest of all the probabilities computed for each taxon and each
+      cluster at that cave. Each of these probabilities is the product of the following
+      factors, expressed as a percentage and capped at 100%:
+    </p>
+    <ul>
+      <li>
+        The predicted number of additional taxa expected to be found on the next visit
+        or person-visit to the cave. The switch at the top left selects this number.
+      </li>
+      <li>
+        The fraction of caves of the cluster to which the cave belongs having at least
+        one record of the taxon.
+      </li>
+      <li>
+        Optionally, the historical accuracy found for predictions of taxa within the
+        cluster. This is the last Top N accuracy for predictions of taxa within the
+        cluster. A checkbox above the map controls whether the probability is multiplied
+        by this number.
+      </li>
+    </ul>
+    <p>
+      The input field above the map allows you to specify the minimum probability a cave
+      must have for it to be displayed on the map.
     </p>
   </div>
 

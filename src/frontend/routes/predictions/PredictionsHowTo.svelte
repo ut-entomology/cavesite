@@ -20,9 +20,10 @@
   predicts the number of additional species to expect per participating collector on the
   next visit (per "person-visit"), in case such predictions are more accurate. The tab
   estimates the accuracy of its predictions according to the accuracy of the predictive
-  technique on recent historical data. You can examine plots of numbers of species found
-  across visits and person-visits, regressions of these plots fit to power curves, and
-  the frequencies at which taxa are found on visits to caves.
+  technique on recent historical data. You can examine maps of predicted range
+  extensions, plots of numbers of species found across visits and person-visits,
+  regressions of these plots fit to power curves, and the frequencies at which taxa are
+  found on visits to caves.
 </p>
 <p>
   In order to limit the fauna and ensure predictions are meaningful, the analysis is
@@ -147,6 +148,25 @@
     on:click={() => (showingAboutAccuracy = true)}>about accuracy</span
   > link (though not in the above example image) to learn how prediction accuracy is assessed
   and what the summary measures mean.
+</p>
+<ExampleImage
+  src="/static/predictions/prediction-map-buttons.jpg"
+  alt="The buttons that open maps"
+/>
+<p>
+  The above two buttons show maps. The first of these maps the range extensions that the
+  clustering predicts. The button is only enabled when you've selected taxa via the Taxa
+  tab. When you click the button, a map opens showing you where the selected taxa have
+  not yet been found but might be found, color coding each location by the probability
+  of finding any of the taxa there. It gives you the ability to control how the
+  probability is computed, allows you to see the known range of the taxa, and provides a
+  list of all locations having non-zero probability of having the taxa, sorted by
+  probability.
+</p>
+<p>
+  The second of the above buttons opens a map of all caves color coded by the cluster to
+  which to belongs. This map allows you to visualize the clusters. You can selectively
+  show and hide clusters.
 </p>
 <ExampleImage
   src="/static/predictions/radar-graph.jpg"

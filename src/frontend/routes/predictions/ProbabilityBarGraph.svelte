@@ -47,10 +47,10 @@
     let:item
   >
     <div slot="description">
-      These are all the locations that satisfy the probability criteria for the selected
-      taxa, sorted by the currently calculated probability. Locations with exactly zero
-      probability are not listed. Locations marked "no coordinates" do not appear on the
-      map.
+      Below are the probabilities for finding any of the selected taxa at caves not yet
+      having records of any of the taxa. They are sorted by the currently calculated
+      probability. Locations with exactly zero probability are not listed. Caves marked
+      "no coordinates" do not appear on the map.
     </div>
     <SplitHorizontalBar classes="outer_bar" rightSplitSpec={_toRightSplitSpec(item)}>
       <div slot="right">
