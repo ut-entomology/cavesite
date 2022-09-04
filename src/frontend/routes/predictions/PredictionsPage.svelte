@@ -517,7 +517,7 @@
                 on:click={() => (showingClusterMap = true)}>Map Clusters</button
               >
               <button
-                class="btn btn-major mb-3"
+                class="btn btn-major mb-4"
                 type="button"
                 disabled={$selectedTaxa == null ||
                   Object.keys($selectedTaxa).length == 0}
