@@ -50,6 +50,7 @@ const PARTIAL_DATES_REGEX =
 
 const LAST_NAMES_REGEX = /([^ |,]+(?:, ?(jr.|ii|iii|2nd|3rd))?)(?:\||$)/g;
 const SUBGENUS_REGEX = /subgenus[:= ]+([A-Za-z]+)/i;
+const PRE_GBIF_TAXON_REGEX = /uploaded as "([^"]*)"/i;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_PITFALL_TRAP_COLLECTION_DAYS = 4 * 31;
 
@@ -219,6 +220,7 @@ export class Specimen implements TaxonPathSpec {
     source: GbifRecord
   ): Promise<Specimen | null> {
     const problemList: string[] = [];
+    let preGbifTaxon: string | null = null;
     let taxon: Taxon;
     let taxonNames: string[] = [];
     let taxonIDs: string[] = [];
@@ -258,7 +260,7 @@ export class Specimen implements TaxonPathSpec {
       if (detRemarks) {
         // Extract subgenus.
 
-        const match = detRemarks.match(SUBGENUS_REGEX);
+        let match = detRemarks.match(SUBGENUS_REGEX);
         if (match) subgenus = match[1];
 
         // Extract additional determiners, since Specify only allowed uploading one.
@@ -291,10 +293,24 @@ export class Specimen implements TaxonPathSpec {
             typeStatus = 'undescribed';
           }
         }
+
+        // Extract pre-GBIF determination. (Must follow above type status determination.)
+
+        match = detRemarks.match(PRE_GBIF_TAXON_REGEX);
+        preGbifTaxon = match ? match[1] : null;
+        if (preGbifTaxon && preGbifTaxon.indexOf("sp.") == -1) {
+          detRemarks = detRemarks.replace(PRE_GBIF_TAXON_REGEX, '').trim();
+          if (detRemarks.endsWith(';')) {
+            detRemarks = detRemarks.substring(0, detRemarks.lastIndexOf(';')).trim();
+          }
+        }
       }
 
       // Create the associated taxa and locations, if they don't already exist.
 
+      if (preGbifTaxon) {
+        await Specimen._correctGbifTaxa(db, context, taxonSource, preGbifTaxon);
+      }
       taxon = await Taxon.getOrCreate(db, context, taxonSource, problemList);
       if (taxon.parentIDPath != '') {
         taxonIDs = taxon.parentIDPath.split(',');
@@ -850,6 +866,32 @@ export class Specimen implements TaxonPathSpec {
         locationIDs
       ]
     );
+  }
+
+  static async _correctGbifTaxa(
+    db: DB,
+    cx: ImportContext,
+    source: TaxonSource,
+    preGbifTaxon: string
+  ): Promise<void> {
+    const ancestorTaxa = await cx.gbifCorrectionsData.getAncestorRemap(db, preGbifTaxon);
+    if (ancestorTaxa) {
+      source.phylum = getRankedName(ancestorTaxa, 0, preGbifTaxon) || undefined;
+      source.class = getRankedName(ancestorTaxa, 1, preGbifTaxon) || undefined;
+      source.order = getRankedName(ancestorTaxa, 2, preGbifTaxon) || undefined;
+      source.family = getRankedName(ancestorTaxa, 3, preGbifTaxon) || undefined;
+      source.genus = getRankedName(ancestorTaxa, 4, preGbifTaxon) || undefined;
+      source.specificEpithet = undefined; // remove GBIF assignments, if any
+      source.infraspecificEpithet = undefined;
+
+      const speciesParts = preGbifTaxon.split(' ');
+      if (speciesParts.length > 1) {
+        source.specificEpithet = speciesParts[1];
+        if (speciesParts.length > 2) {
+          source.infraspecificEpithet = speciesParts[2];
+        }
+      }
+    }
   }
 }
 

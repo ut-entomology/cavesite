@@ -425,7 +425,8 @@ export function parseGbifCorrections(text:string, errors: string[]): Record<stri
     } else {
       let line = rawLine.trim().replace(/[, ]+/g, " ");
       if (line.length == 0 || line[0] == '#') continue;
-      const lastCapOffset = line.search(/A-Z/);
+      const match = line.match(/[A-Z]/g);
+      const lastCapOffset =  match ? line.lastIndexOf(match.pop()!) : -1;
       if (lastCapOffset >= 0) {
         let specificName = line.substring(lastCapOffset);
         const parentNames = line.substring(0, lastCapOffset).trim().split(" ");

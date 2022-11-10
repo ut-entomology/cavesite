@@ -92,12 +92,25 @@ function recordToGbifRecord(record: CsvSpecimen): GbifRecord {
 }
 
 function toDetRemarks(record: CsvSpecimen): string {
-  const species = record.species;
-  if (species.includes('sp.')) {
-    if (record.determinationRemarks == '') return species;
-    return record.determinationRemarks + '; ' + species;
-  }
-  return record.determinationRemarks;
+  const taxa: string[] = [];
+  if (record.phylum) taxa.push(record.phylum);
+  if (record.class) taxa.push(record.class);
+  if (record.order) taxa.push(record.order);
+  if (record.family) taxa.push(record.family);
+  if (record.genus) taxa.push(record.genus);
+  if (record.species) taxa.push(record.species);
+  if (record.subspecies) taxa.push(record.subspecies);
+
+  const series = taxa.join(" ");
+  const firstPeriodOffset = series.indexOf("."); // could be "Genus n. sp. X"
+  const searchedPortion =
+      series.substring(0, firstPeriodOffset >= 0 ? firstPeriodOffset : series.length);
+  const match = searchedPortion.match(/[A-Z]/g);
+  const lastCapOffset = match ? searchedPortion.lastIndexOf(match.pop()!) : -1;
+  const specificName = lastCapOffset >= 0 ? series.substring(lastCapOffset) : series;
+  const clause = `uploaded as "${specificName}"`;
+  if (record.determinationRemarks == '') return clause;
+  return record.determinationRemarks + '; ' + clause;
 }
 
 function toEventRemarks(record: CsvSpecimen): string {
