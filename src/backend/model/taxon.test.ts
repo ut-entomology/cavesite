@@ -2,6 +2,7 @@ import type { DB } from '../integrations/postgres';
 import { DatabaseMutex } from '../util/unit_test_util';
 import { Taxon } from './taxon';
 import { TaxonRank, STYGOBITE_FLAG, TROGLOBITE_FLAG } from '../../shared/model';
+import { ImportContext } from '../lib/import_context';
 import { ImportFailure } from './import_failure';
 
 const mutex = new DatabaseMutex();
@@ -12,6 +13,7 @@ beforeAll(async () => {
 });
 
 test('sequentially dependent taxa tests', async () => {
+  const cx = new ImportContext();
   await Taxon.dropAll(db);
 
   // Each of these tests depends on the prior tests, so run all as a unit.
@@ -77,7 +79,7 @@ test('sequentially dependent taxa tests', async () => {
     const expectedTaxon = await Taxon.getByID(db, 2);
     expect(expectedTaxon?.taxonName).toEqual(taxonName);
     const readTaxon = await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: taxonName,
@@ -92,7 +94,7 @@ test('sequentially dependent taxa tests', async () => {
 
   {
     const createdTaxon = await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Arthropoda',
@@ -121,7 +123,7 @@ test('sequentially dependent taxa tests', async () => {
 
   {
     const createdTaxon = await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Arthropoda',
@@ -198,7 +200,7 @@ test('sequentially dependent taxa tests', async () => {
 
   {
     const createdTaxon = await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Arthropoda',
@@ -224,7 +226,7 @@ test('sequentially dependent taxa tests', async () => {
 
   {
     const createdTaxon = await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Arthropoda',
@@ -303,7 +305,7 @@ test('sequentially dependent taxa tests', async () => {
 
   {
     const createdTaxon = await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Chordata',
@@ -514,7 +516,7 @@ test('sequentially dependent taxa tests', async () => {
 
   {
     await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Arthropoda',
@@ -532,7 +534,7 @@ test('sequentially dependent taxa tests', async () => {
     expect(matches[0].author).toEqual('Author');
 
     await Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Arthropoda',
@@ -559,10 +561,11 @@ test('sequentially dependent taxa tests', async () => {
 });
 
 test('taxa with subgenera', async () => {
+  const cx = new ImportContext();
   await Taxon.dropAll(db);
 
   const createdTaxon = await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -652,10 +655,11 @@ test('taxa with subgenera', async () => {
 });
 
 test('create a cave-obligate genus and species', async () => {
+  const cx = new ImportContext();
   await Taxon.dropAll(db);
 
   let createdTaxon = await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -714,7 +718,7 @@ test('create a cave-obligate genus and species', async () => {
   expect(createdTaxon).toEqual(readTaxon);
 
   createdTaxon = await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -747,9 +751,10 @@ test('create a cave-obligate genus and species', async () => {
 });
 
 test('create a cave-obligate species and subspecies not in a cave-obligate genus', async () => {
+  const cx = new ImportContext();
   await Taxon.dropAll(db);
   let createdTaxon = await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -823,7 +828,7 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
   expect(createdTaxon).toEqual(readTaxon);
 
   createdTaxon = await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -857,11 +862,12 @@ test('create a cave-obligate species and subspecies not in a cave-obligate genus
 });
 
 test('generate an implied taxon', async () => {
+  const cx = new ImportContext();
   await Taxon.dropAll(db);
 
   const problems: string[] = [];
   await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Arthropoda',
@@ -893,11 +899,12 @@ test('generate an implied taxon', async () => {
 });
 
 test('poorly sourced taxa', async () => {
+  const cx = new ImportContext();
   await Taxon.dropAll(db);
 
   let problems: string[] = [];
   await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       // @ts-ignore
       kingdom: undefined,
@@ -915,7 +922,7 @@ test('poorly sourced taxa', async () => {
 
   problems = [];
   await Taxon.getOrCreate(
-    db,
+    db, cx,
     {
       kingdom: 'Animalia',
       phylum: 'Chordata',
@@ -931,7 +938,7 @@ test('poorly sourced taxa', async () => {
 
   await expect(() =>
     Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Chordata',
@@ -947,7 +954,7 @@ test('poorly sourced taxa', async () => {
 
   await expect(() =>
     Taxon.getOrCreate(
-      db,
+      db, cx,
       {
         kingdom: 'Animalia',
         phylum: 'Chordata',

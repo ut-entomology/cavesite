@@ -54,25 +54,16 @@ abstract class KarstObligateData {
     }
     return this._cachedCaveObligateTaxa;
   }
-
-  reset(): void {
-    this._cachedCaveObligateTaxa = [];
-    this._caveObligatesMap = null;
-    this._caveContainingGeneraMap = null;
-  }
 }
 
-class StygobiteData extends KarstObligateData {
+export class StygobiteData extends KarstObligateData {
   constructor() {
     super(DataKey.Stygobites);
   }
 }
 
-class TroglobiteData extends KarstObligateData {
+export class TroglobiteData extends KarstObligateData {
   constructor() {
     super(DataKey.Troglobites);
   }
 }
-
-export const stygobiteData = new StygobiteData();
-export const troglobiteData = new TroglobiteData();

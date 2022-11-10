@@ -87,6 +87,12 @@
       name: 'Species Characterization',
       specs: [
         {
+          dataKey: DataKey.GbifCorrections,
+          title: 'GBIF Taxon Corrections',
+          instructions:
+            "List all taxa that are to keep their Specify determinations, regardless of GBIF remappings, listing them at one per line. You may list taxa at any taxonomic rank up through phylum. Each line consists of a series of taxonomic names delimited by spaces and/or commas, containing nothing else. The first name of each line must be a phylum, and you may only include the ranks phylum, class, order, family, genus, species, and subspecies. Use proper letter casing. If Specify originally provided a determination for any taxon at any rank in this series, that determination will be preserved on import into this site, and it will be filed under the higher taxa given in the series. Do not include taxon authors or years. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+        },
+        {
           dataKey: DataKey.Stygobites,
           title: 'Stygobites',
           instructions:

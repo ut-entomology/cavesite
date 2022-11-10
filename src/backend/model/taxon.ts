@@ -18,16 +18,11 @@ import {
   TROGLOBITE_FLAG,
   FEDERALLY_LISTED_FLAG
 } from '../../shared/model';
-import { parseFederalSpeciesStatus, TexasSpeciesStatus } from '../../shared/data_keys';
-import { stygobiteData, troglobiteData } from '../lib/karst_obligates';
+import type { ImportContext } from '../lib/import_context';
 import { ImportFailure } from './import_failure';
-import { KeyData } from './key_data';
-import { DataKey, parseStateSpeciesStatus } from '../../shared/data_keys';
-import { Permission } from '../../shared/user_auth';
+import type { TexasSpeciesStatus } from '../../shared/data_keys';
 
 const childCountSql = `(select count(*) from taxa y where y.parent_id=x.taxon_id) as child_count`;
-let federallyListedSpecies: Record<string, boolean> | null = null;
-let texasStatusBySpecies: Record<string, TexasSpeciesStatus> | null = null;
 
 export interface TaxonSource {
   // GBIF field names
@@ -191,6 +186,7 @@ export class Taxon {
 
   static async getOrCreate(
     db: DB,
+    context: ImportContext,
     source: TaxonSource,
     problems: string[]
   ): Promise<Taxon> {
@@ -233,7 +229,7 @@ export class Taxon {
 
     // Create all implied taxa.
 
-    return await Taxon._createMissingTaxa(db, specs);
+    return await Taxon._createMissingTaxa(db, context, specs);
   }
 
   static async matchName(
@@ -251,9 +247,13 @@ export class Taxon {
 
   //// PRIVATE CLASS METHDOS /////////////////////////////////////////////////
 
-  private static async _createMissingTaxa(db: DB, specs: TaxonSpec[]): Promise<Taxon> {
-    const stygobitesMap = await stygobiteData.getMap(db);
-    const troglobitesMap = await troglobiteData.getMap(db);
+  private static async _createMissingTaxa(
+    db: DB,
+    context: ImportContext,
+    specs: TaxonSpec[]
+  ): Promise<Taxon> {
+    const stygobitesMap = await context.stygobiteData.getMap(db);
+    const troglobitesMap = await context.troglobiteData.getMap(db);
 
     let [taxon, taxonIndex] = await Taxon._getClosestTaxon(
       db,
@@ -274,10 +274,10 @@ export class Taxon {
       if ((taxon && taxon.flags & TROGLOBITE_FLAG) || troglobitesMap[spec.unique]) {
         flags |= TROGLOBITE_FLAG;
       }
-      if (await Taxon._isFederallyListed(db, spec)) {
+      if (await Taxon._isFederallyListed(db, context, spec)) {
         flags |= FEDERALLY_LISTED_FLAG;
       }
-      const texasStatus = await Taxon._getSpeciesStatus(db, spec);
+      const texasStatus = await Taxon._getSpeciesStatus(db, context, spec);
 
       taxon = await Taxon.create(db, spec.parentNamePath, parentIDPath, {
         taxonRank: spec.rank,
@@ -405,49 +405,24 @@ export class Taxon {
 
   private static async _getSpeciesStatus(
     db: DB,
+    context: ImportContext,
     spec: TaxonSpec
   ): Promise<TexasSpeciesStatus | null> {
     if (spec.rank != TaxonRank.Species && spec.rank != TaxonRank.Subspecies) {
       return null;
     }
-
-    if (texasStatusBySpecies === null) {
-      const text = await KeyData.read(
-        db,
-        null,
-        Permission.None,
-        DataKey.TexasSpeciesStatus
-      );
-      if (text === null) return null;
-      texasStatusBySpecies = {};
-      const speciesStatuses = parseStateSpeciesStatus(text);
-      for (const speciesStatus of speciesStatuses) {
-        texasStatusBySpecies[speciesStatus.species] = speciesStatus;
-      }
-    }
-    return texasStatusBySpecies[spec.unique];
+    return context.texasSpeciesStatusData.getStatus(db, spec.unique);
   }
 
-  private static async _isFederallyListed(db: DB, spec: TaxonSpec): Promise<boolean> {
+  private static async _isFederallyListed(
+    db: DB,
+    context: ImportContext,
+    spec: TaxonSpec
+  ): Promise<boolean> {
     if (spec.rank != TaxonRank.Species && spec.rank != TaxonRank.Subspecies) {
       return false;
     }
-
-    if (federallyListedSpecies === null) {
-      const text = await KeyData.read(
-        db,
-        null,
-        Permission.None,
-        DataKey.FederalSpeciesStatus
-      );
-      if (text === null) return false;
-      federallyListedSpecies = {};
-      const speciesList = parseFederalSpeciesStatus(text);
-      for (const species of speciesList) {
-        federallyListedSpecies[species] = true;
-      }
-    }
-    return federallyListedSpecies[spec.unique];
+    return context.federalSpeciesStatusData.isListed(db, spec.unique);
   }
 }
 

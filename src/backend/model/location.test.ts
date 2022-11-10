@@ -6,6 +6,7 @@ import {
   AQUATIC_KARST_FLAG,
   TERRESTRIAL_KARST_FLAG
 } from '../../shared/model';
+import { ImportContext } from '../lib/import_context';
 import { ImportFailure } from './import_failure';
 
 describe('without location location uniques', () => {
@@ -17,6 +18,8 @@ describe('without location location uniques', () => {
   });
 
   test('sequentially dependent location tests (without location uniques)', async () => {
+    const cx = new ImportContext();
+
     // Each of these tests depends on the prior tests, so run all as a unit.
 
     // test adding continent location
@@ -78,7 +81,7 @@ describe('without location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -109,7 +112,7 @@ describe('without location location uniques', () => {
       const expectedLocation = await _getByID(db, 3);
       expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
       const readLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -124,7 +127,7 @@ describe('without location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -167,7 +170,7 @@ describe('without location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -213,7 +216,7 @@ describe('without location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'Mexico',
@@ -290,7 +293,7 @@ describe('without location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -468,7 +471,7 @@ describe('without location location uniques', () => {
 
     {
       await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -485,7 +488,7 @@ describe('without location location uniques', () => {
       expect(matches[0].latitude).not.toEqual(30);
 
       await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -524,6 +527,8 @@ describe('with location location uniques', () => {
   });
 
   test('sequentially dependent location tests (with location uniques)', async () => {
+    const cx = new ImportContext();
+
     // Each of these tests depends on the prior tests, so run all as a unit.
 
     // test adding continent location
@@ -595,7 +600,7 @@ describe('with location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -630,7 +635,7 @@ describe('with location location uniques', () => {
       );
       expect(expectedLocation?.locationName).toEqual('Someplace in U.S.');
       const readLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -645,7 +650,7 @@ describe('with location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -694,7 +699,7 @@ describe('with location location uniques', () => {
 
     {
       const createdLocation = await Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -741,9 +746,10 @@ describe('import failures', () => {
   });
 
   test('poorly sourced locations', async () => {
+    const cx = new ImportContext();
     await expect(() =>
       Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           // no country specified
@@ -756,7 +762,7 @@ describe('import failures', () => {
 
     await expect(() =>
       Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -769,7 +775,7 @@ describe('import failures', () => {
 
     await expect(() =>
       Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States'
@@ -781,7 +787,7 @@ describe('import failures', () => {
 
     let problems: string[] = [];
     await Location.getOrCreate(
-      db,
+      db, cx,
       {
         continent: 'North America',
         country: 'United States',
@@ -794,7 +800,7 @@ describe('import failures', () => {
 
     problems = [];
     await Location.getOrCreate(
-      db,
+      db, cx,
       {
         continent: 'North America',
         country: 'United States',
@@ -807,7 +813,7 @@ describe('import failures', () => {
 
     await expect(() =>
       Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',
@@ -821,7 +827,7 @@ describe('import failures', () => {
 
     await expect(() =>
       Location.getOrCreate(
-        db,
+        db, cx,
         {
           continent: 'North America',
           country: 'United States',

@@ -10,6 +10,7 @@
 
 import type { DataOf } from '../../shared/data_of';
 import { type DB, toCamelRow } from '../integrations/postgres';
+import type { ImportContext } from '../lib/import_context';
 import { ImportFailure } from './import_failure';
 import {
   AQUATIC_KARST_FLAG,
@@ -19,7 +20,6 @@ import {
   createContainingLocationSpecs,
   toLocationUnique
 } from '../../shared/model';
-import { aquaticKarstData, terrestrialKarstData } from '../lib/karst_localities';
 
 const childCountSql = `(select count(*) from locations y where y.parent_id=x.location_id) as child_count`;
 
@@ -207,6 +207,7 @@ export class Location {
 
   static async getOrCreate(
     db: DB,
+    context: ImportContext,
     source: LocationSource,
     problems: string[]
   ): Promise<Location> {
@@ -255,7 +256,7 @@ export class Location {
 
     // Create all implied locations.
 
-    return await Location._createMissingLocations(db, specs);
+    return await Location._createMissingLocations(db, context, specs);
   }
 
   static async matchName(
@@ -275,6 +276,7 @@ export class Location {
 
   private static async _createMissingLocations(
     db: DB,
+    context: ImportContext,
     specs: LocationSpec[]
   ): Promise<Location> {
     let [location, locationIndex] = await Location._getClosestLocation(
@@ -291,10 +293,10 @@ export class Location {
       }
 
       let flags = 0;
-      if (await aquaticKarstData.indicatesLocation(db, spec)) {
+      if (await context.aquaticKarstData.indicatesLocation(db, spec)) {
         flags |= AQUATIC_KARST_FLAG;
       }
-      if (await terrestrialKarstData.indicatesLocation(db, spec)) {
+      if (await context.terrestrialKarstData.indicatesLocation(db, spec)) {
         flags |= TERRESTRIAL_KARST_FLAG;
       }
 

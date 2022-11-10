@@ -18,7 +18,6 @@ import { Permission } from '../../shared/user_auth';
 import { DataKey, type ImportSchedule, keyDataInfoByKey } from '../../shared/data_keys';
 import { setSiteTitles, setWelcomeHTML } from '../lib/site_info';
 import { setDefaultQueryFields } from '../lib/default_query_fields';
-import { aquaticKarstData, terrestrialKarstData } from '../lib/karst_localities';
 
 export const router = Router();
 
@@ -91,21 +90,15 @@ router.post('/save', async (req: Request, res) => {
     case DataKey.DefaultQueryFields:
       setDefaultQueryFields(data);
       break;
-    case DataKey.AquaticKarstTerms:
-    case DataKey.AquaticKarstLocalities:
-      aquaticKarstData.reset();
-      break;
-    case DataKey.TerrestrialKarstTerms:
-    case DataKey.TerrestrialKarstLocalities:
-      terrestrialKarstData.reset();
-      break;
   }
+  // No need to reset data that is appplied on import, because it's
+  // reloaded with each import.
 
   return res.status(StatusCodes.OK).send();
 });
 
 router.post('/set_schedule', async (req: Request, res) => {
-  if (!(await checkPermissions(req, Permission.Admin))) {
+  if (!checkPermissions(req, Permission.Admin)) {
     return res.status(StatusCodes.FORBIDDEN).send();
   }
 

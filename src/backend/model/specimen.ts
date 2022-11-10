@@ -12,6 +12,7 @@ import {
 } from '../integrations/postgres';
 import { Taxon, type TaxonSource } from './taxon';
 import { Location } from './location';
+import type { ImportContext } from '../lib/import_context';
 import { ImportFailure } from './import_failure';
 import { Logs } from './logs';
 import {
@@ -212,7 +213,11 @@ export class Specimen implements TaxonPathSpec {
     await db.query('update specimens set committed=true');
   }
 
-  static async create(db: DB, source: GbifRecord): Promise<Specimen | null> {
+  static async create(
+    db: DB,
+    context: ImportContext,
+    source: GbifRecord
+  ): Promise<Specimen | null> {
     const problemList: string[] = [];
     let taxon: Taxon;
     let taxonNames: string[] = [];
@@ -290,13 +295,13 @@ export class Specimen implements TaxonPathSpec {
 
       // Create the associated taxa and locations, if they don't already exist.
 
-      taxon = await Taxon.getOrCreate(db, taxonSource, problemList);
+      taxon = await Taxon.getOrCreate(db, context, taxonSource, problemList);
       if (taxon.parentIDPath != '') {
         taxonIDs = taxon.parentIDPath.split(',');
         taxonNames = taxon.parentNamePath.split('|');
       }
 
-      location = await Location.getOrCreate(db, source, problemList);
+      location = await Location.getOrCreate(db, context, source, problemList);
       locationIDs = location.parentIDPath.split(',');
       locationNames = location.parentNamePath.split('|');
       // Location always has locality but may be missing intermediates.

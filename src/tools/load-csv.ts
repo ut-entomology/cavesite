@@ -12,6 +12,7 @@ import type { GbifRecord } from '../backend/model/specimen';
 import { PersonName, CsvSpecimen } from './lib/csv_specimen';
 import { ROOT_TAXON_UNIQUE, LogType } from '../shared/model';
 import { Logs } from '../backend/model/logs';
+import { ImportContext } from '../backend/lib/import_context'
 
 const RECORDS_PER_TICK = 300;
 const description = 'import from CSV via command line';
@@ -184,6 +185,7 @@ function toSpeciesOrSubspecies(name: string): string {
   process.stdout.write('\nImporting records...');
   const errors = await loadDatabase(
     db,
+    new ImportContext(),
     getNextGbifRecord,
     () => process.stdout.write('\nCalculating effort...'),
     () => process.stdout.write('\nCommitting data... (working)')

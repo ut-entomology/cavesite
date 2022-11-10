@@ -8,12 +8,12 @@ import { type DB, toCamelRow, toPostgresDateOrNull } from '../integrations/postg
 import { Specimen } from '../model/specimen';
 import { EffortFlags, ComparedFauna, toSpeciesAndSubspecies } from '../../shared/model';
 import { TaxonCounter } from '../../shared/taxon_counter';
-import { troglobiteData } from '../lib/karst_obligates';
 import {
   partialDateHasMonth,
   stripTimeZoneOrNull,
   toDaysEpoch
 } from '../../shared/date_tools';
+import { ImportContext } from '../lib/import_context'
 
 const NO_DATE_EPOCH_DAY = -Math.pow(1, 9); // very negative to make first in sort
 
@@ -129,6 +129,7 @@ export class LocationVisit extends TaxonCounter {
 
   static async addSpecimen(
     db: DB,
+    cx: ImportContext,
     comparedFauna: ComparedFauna,
     specimen: Specimen
   ): Promise<void> {
@@ -139,7 +140,7 @@ export class LocationVisit extends TaxonCounter {
 
     switch (comparedFauna) {
       case ComparedFauna.caveObligates:
-        const troglobitesMap = await troglobiteData.getMap(db);
+        const troglobitesMap = await cx.troglobiteData.getMap(db);
         if (
           !(
             (speciesName && troglobitesMap[speciesName]) ||
@@ -152,7 +153,7 @@ export class LocationVisit extends TaxonCounter {
         }
         break;
       case ComparedFauna.generaHavingCaveObligates:
-        const troglobitesGeneraMap = await troglobiteData.getContainingGeneraMap(db);
+        const troglobitesGeneraMap = await cx.troglobiteData.getContainingGeneraMap(db);
         if (!specimen.genusName || !troglobitesGeneraMap[specimen.genusName]) {
           return; // exclude genera that don't contain troglobites
         }

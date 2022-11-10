@@ -29,6 +29,7 @@ export enum DataKey {
   Troglobites = 'troglobites',
   TexasSpeciesStatus = 'texas_status',
   FederalSpeciesStatus = 'federal_status',
+  GbifCorrections = 'gbif_corrections',
 
   // Email text
 
@@ -153,6 +154,11 @@ export const keyDataInfoByKey: Record<DataKey, KeyDataInfo> = {
     getErrors: getFederalSpeciesStatusErrors,
     checkTaxa: true
   },
+  [DataKey.GbifCorrections]: {
+    readPermission: Permission.None,
+    getErrors: getGbifCorrectionsErrors,
+    checkTaxa: false
+  },
   [DataKey.NewAccountEmail]: {
     readPermission: Permission.None,
     getErrors: getCredentialEmailErrors,
@@ -174,16 +180,16 @@ function getSiteTitleAndSubtitleErrors(text: string) {
   const errors: string[] = [];
   const lines = text.split('\n').map((line) => line.trim());
   if (lines.length == 0) {
-    addError(errors, null, "this file can't be blank");
+    _addError(errors, null, "this file can't be blank");
   } else {
     if (lines[0] == '') {
-      addError(errors, null, 'you must provide a title on the first line');
+      _addError(errors, null, 'you must provide a title on the first line');
     }
     if (lines.length == 1 || lines[1] == '') {
-      addError(errors, null, 'you must provide a subtitle on the second line');
+      _addError(errors, null, 'you must provide a subtitle on the second line');
     }
     if (lines.length > 2) {
-      addError(
+      _addError(
         errors,
         null,
         'there must only be two lines, one for the title and one for the subtitle'
@@ -202,7 +208,7 @@ function getDefaultQueryFieldsErrors(text: string) {
   const errors: string[] = [];
   for (const line of lines) {
     if (!Object.values(QueryColumnID).includes(line.trim() as QueryColumnID)) {
-      addError(errors, line, 'is not a valid query field');
+      _addError(errors, line, 'is not a valid query field');
     }
   }
   return errors;
@@ -214,21 +220,21 @@ function getKarstLocalityErrors(text: string) {
     line = line.trim();
     if (line.length == 0 || line[0] == '#') continue;
     if (line[0] == '(') {
-      addError(errors, line, 'cannot begin cave name with parentheses');
+      _addError(errors, line, 'cannot begin cave name with parentheses');
     }
     const lastLeftParenIndex = line.lastIndexOf('(');
     if (lastLeftParenIndex < 0) {
-      addError(errors, line, 'is missing parenthesized county name');
+      _addError(errors, line, 'is missing parenthesized county name');
     } else if (line[line.length - 1] != ')') {
-      addError(errors, line, 'is missing trailing parenthesis');
+      _addError(errors, line, 'is missing trailing parenthesis');
     } else {
       const locality = line.substring(0, lastLeftParenIndex).trim();
       const county = line.substring(lastLeftParenIndex + 1, line.length - 1).trim();
       if (county == '') {
-        addError(errors, line, 'has no county name');
+        _addError(errors, line, 'has no county name');
       }
       if (locality.toLowerCase().includes('cave')) {
-        addError(
+        _addError(
           errors,
           line,
           "contains the text 'cave' and so need not be listed here"
@@ -246,16 +252,16 @@ function getKarstObligatesErrors(text: string) {
     line = line.trim();
     if (line.length == 0 || line[0] == '#') continue;
     if (line[0] != line[0].toUpperCase()) {
-      addError(errors, line, 'does not begin with an uppercase letter');
+      _addError(errors, line, 'does not begin with an uppercase letter');
     }
     if (line[1] == '.') {
-      addError(errors, line, 'appears to have an abbreviated genus');
+      _addError(errors, line, 'appears to have an abbreviated genus');
     }
     if (!line.match(regex)) {
-      addError(errors, line, 'contains dissallowed characters');
+      _addError(errors, line, 'contains dissallowed characters');
     }
     if (line.substring(1) != line.substring(1).toLowerCase()) {
-      addError(errors, line, 'is not entirely lowercase after first letter');
+      _addError(errors, line, 'is not entirely lowercase after first letter');
     }
   }
   return errors;
@@ -268,23 +274,23 @@ function getKarstRegionsErrors(text: string) {
     if (line.length == 0 || line[0] == '#') continue;
     const colonOffset = line.indexOf(':');
     if (colonOffset <= 0 || line.substring(0, colonOffset).trim() == '') {
-      addError(errors, line, 'must begin with a switch name followed by a colon');
+      _addError(errors, line, 'must begin with a switch name followed by a colon');
     }
     const params = line.substring(colonOffset + 1).split(',');
     if (params.length != 3) {
-      addError(errors, line, 'must contain 3 comma-delimited parameters');
+      _addError(errors, line, 'must contain 3 comma-delimited parameters');
     } else {
       for (let param of params) {
         param = param.trim();
         if (param.includes(' ')) {
-          addError(errors, line, `"${param}" cannot contain spaces`);
+          _addError(errors, line, `"${param}" cannot contain spaces`);
         }
       }
       if (!params[1].includes('-')) {
-        addError(errors, line, `"${params[1]}" does not appear to be a tileset name`);
+        _addError(errors, line, `"${params[1]}" does not appear to be a tileset name`);
       }
       if (!params[2].includes('.')) {
-        addError(errors, line, `"${params[2]}" does not appear to be a tileset ID`);
+        _addError(errors, line, `"${params[2]}" does not appear to be a tileset ID`);
       }
     }
   }
@@ -298,19 +304,19 @@ function getTexasSpeciesStatusErrors(text: string) {
     if (line.length == 0 || line[0] == '#') continue;
     const values = line.split(',');
     if (values.length != 3) {
-      addError(errors, line, 'must contain 3 comma-delimited values');
+      _addError(errors, line, 'must contain 3 comma-delimited values');
     } else {
       _checkSpeciesName(errors, values[0]);
       const stateRank = values[1].trim();
       if (stateRank.includes(' ') || (stateRank != '' && stateRank[0] != 'S')) {
-        addError(
+        _addError(
           errors,
           line,
           `does not appear to have a state rank (a single term starting with 'S')`
         );
       }
       if (stateRank == 'SGCN') {
-        addError(
+        _addError(
           errors,
           line,
           `appears to have reversed the state rank and TPWD columns`
@@ -331,11 +337,17 @@ function getFederalSpeciesStatusErrors(text: string) {
   return errors;
 }
 
+function getGbifCorrectionsErrors(text: string) {
+  const errors: string[] = [];
+  parseGbifCorrections(text, errors);
+  return errors;
+}
+
 function getCredentialEmailErrors(text: string) {
   const errors = checkEmailTemplate(text, credentialEmailVars);
   const requiredVar = '{password}';
   if (!text.includes(requiredVar)) {
-    addError(errors, requiredVar, 'missing from email template');
+    _addError(errors, requiredVar, 'missing from email template');
   }
   return errors;
 }
@@ -344,7 +356,7 @@ function getPasswordResetLinkEmailErrors(text: string) {
   const errors = checkEmailTemplate(text, resetRequestEmailVars);
   const requiredVar = '{reset-link}';
   if (!text.includes(requiredVar)) {
-    addError(errors, requiredVar, 'missing from email template');
+    _addError(errors, requiredVar, 'missing from email template');
   }
   return errors;
 }
@@ -352,19 +364,19 @@ function getPasswordResetLinkEmailErrors(text: string) {
 function checkEmailTemplate(text: string, varNames: string[]): string[] {
   const errors: string[] = [];
   if (text.trim() == '') {
-    addError(errors, '', 'is empty');
+    _addError(errors, '', 'is empty');
   } else {
     if (!text.toLowerCase().startsWith('subject:')) {
-      addError(errors, null, `first line must start with "Subject:"`);
+      _addError(errors, null, `first line must start with "Subject:"`);
     } else {
       const lines = text.split('\n');
       const subject = lines[0].substring('subject:'.length).trim();
       if (subject == '') {
-        addError(errors, null, "subject can't be empty");
+        _addError(errors, null, "subject can't be empty");
       }
       const body = lines.slice(1).join('\n').trim();
       if (body == '') {
-        addError(errors, null, "body of email can't be empty");
+        _addError(errors, null, "body of email can't be empty");
       }
     }
     const varErrors = checkTemplateVars(text, varNames);
@@ -379,13 +391,13 @@ function checkTemplateVars(text: string, varNames: string[]): string[] {
   for (const match of text.matchAll(BRACKET_REGEX)) {
     const varName = match[1];
     if (!varNames.includes(varName)) {
-      addError(errors, varName, ' is not a recognized variable');
+      _addError(errors, varName, ' is not a recognized variable');
     }
   }
   return errors;
 }
 
-function addError(errors: string[], line: string | null, message: string): void {
+function _addError(errors: string[], line: string | null, message: string): void {
   if (line !== null) {
     message = `"${line}" ${message}`;
   }
@@ -401,6 +413,52 @@ export function parseDataLines(text: string): string[] {
     }
   }
   return lines;
+}
+
+// Returned map maps most specific taxa to their parent taxa.
+export function parseGbifCorrections(text:string, errors: string[]): Record<string, string[]> {
+  const taxaNames: Record<string, string> = {};
+  const taxaPaths: Record<string, string[]> = {};
+  for (let rawLine of text.split('\n')) {
+    if (rawLine.match(/[^-A-Za-z, ]/) !== null) {
+      _addError(errors, rawLine, "contains an unrecognized character");
+    } else {
+      let line = rawLine.trim().replace(/[, ]+/g, " ");
+      if (line.length == 0 || line[0] == '#') continue;
+      const lastCapOffset = line.search(/A-Z/);
+      if (lastCapOffset >= 0) {
+        let specificName = line.substring(lastCapOffset);
+        const parentNames = line.substring(0, lastCapOffset).trim().split(" ");
+        _addTaxaPath(taxaNames, taxaPaths, parentNames, specificName, errors);
+        for (let i = parentNames.length; i >= 1; --i) {
+          _addTaxaPath(taxaNames, taxaPaths, parentNames.slice(0, i - 1), parentNames[i - 1], errors);
+        }
+      } else {
+        _addError(errors, rawLine, "has a letter case error");
+      }
+    }
+  }
+  return taxaPaths;
+}
+
+function _addTaxaPath(
+  taxaNames: Record<string, string>,
+  taxaPaths: Record<string, string[]>,
+  parentNames: string[],
+  specificName: string,
+  errors: string[]
+) {
+  const lowerSpecificName = specificName.toLowerCase();
+  if (lowerSpecificName in taxaNames) {
+    if (taxaNames[lowerSpecificName] != specificName) {
+      _addError(errors, specificName, "has inconsistent letter case");
+    } else if (taxaPaths[specificName].join(" ") != parentNames.join(" ")) {
+      _addError(errors, specificName, "has inconsistently assigned parent taxa");
+    }
+  } else {
+    taxaNames[lowerSpecificName] = specificName;
+    taxaPaths[specificName] = parentNames;
+  }
 }
 
 export function parseLocalities(text: string): [string, string][] {
@@ -454,16 +512,16 @@ function _checkSpeciesName(errors: string[], text: string): void {
   const regex = /^[-A-Za-z ]+$/;
   text = text.trim();
   if (text[0] != text[0].toUpperCase()) {
-    addError(errors, text, 'does not begin with an uppercase letter');
+    _addError(errors, text, 'does not begin with an uppercase letter');
   }
   if (!text.match(regex)) {
-    addError(errors, text, 'contains dissallowed characters');
+    _addError(errors, text, 'contains dissallowed characters');
   }
   if (text.substring(1) != text.substring(1).toLowerCase()) {
-    addError(errors, text, 'is not entirely lowercase after first letter');
+    _addError(errors, text, 'is not entirely lowercase after first letter');
   }
   const spaces = text.length - text.replace(' ', '').length;
   if (spaces < 1 || spaces > 2) {
-    addError(errors, text, 'must consist of 2 or 3 words (3 for subspecies)');
+    _addError(errors, text, 'must consist of 2 or 3 words (3 for subspecies)');
   }
 }

@@ -14,6 +14,7 @@ import { KeyData } from '../backend/model/key_data';
 import { DataKey, type ImportSchedule } from '../shared/data_keys';
 import { LogType } from '../shared/model';
 import { Logs } from '../backend/model/logs';
+import { ImportContext } from '../backend/lib/import_context'
 
 const runningAsScript = require.main === module; // rather than imported by load-csv
 const INSTITUTION_CODE = 'UTIC';
@@ -62,6 +63,7 @@ abstract class GbifImporter {
     );
     this.importFailures = await loadDatabase(
       await this.getDB(),
+      new ImportContext(),
       this._loadNextGbifRecord.bind(this),
       this._calculatingEffort.bind(this),
       this._committingData.bind(this)

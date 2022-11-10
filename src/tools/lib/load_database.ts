@@ -4,6 +4,7 @@
 
 import { loadAndCheckEnvVars } from '../../backend/lib/env_vars';
 import { DB, connectDB, getDB } from '../../backend/integrations/postgres';
+import { ImportContext } from '../../backend/lib/import_context';
 import { Taxon } from '../../backend/model/taxon';
 import { Location } from '../../backend/model/location';
 import { type GbifRecord, Specimen } from '../../backend/model/specimen';
@@ -25,13 +26,14 @@ export async function connectDatabase(): Promise<DB> {
 
 export async function loadDatabase(
   db: DB,
+  cx: ImportContext,
   getNextGbifRecord: () => Promise<GbifRecord | null>,
   calculatingEffort: () => void,
   committingData: () => void
 ): Promise<string[]> {
   // Populate the database, including location visit data.
 
-  const failures = await _loadSpecimens(db, getNextGbifRecord);
+  const failures = await _loadSpecimens(db, cx, getNextGbifRecord);
 
   // Tally and commit location effort data.
 
@@ -63,16 +65,19 @@ export async function loadDatabase(
 
 async function _loadSpecimens(
   db: DB,
+  cx: ImportContext,
   getNextGbifRecord: () => Promise<GbifRecord | null>
 ): Promise<string[]> {
+  const importContext = new ImportContext();
   const failures: string[] = [];
+
   let specimenSource = await getNextGbifRecord();
   while (specimenSource !== null) {
     try {
-      const specimen = await Specimen.create(db, specimenSource);
+      const specimen = await Specimen.create(db, importContext, specimenSource);
       if (specimen) {
         for (const compare of comparedFauna) {
-          await LocationVisit.addSpecimen(db, compare, specimen);
+          await LocationVisit.addSpecimen(db, cx, compare, specimen);
         }
       } else {
         failures.push(

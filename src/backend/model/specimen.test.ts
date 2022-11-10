@@ -16,6 +16,7 @@ import {
   toDateFromString,
   toZonelessYear
 } from '../../shared/date_tools';
+import { ImportContext } from '../lib/import_context';
 import { Logs } from './logs';
 
 const startDate = toDateFromString('2020-01-01');
@@ -70,13 +71,14 @@ beforeAll(async () => {
 
 describe('basic specimen methods', () => {
   test('missing catalog number', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
     await Taxon.dropAll(db);
 
     {
       const source = Object.assign({}, baseSource);
       source.catalogNumber = '';
-      expect(await Specimen.create(db, source)).toBeNull();
+      expect(await Specimen.create(db, cx, source)).toBeNull();
       let found = await containsLog(
         db,
         'NO CATALOG NUMBER',
@@ -89,7 +91,7 @@ describe('basic specimen methods', () => {
       const source = Object.assign({}, baseSource);
       // @ts-ignore
       source.catalogNumber = undefined;
-      expect(await Specimen.create(db, source)).toBeNull();
+      expect(await Specimen.create(db, cx, source)).toBeNull();
       let found = await containsLog(
         db,
         'NO CATALOG NUMBER',
@@ -101,13 +103,14 @@ describe('basic specimen methods', () => {
   });
 
   test('creating a fully-specified specimen', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
     await Taxon.dropAll(db);
 
     // test creating a fully-specified specimen
 
     {
-      const specimen = await Specimen.create(db, baseSource);
+      const specimen = await Specimen.create(db, cx, baseSource);
       expect(specimen).toEqual({
         catalogNumber: baseSource.catalogNumber,
         occurrenceGuid: baseSource.occurrenceID,
@@ -198,7 +201,7 @@ describe('basic specimen methods', () => {
         recordedBy: 'Any Body',
         identifiedBy: 'Person C'
       };
-      const specimen = await Specimen.create(db, source);
+      const specimen = await Specimen.create(db, cx, source);
       expect(specimen).toEqual({
         catalogNumber: source.catalogNumber,
         occurrenceGuid: source.occurrenceID,
@@ -271,14 +274,14 @@ describe('basic specimen methods', () => {
     {
       let source = Object.assign({}, baseSource);
       source.organismQuantity = '50';
-      await Specimen.create(db, source);
+      await Specimen.create(db, cx, source);
       let specimen = await Specimen.getByCatNum(db, 'C1', true);
       expect(specimen?.specimenCount).not.toEqual(50);
 
       source = Object.assign({}, baseSource);
       source.catalogNumber = 'C100';
       source.occurrenceID = 'X100';
-      await Specimen.create(db, source);
+      await Specimen.create(db, cx, source);
       specimen = await Specimen.getByCatNum(db, 'C100', true);
       expect(specimen).toBeNull();
 
@@ -302,7 +305,7 @@ describe('basic specimen methods', () => {
       source.genus = undefined;
 
       await clearLogs(db);
-      const specimen = await Specimen.create(db, source);
+      const specimen = await Specimen.create(db, cx, source);
       expect(specimen).toBeNull();
 
       let found = await containsLog(
@@ -324,7 +327,7 @@ describe('basic specimen methods', () => {
       source.locality = undefined;
 
       await clearLogs(db);
-      const specimen = await Specimen.create(db, source);
+      const specimen = await Specimen.create(db, cx, source);
       expect(specimen).toBeNull();
 
       let found = await containsLog(
@@ -338,11 +341,13 @@ describe('basic specimen methods', () => {
   });
 
   test('specimen with subgenus encoded in det remarks', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
     await Taxon.dropAll(db);
 
     const specimen = await Specimen.create(
       db,
+      cx,
       Object.assign({}, baseSource, {
         identificationRemarks: 'blind; subgenus Subby; more notes'
       })
@@ -416,11 +421,13 @@ describe('basic specimen methods', () => {
   });
 
   test('specimen with new species encoded in det remarks', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
     await Taxon.dropAll(db);
 
     const specimen = await Specimen.create(
       db,
+      cx,
       Object.assign({}, baseSource, {
         specificEpithet: '',
         scientificName: 'Argiope',
@@ -495,10 +502,11 @@ describe('basic specimen methods', () => {
   });
 
   test('creating a troglobites specimen', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
     await Taxon.dropAll(db);
 
-    const specimen = await _createSpecimen4(db);
+    const specimen = await _createSpecimen4(db, cx );
     expect(specimen).toEqual({
       catalogNumber: 'Q4',
       occurrenceGuid: 'GQ4',
@@ -561,6 +569,7 @@ describe('basic specimen methods', () => {
   });
 
   test('end date but no start date', async () => {
+    const cx = new ImportContext();
     {
       const source = Object.assign({}, baseSource);
       source.catalogNumber = 'C4';
@@ -568,7 +577,7 @@ describe('basic specimen methods', () => {
       source.startDate = '';
 
       await clearLogs(db);
-      const specimen = await Specimen.create(db, source);
+      const specimen = await Specimen.create(db, cx, source);
       expect(specimen?.problems).toContain('no start date');
       let found = await containsLog(db, source.catalogNumber, 'no start date', false);
       expect(found).toEqual(true);
@@ -581,7 +590,7 @@ describe('basic specimen methods', () => {
       source.startDate = undefined;
 
       await clearLogs(db);
-      const specimen = await Specimen.create(db, source);
+      const specimen = await Specimen.create(db, cx, source);
       expect(specimen?.problems).toContain('no start date');
       let found = await containsLog(db, source.catalogNumber, 'no start date', false);
       expect(found).toEqual(true);
@@ -589,6 +598,7 @@ describe('basic specimen methods', () => {
   });
 
   test('start date follows end date', async () => {
+    const cx = new ImportContext();
     const startDateISO = startDate.toISOString();
     const source = Object.assign({}, baseSource);
     // @ts-ignore
@@ -599,7 +609,7 @@ describe('basic specimen methods', () => {
       'ended ' + startDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
     expect(specimen?.problems).toContain('Start date follows end date');
     let found = await containsLog(
       db,
@@ -611,6 +621,7 @@ describe('basic specimen methods', () => {
   });
 
   test('end date follows start date by too much time', async () => {
+    const cx = new ImportContext();
     const startDateISO = toDateFromString('10/10/70').toISOString();
     const endDateISO = toDateFromString('10/10/80').toISOString();
     const source = Object.assign({}, baseSource);
@@ -621,7 +632,7 @@ describe('basic specimen methods', () => {
     source.eventRemarks = 'ended ' + endDateISO.substring(0, startDateISO.indexOf('T'));
 
     await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
     expect(specimen?.problems).toContain('dropped end date');
     let found = await containsLog(
       db,
@@ -633,20 +644,21 @@ describe('basic specimen methods', () => {
   });
 
   test('partial determination dates', async () => {
+    const cx = new ImportContext();
     let source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET1';
     source.dateIdentified = '1985';
-    await Specimen.create(db, source);
+    await Specimen.create(db, cx, source);
 
     source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET2';
     source.dateIdentified = '00/00/1999';
-    await Specimen.create(db, source);
+    await Specimen.create(db, cx, source);
 
     source = Object.assign({}, baseSource);
     source.catalogNumber = 'DET3';
     source.dateIdentified = '01-00-2001';
-    await Specimen.create(db, source);
+    await Specimen.create(db, cx, source);
 
     await Specimen.commit(db);
 
@@ -659,13 +671,14 @@ describe('basic specimen methods', () => {
   });
 
   test('bad specimen count', async () => {
+    const cx = new ImportContext();
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C7';
     source.occurrenceID = 'X7';
     source.organismQuantity = 'foo';
 
     await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
     expect(specimen?.problems).toContain('Invalid specimen count');
     let found = await containsLog(
       db,
@@ -677,6 +690,7 @@ describe('basic specimen methods', () => {
   });
 
   test('multiple problems with specimen', async () => {
+    const cx = new ImportContext();
     const source = Object.assign({}, baseSource);
     // @ts-ignore
     source.catalogNumber = 'C10';
@@ -685,7 +699,7 @@ describe('basic specimen methods', () => {
     source.organismQuantity = 'foo';
 
     await clearLogs(db);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
     expect(specimen?.problems).toContain('Start date follows end date');
     expect(specimen?.problems).toContain('Invalid specimen count');
     let found = await containsLog(
@@ -711,13 +725,14 @@ describe('basic specimen methods', () => {
 
 describe('partial start and end dates', () => {
   test('start date missing month', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
 
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
     source.eventRemarks = _toStartDate(2022);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
 
     expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 1, 1));
     expect(specimen?.partialStartDate).toEqual('2022');
@@ -731,13 +746,14 @@ describe('partial start and end dates', () => {
   });
 
   test('start date missing day of month', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
 
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
     source.eventRemarks = _toStartDate(2022, 6);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
 
     expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 1));
     expect(specimen?.partialStartDate).toEqual('2022-6');
@@ -751,6 +767,7 @@ describe('partial start and end dates', () => {
   });
 
   test('end date missing month', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
 
     const source = Object.assign({}, baseSource);
@@ -758,7 +775,7 @@ describe('partial start and end dates', () => {
     source.occurrenceID = 'X1';
     source.startDate = toDateFromNumbers(2022, 6, 12).toISOString();
     source.eventRemarks = _toEndDate(2022);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
 
     expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 12));
     expect(specimen?.partialStartDate).toBe(null);
@@ -772,6 +789,7 @@ describe('partial start and end dates', () => {
   });
 
   test('end date missing day of month', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
 
     const source = Object.assign({}, baseSource);
@@ -779,7 +797,7 @@ describe('partial start and end dates', () => {
     source.occurrenceID = 'X1';
     source.startDate = toDateFromNumbers(2022, 6, 12).toISOString();
     source.eventRemarks = _toEndDate(2022, 6);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
 
     expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 12));
     expect(specimen?.partialStartDate).toBe(null);
@@ -793,13 +811,14 @@ describe('partial start and end dates', () => {
   });
 
   test('start and end dates of different months missing day of month', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
 
     const source = Object.assign({}, baseSource);
     source.catalogNumber = 'C1';
     source.occurrenceID = 'X1';
     source.eventRemarks = _toStartDate(2022, 6) + '; ' + _toEndDate(2022, 8);
-    const specimen = await Specimen.create(db, source);
+    const specimen = await Specimen.create(db, cx, source);
 
     expect(specimen?.collectionStartDate).toEqual(toDateFromNumbers(2022, 6, 1));
     expect(specimen?.partialStartDate).toEqual('2022-6');
@@ -815,9 +834,10 @@ describe('partial start and end dates', () => {
 
 describe('general specimen query', () => {
   test('querying for specified columns', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    const specimen1 = await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
+    const specimen1 = await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
     await Specimen.commit(db);
 
     let dateSpec = _toColumnSpec(QueryColumnID.CollectionStartDate, true);
@@ -1087,9 +1107,10 @@ describe('general specimen query', () => {
   });
 
   test('query result order', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    const specimen1 = await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
+    const specimen1 = await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
     await Specimen.commit(db);
 
     // prettier-ignore
@@ -1200,9 +1221,10 @@ describe('general specimen query', () => {
   });
 
   test('query based on whether columns are blank', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    await _createSpecimen1(db);
-    await _createSpecimen2(db);
+    await _createSpecimen1(db, cx);
+    await _createSpecimen2(db, cx);
     await Specimen.commit(db);
 
     // prettier-ignore
@@ -1261,10 +1283,11 @@ describe('general specimen query', () => {
   });
 
   test('query with location constraints', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    const specimen1 = await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
-    const specimen3 = await _createSpecimen3(db);
+    const specimen1 = await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
+    const specimen3 = await _createSpecimen3(db, cx);
     await Specimen.commit(db);
 
     let locationFilter: QueryLocationFilter = {
@@ -1363,14 +1386,15 @@ describe('general specimen query', () => {
   });
 
   test('query with date constraints', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
 
     // Test use of only fromDate.
 
-    await _createSpecimen1(db); // 2021-01-01 - 2021-01-03
-    await _createSpecimen2(db); // 2021-01-04
-    await _createSpecimen3(db); // 2020-01-01
-    await _createSpecimen4(db); // 2020-01-01
+    await _createSpecimen1(db, cx); // 2021-01-01 - 2021-01-03
+    await _createSpecimen2(db, cx); // 2021-01-04
+    await _createSpecimen3(db, cx); // 2020-01-01
+    await _createSpecimen4(db, cx); // 2020-01-01
     await Specimen.commit(db);
 
     let dateFilter: QueryDateFilter = {
@@ -1448,10 +1472,11 @@ describe('general specimen query', () => {
   });
 
   test('query with taxa constraints', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    const specimen1 = await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
-    const specimen3 = await _createSpecimen3(db);
+    const specimen1 = await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
+    const specimen3 = await _createSpecimen3(db, cx);
     await Specimen.commit(db);
 
     let taxonFilter: QueryTaxonFilter = {
@@ -1599,10 +1624,11 @@ describe('general specimen query', () => {
   });
 
   test('query for group counts', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    const specimen1 = await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
-    const specimen3 = await _createSpecimen3(db);
+    const specimen1 = await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
+    const specimen3 = await _createSpecimen3(db, cx);
     await Specimen.commit(db);
 
     // prettier-ignore
@@ -1639,10 +1665,11 @@ describe('general specimen query', () => {
   });
 
   test('batch queries of filtered results', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
-    const specimen3 = await _createSpecimen3(db);
+    await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
+    const specimen3 = await _createSpecimen3(db, cx);
     await Specimen.commit(db);
 
     let taxonFilter = {
@@ -1670,11 +1697,12 @@ describe('general specimen query', () => {
   });
 
   test('combined criteria query', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    await _createSpecimen1(db);
-    await _createSpecimen1(db);
-    const specimen2 = await _createSpecimen2(db);
-    const specimen3 = await _createSpecimen3(db);
+    await _createSpecimen1(db, cx);
+    await _createSpecimen1(db, cx);
+    const specimen2 = await _createSpecimen2(db, cx);
+    const specimen3 = await _createSpecimen3(db, cx);
     await Specimen.commit(db);
 
     let taxonFilter = {
@@ -1703,8 +1731,9 @@ describe('general specimen query', () => {
   });
 
   test('returning no results', async () => {
+    const cx = new ImportContext();
     await Specimen.dropAll(db);
-    await _createSpecimen1(db);
+    await _createSpecimen1(db, cx);
     await Specimen.commit(db);
 
     // prettier-ignore
@@ -1754,7 +1783,7 @@ async function containsLog(
   return false;
 }
 
-async function _createSpecimen1(db: DB): Promise<Specimen | null> {
+async function _createSpecimen1(db: DB, cx: ImportContext): Promise<Specimen | null> {
   const endDate1ISO = endDate1.toISOString();
   const source: GbifRecord = Object.assign({}, baseSource);
   source.catalogNumber = 'Q1';
@@ -1762,10 +1791,10 @@ async function _createSpecimen1(db: DB): Promise<Specimen | null> {
   source.startDate = startDate1.toISOString();
   source.eventRemarks =
     'cave; ended ' + endDate1ISO.substring(0, endDate1ISO.indexOf('T'));
-  return await Specimen.create(db, source);
+  return await Specimen.create(db, cx, source);
 }
 
-async function _createSpecimen2(db: DB): Promise<Specimen | null> {
+async function _createSpecimen2(db: DB, cx: ImportContext): Promise<Specimen | null> {
   const source2 = {
     catalogNumber: 'Q2',
     occurrenceID: 'GQ2',
@@ -1796,10 +1825,10 @@ async function _createSpecimen2(db: DB): Promise<Specimen | null> {
     typeStatus: 'paratype',
     organismQuantity: '2'
   };
-  return await Specimen.create(db, source2);
+  return await Specimen.create(db, cx, source2);
 }
 
-async function _createSpecimen3(db: DB): Promise<Specimen | null> {
+async function _createSpecimen3(db: DB, cx: ImportContext): Promise<Specimen | null> {
   const source3 = {
     catalogNumber: 'Q3',
     occurrenceID: 'GQ3',
@@ -1830,10 +1859,10 @@ async function _createSpecimen3(db: DB): Promise<Specimen | null> {
     typeStatus: '',
     organismQuantity: '3'
   };
-  return await Specimen.create(db, source3);
+  return await Specimen.create(db, cx, source3);
 }
 
-async function _createSpecimen4(db: DB): Promise<Specimen | null> {
+async function _createSpecimen4(db: DB, cx: ImportContext): Promise<Specimen | null> {
   const source4 = {
     catalogNumber: 'Q4',
     occurrenceID: 'GQ4',
@@ -1860,7 +1889,7 @@ async function _createSpecimen4(db: DB): Promise<Specimen | null> {
     recordedBy: 'Some One',
     typeStatus: ''
   };
-  return await Specimen.create(db, source4);
+  return await Specimen.create(db, cx, source4);
 }
 
 async function _getLocationByID(db: DB, locationID: number): Promise<Location | null> {

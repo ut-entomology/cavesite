@@ -59,20 +59,15 @@ abstract class KarstLocalityData {
     }
     return false;
   }
-
-  reset(): void {
-    this._termLexemesList = null;
-    this._isKarstByLocalityCounty = null;
-  }
 }
 
-class AquaticKarstData extends KarstLocalityData {
+export class AquaticKarstData extends KarstLocalityData {
   constructor() {
     super(DataKey.AquaticKarstTerms, DataKey.AquaticKarstLocalities);
   }
 }
 
-class TerrestrialKarstData extends KarstLocalityData {
+export class TerrestrialKarstData extends KarstLocalityData {
   constructor() {
     super(DataKey.TerrestrialKarstTerms, DataKey.TerrestrialKarstLocalities);
   }
@@ -87,6 +82,3 @@ function _toLexemes(locality: string): string[] {
   const matches = locality.toLowerCase().matchAll(TERM_REGEX);
   return Array.from(matches).map((match) => match[0]);
 }
-
-export const aquaticKarstData = new AquaticKarstData();
-export const terrestrialKarstData = new TerrestrialKarstData();

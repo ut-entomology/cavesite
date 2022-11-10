@@ -5,6 +5,7 @@ import { LocationVisit } from './location_visit';
 import { LocationEffort } from './location_effort';
 import { ComparedFauna } from '../../shared/model';
 import { toDateFromString } from '../../shared/date_tools';
+import { ImportContext } from '../lib/import_context'
 
 type PartialGbifRecord = Pick<
   GbifRecord,
@@ -33,6 +34,7 @@ const collectors2 = 'Someone Else|Yet Another';
 const detDate = _toISODate('2022-05-01');
 
 const mutex = new DatabaseMutex();
+const importContext = new ImportContext();
 let db: DB;
 let nextCatalogNumber = 1;
 
@@ -1160,9 +1162,9 @@ async function _addSpecimen(data: PartialGbifRecord): Promise<Specimen> {
     data
   );
   ++nextCatalogNumber;
-  const specimen = await Specimen.create(db, source);
+  const specimen = await Specimen.create(db, importContext, source);
   if (!specimen) throw Error('Invalid specimen');
-  await LocationVisit.addSpecimen(db, ComparedFauna.all, specimen);
+  await LocationVisit.addSpecimen(db, importContext, ComparedFauna.all, specimen);
   return specimen;
 }
 
