@@ -192,7 +192,7 @@
       <div class="col-sm-5 status text-center">
         {#if loadingWarnings}
           {warningStatus}
-        {:else}
+        {:else if keyDataInfo.checkTaxa}
           {warnings.length == 0 ? 'all taxa found on GBIF' : ''}
         {/if}
       </div>
