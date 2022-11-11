@@ -423,7 +423,7 @@ export function parseGbifCorrections(text:string, errors: string[]): Record<stri
     if (rawLine.match(/[^-A-Za-z, ]/) !== null) {
       _addError(errors, rawLine, "contains an unrecognized character");
     } else {
-      let line = rawLine.trim().replace(/[, ]+/g, " ");
+      let line = rawLine.trim().replace(/[, \t]+/g, " ");
       if (line.length == 0 || line[0] == '#') continue;
       const match = line.match(/[A-Z]/g);
       const lastCapOffset =  match ? line.lastIndexOf(match.pop()!) : -1;
