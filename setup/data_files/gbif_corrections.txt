@@ -1,55 +1,30 @@
-# can't find higher taxa
-#Nudomideopsis: Allomideopsis wichitaensis
-
-# correct the lists
-#Amphibiocapillaria texensis maps to genus Amphibiocapillaria in GBIF
-#Archeolarca guadalupensis maps to species Larca guadalupensis in GBIF
-
-Axonopsella bakeri maps to genus Axonopsella in GBIF
-Batrisodes dentifroms maps to species Batrisodes dentifrons in GBIF
-Batrisodes incispes maps to species Batrisodes incisipes in GBIF
-Batrisodes pekins maps to species Batrisodes pekinsi in GBIF
-Brachycoelium longleyi maps to genus Brachycoelium in GBIF
-Cambala reddelli maps to species Cambala speobia in GBIF
-Cavernocypris reddelli maps to genus Cavernocypris in GBIF
-Chinquipellobunus reddelli maps to genus Chinquipellobunus in GBIF
-Cicurina samsaba maps to species Cicurina sansaba in GBIF
-Cicurina venii maps to species Cicurina madla in GBIF
-Comalcandona gibsoni maps to genus Comalcandona in GBIF
-Comalcandona mixoni maps to genus Comalcandona in GBIF
-Dendroelopsis americana maps to species Dendrocoelopsis americana in GBIF
-Epitragosoma arenaria maps to species Epitragosoma arenarium in GBIF
-Ereboporus naturaconservatis maps to species Ereboporus naturaconservatus in GBIF
-Indocandona rusti maps to genus Indocandona in GBIF
-Lacrimacondona wisei not found in GBIF
-Lymantes nadinae maps to species Lymantes nadineae in GBIF
-Lymantes reddelli maps to genus Lymantes in GBIF
-Montanabathyella pecosensis not found in GBIF
-Namiotkocypria haysensis maps to genus Namiotkocypria in GBIF
-Nicrellopsis texana not found in GBIF
-Paraamexiweckelia ruffoi maps to species Paramexiweckelia ruffoi in GBIF
-Phreatoceras taylor maps to species Phreatoceras taylori in GBIF
-Protolimnesia ventriplacophora maps to genus Protolimnesia in GBIF
-Pseudocandona lordi maps to genus Pseudocandona in GBIF
-Rhabdochona longleyi maps to genus Rhabdochona in GBIF
-Rhadine bull maps to genus Rhadine in GBIF
-Rhadine noctivage maps to species Rhadine noctivaga in GBIF
-Rhadine speca maps to species Rhadine specum in GBIF
-Schornikovdona bellensis maps to genus Schornikovdona in GBIF
-Speodesmus ehinourus maps to genus Speodesmus in GBIF
-Speorthus maps to genus Speodesmus in GBIF
-Speorthus reyesi maps to genus Speodesmus in GBIF
-Speorthus tuganbius maps to species Speodesmus tuganbius in GBIF
-Tayshaneta vidreo maps to species Tayshaneta vidrio in GBIF
-Texanobathynella aaronswinki maps to genus Texanobathynella in GBIF
-Texanobathynella coloradoensis maps to genus Texanobathynella in GBIF
-Texella cokendolperi maps to species Texella cokendolpheri in GBIF
-Texicerberus amistad not found in GBIF
-Texicerberus castilloi not found in GBIF
-Texicerberus schoetteae not found in GBIF
-Texoreddellia aquilonalis maps to genus Texoreddellia in GBIF
-Texoreddellia capitesquameo maps to genus Texoreddellia in GBIF
-Texoreddellia coahuilensis maps to genus Texoreddellia in GBIF
-Texoreddellia media maps to genus Texoreddellia in GBIF
-Texoreddellia occasus maps to genus Texoreddellia in GBIF
-Ufocandona hannaleae maps to species Ufocandona hannaleeae in GBIF
+Arthropoda Arachnida Opilionida Phalangodidae Chinquipellobunus reddelli
+Arthropoda Arachnida Trombidiformes Aturidae Axonopsella bakeri
+Arthropoda Arachnida Trombidiformes Limnesiidae Protolimnesia ventriplacophora
+Arthropoda Arachnida Trombidiformes Mideopsidae Allomideopsis wichitaensis
+Arthropoda Diplopoda Polydesmida Macrosternodesmidae Speodesmus ehinourus
+Arthropoda Diplopoda Polydesmida Macrosternodesmidae Speorthus reyesi
+Arthropoda Diplopoda Polydesmida Macrosternodesmidae Speorthus tuganbius
+Arthropoda Insecta Coleoptera Curculionidae Lymantes reddelli
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia aquilonalis
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia capitesquameo
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia coahuilensis
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia Texoreddellia media
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia Texoreddellia occasus
+Arthropoda Malacostraca Bathynellacea Parabathynellidae Montanabathynella pecosensis
+Arthropoda Malacostraca Bathynellacea Parabathynellidae Texanobathynella aaronswinki
+Arthropoda Malacostraca Bathynellacea Parabathynellidae Texanobathynella coloradoensis
+Arthropoda Malacostraca Isopoda Microcerberidae Texicerberus amistad
+Arthropoda Malacostraca Isopoda Microcerberidae Texicerberus castilloi
+Arthropoda Malacostraca Isopoda Microcerberidae Texicerberus schoetteae
+Arthropoda Ostracoda Podocopida Candonidae Comalcandona gibsoni
+Arthropoda Ostracoda Podocopida Candonidae Comalcandona mixoni
+Arthropoda Ostracoda Podocopida Candonidae Indocandona rusti
+Arthropoda Ostracoda Podocopida Candonidae Namiotkocypria haysensis
+Arthropoda Ostracoda Podocopida Candonidae Schornikovdona bellensis
+Arthropoda Ostracoda Podocopida Cyprididae Cavernocypris reddelli
+Arthropoda Ostracoda Podocopida Cyprididae Lacrimacandona wisei
+Arthropoda Ostracoda Podocopida Cyprididae Pseudocandona lordi
+Nematoda Chromadorea Rhabditida Rhabdochonidae Rhabdochona longleyi
+Nematoda Enoplea Trichocephalida Capillariidae Amphibiocapillaria texensis 
+Platyhelminthes Trematoda Plagiorchiida Brachycoeliidae Brachycoelium longleyi

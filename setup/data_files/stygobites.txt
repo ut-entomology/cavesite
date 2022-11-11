@@ -2,14 +2,14 @@
 
 # Species that are stygobitic not necessarily in stygobitic genera
 
-Dendroelopsis americana
+Dendrocoelopsis americana
 Sphalloplana mohri
 Brachycoelium longleyi
 Dendronucleata americana
 Rhabdochona longleyi
 Amphibiocapillaria texensis
 Balconorbis uvaldensis
-Phreatoceras taylor
+Phreatoceras taylori
 Phreatodrobia conica
 Phreatodrobia coronae
 Phreatodrobia micra
@@ -21,21 +21,21 @@ Phreatodrobia rotunda
 Phreatodrobia spica
 Stygopyrgus bartonensis
 Texapyrgus longleyi
-Nicrellopsis texana
+Nitocrellopsis texana
 Bicornucandona fineganensis
 Comalcandona mixoni
 Comalcandona gibsoni
 Indocandona rusti
-Lacrimacondona wisei
+Lacrimacandona wisei
 Namiotkocypria haysensis
 Pseudocandona lordi
 Rugosuscandona scharfi
 Schornikovdona bellensis
-Ufocandona hannaleae
+Ufocandona hannaleeae
 Cavernocypris reddelli
 Cavernocypris wardi
 Hobbsinella edwardensis
-Montanabathyella pecosensis
+Montanabathynella pecosensis
 Texanobathynella aaronswinki
 Texanobathynella bowmani
 Texanobathynella coloradoensis
@@ -73,7 +73,7 @@ Allotexiweckelia hirsuta
 Holsingerius samacos
 Mexiweckelia hardeni
 Paraholsingerius smaragdinus
-Paraamexiweckelia ruffoi
+Paramexiweckelia ruffoi
 Texiweckelia texensis
 Texiweckeliopsis insolita
 Parabogidiella americana
@@ -88,7 +88,7 @@ Protolimnesia ventriplacophora
 Allomideopsis wichitaensis 
 Stygoparnus comalensis
 Comaldessus stygius
-Ereboporus naturaconservatis
+Ereboporus naturaconservatus
 Haideoporus texanus
 Psychopomporus felipi
 Typhloelmis caroline
