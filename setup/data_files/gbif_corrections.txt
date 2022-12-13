@@ -17,6 +17,7 @@ Arthropoda Malacostraca Bathynellacea Parabathynellidae Texanobathynella colorad
 Arthropoda Malacostraca Isopoda Microcerberidae Texicerberus amistad
 Arthropoda Malacostraca Isopoda Microcerberidae Texicerberus castilloi
 Arthropoda Malacostraca Isopoda Microcerberidae Texicerberus schoetteae
+Arthropoda Ostracoda Podocopida Candonidae Bicornucandona fineganensis
 Arthropoda Ostracoda Podocopida Candonidae Comalcandona gibsoni
 Arthropoda Ostracoda Podocopida Candonidae Comalcandona mixoni
 Arthropoda Ostracoda Podocopida Candonidae Indocandona rusti
