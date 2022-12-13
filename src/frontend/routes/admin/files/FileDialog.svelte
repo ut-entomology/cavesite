@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  import type { DataKey } from '../../../../shared/data_keys';
+  import { DataKey, parseGbifCorrections } from '../../../../shared/data_keys';
   import { createSessionStore } from '../../../util/session_store';
 
   export interface FileSpec {
@@ -106,6 +106,11 @@
 
   const TAXA_RANKS = ['species', 'genus', 'family', 'order', 'class', 'phylum'];
   async function loadTaxaWarnings(text: string): Promise<void> {
+    const gbifCorrections = await loadKeyData($client, false, DataKey.GbifCorrections);
+    const preservedTaxa = gbifCorrections
+      ? parseGbifCorrections(gbifCorrections, [])
+      : {};
+
     const lines = parseDataLines(text);
     const _warnings: string[] = [];
     loadingWarnings = true;
@@ -114,6 +119,9 @@
       line = line.trim();
       if (line != '') {
         const lookupTaxon = line.split(',')[0].trim();
+        // Skip taxa that are not subject to remapping by GBIF.
+        if (preservedTaxa[lookupTaxon]) continue;
+
         const urlTaxon = lookupTaxon.replace(' ', '+');
         let matchedTaxon: string | undefined = undefined;
         let matchedRank: string | undefined = undefined;

@@ -96,23 +96,23 @@
           dataKey: DataKey.Stygobites,
           title: 'Stygobites',
           instructions:
-            "List of all stygobites at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+            'List of all stygobites at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with \'#\', which you can use for comments. Changes apply on the next import from GBIF. Taxa not found in the "GBIF Taxon Corrections" file are checked for existence in GBIF.'
         },
         {
           dataKey: DataKey.Troglobites,
           title: 'Troglobites',
           instructions:
-            "List of all stygobites at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF."
+            'List of all stygobites at one taxon per line. You may list genera, species, and subspecies. Do not include taxon authors. Blank lines are ignored, as are lines beginning with \'#\', which you can use for comments. Changes apply on the next import from GBIF. Taxa not found in the "GBIF Taxon Corrections" file are checked for existence in GBIF.'
         },
         {
           dataKey: DataKey.TexasSpeciesStatus,
           title: 'Texas Species Status',
-          instructions: `List of all cave invertebrate species that Texas monitors for conservation. Each line must list a species name, the state rank, and the TPWD status, in this order and separated by commas. For example, "Cicurina serena, S1, SGCN". Don't include the author name. You may leave the state rank or the TPWD status blank, provided that you still include the commas. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF.`
+          instructions: `List of all cave invertebrate species that Texas monitors for conservation. Each line must list a species name, the state rank, and the TPWD status, in this order and separated by commas. For example, "Cicurina serena, S1, SGCN". Don't include the author name. You may leave the state rank or the TPWD status blank, provided that you still include the commas. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF. Taxa not found in the \"GBIF Taxon Corrections\" file are checked for existence in GBIF.`
         },
         {
           dataKey: DataKey.FederalSpeciesStatus,
           title: 'Federal Species Status',
-          instructions: `List of all federally listed cave invertebrate species at one per line. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF.`
+          instructions: `List of all federally listed cave invertebrate species at one per line. Blank lines are ignored, as are lines beginning with '#', which you can use for comments. Changes apply on the next import from GBIF. Taxa not found in the \"GBIF Taxon Corrections\" file are checked for existence in GBIF.`
         }
       ]
     },
