@@ -1,0 +1,1 @@
+psql caves -f ./setup/sql/drop_tables.sql
