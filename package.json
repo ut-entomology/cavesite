@@ -63,6 +63,7 @@
     "@sendgrid/mail": "^7.6.2",
     "@types/cookie-parser": "^1.4.2",
     "@types/http-status-codes": "^1.2.0",
+    "@types/node": "^18.11.18",
     "@types/page": "^1.11.5",
     "@zxcvbn-ts/core": "^2.0.1",
     "@zxcvbn-ts/language-common": "^2.0.1",
