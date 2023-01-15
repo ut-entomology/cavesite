@@ -209,7 +209,7 @@ To manually import the data from GBIF, type the following, and the data will imp
 
 ```
 cd /var/www
-node build/tools/import-gbif.js –force
+node build/tools/import-gbif.js --force
 ```
 
 To schedule regular imports from GBIF, use the following command to schedule the importer to run every hour at N minutes after the hour (replace N with the minute of the hour):
