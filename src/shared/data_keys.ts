@@ -421,7 +421,7 @@ export function parseGbifCorrections(text: string, errors: string[]): Record<str
   const taxaPaths: Record<string, string[]> = {};
   for (let rawLine of text.split('\n')) {
     if (rawLine.match(/[^-A-Za-z, ]/) !== null) {
-      _addError(errors, rawLine, "contains an unrecognized character");
+      _addError(errors, rawLine.trim(), "contains an unrecognized character");
     } else {
       let line = rawLine.trim().replace(/[, \t]+/g, " ");
       if (line.length == 0 || line[0] == '#') continue;
@@ -429,7 +429,8 @@ export function parseGbifCorrections(text: string, errors: string[]): Record<str
       const lastCapOffset = match ? line.lastIndexOf(match.pop()!) : -1;
       if (lastCapOffset >= 0) {
         let specificName = line.substring(lastCapOffset);
-        const parentNames = line.substring(0, lastCapOffset).trim().split(" ");
+        const parentString = line.substring(0, lastCapOffset).trim();
+        const parentNames = parentString.length == 0 ? [] : parentString.split(" ");
         const endGenus = specificName.indexOf(" ");
         if (endGenus > 0) {
           parentNames.push(specificName.substring(0, endGenus));
@@ -439,7 +440,7 @@ export function parseGbifCorrections(text: string, errors: string[]): Record<str
           _addTaxaPath(taxaNames, taxaPaths, parentNames.slice(0, i - 1), parentNames[i - 1], errors);
         }
       } else {
-        _addError(errors, rawLine, "has a letter case error");
+        _addError(errors, rawLine.trim(), "has a letter case error");
       }
     }
   }
