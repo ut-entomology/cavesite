@@ -9,8 +9,8 @@ Arthropoda Insecta Coleoptera Curculionidae Lymantes reddelli
 Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia aquilonalis
 Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia capitesquameo
 Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia coahuilensis
-Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia Texoreddellia media
-Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia Texoreddellia occasus
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia media
+Arthropoda Insecta Zygentoma Nicoletiidae Texoreddellia occasus
 Arthropoda Malacostraca Bathynellacea Parabathynellidae Montanabathynella pecosensis
 Arthropoda Malacostraca Bathynellacea Parabathynellidae Texanobathynella aaronswinki
 Arthropoda Malacostraca Bathynellacea Parabathynellidae Texanobathynella coloradoensis
