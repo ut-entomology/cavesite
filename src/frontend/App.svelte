@@ -199,6 +199,7 @@
 
   @import '../../node_modules/bootstrap/scss/functions';
   @import '../../node_modules/bootstrap/scss/variables';
+  // @import '../../node_modules/bootstrap/scss/maps';
   @import '../../node_modules/bootstrap/scss/utilities';
 
   // Must precede loading boostrap SCSS

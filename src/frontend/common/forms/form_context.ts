@@ -2,7 +2,7 @@ import type { Readable, Writable } from 'svelte/store';
 import type { ObjectSchema } from 'yup';
 import { createForm as createValidatingForm } from 'svelte-forms-lib';
 
-type Values = { [key: string]: any };
+type Values = { [key: string]: any; };
 
 export type FormContext = {
   form: Writable<Values>;
@@ -27,6 +27,6 @@ export type FormProps<T extends Values> = {
 
 export const formContextKey = {};
 
-export function createForm<T>(formProps: FormProps<T>): FormContext {
+export function createForm<T extends Values>(formProps: FormProps<T>): FormContext {
   return createValidatingForm(formProps as any);
 }
