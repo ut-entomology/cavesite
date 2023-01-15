@@ -416,7 +416,7 @@ export function parseDataLines(text: string): string[] {
 }
 
 // Returned map maps most specific taxa to their parent taxa.
-export function parseGbifCorrections(text:string, errors: string[]): Record<string, string[]> {
+export function parseGbifCorrections(text: string, errors: string[]): Record<string, string[]> {
   const taxaNames: Record<string, string> = {};
   const taxaPaths: Record<string, string[]> = {};
   for (let rawLine of text.split('\n')) {
@@ -426,10 +426,14 @@ export function parseGbifCorrections(text:string, errors: string[]): Record<stri
       let line = rawLine.trim().replace(/[, \t]+/g, " ");
       if (line.length == 0 || line[0] == '#') continue;
       const match = line.match(/[A-Z]/g);
-      const lastCapOffset =  match ? line.lastIndexOf(match.pop()!) : -1;
+      const lastCapOffset = match ? line.lastIndexOf(match.pop()!) : -1;
       if (lastCapOffset >= 0) {
         let specificName = line.substring(lastCapOffset);
         const parentNames = line.substring(0, lastCapOffset).trim().split(" ");
+        const endGenus = specificName.indexOf(" ");
+        if (endGenus > 0) {
+          parentNames.push(specificName.substring(0, endGenus));
+        }
         _addTaxaPath(taxaNames, taxaPaths, parentNames, specificName, errors);
         for (let i = parentNames.length; i >= 1; --i) {
           _addTaxaPath(taxaNames, taxaPaths, parentNames.slice(0, i - 1), parentNames[i - 1], errors);

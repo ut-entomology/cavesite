@@ -418,12 +418,12 @@ export class Specimen implements TaxonPathSpec {
           (!partialStartDate || partialStartDate.includes('-')) &&
           (!partialEndDate || partialEndDate.includes('-')) &&
           toDaysEpoch(endDate) - toDaysEpoch(startDate) >
-            MAX_PITFALL_TRAP_COLLECTION_DAYS
+          MAX_PITFALL_TRAP_COLLECTION_DAYS
         ) {
           problemList.push(
             `End date ${toZonelessDateString(endDate)} follows start date ` +
-              `${toZonelessDateString(startDate)} by more than ` +
-              `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropped end date`
+            `${toZonelessDateString(startDate)} by more than ` +
+            `${MAX_PITFALL_TRAP_COLLECTION_DAYS} days; dropped end date`
           );
           endDate = null;
           partialEndDate = null;
@@ -883,6 +883,7 @@ export class Specimen implements TaxonPathSpec {
       source.genus = getRankedName(ancestorTaxa, 4, preGbifTaxon) || undefined;
       source.specificEpithet = undefined; // remove GBIF assignments, if any
       source.infraspecificEpithet = undefined;
+      source.scientificName = preGbifTaxon; // also erases taxon author
 
       const speciesParts = preGbifTaxon.split(' ');
       if (speciesParts.length > 1) {
