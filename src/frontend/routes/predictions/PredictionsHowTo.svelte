@@ -30,8 +30,9 @@
   restricted to caves. We do not have exact information about which locations are caves
   and which are not, so we use heuristics. Localities meeting any of the following
   criteria are considered caves: the name of the locality contains the text "cave"
-  (including, for example, the word "cavern"), at least one troglobite has been found at
-  the locality, or the admin has explicitly designated the locality as a cave.
+  (including, for example, the word "cavern") or any other term the admin designates, at
+  least one troglobite has been found at the locality, or the admin has explicitly
+  designated the locality as a cave.
 </p>
 
 <SimpleTOC tag="h3" setUpdater={(updater) => (updateTOC = updater)} />
